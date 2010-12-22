@@ -1,0 +1,24 @@
+{
+		"text": "CFLAMenu"
+	,	"records":[{
+						"text": "Gallery"
+					,	"leaf":false
+					,	"records":[{
+									"text": "Collections"
+								,	"leaf":false	
+								},{
+									"text": "Family"
+								,	"leaf":true	
+								},{
+									"text": "Genus"
+								,	"leaf":true	
+								},{
+									"text": "All"
+								,	"leaf":true	
+								}]
+				},{
+						"text": "About"
+					,	"leaf":true
+				}]
+}
+

@@ -1,0 +1,53 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<title>Viewer Samples</title>
+
+	<link rel="stylesheet" type="text/css" href="../../resources/css/ext-all.css">
+	<script type="text/javascript" src="../../resources/ext/ext-base.js"></script>
+	<script type="text/javascript" src="../../resources/ext/ext-all.js"></script>
+
+	<script src="http://maps.google.com/maps?file=api&amp;v=2&amp;sensor=false&amp;key=ABQIAAAAd_HMcMSICL9vlu0Ce3VNSRS3fhc3XsnX2mfUYPZKLCBA4-8VwRTwXpl9zhjb_WVuvV9vrX43Msrang" type="text/javascript"></script> 	
+	<script type="text/javascript" src="../../imageviewer/resources/js/classes/Ext.ux.GMapPanel.js"></script>	   
+	<script type="text/javascript" src="../../imageviewer/resources/js/classes/class.imagingprocess.ivintractive.js"></script>	   
+	<script>
+	Ext.onReady(function() {
+		Ext.ns("ImagingProgress");
+/*		
+		var img1 = new ImagingProgress.IVIntractive({
+				renderTo: Ext.getBody()
+			,	width: 600
+			,	height: 900
+			,	title: 'IM Example'
+			,	style: "float: left"
+			,	CustomGetTileUrl: function( a, b ) {
+					var path = this.path + "tile_z" + (6 - b) + "x" + a.x + "y" + a.y + ".jpg";
+					return path;
+				}
+		});
+		
+		img1.drawImage("http://images.cyberfloralouisiana.com/gui/api/testcases/gTile/imTiles/");
+*/
+		var img2 = new ImagingProgress.IVIntractive({
+				renderTo: Ext.getBody()
+//				renderTo: "sample"
+			,	width: 600
+			,	height: 900
+			,	title: 'IM Example'
+//			,	style: 'float: right'
+			,	CustomGetTileUrl: function( a, b ) {
+					var path = this.path + (5 - b) + "/tile_"+ (5 - b) + "_" + a.x + "_" + a.y + ".jpg";
+					return path;
+				}
+		});
+
+		img2.drawImage("http://specimens.silverbiology.com/imagingtour2010/testcases/gTile/imTiles3/");
+
+	});
+	</script>
+</head>
+<body>
+	<div id="sample"></div>
+</body>
+</html>

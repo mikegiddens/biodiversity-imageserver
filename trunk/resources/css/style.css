@@ -1,0 +1,637 @@
+/*
+ * Ext JS Library 2.1
+ * Copyright(c) 2006-2008, Ext JS, LLC.
+ * licensing@extjs.com
+ * 
+ * http://extjs.com/license
+ */
+
+/*===================================
+/*   Basic page styles
+/*===================================*/
+body {
+	font-family:helvetica,tahoma,verdana,sans-serif;
+	padding:20px;
+    margin:0 auto;
+    font-size:13px;
+	background-color:#AAA !important;
+}
+
+a {
+    color:#15428B;
+}
+a:link, a:visited {
+    text-decoration: none;
+}
+a:hover {
+    text-decoration: underline;
+}
+#header {
+    background: #7F99BE url(images/layout-browser-hd-bg.gif) repeat-x center;
+}
+#header h1 {
+    font-size: 16px;
+    color: #fff;
+    font-weight: normal;
+    padding: 5px 10px;
+}
+#start-div h2 {
+    font-size: 12px;
+    color: #555;
+    padding-bottom:5px;
+    border-bottom:1px solid #C3D0DF;
+}
+#start-div p {
+    margin: 10px 0;
+}
+#details-panel h2 {
+    padding:10px 10px 0;
+    font-size:12px;
+    color:#15428B;
+}
+
+#details-panel p {
+    padding: 10px 0px 0;
+}
+
+#details-panel ul {
+    padding: 10px 0px 0;
+}
+
+#details-panel li {
+	list-style-type: circle;
+	margin-left: 20px;
+	padding-bottom: 10px;
+}
+
+#details-panel pre {
+    border-top:1px dotted #ddd;
+    border-bottom:1px dotted #ddd;
+    margin-top:10px;
+    padding:0 5px;
+    background:#f5f5f5;
+}
+
+#details-panel .details-info {
+    margin:15px;
+    padding:15px;
+    border:1px dotted #999;
+    color:#555;
+    background: #f9f9f9;
+}
+
+#info-panel .details-info {
+    margin:15px;
+    padding:15px;
+    border:1px dotted #999;
+    color:#555;
+    background: #f9f9f9;
+}
+
+/*===================================
+/*   Customized layout styles
+/*===================================*/
+
+/* Remove the border around the tabs and override the default white background: */
+.x-tab-panel-header-plain .x-tab-strip-top {
+    background: #DFE8F6 url(../images/default/tabs/tab-strip-bg.gif) repeat-x scroll center bottom !important;
+}
+
+/* Custom CSS applied to a single panel in an accordion: */
+.custom-accordion .x-panel-body {
+    font-family:georgia,serif;
+    padding:20px 80px !important;
+    background:#ffe;
+    font-size:18px;
+    text-align:center;
+    color:#15428B;
+}
+.custom-accordion .x-panel-header-text {
+    font-weight:bold;
+    font-style:italic;
+    color:#555;
+}
+
+/* Custom style for the FormLayout footer so that it integrates into the border layout nicely: */
+#form-panel .x-panel-footer {
+    background:#DFE8F6;
+    border-color:#99BBE8;
+    border-style:none solid solid;
+    border-width:0pt 1px 1px;
+}
+
+/* Customize the TableLayout html using standard CSS rules: */
+#table-panel .x-table-layout {
+    padding:5px;
+}
+#table-panel .x-table-layout td {
+    vertical-align:top;
+    padding:5px;
+    font-size: 11px;
+}
+
+/* Toolbar icons for absolute form example: */
+.icon-send {
+    background-image:url(images/email_go.png) !important;
+}
+.icon-save {
+    background-image:url(images/disk.png) !important;
+}
+.icon-print {
+    background-image:url(images/printer.png) !important;
+}
+.icon-spell {
+    background-image:url(images/spellcheck.png) !important;
+}
+.icon-attach {
+    background-image:url(images/page_attach.png) !important;
+}
+/* Custom rule to make the toolbar fit within a framed panel with no margin: */
+.email-form .x-panel-mc .x-panel-tbar .x-toolbar {
+    border-top:1px solid #C2D6EF;
+    border-left:1px solid #C2D6EF;
+    border-bottom:1px solid #99BBE8;
+    margin:-5px -4px 0;
+}
+
+/* Custom styles for the "Tabs with nested layouts" example: */
+.inner-tab-custom .x-border-layout-ct {
+    background: #fff;
+}
+
+/*===================================
+/*  Rules for custom ux layouts
+/*====================================*/
+/* 
+ * Ext.ux.layout.CenterLayout
+ */
+.ux-layout-center-item {
+    margin:0 auto;
+    text-align:left;
+}
+.ux-layout-center .x-panel-body,  /* if the container is a panel */
+body.ux-layout-center {           /* if the container is the doc body (for viewport) */
+    text-align:center;
+}
+
+.x-view-selector {
+	border:thin dashed;
+	
+}
+
+.LabelRegion-header {
+	background-color: #909090;
+	position: relative;
+	padding: 4px;
+	top: -19px;
+	left: 15px;
+	width: 150px;
+	height: 15px;
+}
+
+.sa-label-cb {
+	top: -5px;
+}
+
+.sa-selector .x-window-body {
+	background: none;
+}
+
+.sa-selector .x-window-mc {
+	background: none !important;
+}
+
+.sa-selector .x-resizable-handle-south {
+	background: none !important;
+	border: thin solid #99BBE8;
+}
+
+.sa-selector .x-window-tl {
+	-moz-opacity:0.6;
+	opacity:.60;
+	filter:alpha(opacity=60);
+}
+
+.sa-selector .x-window-ml {
+	background: none !important;
+	padding: 0px !important;
+	border: thin solid #99BBE8;
+}
+
+.sa-selector .x-window-mr {
+	background: none !important;
+	padding: 0px !important;
+}
+
+.sa-selector .x-window-br {
+	background: none !important;
+	padding: 0px !important;
+}
+
+.sa-selector .x-window-bc {
+	background: none !important;
+	padding: 0px !important;
+}
+
+.sa-selector .x-window-bl {
+	background: none !important;
+	padding: 0px !important;
+}
+
+.sa-selector .x-window-header {
+	padding: 1px !important;
+}
+
+.specimensheet_details {
+	padding: 10px;
+}
+
+.specimensheet_details .labels {
+	margin-left: 5px;
+}
+
+.tpl-ss-value {
+	border: thin solid #000;
+	margin-left: 5px;
+	margin-bottom: 5px;
+	padding: 2px;
+}
+
+.tpl-ss-value p {
+	padding: 0px !important;
+}
+
+.tpl-ss-values p {
+	padding: 0px !important;
+}
+
+.x-grid3-hd-row td.ux-filtered-column {   
+	font-style: italic;  
+	font-weight: bold;
+}		
+
+
+
+
+
+    #loading-mask{
+        position:absolute;
+        left:0;
+        top:0;
+        width:100%;
+        height:100%;
+        z-index:20000;
+        background-color:white;
+    }
+    #loading{
+        position:absolute;
+        left:45%;
+        top:40%;
+        padding:2px;
+        z-index:20001;
+        height:auto;
+    }
+    #loading a {
+        color:#225588;
+    }
+    #loading .loading-indicator{
+        background:white;
+        color:#444;
+        font:bold 13px tahoma,arial,helvetica;
+        padding:10px;
+        margin:0;
+        height:auto;
+    }
+    #loading-msg {
+        font: normal 10px arial,tahoma,sans-serif;
+    }
+
+
+
+
+
+
+.iconGo
+{
+	background-image:url("../../images/Go.png");	
+}
+
+.imageClass {
+	position:absolute;
+	margin-left:50px;
+	margin-top: 150px;
+}
+
+.inputClass {
+	position:absolute;
+	margin-left:55px;	
+	margin-top: 370px;
+	/*background-image:url("../../images/inputBackground.jpg");
+	background-repeat:repeat-x;*/
+	padding:3px;
+}
+
+.startBackground {
+	position:absolute;
+	margin-left:20px;	
+	margin-top:120px;
+	width: 680px;
+	height: 305px;
+	background-image:url(../../images/mask.jpg)
+}
+
+.healthClass
+{
+	position:absolute;
+	margin-left:28px;	
+	margin-top:478px;
+	font-size: 24px;
+	color: #FFF;
+}
+
+.progressClass
+{
+	position:absolute;
+	margin-left:168px;	
+	margin-top:483px;
+}
+
+.levelClass
+{
+	position:absolute;
+	margin-left:555px;	
+	margin-top:478px;
+	font-size: 24px;
+	color: #FFF;
+}
+
+.timerClass
+{
+	position:absolute;
+	margin-left: 655px;	
+	margin-top: 182px;
+	font-size: 24px;
+}
+
+.rankClass
+{
+	position:absolute;
+	margin-left: 660px;	
+	margin-top:478px;	
+	height:50px;
+	width:30px;
+	font-size: 24px;
+	color: #FFF;
+}
+
+.startClass
+{
+	position:absolute;
+	margin-left: 270px;	
+	margin-top: 80px;
+	cursor:pointer;	
+	font-family:Arial;
+	font-size:medium;
+	font-weight:bold;
+	padding: 30px;
+	/*background-image:url("../../images/start.jpg");*/
+}
+
+.highScoreClass
+{
+	position:absolute;
+	margin-left: 370px;	
+	margin-top: 200px;
+	cursor:pointer;	
+	font-family:Arial;
+	font-size:medium;
+	font-weight:bold;
+	padding: 5px;
+}
+
+.instructClass
+{
+	position:absolute;
+	margin-left: 170px;	
+	margin-top: 200px;
+	cursor:pointer;	
+	font-family:Arial;
+	font-size:medium;
+	font-weight:bold;
+	padding: 5px;
+}
+
+.welcomeClass
+{
+	position:absolute;
+	margin-left: 130px;	
+	margin-top: 93px;
+	font-family:Arial;
+	font-size:medium;
+	font-weight:bold;	
+	color: #FFF;
+	font-size: 16px;
+}
+
+.quitClass
+{
+	position:absolute;
+	margin-left: 625px;	
+	margin-top:30px;
+	cursor:pointer;	
+	font-family:Arial;
+	font-size:medium;
+	font-weight:bold;	
+	width: 80px;
+	height: 60px;
+}
+
+.maskLoadSave
+{
+	opacity: .5;
+	z-index:2;
+}
+
+.maskLoadSaveText
+{
+	vertical-align:middle;
+	position:absolute;	
+	width:100%;
+	height:60%;
+	margin-top:200px;
+	text-align:center;
+	z-index:1;	
+	left:0;
+	top:0;
+	display:block;
+}
+
+.hideClass
+{
+	display:none;
+}
+
+#gameInterface {
+	width: 734px; 
+	height: 557px;
+	margin: 0px auto;
+	background-color: #EFEFEF;
+	position: relative;
+	background-image: url(../../images/background.jpg);
+}
+
+.textboxClass
+{
+	font-family:Arial;
+	font-size:medium;
+	font-weight:bold;
+}
+
+.timerNormalFormating
+{
+	font-family:Arial;
+	font-size: 24px;
+	font-weight:bold;
+	color: #FFF;
+}
+
+.timerOrangeFormating
+{
+	font-family:Arial;
+	font-size: 24px;
+	font-weight:bold;
+	color:Orange;
+}
+
+.timerRedFormating
+{
+	font-family:Arial;
+	font-size: 24px;
+	font-weight:bold;
+	color:Red;
+}
+
+
+.msg .x-box-mc {
+    font-size:14px;
+}
+#msg-div {
+    position:absolute;
+    left:35%;
+    top:10px;
+    width:250px;
+    z-index:20000;
+}
+
+#load-Masking
+{
+	width:100%;
+	height:100%;
+	position:absolute;
+	z-index:100;
+	left:0;
+	top:0;
+}
+
+.hd-user {
+	color: white; 
+	margin-top: 5px; 
+	font-size: small; 
+	font-weight: bold;
+/*
+	float: left;
+	margin-left: 100px; 
+	width: 300px
+*/
+}
+
+.hd-imagingprocesstext{
+	color:white;
+	font-family:comic Sans MS;
+	font-size:35px;
+	margin-left:40px;
+	position:absolute;
+}
+
+.hd-dashboard{
+	color:white;
+	position:absolute;
+}
+
+.hd-dashsign{
+	float:right;
+	margin-right:127px;
+	margin-top:4px;
+}
+
+.a-dashboard{
+	color:white;
+	font-weight:bold;
+}
+
+.a-signout{
+	color:white;
+	font-weight:bold;
+}
+
+.signout{
+	/*margin-left:78px;*/
+	position:absolute;
+}
+
+.rightarea{
+	font-weight:bold;
+	float:right;
+	padding-right:20px;
+	padding-top:5px;
+}
+
+.x-icon-templates {
+
+background-image:url(../../images/templates.png) !important;
+
+}
+.x-icon-templates1 {
+background-color:black
+}
+
+.x-icon-help {
+background-image:url(../../images/help.png) !important;
+}
+
+.error-row { 
+	background-color:#FFFACD !important;
+}
+
+/*
+ * Cycle Image Icon
+ */
+.icon_cycleImages {
+	background-image:url(../images/icons/images.png) !important;
+}
+
+.icon_saveImageChanges {
+	background-image:url(../images/icons/picture_save.png) !important;
+}
+
+.icon_rotate_right {
+	background-image:url(../images/icons/arrow_turn_right.png) !important;
+}
+.icon_rotate_left {
+	background-image:url(../images/icons/arrow_turn_left.png) !important;
+}
+.icon_rotate_image {
+	background-image:url(../images/icons/arrow_undo.png) !important;
+}
+.icon_reset_image {
+	background-image:url(../images/icons/arrow_rotate_clockwise.png) !important;
+}
+.icon_delete_image {
+	background-image:url(../images/icons/image_delete.png) !important;
+}
+/** Icon for piechart
+*/
+.icon_chart_pie {
+	background-image:url(../images/icons/chart_pie.png) !important;
+}
+
