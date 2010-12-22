@@ -1,0 +1,99 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Cyberflora Image Server</title>
+
+    <!-- ** CSS ** -->
+
+	<link rel="stylesheet" type="text/css" href="http://images.cyberfloralouisiana.com/portal/resources/css/ext-all.css">
+	<link rel="stylesheet" type="text/css" href="http://images.cyberfloralouisiana.com/portal/resources/css/explorerview.css">
+	
+	<script type="text/javascript" src="http://images.cyberfloralouisiana.com/portal/resources/ext/ext-base.js"></script>
+	<script type="text/javascript" src="http://images.cyberfloralouisiana.com/portal/resources/ext/ext-all.js"></script>
+	
+	<!-- overrides to base library -->	
+	<link rel="stylesheet" type="text/css" href="http://images.cyberfloralouisiana.com/portal/resources/css/style.css" />
+	<link rel="stylesheet" type="text/css" href="http://images.cyberfloralouisiana.com/portal/resources/css/tpl.css" />   
+	<link rel="stylesheet" type="text/css" href="http://images.cyberfloralouisiana.com/portal/resources/ext/gridfilters/css/GridFilters.css" />
+	
+	<script src="http://maps.google.com/maps?file=api&amp;v=2&amp;sensor=false&amp;key=ABQIAAAAd_HMcMSICL9vlu0Ce3VNSRSoUK3TRYoaqWgf85KtuuUI7z8orBTcrGRI2ah9BMx-wbv86Zic9u2h9w" type="text/javascript"></script>
+	<script type="text/javascript" src="http://images.cyberfloralouisiana.com/portal/resources/js/classes/Ext.ux.GMapPanel.js"></script>
+
+	
+ 	<script type="text/javascript" src="http://images.cyberfloralouisiana.com/portal/config.js"></script> 	
+ 	
+	<!--Files for expoler view & combobox-->
+	
+	<script type="text/javascript" src="http://images.cyberfloralouisiana.com/portal/resources/plugins/explorerview/Ext.ux.grid.ExplorerView.js"></script>
+	<script type="text/javascript" src="http://images.cyberfloralouisiana.com/portal/resources/plugins/TwinComboBox.js"></script>
+	
+	<script type="text/javascript" src="http://images.cyberfloralouisiana.com/portal/resources/ext/gridfilters/menu/RangeMenu.js"></script>
+	<script type="text/javascript" src="http://images.cyberfloralouisiana.com/portal/resources/ext/gridfilters/menu/ListMenu.js"></script>	
+	<script type="text/javascript" src="http://images.cyberfloralouisiana.com/portal/resources/ext/gridfilters/GridFilters.js"></script>
+
+	<script type="text/javascript" src="http://images.cyberfloralouisiana.com/portal/resources/ext/gridfilters/filter/Filter.js"></script>
+	<script type="text/javascript" src="http://images.cyberfloralouisiana.com/portal/resources/ext/gridfilters/filter/StringFilter.js"></script>
+	<script type="text/javascript" src="http://images.cyberfloralouisiana.com/portal/resources/ext/gridfilters/filter/DateFilter.js"></script>
+	<script type="text/javascript" src="http://images.cyberfloralouisiana.com/portal/resources/ext/gridfilters/filter/ListFilter.js"></script>
+	<script type="text/javascript" src="http://images.cyberfloralouisiana.com/portal/resources/ext/gridfilters/filter/NumericFilter.js"></script>
+	<script type="text/javascript" src="http://images.cyberfloralouisiana.com/portal/resources/ext/gridfilters/filter/BooleanFilter.js"></script>
+	
+
+	<!-- page specific -->
+		<script type="text/javascript" src="http://images.cyberfloralouisiana.com/portal/resources/js/classes/imageportal.downloadimage.js"></script>
+	<script type="text/javascript" src="http://images.cyberfloralouisiana.com/portal/resources/js/classes/imageportal.imageinfopanel.js"></script>
+		<script type="text/javascript" src="http://images.cyberfloralouisiana.com/portal/resources/js/classes/imageportal.ivflickr.js"></script>	   
+		<script type="text/javascript" src="http://images.cyberfloralouisiana.com/portal/resources/js/classes/imageportal.ivintractive.js"></script>	   
+		<script type="text/javascript" src="http://images.cyberfloralouisiana.com/portal/resources/js/classes/imageportal.popupinput.js"></script>	   
+		<script type="text/javascript" src="http://images.cyberfloralouisiana.com/portal/resources/js/classes/imageportal.zoom.js"></script>	
+		<script type="text/javascript" src="http://images.cyberfloralouisiana.com/portal/resources/js/classes/imageportal.imageviewer.js"></script>
+		
+		<script type="text/javascript" src="http://images.cyberfloralouisiana.com/portal/resources/js/classes/imageportal.image.js"></script>	
+		<script type="text/javascript" src="http://images.cyberfloralouisiana.com/portal/resources/js/classes/imageportal.imagepanel-remote.js"></script>
+	<!--<script type="text/javascript" src="http://images.cyberfloralouisiana.com/portal/resources/js/classes/imageportal-light.js"></script>-->	
+</head>
+<body>
+		<div id= "imagepanel"></div>
+
+		<script type="text/javascript">
+			
+			Ext.onReady(function(){
+	
+			Ext.QuickTips.init();
+		
+			// Disable browser right click
+		
+	Ext.fly(document.body).on('contextmenu', function(e, target) {
+				e.preventDefault();
+			});
+	
+	
+	
+	Config={
+				baseUrl:"http://images.cyberfloralouisiana.com/portal/"
+			,	imageStoreParams:{ 
+								cmd: 'images'
+							,	filter:''
+							,	code:'LSU'
+							,	dir:'ASC'
+							,	filter:''	
+							,	limit:100
+							,	sort:''	
+							,	start:0
+					}
+			,	defaultCollection: "Louisiana State University"
+			,	disableCollection: true
+			,	showCollection: true 	
+		}
+	
+	
+			var imagepanel = new ImagePortal.ImagePortalRemote({
+						renderTo: 'imagepanel'
+			});
+			imagepanel.initLoadMethod();
+					
+	}); 
+</script>	 
+</body>
+</html>
