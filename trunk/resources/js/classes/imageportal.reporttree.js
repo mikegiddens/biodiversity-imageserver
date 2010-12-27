@@ -32,7 +32,23 @@ Ext.override(Ext.tree.TreeLoader, {
 
 ImagePortal.ReportsTree = function(config){
 
-this.disableCheckbox=true;
+var chartMode = new Ext.CycleButton({
+			showText: true
+		,	hidden: false
+		,	ref: '../chartMode'
+		,	scope: this
+		,	items: [{
+				text:'Taxonomy' 
+			,	value: '0'
+			//,	iconCls:'icon-scanner'
+			},{
+				text:'Collection Distribution' 
+			,	value: '1'
+			//,	iconCls:'icon-manual'
+			}]
+		,	changeHandler: this.changeChartMode
+	});
+
 
 
 Ext.apply(this,config,{	
@@ -49,6 +65,7 @@ Ext.apply(this,config,{
 			,	paramsBrowse:''
 			,  	paramsFilter:''
 			,  	rootVisible: false
+			,	tbar:[chartMode]
 			,	root: {
 					text:'Root'
 				,	expanded: true
@@ -78,7 +95,7 @@ Ext.apply(this,config,{
 					}]
 				}
 			,	loader: new Ext.tree.TreeLoader({
-					dataUrl: 'http://images.cyberfloralouisiana.com/portal/resources/api/api.php'
+					dataUrl: Config.baseUrl + 'resources/api/api.php'
 				,	root: 'results'
 				,	disableCheckbox:true
 				,	baseParams: { 
@@ -87,7 +104,6 @@ Ext.apply(this,config,{
 				, listeners: {
 						loadexception: function(loader, node, response) {
 							node.unload();
-							//SilverCollection.Notice.msg("Error", "Load Exception Please Try Again.");
 						} 
 					}
 				,	processResponse: function(response, node, callback, scope){
@@ -102,7 +118,6 @@ Ext.apply(this,config,{
 										if (this.disableCheckbox) {
 											delete(o[i].checked);
 										}
-										//o[i].leaf=true;
 										o[i].qtip = 'Click to load '+ o[i].nodeValue +' report.'
 									}
 									o[i].iconCls='icon_chart_pie';
@@ -114,18 +129,19 @@ Ext.apply(this,config,{
 								node.endUpdate();
 							} else {
 								node.unload();
-								SilverCollection.Notice.msg('Error', response.error.msg);
 							}
 							this.runCallback(callback, scope || node, [node]);
 						} catch(e) {
 							node.unload();
-							SilverCollection.Notice.msg("Error", "Load Exception Please Try Again.");
 						}
 					}				
 				})
 			,	listeners: {
 						beforeLoad: this.applyFilters
-					,	click: this.logChecked		
+					,	click: this.logChecked	
+					,	contextmenu: function(node) {
+							this.showcontextmenu(node);
+						}.createDelegate(this)
 				}		
 		});
 
@@ -135,7 +151,11 @@ Ext.extend(ImagePortal.ReportsTree, Ext.tree.TreePanel, {
 		collapseMenu: function() {
 			this.collapse();
 		}
-
+	,	changeChartMode:function(){
+			//this.getSelectedNode();
+			var activeChart = this.chartMode.activeItem.value;
+			this.fireEvent('loadChart',node,activeChart,this);
+		}
 	,	expandMenu: function() {
 			this.expand();
 		}
@@ -162,8 +182,13 @@ Ext.extend(ImagePortal.ReportsTree, Ext.tree.TreePanel, {
 			}*/
 			}
 	,	logChecked:function(node){
-					//if(node.isLeaf())
-						this.fireEvent('loadChart',node,this);
+				//if(node.isLeaf())
+				var activeChart = this.chartMode.activeItem.value;
+				if(node.attributes.nodeValue == 'Family' || node.attributes.nodeValue == 'Genus'){
+						
+				}else{
+					this.fireEvent('loadChart',node,activeChart,this);
+				}	
 			}
 	,	addBrowseFilter: function(store, opt ) {
 			var list = this.browseTree.getChecked();
@@ -171,10 +196,27 @@ Ext.extend(ImagePortal.ReportsTree, Ext.tree.TreePanel, {
 			Ext.each(list, function(item) {
 				tmp.push({
 						node_type: item.attributes.nodeApi
-					, node_value: item.attributes.nodeValue
-					, filter: item.attributes.filter
+					, 	node_value: item.attributes.nodeValue
+					, 	filter: item.attributes.filter
 				});
 			});
 			opt.params.browse = Ext.encode(tmp);
+		}
+	,	showcontextmenu:function(node){
+				var menu = new Ext.menu.Menu();
+				var menu1 = new Ext.menu.Item({
+						text: 'GBIF Checklist Bank'
+					, 	handler: function(node){
+							window.open('http://ecat-dev.gbif.org/search?q='+node.attributes.nodeValue+'&rkey=1');
+						} 
+					});
+				var menu2 = new Ext.menu.Item({
+						text: 'Wikispecies'
+					, 	handler:function(node){
+							window.open('http://species.wikimedia.org/wiki/Carex_'+node.attributes.nodeValue);
+						} 
+					});            
+				
+				menu.show(node.ui.getAnchor());
 		}	
 })

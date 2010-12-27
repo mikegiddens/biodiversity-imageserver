@@ -9,7 +9,7 @@ Ext.namespace('ImagePortal');
 ImagePortal.PieReport = function(config){
 	
 	var store = new Ext.data.JsonStore({
-				url:  'http://images.cyberfloralouisiana.com/portal/resources/api/api.php'
+				url:  'resources/api/api.php'
 			,	root: 'results'
 			,	baseParams: { 
 						 cmd: 'browse'
@@ -29,7 +29,6 @@ ImagePortal.PieReport = function(config){
 			,	defaults: {
 						border: false
 					}
-			,  	title:'Charts'	
 			,	store: store
 			,	columns: [
 						{ dataIndex: 'nodeValue', label:'Taxanomy' }
@@ -47,12 +46,8 @@ Ext.extend(ImagePortal.PieReport, Ext.ux.GVisualizationPanel, {
 		}
 ,	setParams:function() {
 			var node = this.node;
-			this.setText(node);
 			this.store.baseParams.nodeApi = node.attributes.nodeApi;
 			this.store.baseParams.nodeValue = node.attributes.nodeValue;
 			this.store.baseParams.filter = Ext.encode(node.attributes.filter);
 		}
-,	setText:function(node){
-			this.setTitle(node.attributes.nodeValue);
-		}			
 });
