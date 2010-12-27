@@ -37,7 +37,7 @@ Ext.onReady(function() {
 			console.log("called");
 	} 
 	
-	var items = [{
+	var items = [/*{
 				mainItem: 0
 			,	activeItem:1
 			,	items: [{
@@ -69,7 +69,7 @@ Ext.onReady(function() {
 								url:'../resources/helpfiles/help-data.json'
 						})]								
 				}]
-			},{
+			},*/{
 				 mainItem: 0
 			 ,	 items: [{
 						title: 'Console'
