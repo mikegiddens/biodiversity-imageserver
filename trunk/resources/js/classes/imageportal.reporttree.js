@@ -65,7 +65,10 @@ Ext.apply(this,config,{
 			,	paramsBrowse:''
 			,  	paramsFilter:''
 			,  	rootVisible: false
-			,	tbar:[chartMode]
+			,	tbar:[{
+					xtype:'label'
+				,	html:'Select Report Type: '
+				},chartMode]
 			,	root: {
 					text:'Root'
 				,	expanded: true
@@ -128,11 +131,11 @@ Ext.apply(this,config,{
 								}
 								node.endUpdate();
 							} else {
-								node.unload();
+								//node.unload();
 							}
 							this.runCallback(callback, scope || node, [node]);
 						} catch(e) {
-							node.unload();
+							//node.unload();
 						}
 					}				
 				})
@@ -151,10 +154,16 @@ Ext.extend(ImagePortal.ReportsTree, Ext.tree.TreePanel, {
 		collapseMenu: function() {
 			this.collapse();
 		}
-	,	changeChartMode:function(){
-			//this.getSelectedNode();
-			var activeChart = this.chartMode.activeItem.value;
-			this.fireEvent('loadChart',node,activeChart,this);
+	,	changeChartMode:function(item, checked){
+			var activeChart = item.activeItem.value;
+			var node = this.getSelectionModel().getSelectedNode();
+			if(node == null)
+				return;
+			if(node.attributes.nodeValue == 'Family' || node.attributes.nodeValue == 'Genus'){
+					
+			}else{
+				this.fireEvent('loadChart',node,activeChart,this);
+			}	
 		}
 	,	expandMenu: function() {
 			this.expand();

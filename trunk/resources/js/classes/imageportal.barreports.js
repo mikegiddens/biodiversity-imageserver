@@ -15,8 +15,8 @@ ImagePortal.BarReport = function(config){
 						 cmd: 'getCollectionSpecimenCount'
 					}
 			,	fields: [
-						{ name: 'nodeValue', type: 'string' }
-					,	{ name: 'specimenCount', type: 'int' }
+						{ name: 'CollectionCode', type: 'string' }
+					,	{ name: 'ct', type: 'int' }
 					]
 		},this);
 	
@@ -30,24 +30,19 @@ ImagePortal.BarReport = function(config){
 					border: false
 				}
 		,	items: {
-						xtype: 'columnchart'
-					,	store: this.store
-					,	url: 'resources/ext/resources/charts.swf'
-					,	xField: 'name'
-					,	yField: 'ds1'
-					,	yAxis: new Ext.chart.NumericAxis({
-								displayName: 'Visits'
-							,	labelRenderer : Ext.util.Format.numberRenderer('0,0')
-						})
-					,	tipRenderer : function(chart, record){
-								return Ext.util.Format.number(record.data.ds1, '0,0') + ' images at hour ' + record.data.name;
-						}
-					,	extraStyle:{
-							xAxis:{
-								labelRotation:-90	
-							}
-						}		
-				}
+					xtype: 'stackedbarchart'
+				,	store: this.store
+				,	yField: 'CollectionCode'
+				,	xAxis: new Ext.chart.NumericAxis({
+							stackingEnabled: false
+						,	labelRenderer: Ext.util.Format.numberRenderer('0,0')
+					})
+				,	series: [{
+							xField: 'ct'
+						,	displayName: 'ct'
+					//	,	style: config.styleImaged
+					}]
+			}
 		});
 	ImagePortal.BarReport.superclass.constructor.call(this, config);
 };
