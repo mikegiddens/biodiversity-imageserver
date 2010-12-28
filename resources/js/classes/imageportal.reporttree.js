@@ -56,7 +56,7 @@ Ext.apply(this,config,{
 			,	defaults: {
 					border: false
 				}
-			, 	iconCls: 'icon_reports'
+			, 	iconCls: 'icon_chart_pie'
 			,	autoScroll: true
 			//, 	animCollapse: false
 			,	split: true       
@@ -67,7 +67,7 @@ Ext.apply(this,config,{
 			,  	rootVisible: false
 			,	tbar:[{
 					xtype:'label'
-				,	html:'Select Report Type: '
+				,	html:'Select report type:  '
 				},chartMode]
 			,	root: {
 					text:'Root'
@@ -85,7 +85,7 @@ Ext.apply(this,config,{
 					,	nodeValue:'Family'
 					,	nodeApi:'alpha'
 					,	filter:{}
-					,	qtip: 'Click to load family report.'
+					,	qtip: 'Family report not available.'
 					,	iconCls: 'icon_chart_pie'
 					},{
 						reportType: 'genus'
@@ -93,7 +93,7 @@ Ext.apply(this,config,{
 					,	leaf: false
 					,	nodeValue:'Genus'
 					,	nodeApi:'alpha'
-					,	qtip: 'Click to load Genus report.'
+					,	qtip: 'Genus report not available.'
 					,	iconCls: 'icon_chart_pie'
 					}]
 				}

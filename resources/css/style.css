@@ -547,7 +547,7 @@ body.ux-layout-center {           /* if the container is the doc body (for viewp
 
 .hd-imagingprocesstext{
 	color:white;
-	font-family:comic Sans MS;
+	font-family:Tahoma,Arial,sans-serif;
 	font-size:35px;
 	margin-left:40px;
 	position:absolute;
