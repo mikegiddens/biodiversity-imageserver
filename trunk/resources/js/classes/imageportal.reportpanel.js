@@ -64,10 +64,12 @@ ImagePortal.ReportsPanel.superclass.constructor.call(this, config);
 Ext.extend(ImagePortal.ReportsPanel, Ext.Panel, {
 		statsbyregion:function(node,activeChart){
 			if(activeChart == "0"){
+				this.centerPanel.setTitle(node.attributes.nodeValue);
 				this.pieChart.node = node;
 				this.pieChart.reloadReports();
 				this.centerPanel.getLayout().setActiveItem(0);
 			}else{
+				this.centerPanel.setTitle(node.attributes.nodeValue);
 				this.barChart.node = node;
 				this.barChart.reloadReports();
 				this.centerPanel.getLayout().setActiveItem(1);

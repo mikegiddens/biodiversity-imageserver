@@ -46,17 +46,17 @@ Ext.namespace('ImagePortal');
 								'<tpl if="Family != 0">' +
 								'<div class="detailrow1"><div class="detaillabel">Family</div><div class="detailtext">{family}</div></div>' +
 								'</tpl>' +
-								'<tpl if="Family== 0">'+
+								/*'<tpl if="Family== 0">'+
 								'<div class="detailrow1"><div class="detaillabel">Family</div><div class="detailtext">&nbsp;</div></div>' +
-								'</tpl>' +
+								'</tpl>' +*/
 							
 								
 								'<tpl if="Genus != 0">' +
 								'<div class="detailrow1"><div class="detaillabel">Genus</div><div class="detailtext">{Genus}</div></div>' +
 								'</tpl>' +
-								'<tpl if="Genus== 0">'+
+							/*	'<tpl if="Genus== 0">'+
 								'<div class="detailrow1"><div class="detaillabel">Genus</div><div class="detailtext">&nbsp;</div></div>' +
-								'</tpl>' +
+								'</tpl>' +*/
 								
 								'<tpl if="SpecificEpithet!= 0">' +
 								'<div class="detailrow1"><div class="detaillabel">Specific Epithet</div><div class="detailtext">{SpecificEpithet}</div></div>' +
