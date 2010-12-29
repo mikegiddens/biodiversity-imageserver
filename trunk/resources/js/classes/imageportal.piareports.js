@@ -30,14 +30,15 @@ ImagePortal.PieReport = function(config){
 						border: false
 					}
 			,	store: store
+			,	body:''
 			,	columns: [
 						{ dataIndex: 'nodeValue', label:'Taxanomy' }
 					,	{ dataIndex: 'specimenCount',  label:'Specimen Count' }
 					]	
 			,	visualizationPkg: {'piechart':'PieChart'}
 			, 	visualizationCfg: {legend: 'label', pieJoinAngle: 5}
-			});
-			ImagePortal.PieReport.superclass.constructor.call(this, config);
+	});
+		ImagePortal.PieReport.superclass.constructor.call(this, config);
 };
 
 Ext.extend(ImagePortal.PieReport, Ext.ux.GVisualizationPanel, {

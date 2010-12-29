@@ -15,54 +15,32 @@ Ext.namespace('ImagePortal');
 								'<tpl if="image_id != 0">' +
 								'<div class="detailrow1"><div class="detaillabel">Image Id at</div><div class="detailtext">{image_id}</div></div>' +
 								'</tpl>'+
-								'<tpl if="image_id == 0">' +
-								'<div class="detailrow1"><div class="detaillabel">Image Id at</div><div class="detailtext">&nbsp;</div></div>' +
-								'</tpl>'+
-								
 								
 								'<tpl if="filename!= 0">' +
 								'<div class="detailrow1"><div class="detaillabel">Filename</div><div class="detailtext">{filename}</div></div>' +
 								'</tpl>' +
-								'<tpl if="filename== 0">' +
-								'<div class="detailrow1"><div class="detaillabel">Filename</div><div class="detailtext">&nbsp;</div></div>' +
-								'</tpl>' +
-							
+								
 								'<tpl if="barcode != 0">' +
 								'<div class="detailrow1"><div class="detaillabel">Barcode</div><div class="detailtext">{barcode}</div></div>' +
-								'</tpl>' +
-								'<tpl if="barcode == 0">' +
-								'<div class="detailrow1"><div class="detaillabel">Barcode</div><div class="detailtext">&nbsp;</div></div>' +
 								'</tpl>' +
 								
 								
 								'<tpl if="timestamp_modified!= 0">' +
 								'<div class="detailrow1"><div class="detaillabel">Last Modified</div><div class="detailtext">{timestamp_modified}</div></div>' +
 								'</tpl>' +
-								'<tpl if="timestamp_modified== 0">' +
-								'<div class="detailrow1"><div class="detaillabel">Last Modified</div><div class="detailtext">&nbsp;</div></div>' +
-								'</tpl>' +
 								
 								
 								'<tpl if="Family != 0">' +
-								'<div class="detailrow1"><div class="detaillabel">Family</div><div class="detailtext">{family}</div></div>' +
+								'<div class="detailrow1"><div class="detaillabel">Family</div><div class="detailtext">{Family}</div></div>' +
 								'</tpl>' +
-								/*'<tpl if="Family== 0">'+
-								'<div class="detailrow1"><div class="detaillabel">Family</div><div class="detailtext">&nbsp;</div></div>' +
-								'</tpl>' +*/
-							
+								
 								
 								'<tpl if="Genus != 0">' +
 								'<div class="detailrow1"><div class="detaillabel">Genus</div><div class="detailtext">{Genus}</div></div>' +
 								'</tpl>' +
-							/*	'<tpl if="Genus== 0">'+
-								'<div class="detailrow1"><div class="detaillabel">Genus</div><div class="detailtext">&nbsp;</div></div>' +
-								'</tpl>' +*/
 								
 								'<tpl if="SpecificEpithet!= 0">' +
 								'<div class="detailrow1"><div class="detaillabel">Specific Epithet</div><div class="detailtext">{SpecificEpithet}</div></div>' +
-								'</tpl>' +
-								'<tpl if="SpecificEpithet== 0">'+
-								'<div class="detailrow1"><div class="detaillabel">Specific Epithet</div><div class="detailtext">&nbsp;</div></div>' +
 								'</tpl>' +
 								
 								//'<tpl if="flickr_PlantID!= 0">' +

@@ -40,8 +40,6 @@ Ext.extend(ImaginProgress.ZoomImage, Ext.ux.GMapPanel, {
 		}
 
 	,	CustomGetTileUrl: function( a, b ) {
-			console.log(a.x,a.y,a);
-			
 			var path = this.path + "google_tiles/" + (5 - b) + "/tile_"+ (5 - b) + "_" + a.x + "_" + a.y + ".jpg";
 			return path;
 		}

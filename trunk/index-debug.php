@@ -31,9 +31,9 @@ if (!(isset($_SESSION['user']) && isset($_SESSION['pw']))) {
 	<link rel="stylesheet" type="text/css" href="resources/ext/gridfilters/css/GridFilters.css" />
 	<link rel="stylesheet" type="text/css" href="resources/ext/gridfilters/css/RangeMenu.css" /> 
 	<link rel="stylesheet" type="text/css" href="resources/css/tpl.css" />   
-  
+  <!--
 	<script src="http://maps.google.com/maps?file=api&amp;v=2&amp;sensor=false&amp;key=<?php print $config["google_key"]; ?>" type="text/javascript"></script>
-	<script type="text/javascript" src="resources/js/classes/Ext.ux.GMapPanel.js"></script>
+	-->
 
   <!-- Reporting -->
   <script type="text/javascript" src="http://www.google.com/jsapi?key=<?php print $config["google_key"]; ?>"></script>
@@ -42,8 +42,8 @@ if (!(isset($_SESSION['user']) && isset($_SESSION['pw']))) {
           google.load('visualization', '1', {packages: ['linechart', 'barchart', 'piechart']});
   </script> 
 
-  <script type="text/javascript" src="resources/js/classes/GVisualizationPanel.js"></script>
-
+ 	<script type="text/javascript" src="resources/js/classes/GVisualizationPanel.js"></script>
+ 	<script type="text/javascript" src="resources/js/classes/Ext.ux.GMapPanel.js"></script>	
  	<script type="text/javascript" src="config.js"></script> 	
  	<script type="text/javascript" src="resources/ext/treecombo.js"></script> 	
 	<script type="text/javascript" src="resources/ext/RandomInt.js"></script>  	
@@ -86,10 +86,10 @@ if (!(isset($_SESSION['user']) && isset($_SESSION['pw']))) {
 	<script type="text/javascript" src="resources/js/classes/imageportal.bystaff.js"></script>  	
 	<script type="text/javascript" src="resources/js/classes/imageportal.bycollection.js"></script>
   
-  <script type="text/javascript" src="resources/js/classes/imageportal.barreports.js"></script>
-  <script type="text/javascript" src="resources/js/classes/imageportal.piareports.js"></script>
-  <script type="text/javascript" src="resources/js/classes/imageportal.reporttree.js"></script>
-  <script type="text/javascript" src="resources/js/classes/imageportal.reportpanel.js"></script>
+  	<script type="text/javascript" src="resources/js/classes/imageportal.piareports.js"></script>
+  	<script type="text/javascript" src="resources/js/classes/imageportal.barreports.js"></script>
+  	<script type="text/javascript" src="resources/js/classes/imageportal.reporttree.js"></script>
+  	<script type="text/javascript" src="resources/js/classes/imageportal.reportpanel.js"></script>
 
 	<script type="text/javascript" src="resources/js/progressui.js"></script>
 </head>
