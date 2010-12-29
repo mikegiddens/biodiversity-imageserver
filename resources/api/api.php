@@ -318,6 +318,11 @@ print_r($records);*/
 						$barcode = $image->getName();
 						$filename = $image->get('filename');
 
+						$parts = array();
+						$parts = preg_split("/[0-9]+/",$barcode);
+						$CollectionCode = $parts[0];
+						unset($parts);
+
 						$path = PATH_IMAGES . $image->barcode_path( $barcode ) . $filename;
 						$ar = @getimagesize($path);
 
@@ -335,6 +340,8 @@ print_r($records);*/
 
 						$image->set('width',$ar[0]);
 						$image->set('height',$ar[1]);
+
+						$image->set('CollectionCode',$CollectionCode);
 
 						$image->save();
 						unset($image);
@@ -760,6 +767,28 @@ print_r($records);*/
 			} # if $ret
 			print( json_encode( array( 'success' => true, 'recordsUpdated' => $records) ) );
 
+			break;
+
+		case 'getCollectionSpecimenCount':
+			header('Content-type: application/json');
+			$data['nodeValue'] = trim($_REQUEST['nodeValue']);
+			if($data['nodeValue'] == '') {
+				$valid = false;
+				$code = 115;
+			}
+			$data['nodeApi'] = trim($_REQUEST['nodeApi']);
+			if(!in_array($data['nodeApi'],array('Family','Genus','SpecificEpithet'))) {
+				$valid = false;
+				$code = 114;
+			}
+			if($valid) {
+				$si->image->setData($data);
+				$results = $si->image->getCollectionSpecimenCount();
+				print( json_encode( array( 'success' => true,  'results' => $results ) ) );
+				
+			} else {
+				print( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ) );
+			}
 			break;
 
 		# picassa commands

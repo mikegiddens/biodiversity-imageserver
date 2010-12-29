@@ -324,7 +324,7 @@ Class Image {
 
 	public function save() {
 		if($this->field_exists($this->get('image_id'))) {
-            $query = sprintf("UPDATE `image` SET  `filename` = '%s', `timestamp_modified` = now(), `barcode` = '%s', `width` = '%s', `height` = '%s', `Family` = '%s', `Genus` = '%s', `SpecificEpithet` = '%s', `flickr_PlantID` = '%s', `flickr_modified` = '%s', `flickr_details` = '%s', `picassa_PlantID` = '%s', `picassa_modified` = '%s', `gTileProcessed` = '%s', `zoomEnabled` = '%s', `processed` = '%s', `ocr_flag` = '%s', `ocr_value` = '%s', `namefinder_flag` = '%s', `namefinder_value` = '%s', `ScientificName` = '%s'  WHERE image_id = '%s' ;"
+            $query = sprintf("UPDATE `image` SET  `filename` = '%s', `timestamp_modified` = now(), `barcode` = '%s', `width` = '%s', `height` = '%s', `Family` = '%s', `Genus` = '%s', `SpecificEpithet` = '%s', `flickr_PlantID` = '%s', `flickr_modified` = '%s', `flickr_details` = '%s', `picassa_PlantID` = '%s', `picassa_modified` = '%s', `gTileProcessed` = '%s', `zoomEnabled` = '%s', `processed` = '%s', `ocr_flag` = '%s', `ocr_value` = '%s', `namefinder_flag` = '%s', `namefinder_value` = '%s', `ScientificName` = '%s', `CollectionCode` = '%s'  WHERE image_id = '%s' ;"
             , mysql_escape_string($this->get('filename'))
             , mysql_escape_string($this->get('barcode'))
             , mysql_escape_string($this->get('width'))
@@ -345,10 +345,11 @@ Class Image {
             , mysql_escape_string($this->get('namefinder_flag'))
             , mysql_escape_string($this->get('namefinder_value'))
             , mysql_escape_string($this->get('ScientificName'))
+            , mysql_escape_string($this->get('CollectionCode'))
             , mysql_escape_string($this->get('image_id'))
             );
 		} else {
-            $query = sprintf("INSERT INTO `image` SET `filename` = '%s', `timestamp_modified` = now(), `barcode` = '%s', `width` = '%s', `height` = '%s', `Family` = '%s', `Genus` = '%s', `SpecificEpithet` = '%s', `flickr_PlantID` = '%s', `flickr_modified` = '%s', `flickr_details` = '%s', `picassa_PlantID` = '%s', `picassa_modified` = '%s', `gTileProcessed` = '%s', `zoomEnabled` = '%s', `processed` = '%s', `ocr_flag` = '%s', `ocr_value` = '%s', `namefinder_flag` = '%s', `namefinder_value` = '%s', `ScientificName` = '%s' ;"
+            $query = sprintf("INSERT INTO `image` SET `filename` = '%s', `timestamp_modified` = now(), `barcode` = '%s', `width` = '%s', `height` = '%s', `Family` = '%s', `Genus` = '%s', `SpecificEpithet` = '%s', `flickr_PlantID` = '%s', `flickr_modified` = '%s', `flickr_details` = '%s', `picassa_PlantID` = '%s', `picassa_modified` = '%s', `gTileProcessed` = '%s', `zoomEnabled` = '%s', `processed` = '%s', `ocr_flag` = '%s', `ocr_value` = '%s', `namefinder_flag` = '%s', `namefinder_value` = '%s', `ScientificName` = '%s', `CollectionCode` = '%s' ;"
             , mysql_escape_string($this->get('filename'))
             , mysql_escape_string($this->get('barcode'))
             , mysql_escape_string($this->get('width'))
@@ -369,6 +370,7 @@ Class Image {
             , mysql_escape_string($this->get('namefinder_flag'))
             , mysql_escape_string($this->get('namefinder_value'))
             , mysql_escape_string($this->get('ScientificName'))
+            , mysql_escape_string($this->get('CollectionCode'))
             );
 		}
 // echo '<br> Query : ' . $query;
@@ -712,7 +714,7 @@ function createGTileIM($filename, $outputPath) {
 		$where .= build_order( $this->data['order']);
 		$where .= build_limit($this->data['start'], $this->data['limit']);
 
-		$query = "SELECT SQL_CALC_FOUND_ROWS * FROM `image` " . $where;
+		$query = "SELECT SQL_CALC_FOUND_ROWS  image_id,filename,timestamp_modified,barcode,width,height,Family,Genus,SpecificEpithet,flickr_PlantID, flickr_modified,flickr_details,picassa_PlantID,picassa_modified, gTileProcessed,zoomEnabled,processed,ocr_flag,namefinder_flag,namefinder_value,ScientificName, CollectionCode FROM `image` " . $where;
 
 // print $query;
 		if($queryFlag) {
@@ -1031,6 +1033,14 @@ $strips_array[$end][] = array('startRange' => $tmp_start, 'endRange' => $tmp_end
 		return $ar;
 
 	}
+
+	function getCollectionSpecimenCount() {
+		if($this->data['nodeApi'] == '' || $this->data['nodeValue'] == '') return false;
+		$query = sprintf(" SELECT count(*) ct, `CollectionCode` FROM `image` WHERE %s = '%s' GROUP BY `CollectionCode` ", $this->data['nodeApi'], mysql_escape_string($this->data['nodeValue'] ));
+		$ret = $this->db->query_all($query);
+		return $ret;
+	}
+
 
 }
 ?>

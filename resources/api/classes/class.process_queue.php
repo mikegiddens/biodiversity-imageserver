@@ -359,5 +359,15 @@ Class ProcessQueue {
 		return is_null($ret) ? array() : $ret;
 	}
 
+	public function clearQueue() {
+		if(!(is_array($this->data['processType']))) return false;
+		$types = implode("','",$this->data['processType']);
+		$query = sprintf(" DELETE FROM `process_queue` WHERE `process_type` IN ('%s') ",$types);
+// 		echo $query;
+		$this->db->query($query);
+		$recordCount = $this->db->affected_rows;
+		return array('success' => true, 'recordCount' => $recordCount);
+	}
+
 }
 ?>
