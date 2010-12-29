@@ -10,6 +10,7 @@ ImagingProgress.ImageViewer = function(config){
 	
 	var store = new Ext.data.Store({
 	            model: 'CFLAImages'
+			,	totalProperty:'totalCount'		
             ,	proxy: {
 	                	type: 'ajax'
 	                ,	url: ''   
@@ -31,7 +32,7 @@ ImagingProgress.ImageViewer = function(config){
 			,	tpl : new Ext.XTemplate(
 				            '<tpl for=".">',
 					            '<div class="thumb-wrap" id="{imageID}">',
-					           	'<div class="thumb"><img onerror="this.src=\'http://images.cyberfloralouisiana.com/resources/images/no-image.gif\'" src="{path}{barcode}_s.jpg" class="thumbsmall"></div>',
+					           	'<div class="thumb"><img onerror="this.src=\'resources/images/no-image.gif\'" src="{path}{barcode}_s.jpg" class="thumbsmall"></div>',
 				            '</tpl>'
 				        )
 			,	overClass : 'x-view-over'
@@ -39,6 +40,7 @@ ImagingProgress.ImageViewer = function(config){
 			,	emptyText : 'No images to display'
 			,	style:'overflow:auto'
 			,	draggable:false
+			,	loadMask:true
 			,	loadingText:'Loading....'
 			,	listeners: {
 							activate:this.loadStore
@@ -48,7 +50,7 @@ ImagingProgress.ImageViewer = function(config){
 			,	dockedItems: [{
 						xtype: 'toolbar'
 					,	dock: 'top'
-					,	title: 'Images 1 to 100'
+					,	title: 'Images 1 to 25'
 					,	ui:'light'
 					,	items: [{
 								text: 'Back'
@@ -96,12 +98,12 @@ Ext.extend(ImagingProgress.ImageViewer , Ext.DataView, {
 						if(!this.storeUrl){
 								return;		
 							}
-							this.start = this.getUrlParam('start');
-							this.limit = this.getUrlParam('limit');
-							this.code = this.getUrlParam('code');
-							this.setToolbarTitle();
-							this.store.proxy.url = this.storeUrl;
-							this.store.load();
+						this.start = this.getUrlParam('start');
+						this.limit = this.getUrlParam('limit');
+						this.code = this.getUrlParam('code');
+						this.setToolbarTitle();
+						this.store.proxy.url = this.storeUrl;
+						this.store.load();
 			}
 	
 	,	getUrlParam : function(param) {
@@ -109,23 +111,30 @@ Ext.extend(ImagingProgress.ImageViewer , Ext.DataView, {
 				return param ? params[param] : params;
 			}
 	,	loadNextImages:function(){
-					this.start = this.limit;
-					this.limit = parseInt(this.limit) + 100; 
-					this.storeUrl='http://images.cyberfloralouisiana.com/resources/api/api.php?cmd=images&code'+this.code+'&dir=ASC&filter=&limit='+this.limit+'&sort&start='+this.start
+					if(this.start==0){
+						this.start = parseInt(this.start) + 26 ;
+					}else{
+						this.start = parseInt(this.start) + 25 ;
+					}
+					this.storeUrl='../resources/api/api.php?cmd=images&code='+this.code+'&dir=ASC&filter=&limit=25&sort=&start='+this.start
 					this.loadStore();
 			}
 	,	loadPrvImages:function(){
 					if(this.start==0){
 							return;
 					}
-					this.start = parseInt(this.start) - 100; 
-					this.limit = parseInt(this.limit) - 100;
-					this.storeUrl='http://images.cyberfloralouisiana.com/resources/api/api.php?cmd=images&code'+this.code+'&dir=ASC&filter=&limit='+this.limit+'&sort&start='+this.start
+					if(this.start==26){
+						this.start = parseInt(this.start) - 26 ;
+					}else{
+						this.start = parseInt(this.start) - 25 ;
+					}
+					this.storeUrl='../resources/api/api.php?cmd=images&code='+this.code+'&dir=ASC&filter=&limit=25&sort=&start='+this.start
 					this.loadStore();
 			}	
 	,	setToolbarTitle:function(){
 					var tempToolbar = this.dockedItems.items[0];
-					tempToolbar.setTitle('Images '+ (parseInt(this.start)+ 1) +' to '+ this.limit );
+					console.log(this.store);
+					tempToolbar.setTitle('Images '+ (parseInt(this.start) == 0 ? 1 : parseInt(this.start)) +' to '+ ((parseInt(this.start) == 0 ? 1 : parseInt(this.start)) + 24)  );
 					tempToolbar.doLayout();
 			}			
 							

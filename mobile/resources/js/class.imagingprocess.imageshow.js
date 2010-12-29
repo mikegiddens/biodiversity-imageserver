@@ -12,7 +12,7 @@ ImagingProgress.ImageShow = function(config){
 			,	draggable:false
 			,	html:''
 			,	tpl:new Ext.XTemplate(
-				                '<div ><img onerror="this.src=\'../resources/images/no-image.gif\'" src="{path}{barcode}_l.jpg" ></div>'
+				                '<div ><img onerror="this.src=\'resources/images/no-image.gif\'" src="{path}{barcode}_l.jpg" ></div>'
 					    )
 			,	scroll:'vertical'
 			,	dockedItems: [{

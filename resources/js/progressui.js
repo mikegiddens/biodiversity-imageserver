@@ -147,7 +147,7 @@ Ext.onReady(function() {
 							,	layout: 'fit'
 							, 	items: [ new ImagePortal.ByCollection() ]
 					 	},{
-								title: ' Imaing by Station/User'
+								title: ' Imaging by Station/User'
 							,	tabTip: ''
 							,	iconCls: 'x-icon-templates'								
 							,	style: 'padding: 10px;'
@@ -226,7 +226,7 @@ Ext.onReady(function() {
 				,	region: 'north'
 				,	border: false
 				,	bodyStyle: 'background-color: #4E78B1; padding: 5px'
-				,	html: '<div class="hd-imagingprocesstext">' + Config.title + '</div><div class="rightarea"><div class="hd-user">Welcome: ' + USER + ' </div><div class="signout"><a href="/login.php?task=sign_out" class="a-signout">Signout</a></div></div></div>'
+				,	html: '<div class="hd-imagingprocesstext">' + Config.title + '</div><div class="rightarea"><div class="hd-user">Welcome: ' + USER + ' </div><div class="signout"><a href="/login.php?task=sign_out" class="a-signout">Sign out</a></div></div></div>'
 			},{
 					xtype: 'grouptabpanel'
 				,	region:'center'

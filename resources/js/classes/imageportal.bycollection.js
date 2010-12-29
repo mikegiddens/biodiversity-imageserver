@@ -375,7 +375,7 @@ ImagePortal.ByCollection = function(config) {
 			
 	Ext.apply(this,config,{
 			autoScroll: true	
-		,	title: 'Images Added to Image Server'				
+		,	title: 'Imaging by Collection'				
 		,	coll_id:''
 		,	tbar:[
 					'Collection: '

@@ -385,7 +385,7 @@ ImagePortal.ByStaff = function(config) {
 		Ext.apply(this,config,{
 			scope:this
 		,	autoScroll: true	
-		,	title:'Imaging Statistics by Staff'		
+		,	title:'Imaging by Station/User'		
 		,	listId:''
 		,	tbar:[
 					this.list

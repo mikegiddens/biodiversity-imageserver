@@ -9,7 +9,8 @@ ImagingProgress.MenuList = function(config){
 	
 	var store = new Ext.data.TreeStore({
 	            model: 'CFLAMenu'
-            ,	proxy: {
+            ,	totalProperty:'totalCount'
+			,	proxy: {
 	                	type: 'ajax'
 	                ,	url: 'getMainMenu.json' //http://dev.silvercollection.silverbiology.com/api/silvercollection.php?cmd=checklist-nodes&collections=&filter=null&nodeApi=HigherGeography&nodeValue='  
 					,	reader: {
@@ -59,7 +60,7 @@ Ext.extend(ImagingProgress.MenuList , Ext.NestedList, {
 								CFLABUS.fireEvent('ChangeMainMenu',1,false,this);
 							break;
 						case 'All':
-								var url='http://images.cyberfloralouisiana.com/resources/api/api.php?cmd=images&code=&dir=ASC&filter=&limit=100&sort&start=0'
+								var url='../resources/api/api.php?cmd=images&code=&dir=ASC&filter=&limit=25&sort=&start=0'
 								CFLABUS.fireEvent('ChangeMainMenu',2,url,this);
 							break;
 						case 'Images':
@@ -107,12 +108,12 @@ Ext.extend(ImagingProgress.MenuList , Ext.NestedList, {
 					            type: 'tree'
 					         ,  root: 'records'
 					        });
-					this.store.proxy.url='http://images.cyberfloralouisiana.com/resources/api/api.php?cmd=collections'		
+					this.store.proxy.url='../resources/api/api.php?cmd=collections'		
 			}
 			
 	,	loadCollImages:function(list){
 					var data = list.getSelectedRecords()[0].data;
-					var url='http://images.cyberfloralouisiana.com/resources/api/api.php?cmd=images&code='+data.code+'&dir=ASC&filter=&limit=100&sort&start=0'
+					var url='../resources/api/api.php?cmd=images&code='+data.code+'&dir=ASC&filter=&limit=100&sort&start=0'
 					CFLABUS.fireEvent('ChangeMainMenu',2,url,this);
 		}
 		

@@ -33,13 +33,13 @@ ImagePortal.BarReport = function(config){
 					xtype: 'stackedbarchart'
 				,	store: this.store
 				,	yField: 'CollectionCode'
+				,	xField:'ct'
 				,	xAxis: new Ext.chart.NumericAxis({
 							stackingEnabled: false
 						,	labelRenderer: Ext.util.Format.numberRenderer('0,0')
 					})
 				,	series: [{
-							xField: 'ct'
-						,	displayName: 'ct'
+							displayName: 'Number of Specimens: '
 					//	,	style: config.styleImaged
 					}]
 			}

@@ -41,8 +41,8 @@ ImagePortal.ReportsPanel = function(config){
 					,	layout: 'card'
 					,	ref:'centerPanel'
 					,	defaults: {border: false}
-					//,	activeItem: 1
-					,	title:'Charts'
+					//,	activeItem: 0
+					,	title:'&nbsp;'
 					,	items: [this.pieChart,this.barChart]
 				}]
 			,	listeners:{
