@@ -182,39 +182,3 @@ Ext.extend(SilverCollection.GTilePanel, Ext.ux.GMapPanel, {
 });
 
 Ext.reg('GTilePanel', SilverCollection.GTilePanel );
-
-
-
-
-
-
-
-		
-		/*
-		Ext.Ajax.request({
-						url: Config.General.Home.URL + 'api/silvercollection.php'
-					,	method: 'POST'
-					,	scope: this
-					,	params: params
-					,	success: function(responseObject) {
-							this.mask.hide();
-							var record = Ext.decode(responseObject.responseText);
-							if (record.success && (record.totalCount >= 1) ) {
-								this.specimenRecord = record.records[0];
-								if(this.specimenRecord.specimen_sheet_image > 1){
-										this.getTopToolbar().setVisible(true);
-								}else{
-										this.getTopToolbar().setVisible(false);
-								}
-								this.specimenRecord.ImageUrl=('http://images.cyberfloralouisiana.com/images/specimensheets/nlu/0/0/11/13/');
-							this.drawImage();
-							}else{
-								SilverCollection.Notice.msg("Error","Image Not Found");
-							}
-						}					
-					,	failure: function() {
-							this.mask.hide();
-							SilverCollection.Notice.msg(this.statusTitle, this.statusText);
-						}
-				});
-*/		

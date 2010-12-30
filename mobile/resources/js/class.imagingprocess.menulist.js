@@ -70,12 +70,12 @@ Ext.extend(ImagingProgress.MenuList , Ext.NestedList, {
 			}
 			
 	,	changeStoreUrl:function(list,sel){
-					if(list.selected.elements.length == 0)
+					if(list.selected.items.length == 0)
 						return;
 					
-					var data = list.getSelectedRecords()[0].data;
+					var data = list.selected.items[0].data;
 					if (data.text == 'Collections' || data.text == 'Images' || data.text == 'About' || data.text == 'Browse') 
-							this.selectedRoot = list.getSelectedRecords()[0].data.text;
+							this.selectedRoot =  list.selected.items[0].data.text;
 					if(Ext.isEmpty(data.text)){
 								this.loadCollImages(list);
 								return;
@@ -102,7 +102,7 @@ Ext.extend(ImagingProgress.MenuList , Ext.NestedList, {
 			}
 			
 	,	changeCollectionCMD:function(list){
-					var data = list.getSelectedRecords()[0].data;
+					var data =  list.selected.items[0].data;
 					this.displayField = 'name';
 					this.store.proxy.setReader({
 					            type: 'tree'
@@ -112,8 +112,8 @@ Ext.extend(ImagingProgress.MenuList , Ext.NestedList, {
 			}
 			
 	,	loadCollImages:function(list){
-					var data = list.getSelectedRecords()[0].data;
-					var url='../resources/api/api.php?cmd=images&code='+data.code+'&dir=ASC&filter=&limit=100&sort&start=0'
+					var data =  list.selected.items[0].data;
+					var url='../resources/api/api.php?cmd=images&code='+data.code+'&dir=ASC&filter=&limit=25&sort&start=0'
 					CFLABUS.fireEvent('ChangeMainMenu',2,url,this);
 		}
 		

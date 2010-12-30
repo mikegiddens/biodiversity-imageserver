@@ -59,7 +59,7 @@ Ext.setup({
 					imageShow.storeUrl = adjust;
 				if(index == 4)
 					zoomPanel.storeUrl = adjust;		
-				cardPanel.setCard(index);
+				cardPanel.setActiveItem(index);
 				
 				if(adjust == true){
 					mainmenu.adjustBackCard();
