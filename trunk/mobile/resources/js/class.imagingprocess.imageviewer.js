@@ -35,7 +35,7 @@ ImagingProgress.ImageViewer = function(config){
 					           	'<div class="thumb"><img onerror="this.src=\'resources/images/no-image.gif\'" src="{path}{barcode}_s.jpg" class="thumbsmall"></div>',
 				            '</tpl>'
 				        )
-			,	overClass : 'x-view-over'
+			,	overItemCls : 'x-view-over'
 			,	itemSelector : 'div.thumb-wrap'
 			,	emptyText : 'No images to display'
 			,	style:'overflow:auto'
@@ -132,10 +132,12 @@ Ext.extend(ImagingProgress.ImageViewer , Ext.DataView, {
 					this.loadStore();
 			}	
 	,	setToolbarTitle:function(){
-					var tempToolbar = this.dockedItems.items[0];
-					console.log(this.store);
-					tempToolbar.setTitle('Images '+ (parseInt(this.start) == 0 ? 1 : parseInt(this.start)) +' to '+ ((parseInt(this.start) == 0 ? 1 : parseInt(this.start)) + 24)  );
-					tempToolbar.doLayout();
+					var tempToolbar = this.dockedItems[0];
+					var start = parseInt(this.start) == 0 ? 1 : parseInt(this.start);
+					var end = (parseInt(this.start) == 0 ? 1 : parseInt(this.start)) + 24;
+					var t = 'Images '+ start +' to '+ end  ;
+					tempToolbar.title = t;
+					//this.doLayout();
 			}			
 							
 });	
