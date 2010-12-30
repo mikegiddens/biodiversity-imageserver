@@ -1036,7 +1036,12 @@ $strips_array[$end][] = array('startRange' => $tmp_start, 'endRange' => $tmp_end
 
 	function getCollectionSpecimenCount() {
 		if($this->data['nodeApi'] == '' || $this->data['nodeValue'] == '') return false;
-		$query = sprintf(" SELECT count(*) ct, `CollectionCode` FROM `image` WHERE %s = '%s' GROUP BY `CollectionCode` ", $this->data['nodeApi'], mysql_escape_string($this->data['nodeValue'] ));
+		$condition = '=';
+		if (strpos($this->data['nodeValue'], "%") !== false) {
+			$condition = 'LIKE';
+		}
+
+		$query = sprintf(" SELECT count(*) ct, `CollectionCode` FROM `image` WHERE %s %s '%s' GROUP BY `CollectionCode` ", $this->data['nodeApi'], $condition, mysql_escape_string($this->data['nodeValue'] ));
 		$ret = $this->db->query_all($query);
 		return $ret;
 	}
