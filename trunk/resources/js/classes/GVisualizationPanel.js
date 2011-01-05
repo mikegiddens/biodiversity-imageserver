@@ -103,14 +103,16 @@ Ext.ux.GVisualizationPanel = Ext.extend(Ext.Panel, {
         this.datatable = Ext.ux.GDataTableAdapter.adapt(tableCfg);
         
         var cls = this.visualizationPkgs[this.visualizationPkg];
-        this.body.update('');
-        this.visualization = new google.visualization[cls](this.body.dom);
+        if(typeof(this.body) != 'undefined'){
+			this.body.update('');
+			this.visualization = new google.visualization[cls](this.body.dom);
         
-        var relaySelect = function() {
-            this.fireEvent('select', this, this.visualization);
-        };
-        google.visualization.events.addListener(this.visualization, 'select', relaySelect.createDelegate(this));
-        this.visualization.draw(this.datatable, Ext.apply({}, this.visualizationCfg));
+			var relaySelect = function() {
+				this.fireEvent('select', this, this.visualization);
+			};
+			google.visualization.events.addListener(this.visualization, 'select', relaySelect.createDelegate(this));
+			this.visualization.draw(this.datatable, Ext.apply({}, this.visualizationCfg));
+		}
     }/*
 ,
 		

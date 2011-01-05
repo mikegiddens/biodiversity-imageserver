@@ -30,7 +30,7 @@ ImagePortal.PieReport = function(config){
 						border: false
 					}
 			,	store: store
-			,	body:''
+			//,	body:''
 			,	columns: [
 						{ dataIndex: 'nodeValue', label:'Taxanomy' }
 					,	{ dataIndex: 'specimenCount',  label:'Specimen Count' }

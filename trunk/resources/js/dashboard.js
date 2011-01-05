@@ -6,7 +6,8 @@ Ext.onReady(function() {
 
 	var store = new Ext.data.JsonStore({
 			fields: ['collection', 'imaged', 'notimaged']
-		,	url: '../../gui/api/api.php'
+		//,	url: '../../gui/api/api.php'
+		,	url:'resources/api/api.php'	
 		,	baseParams: {
 				cmd: 'sizeOfCollection'
 			}
@@ -24,6 +25,7 @@ Ext.onReady(function() {
 
 		Ext.Ajax.request({
 				url: '../../gui/api/api.php'
+			,	url:'resources/api/api.php'		
 			,	params: { 
 						cmd:'details' 
 					,	id:vid

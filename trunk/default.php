@@ -76,6 +76,7 @@ if (!(isset($_SESSION['user']) && isset($_SESSION['pw']))) {
 	<script type="text/javascript" src="resources/js/classes/imageportal.popupinput.js"></script>	   
 	<script type="text/javascript" src="resources/js/classes/imageportal.zoom.js"></script>	
 	<script type="text/javascript" src="resources/js/classes/imageportal.imageviewer.js"></script>
+	<script type="text/javascript" src="resources/js/classes/imageportal.help.js"></script>
 	<script type="text/javascript" src="resources/js/classes/imageportal.monthrangechart.js"></script>  	
 	<script type="text/javascript" src="resources/js/classes/imageportal.image.js"></script>	
 	<script type="text/javascript" src="resources/js/classes/imageportal.queue.js"></script>	
