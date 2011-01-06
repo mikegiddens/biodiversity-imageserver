@@ -8,7 +8,7 @@ Ext.ns('ImagingProgress');
 
 ImagingProgress.ImageViewer = function(config){
 	
-	var store = new Ext.data.Store({
+	this.store = new Ext.data.Store({
 	            model: 'CFLAImages'
 			,	totalProperty:'totalCount'		
             ,	proxy: {
@@ -28,25 +28,29 @@ ImagingProgress.ImageViewer = function(config){
         });
 		
 	Ext.apply(this, config, { 
-				store : store
-			,	tpl : new Ext.XTemplate(
-				            '<tpl for=".">',
-					            '<div class="thumb-wrap" id="{imageID}">',
-					           	'<div class="thumb"><img onerror="this.src=\'resources/images/no-image.gif\'" src="{path}{barcode}_s.jpg" class="thumbsmall"></div>',
-				            '</tpl>'
-				        )
-			,	overItemCls : 'x-view-over'
-			,	itemSelector : 'div.thumb-wrap'
-			,	emptyText : 'No images to display'
-			,	style:'overflow:auto'
-			,	draggable:false
-			,	loadMask:true
-			,	loadingText:'Loading....'
-			,	listeners: {
-							activate:this.loadStore
+				items:new Ext.DataView({
+						store : this.store
+					,	tpl : new Ext.XTemplate(
+									'<tpl for=".">',
+										'<div class="thumb-wrap" id="{imageID}">',
+										'<div class="thumb"><img onerror="this.src=\'resources/images/no-image.gif\'" src="{path}{barcode}_s.jpg" class="thumbsmall"></div>',
+									'</tpl>'
+								)
+					,	overItemCls : 'x-view-over'
+					,	itemSelector : 'div.thumb-wrap'
+					,	emptyText : 'No images to display'
+					,	style:'overflow:auto'
+					,	draggable:false
+					,	loadMask:true
+					,	loadingText:'Loading....'
+					,	listeners: {
+							scope:this
 						,	"itemTap":this.showImage
 						}
-						
+				})
+			,	listeners: {
+							activate:this.loadStore
+						}
 			,	dockedItems: [{
 						xtype: 'toolbar'
 					,	dock: 'top'
@@ -84,7 +88,7 @@ ImagingProgress.ImageViewer = function(config){
 		
 		ImagingProgress.ImageViewer.superclass.constructor.call(this,config);
 };
-Ext.extend(ImagingProgress.ImageViewer , Ext.DataView, {
+Ext.extend(ImagingProgress.ImageViewer , Ext.Panel, {
 		showImage:function(dataview, index, item, evt){
 					//console.log(dataview, index, item, evt);
 					var data = this.store.getAt(index).data;
@@ -132,12 +136,12 @@ Ext.extend(ImagingProgress.ImageViewer , Ext.DataView, {
 					this.loadStore();
 			}	
 	,	setToolbarTitle:function(){
-					var tempToolbar = this.dockedItems[0];
+					var tempToolbar = this.dockedItems.items[0];
 					var start = parseInt(this.start) == 0 ? 1 : parseInt(this.start);
 					var end = (parseInt(this.start) == 0 ? 1 : parseInt(this.start)) + 24;
 					var t = 'Images '+ start +' to '+ end  ;
-					tempToolbar.title = t;
-					//this.doLayout();
+					tempToolbar.setTitle(t);
+					tempToolbar.doLayout();
 			}			
 							
 });	

@@ -10,13 +10,15 @@ ImagePortal.ProgressOfCollectionRemote = function(config){
 		,	height: 420
 		,	store: new Ext.data.JsonStore({
 					proxy: new Ext.data.ScriptTagProxy({
-						url: Config.baseUrl + 'resources/api/api.php'
+						url: 'http://ecat-dev.gbif.org/ws/usage/6498097'
 					})
-				,	fields: ['collection', 'imaged', 'notimaged']
+				,	fields: [
+							'scientificName'
+						, 	'accordingTo'
+						, 	'canonicalName'
+						]
 				,	root: 'data'
-				,	baseParams: {	
-						cmd:'sizeOfCollection'
-					}
+				
 				,	autoLoad: true	
 			})
  	});
