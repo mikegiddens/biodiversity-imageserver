@@ -1,4 +1,7 @@
 <?php
+error_reporting(E_ALL ^ E_NOTICE);
+ini_set('display_errors', '1');
+
 ob_start();
 session_start();
 require_once("config.php");
@@ -30,7 +33,7 @@ if(isset($_POST['go'])) {
 <body>
 
 
-<form name="login" action="<?=$_SERVER['PHP_SELF']?>" method="POST">
+<form name="login" action="<?PHP print $_SERVER['PHP_SELF']; ?>" method="POST">
 <div>
 <label style="font-weight:bold;"><img src="images/silverimage.png" width="136" height="70" /><br />
 </label>
