@@ -1,4 +1,6 @@
 <?php
+error_reporting(E_ERROR | E_WARNING | E_PARSE);
+ini_set('display_errors', '1');
 
 session_start();
 include_once("config.php");
@@ -14,7 +16,7 @@ if (!(isset($_SESSION['user']) && isset($_SESSION['pw']))) {
     <title><?php print $config["title"] ?></title>
 
 	<script>
-		var USER = '<?=$_SESSION["user"]?>';
+		var USER = '<?php print $_SESSION["user"]; ?>';
 	</script>
 
     <!-- ** CSS ** -->

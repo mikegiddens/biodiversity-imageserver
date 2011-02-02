@@ -1,4 +1,6 @@
 <?php
+	error_reporting(E_ERROR | E_WARNING | E_PARSE);
+	ini_set('display_errors', '1');
 	session_start();
 	ob_start();
 	/**
@@ -7,7 +9,7 @@
 	 * @website http://www.silverbiology.com
 	*/
 
-	ini_set('memory_limit','400M');
+//	ini_set('memory_limit','200M');
 	set_time_limit(0);
 	
 	$expected=array(
@@ -35,6 +37,10 @@
 	}
 
 	require_once("../../config.php");
+
+	$path = BASE_PATH . "resources/api/classes/";
+	set_include_path(get_include_path() . PATH_SEPARATOR . $path);
+
 	require_once("./classes/class.master.php");
 	require_once("classes/phpFlickr/phpFlickr.php");
 	require_once( "classes/access_user/access_user_class.php");
