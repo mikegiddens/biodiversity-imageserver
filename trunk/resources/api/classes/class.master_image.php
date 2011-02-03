@@ -150,12 +150,66 @@ Class Image {
 	}
     }
 
-    function createThumbnailIMagik( $tmp_path, $new_width, $new_height, $postfix = '' ) {
+	function createThumbnailIMagik( $tmp_path, $new_width, $new_height, $postfix = '' ) {
 		$extension = '.' . $this->getName('ext');
 		$destination = $this->get("path") . $this->getName() . $postfix . $extension;
 		$tmp = sprintf("convert %s -resize %sx%s %s", $tmp_path,$new_width,$new_height,$destination);
 		$res = system($tmp);
-    }
+	}
+
+	function createThumb( $tmp_path, $new_width, $new_height, $postfix = '', $display_flag=false ) {
+		$dtls = @pathinfo($tmp_path);
+		$extension = '.' . $dtls['extension'];
+
+		if(IMAGE_PROCESSING == 1) {
+			$destination =  $dtls['dirname'] . '/' . $dtls['filename'] . $postfix . $extension;
+			$tmp = sprintf("convert %s -thumbnail %sx%s %s", $tmp_path,$new_width,$new_height,$destination);
+			$res = system($tmp);
+		} else {
+			$func = 'imagecreatefrom' . (@strtolower($dtls['extension']) == 'jpg' ? 'jpeg' : @strtolower($dtls['extension']));
+			$im = @$func($tmp_path);
+			if($im !== false) {
+				$image_file = $dtls['dirname'] . $dtls['filename'] . $postfix . $extension;
+				$width = imageSX($im);
+				$height = imageSY($im);
+				$image_file = ($display_flag)?NULL:$image_file;
+				$this->resizeImage($new_width, $new_height, $im, $image_file, $width, $height);
+				ImageDestroy($im); // Remove tmp Image Object
+			}
+		}
+	}
+
+	/**
+	 * Creates the Thumbnails for the image using IM/GD for s3 mode
+	 * @param string barcode
+	 * @param mixed s3 details and object
+	 */
+	function createThumbS3($barcode,$arr) {
+		if($this->load_by_barcode($barcode)) {
+
+			$filName = 'Img_' . time();
+			$tmpPath = sys_get_temp_dir() . '/' . $filName . '.jpg';
+			$tmpThumbPath = sys_get_temp_dir() . '/' . $filName . $arr['postfix'] . '.jpg';
+			$thumbName = $this->barcode_path($this->get($barcode)) . $barcode . $arr['postfix'] . '.jpg';
+			
+			$fp = fopen($tmpPath, "w+b");
+
+			# getting the image from s3
+			$bucket = $arr['s3']['bucket'];
+			$key = $this->barcode_path($barcode) . $this->get('filename');
+			$arr['obj']->getBucketFile($key, $bucket, $tmpPath);
+
+			$this->createThumb($tmpPath, $arr['width'], $arr['height'], $arr['postfix']);
+			# uploading thumb to s3
+			$arr['obj']->putFile($tmpThumbPath,$bucket,$thumbName);
+
+			@unlink($tmpPath);
+			@unlink($tmpThumbPath);
+
+			return true;
+		}
+		return false;
+	}
 
     ///////////////////////////////////////////////
     // Type: Function
@@ -232,67 +286,6 @@ Class Image {
 		return false;
 	}
     }
-
-/*
-
-    public function getImage() {
-
-	$this->load_by_barcode($this->data['image_id']);
-	$ext = @strtolower($this->getName('ext'));
-	$extension = '.' . $ext;
-		$func1 = 'image' . ($ext == 'jpg' ? 'jpeg' : $ext);
-		$content_type = 'image/' . ($ext == 'jpg' ? 'jpeg' : $ext);
-
-        $size = @strtolower($this->data['size']);
-        $path = PATH_IMAGES . $this->barcode_path($this->data['image_id']);
-
-        $image =  $path . $this->data['image_id'] . $extension;
-
-        $file_name = $path . $this->data['image_id'];
-        $file_name .= ($this->data['size'] != "") ? '_' . $size . $extension : $extension;
-
-        if( ($this->data['width'] != "") || ($this->data['height'] != "") ) {
-//custom dimensions
-            $width = ($this->data['width']!="")?$this->data['width']:$this->data['height'];
-            $height = ($this->data['height']!="")?$this->data['height']:$this->data['width'];
-
-            if( ($width > 0 && $width < 100) || ($height > 0 && $height < 100) ) {
-                $image = $path . $this->data['image_id'] . '_s' . $extension;
-            }elseif( ($width >= 100 && $width < 275) || ($height >= 100 && $height < 275) ) {
-                $image = $path . $this->data['image_id'] . '_m' . $extension;
-            }elseif( ($width >= 275) || ($height >= 275) ) {
-                $image = $path . $this->data['image_id'] . '_l' . $extension;
-            }
-
-            if(!file_exists ($image)) $image =  $path . $this->data['image_id'] . $extension;
-
-            header("Content-Type: $content_type");
-            $this->createThumbnail( $image, $width, $height, "", true);
-
-        } else {
-            if( !file_exists ($file_name) ) {
-                switch($size) {
-                    case 's':
-                        $this->createThumbnail( $image, 100, 100, "_s");
-                        break;
-                    case 'm':
-                        $this->createThumbnail( $image, 275, 275, "_m");
-                        break;
-                    case 'l':
-                        $this->createThumbnail( $image, 800, 800, "_l");
-                        break;
-                }
-            }
-                $fp = fopen($file_name, 'rb');
-                header("Content-Type: $content_type");
-                header("Content-Length: " . filesize($file_name));
-                fpassthru($fp);
-                exit;
-        }
-    }
-
-
-*/
 
 
     /**
