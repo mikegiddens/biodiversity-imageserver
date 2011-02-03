@@ -256,27 +256,46 @@ Class ProcessQueue {
 				$this->process_stats['medium']++;
 				$this->process_stats['large']++;
 
-				if(IMAGE_PROCESSING == 1) {
-					$this->image->createThumbnailIMagik( $image, 100, 100, "_s");
-					$this->image->createThumbnailIMagik( $image, 275, 275, "_m");
-					$this->image->createThumbnailIMagik( $image, 800, 800, "_l");
-				} else {
-					$this->image->createThumbnail( $image, 100, 100, "_s");
-					$this->image->createThumbnail( $image, 275, 275, "_m");
-					$this->image->createThumbnail( $image, 800, 800, "_l");
-				}
+				if($this->data['mode'] == 's3') {
+					$ar = array ('s3' => $this->data['s3'], 'obj' => $this->data['obj'], 'postfix' => '_s', 'width' => 100, 'height' => 100);
+					$this->image->createThumbS3($record->image_id,$ar);
 
+					$ar = array ('s3' => $this->data['s3'], 'obj' => $this->data['obj'], 'postfix' => '_m', 'width' => 275, 'height' => 275);
+					$this->image->createThumbS3($record->image_id,$ar);
+
+					$ar = array ('s3' => $this->data['s3'], 'obj' => $this->data['obj'], 'postfix' => '_l', 'width' => 800, 'height' => 800);
+					$this->image->createThumbS3($record->image_id,$ar);
+
+				} else {
+					if(IMAGE_PROCESSING == 1) {
+						$this->image->createThumbnailIMagik( $image, 100, 100, "_s");
+						$this->image->createThumbnailIMagik( $image, 275, 275, "_m");
+						$this->image->createThumbnailIMagik( $image, 800, 800, "_l");
+					} else {
+						$this->image->createThumbnail( $image, 100, 100, "_s");
+						$this->image->createThumbnail( $image, 275, 275, "_m");
+						$this->image->createThumbnail( $image, 800, 800, "_l");
+					}
+				}
 				$this->image->load_by_barcode($record->image_id);
 				$this->image->set('processed',1);
 				$this->image->save();
 				break;
 
 			case 'small':
+				$postFix = '_s';
+				$width = 100;
+				$height = 100;
 				$this->process_stats['small']++;
-				if(IMAGE_PROCESSING == 1) {
-					$this->image->createThumbnailIMagik( $image, 100, 100, "_s");
+				if($this->data['mode'] == 's3') {
+					$ar = array ('s3' => $this->data['s3'], 'obj' => $this->data['obj'], 'postfix' => $postFix, 'width' => $width, 'height' => $height);
+					$this->image->createThumbS3($record->image_id,$ar);
 				} else {
-					$this->image->createThumbnail( $image, 100, 100, "_s");
+					if(IMAGE_PROCESSING == 1) {
+						$this->image->createThumbnailIMagik( $image, $width, $height, $postFix);
+					} else {
+						$this->image->createThumbnail( $image, $width, $height, $postFix);
+					}
 				}
 				$this->image->load_by_barcode($record->image_id);
 				$this->image->set('processed',1);
@@ -284,11 +303,19 @@ Class ProcessQueue {
 				break;
 
 			case 'medium':
+				$postFix = '_m';
+				$width = 275;
+				$height = 275;
 				$this->process_stats['medium']++;
-				if(IMAGE_PROCESSING == 1) {
-					$this->image->createThumbnailIMagik( $image, 275, 275, "_m");
+				if($this->data['mode'] == 's3') {
+					$ar = array ('s3' => $this->data['s3'], 'obj' => $this->data['obj'], 'postfix' => $postFix, 'width' => $width, 'height' => $height);
+					$this->image->createThumbS3($record->image_id,$ar);
 				} else {
-					$this->image->createThumbnail( $image, 275, 275, "_m");
+					if(IMAGE_PROCESSING == 1) {
+						$this->image->createThumbnailIMagik( $image, $width, $height, $height);
+					} else {
+						$this->image->createThumbnail( $image, $width, $height, $height);
+					}
 				}
 				$this->image->load_by_barcode($record->image_id);
 				$this->image->set('processed',1);
@@ -296,11 +323,20 @@ Class ProcessQueue {
 				break;
 
 			case 'large':
+				$postFix = '_l';
+				$width = 800;
+				$height = 800;
 				$this->process_stats['large']++;
-				if(IMAGE_PROCESSING == 1) {
-					$this->image->createThumbnailIMagik( $image, 800, 800, "_l");
+
+				if($this->data['mode'] == 's3') {
+					$ar = array ('s3' => $this->data['s3'], 'obj' => $this->data['obj'], 'postfix' => $postFix, 'width' => $width, 'height' => $height);
+					$this->image->createThumbS3($record->image_id,$ar);
 				} else {
-					$this->image->createThumbnail( $image, 800, 800, "_l");
+					if(IMAGE_PROCESSING == 1) {
+						$this->image->createThumbnailIMagik( $image, $width, $height, $postFix);
+					} else {
+						$this->image->createThumbnail( $image, $width, $height, $postFix);
+					}
 				}
 				$this->image->load_by_barcode($record->image_id);
 				$this->image->set('processed',1);
