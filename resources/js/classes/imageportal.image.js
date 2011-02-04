@@ -107,9 +107,7 @@
 
 		this.comboStore = new Ext.data.JsonStore({
 			fields: ['collection_id', 'name','code'] 
-		,	proxy: new Ext.data.ScriptTagProxy({
-						url: Config.baseUrl + 'resources/api/api.php'
-				})	
+		,	proxy: this.proxy
 		,	baseParams:{
 					cmd: 'collections'
 				}

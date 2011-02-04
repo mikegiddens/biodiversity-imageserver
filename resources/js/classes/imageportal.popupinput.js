@@ -35,9 +35,9 @@ Ext.namespace("ImagePortal")
 				,	width:50
 				,	handler: this.cancel
 			}]		
-		,   items: [{localtreechildren
-				xtype:'form'
-			,	border:false
+		,   items: [{
+				xtype: 'form'
+			,	border: false
 			,	bodyStyle: 'padding:10px'				
 			,	items:[{
 						fieldLabel: 'Width'
@@ -47,7 +47,6 @@ Ext.namespace("ImagePortal")
 					,   width: 90
 					,   height:20
 					,	allowBlank: false
-					,	emptyText: 'Please enter width'
 					,	scope:this
 				},{       
 						fieldLabel: 'Height'
@@ -57,7 +56,6 @@ Ext.namespace("ImagePortal")
 					,   width: 90
 					,   height:20
 					,	allowBlank: false
-					,	emptyText: 'Please enter height'
 					,	scope:this
 				},{
 						xtype:'combo'
@@ -89,11 +87,13 @@ Ext.namespace("ImagePortal")
 	Ext.extend( ImagePortal.CustomeInputPopup, Ext.Window, {
 
 		download:function(){
-			var flwidth = this.flwidth.getValue().trim();
-			var flheight = this.flheight.getValue().trim();
+			var flwidth = this.flwidth.getValue();
+			var flheight = this.flheight.getValue();
 			var fltype = this.fltype.getValue();
-			if(Ext.isEmpty(flwidth) || Ext.isEmpty(flheight)){
-				Ext.Msg.alert('Notice', 'Please enter height and width');
+			if(Ext.isEmpty(flwidth)){
+				ImagePortal.Notice.msg('Notice', 'Please enter width');
+			} if(Ext.isEmpty(flheight)){
+				ImagePortal.Notice.msg('Notice', 'Please enter height');
 			} else {
 				var url = Config.baseUrl + "resources/api/api.php?cmd=get_image&width="+flwidth+"&height="+flheight+"&image_id="+this.image_id+"&type="+this.fltype.getValue()  	
 				window.open(url,'_blank');	

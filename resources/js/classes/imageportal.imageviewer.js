@@ -25,7 +25,7 @@ ImagePortal.ImageViewer = function(config){
 		,	ref: '../imagevp'
 		,	maximizable: true	
 		,	tbar: [{
-					text: 'Custom Size'
+					text: 'Download'
 				,	menu: [{
 						text: 'Small'
 					,	scope:this
