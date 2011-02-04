@@ -319,7 +319,7 @@ ImagePortal.ByCollection = function(config) {
 	});	
 	this.yearStore = new Ext.data.SimpleStore({
 			fields:['Yr']
-		,	data:[[2010],[2009],[2008],[2007]]
+		,	data: this.yearStoreData() //[[2010],[2009],[2008],[2007]] 
 	});						
 				
 	this.search_value = new Ext.ux.TwinComboBox({
@@ -397,10 +397,21 @@ ImagePortal.ByCollection = function(config) {
 
 Ext.extend(ImagePortal.ByCollection, Ext.Panel, {
 		
-		initComponent: function(){
-			extmainpnl.superclass.initComponent.call(this, arguments);
+	initComponent: function(){
+		extmainpnl.superclass.initComponent.call(this, arguments);
+	}
+,	yearStoreData: function(){
+		var d = new Date();
+		var curr_year = d.getFullYear();
+		var yearArray = [];
+		var lastYear = 2009;
+		for (i= curr_year; i>= lastYear ; i--){
+			var arr= [];
+			arr.push(i)
+			yearArray.push(arr);
 		}
-		
+		return yearArray;
+	}		
 ,	scrolldivtoview:function(srvalue){
 			var el = Ext.getDom(this.coldaychart.refOwner.id);
 			var scrollValue = srvalue 

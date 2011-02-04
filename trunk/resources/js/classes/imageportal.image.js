@@ -8,12 +8,22 @@
 	Ext.namespace('ImagePortal');
 
 	ImagePortal.Image = function(config) {
-
-		this.proxy = new Ext.data.HttpProxy({
+		this.proxy = '';
+		if(Config.mode == 'local'){
+			this.proxy = new Ext.data.HttpProxy({
+				url: Config.baseUrl + 'resources/api/api.php'
+			})
+		}else{
+			this.proxy = new Ext.data.ScriptTagProxy({
+					url: Config.baseUrl + 'resources/api/api.php'
+			})
+		}
+		
+		/*this.proxy = new Ext.data.HttpProxy({
 			//proxy: new Ext.data.ScriptTagProxy({
 					url: Config.baseUrl + 'resources/api/api.php'
 			})
-
+*/
 	this.store =  new Ext.data.GroupingStore({
 			proxy:this.proxy 
 		,	baseParams: { 

@@ -7,6 +7,12 @@ Ext.namespace('ImagePortal');
 ImagePortal.ImageViewer = function(config){
 	
 	this.infoTabPanel =	new ImagePortal.ImageInfoPanel();
+	this.largeImagePanel = new Ext.Panel({
+		title: 'Interactive'
+	,	tpl: new Ext.XTemplate(
+			'<div><img src={path}></div>'
+		)
+	});
 	this.intimage = new ImagePortal.IVIntractive();
 	this.flicker = new ImagePortal.IVFlickr();
 	Ext.apply(this,config,{
@@ -19,7 +25,7 @@ ImagePortal.ImageViewer = function(config){
 		,	ref: '../imagevp'
 		,	maximizable: true	
 		,	tbar: [{
-					text: 'Download'
+					text: 'Custom Size'
 				,	menu: [{
 						text: 'Small'
 					,	scope:this
@@ -59,6 +65,7 @@ ImagePortal.ImageViewer = function(config){
 			,	border: false
 			,	items:[
 						this.intimage
+					,	this.largeImagePanel
 					,	this.infoTabPanel
 					,	this.flicker
 				]
@@ -71,16 +78,26 @@ ImagePortal.ImageViewer = function(config){
 
 Ext.extend(ImagePortal.ImageViewer, Ext.Window, {
 	
-		hideInteractiveTab:function(hideunhide,path){
+		showLargeImage:function(path){
+			this.largeImagePanel.update({
+				path : path
+			});
+		}
+	
+	,	hideInteractiveTab:function(hideunhide,path){
 					if(hideunhide == 1 ){
 						Ext.getCmp('tabId').unhideTabStripItem(this.intimage);
+						Ext.getCmp('tabId').hideTabStripItem(this.largeImagePanel);
 						this.showImage(path);
 						//Ext.getCmp('tabId').setActiveTab(0);
 					}else{
 						Ext.getCmp('tabId').hideTabStripItem(this.intimage);
+						Ext.getCmp('tabId').unhideTabStripItem(this.largeImagePanel);
 						Ext.getCmp('tabId').setActiveTab(1);
+						this.showLargeImage(path);
 					}	
 			}
+			
 			
 	,	hideFlickerTab:function(fId,data){
 					if(fId != 0 && fId > 0 ){
