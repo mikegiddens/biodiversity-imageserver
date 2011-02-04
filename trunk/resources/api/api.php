@@ -1,8 +1,8 @@
 <?php
-	error_reporting(E_ERROR | E_WARNING | E_PARSE);
-	ini_set('display_errors', '1');
-	session_start();
-	ob_start();
+error_reporting(E_ALL ^ E_NOTICE);
+ini_set('display_errors', '1');
+session_start();
+ob_start();
 	/**
 	 * @copyright SilverBiology, LLC
 	 * @author Michael Giddens
@@ -26,6 +26,7 @@
 	*	Function print_c (Print Callback)
 	*	This is a wrapper function for print that will place the callback around the output statement
 	*/
+
 	function print_c( $str ) {
 		header('Content-type: application/json');
 		if ( isset( $_REQUEST['callback'] ) ) {
@@ -901,6 +902,24 @@ print_r($records);*/
 			}
 			break;
 
+		case 'populateS3Data':
+
+			$prefix = 'trt/';
+			$response = $si->amazon->list_objects($config['s3']['bucket'],array('prefix' => $prefix));
+			if($response->isOK()) {
+				$ret = $si->image->populateS3Data($response);
+				if($ret['success']) {
+					print(json_encode(array('success' => true, 'recordCount' => $ret['recordCount'] ) ) );
+				} else {
+					print( json_encode( array( 'success' => false ) ) );
+				}
+
+			} else {
+				print( json_encode( array( 'success' => false, 'error' => array( 'message' => 's3 Error' ) ) ));
+			}
+
+			break;
+
 		case 'zoomify_test':
 			$barcode = trim($_REQUEST['barcode']);
 			if ( $si->image->zoomifyImage($barcode) ) {
@@ -911,25 +930,20 @@ print_r($records);*/
 			}
 			break;
 
-		case 'aamazon_test':
+		case 'amazon_test':
+
 print '<pre>';
-			$filePath = '/home1/silverbi/public_html/specimens/imagingtour2010/resources/api/tst.txt';
-// 			$rr = $si->amazon->putObjectFile($filePath, $config['s3']['bucket'], 'logs/tst.txt', S3::ACL_PUBLIC_READ);
+echo 'in command';
 
-var_dump($rr);
+var_dump($si->amazon);
 
-			$ret = $si->amazon->getBucket($config['s3']['bucket'],'logs/');
+$response = $si->amazon->list_objects($config['s3']['bucket'], array('prefix' => 'trt/'));
+ 
+// Success?
+var_dump($response->isOK());
+var_dump(count($response->body->Contents));
+exit;
 
-print_r($ret);
-
-			$uri = 'logs/tst.txt';
-print '<br> Url : ' . $uri;
-			$rt = $si->amazon->deleteObject($config['s3']['bucket'], $uri);
-
-print '<br>';var_dump($rt);
-			$ret = $si->amazon->getBucket($config['s3']['bucket'],'logs/');
-
-print_r($ret);
 			break;
 
 		case 'flickr_test':
@@ -942,6 +956,7 @@ print_r($ret);
 			$rr = $f->photos_getInfo(4682069626,FLKR_SECRET);
 			echo '<pre>';
 			var_dump($rr);
+
 			break;
 
 		default:

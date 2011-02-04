@@ -87,7 +87,8 @@ class phpFlickr {
 
 		//All calls to the API are done via the POST method using the PEAR::HTTP_Request package.
 		require_once 'HTTP/Request.php';
-		$this->req =& new HTTP_Request();
+// 		$this->req =& new HTTP_Request();
+		$this->req = new HTTP_Request();
 		$this->req->setMethod(HTTP_REQUEST_METHOD_POST);
 	}
 
@@ -319,7 +320,8 @@ class phpFlickr {
 	}
 
 	function sync_upload ($photo, $title = null, $description = null, $tags = null, $is_public = null, $is_friend = null, $is_family = null) {
-		$upload_req =& new HTTP_Request();
+// 		$upload_req =& new HTTP_Request();
+		$upload_req = new HTTP_Request();
 		$upload_req->setMethod(HTTP_REQUEST_METHOD_POST);
 
 		$upload_req->setURL($this->Upload);
@@ -389,7 +391,8 @@ class phpFlickr {
 	}
 
 	function async_upload ($photo, $title = null, $description = null, $tags = null, $is_public = null, $is_friend = null, $is_family = null) {
-		$upload_req =& new HTTP_Request();
+// 		$upload_req =& new HTTP_Request();
+		$upload_req = new HTTP_Request();
 		$upload_req->setMethod(HTTP_REQUEST_METHOD_POST);
 
 		$upload_req->setURL($this->Upload);
@@ -458,7 +461,8 @@ class phpFlickr {
 
 	// Interface for new replace API method.
 	function replace ($photo, $photo_id, $async = null) {
-		$upload_req =& new HTTP_Request();
+// 		$upload_req =& new HTTP_Request();
+		$upload_req = new HTTP_Request();
 		$upload_req->setMethod(HTTP_REQUEST_METHOD_POST);
 
 		$upload_req->setURL($this->Replace);

@@ -1039,6 +1039,38 @@ $strips_array[$end][] = array('startRange' => $tmp_start, 'endRange' => $tmp_end
 		return $ret;
 	}
 
+	function populateS3Data($response) {
+
+		$body = $response->body;
+		$ar = $body->Contents;
+		$recordCount = 0;
+	
+		for($i=0;$i<count($body->Contents);$i++){
+			$ky = $body->Contents[$i];
+
+			$filePath = $ky->Key;
+			$fileDetails = @pathinfo($filePath);
+
+/*
+			$this->set('filename',$fileDetails['basename']);
+			$this->set('barcode',$fileDetails['filename']);
+			$this->set('timestamp_modified',@date('d-m-Y H:i:s',@strtotime($ky->LastModified)));
+			if($this->save()) {
+				$recordCount++;
+			}
+*/
+
+		}
+		if($recordCount) {
+			$ret = array('success' => true, 'recordCount' => $recordCount);
+		} else {
+			$ret = array('success' => false);
+		}
+		return $ret;
+
+$ret['success'] = true;
+return $ret;
+	}
 
 }
 ?>

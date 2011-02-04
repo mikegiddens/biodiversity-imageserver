@@ -449,7 +449,8 @@ class MysqliDatabase extends mysqli
 		
 		if (is_object($Ret))
 		{
-			$Ret =& new MysqliResult($Ret);
+// 			$Ret =& new MysqliResult($Ret);
+			$Ret = new MysqliResult($Ret);
 		}
 		return $Ret;
 	}
