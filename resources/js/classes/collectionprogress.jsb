@@ -83,4 +83,14 @@
   <file name="imageportal.reportpanel.js" path="" />
   <file name="imageportal.barreports.js" path="" />
   <file name="imageportal.reporttree.js" path="" />
+  <file name="imageportal-light.js" path="" />
+  <file name="Ext.ux.GMapPanel3.js" path="" />
+  <file name="collectionprogress.js" path="" />
+  <file name="class.login.js" path="" />
+  <file name="class.forgotpassword.js" path="" />
+  <file name="class.createaccount.js" path="" />
+  <file name="imageviewer-light.js" path="" />
+  <file name="interactivelight.js" path="" />
+  <file name="..\..\plugins\explorerview\explorerview.js" path="explorerview" />
+  <file name="..\..\ext\RandomInt.js" path="" />
 </project>

@@ -15,10 +15,11 @@ Ext.namespace("ImagePortal")
 	})
 	
 	Ext.apply(config,config,{
-			title:'Custome Download'
+			title:'Custom Size'
 		,	height:150
 		,	width:250
 		,	resizable:false
+		,	modal: true
 		,	buttons:[{
 				    text: 'Download'
 				,   ref:'../download'
@@ -34,25 +35,29 @@ Ext.namespace("ImagePortal")
 				,	width:50
 				,	handler: this.cancel
 			}]		
-		,   items: [{
+		,   items: [{localtreechildren
 				xtype:'form'
 			,	border:false
 			,	bodyStyle: 'padding:10px'				
 			,	items:[{
 						fieldLabel: 'Width'
 					,	name: 'flwidth'
-					,	xtype: 'textfield'
+					,	xtype: 'numberfield'
 					,   ref:'../flwidth'
 					,   width: 90
 					,   height:20
+					,	allowBlank: false
+					,	emptyText: 'Please enter width'
 					,	scope:this
 				},{       
 						fieldLabel: 'Height'
 					,	name: 'flheight'
-					,	xtype: 'textfield'
+					,	xtype: 'numberfield'
 					,   ref:'../flheight'
 					,   width: 90
 					,   height:20
+					,	allowBlank: false
+					,	emptyText: 'Please enter height'
 					,	scope:this
 				},{
 						xtype:'combo'
@@ -87,9 +92,13 @@ Ext.namespace("ImagePortal")
 			var flwidth = this.flwidth.getValue().trim();
 			var flheight = this.flheight.getValue().trim();
 			var fltype = this.fltype.getValue();
-			var url = Config.baseUrl + "resources/api/api.php?cmd=get_image&width="+flwidth+"&height="+flheight+"&image_id="+this.image_id+"&type="+this.fltype.getValue()  	
-			window.open(url,'_blank');	
-			this.hide();
+			if(Ext.isEmpty(flwidth) || Ext.isEmpty(flheight)){
+				Ext.Msg.alert('Notice', 'Please enter height and width');
+			} else {
+				var url = Config.baseUrl + "resources/api/api.php?cmd=get_image&width="+flwidth+"&height="+flheight+"&image_id="+this.image_id+"&type="+this.fltype.getValue()  	
+				window.open(url,'_blank');	
+				this.hide();
+			}
 		}
 	
 	,	cancel: function(){
