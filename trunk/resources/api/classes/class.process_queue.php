@@ -385,12 +385,10 @@ Class ProcessQueue {
 
 		$query = "SELECT SQL_CALC_FOUND_ROWS * FROM `process_queue` " . $where;
 
-// print $query;
 		$page = ($this->data['limit'] != 0) ? floor($this->data['start']/$this->data['limit']) : 1;
 		$page = ($page == 0) ? 1 : $page;
-// echo $page;
-// 		$ret = $this->db->query_all( $query );
-		$ret = $this->db->query_page_all( $query, $this->data['limit'],$page );
+		$ret = $this->db->query_all( $query );
+// 		$ret = $this->db->query_page_all( $query, $this->data['limit'],$page );
 
 		return is_null($ret) ? array() : $ret;
 	}

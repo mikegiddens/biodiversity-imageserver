@@ -197,11 +197,13 @@ Class Image {
 			# getting the image from s3
 			$bucket = $arr['s3']['bucket'];
 			$key = $this->barcode_path($barcode) . $this->get('filename');
-			$arr['obj']->getBucketFile($key, $bucket, $tmpPath);
+// 			$arr['obj']->getBucketFile($key, $bucket, $tmpPath);
+			$arr['obj']->get_object($bucket, $key, array('fileDownload' => $tmpPath));
 
 			$this->createThumb($tmpPath, $arr['width'], $arr['height'], $arr['postfix']);
 			# uploading thumb to s3
 			$arr['obj']->putFile($tmpThumbPath,$bucket,$thumbName);
+			$arr['obj']->create_object ( $bucket, $thumbName, array('fileUpload' => $tmpThumbPath) );
 
 			@unlink($tmpPath);
 			@unlink($tmpThumbPath);
