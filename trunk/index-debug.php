@@ -70,6 +70,7 @@ if (!(isset($_SESSION['user']) && isset($_SESSION['pw']))) {
 	<script type="text/javascript" src="resources/plugins/TwinComboBox.js"></script>
 
 	<!-- page specific -->
+	<script type="text/javascript" src="resources/js/classes/imageportal.notice.js"></script>
 	<script type="text/javascript" src="resources/js/classes/imageportal.downloadimage.js"></script>
 	<script type="text/javascript" src="resources/js/classes/imageportal.imageinfopanel.js"></script>	
 	<script type="text/javascript" src="resources/js/classes/imageportal.sequences.js"></script>	   

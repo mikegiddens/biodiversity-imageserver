@@ -348,7 +348,7 @@ ImagePortal.ByCollection = function(config) {
 	});
 				
 	//this.comboStore.on('load', this.generateSeries, this );
-	
+	var d = new Date();
 	this.yearCombo = new Ext.form.ComboBox({
 					selectOnFocus: true
 				,	width: 50
@@ -359,7 +359,7 @@ ImagePortal.ByCollection = function(config) {
 				,	fieldLabel:'Year: '
 				,	lazyRender: true
 				,	editable: false
-				,	value:'2010'
+				,	value: d.getFullYear()
 				,	valueField: 'Yr'
 				,	displayField: 'Yr'
 				,	listeners:{

@@ -44,10 +44,10 @@ if (!(isset($_SESSION['user']) && isset($_SESSION['pw']))) {
           google.load('visualization', '1', {packages: ['linechart', 'barchart', 'piechart']});
   </script> 
 
- 	<script type="text/javascript" src="resources/js/classes/GVisualizationPanel.js"></script>
- 	<script type="text/javascript" src="resources/js/classes/Ext.ux.GMapPanel.js"></script>	
+ <!--	<script type="text/javascript" src="resources/js/classes/GVisualizationPanel.js"></script> 
+ 	<script type="text/javascript" src="resources/js/classes/Ext.ux.GMapPanel.js"></script>	-->
  	<script type="text/javascript" src="config.js"></script> 	
- 	<script type="text/javascript" src="resources/ext/treecombo.js"></script> 	
+<!-- 	<script type="text/javascript" src="resources/ext/treecombo.js"></script> 		
 	<script type="text/javascript" src="resources/ext/RandomInt.js"></script>  	
 	<script type="text/javascript" src="resources/ext/GroupTabPanel.js"></script>
 	<script type="text/javascript" src="resources/ext/GroupTab.js"></script>
@@ -62,14 +62,15 @@ if (!(isset($_SESSION['user']) && isset($_SESSION['pw']))) {
 	<script type="text/javascript" src="resources/ext/gridfilters/filter/NumericFilter.js"></script>
 	<script type="text/javascript" src="resources/ext/gridfilters/filter/BooleanFilter.js"></script>
 
-	<script type="text/javascript" src="resources/js/classes/imageportal.help.js"></script>
+	<script type="text/javascript" src="resources/js/classes/imageportal.help.js"></script>-->
 
 	<!--Files for expoler view & combobox
 	-->
-	<script type="text/javascript" src="resources/plugins/explorerview/Ext.ux.grid.ExplorerView.js"></script>
-	<script type="text/javascript" src="resources/plugins/TwinComboBox.js"></script>
+<!--	<script type="text/javascript" src="resources/plugins/explorerview/Ext.ux.grid.ExplorerView.js"></script>
+	<script type="text/javascript" src="resources/plugins/TwinComboBox.js"></script> -->
 
 	<!-- page specific -->
+<!--	<script type="text/javascript" src="resources/js/classes/imageportal.notice.js"></script>  
 	<script type="text/javascript" src="resources/js/classes/imageportal.downloadimage.js"></script>
 	<script type="text/javascript" src="resources/js/classes/imageportal.imageinfopanel.js"></script>	
 	<script type="text/javascript" src="resources/js/classes/imageportal.sequences.js"></script>	   
@@ -90,8 +91,8 @@ if (!(isset($_SESSION['user']) && isset($_SESSION['pw']))) {
   	<script type="text/javascript" src="resources/js/classes/imageportal.piareports.js"></script>
   	<script type="text/javascript" src="resources/js/classes/imageportal.barreports.js"></script>
   	<script type="text/javascript" src="resources/js/classes/imageportal.reporttree.js"></script>
-  	<script type="text/javascript" src="resources/js/classes/imageportal.reportpanel.js"></script>
-
+  	<script type="text/javascript" src="resources/js/classes/imageportal.reportpanel.js"></script>-->
+	<script type="text/javascript" src="resources/js/classes/biodiversity.js"></script>
 	<script type="text/javascript" src="resources/js/progressui.js"></script>
 </head>
 <body>
