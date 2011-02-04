@@ -1,8 +1,9 @@
 #summary Master Table of Contents for this project
  * *User Guide*
    * [Overview  Overview]
-   * [Quickstart Quickstart]
    * [Admin Admin Features]
+   * [Screenshots  Screen shots]
+   * [Quickstart Quickstart]
    * [Demos Demos]
  * *Videos*
    * [InstructionalVideos  Instructional Videos]
