@@ -305,13 +305,17 @@ Class Image {
     /**
      * checks whether field exists in image table
      */
-    public function barcode_exists ($barcode){
+    public function barcode_exists ($barcode,$returnFlag = false){
         $query = sprintf("SELECT `image_id` FROM `image` WHERE `barcode` = '%s';", $barcode );
         $ret = $this->db->query_one( $query );
         if ($ret == NULL) {
             return false;
         } else {
-            return true;
+		if($returnFlag) {
+			return $ret->image_id;
+		} else {
+            		return true;
+		}
         }
     }
 
@@ -1040,7 +1044,6 @@ $strips_array[$end][] = array('startRange' => $tmp_start, 'endRange' => $tmp_end
 	}
 
 	function populateS3Data($response) {
-
 		$body = $response->body;
 		$ar = $body->Contents;
 		$recordCount = 0;
@@ -1051,15 +1054,12 @@ $strips_array[$end][] = array('startRange' => $tmp_start, 'endRange' => $tmp_end
 			$filePath = $ky->Key;
 			$fileDetails = @pathinfo($filePath);
 
-/*
 			$this->set('filename',$fileDetails['basename']);
 			$this->set('barcode',$fileDetails['filename']);
 			$this->set('timestamp_modified',@date('d-m-Y H:i:s',@strtotime($ky->LastModified)));
 			if($this->save()) {
 				$recordCount++;
 			}
-*/
-
 		}
 		if($recordCount) {
 			$ret = array('success' => true, 'recordCount' => $recordCount);
@@ -1067,9 +1067,6 @@ $strips_array[$end][] = array('startRange' => $tmp_start, 'endRange' => $tmp_end
 			$ret = array('success' => false);
 		}
 		return $ret;
-
-$ret['success'] = true;
-return $ret;
 	}
 
 }

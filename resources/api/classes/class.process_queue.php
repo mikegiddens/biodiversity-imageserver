@@ -111,7 +111,7 @@ Class ProcessQueue {
 				, mysql_escape_string($this->get('error_details'))
 			);
 		}
-
+// echo $query;
 		if($this->db->query($query)) {
 			return(true);
 		} else {

@@ -3,6 +3,7 @@ error_reporting(E_ALL ^ E_NOTICE);
 ini_set('display_errors', '1');
 session_start();
 ob_start();
+
 	/**
 	 * @copyright SilverBiology, LLC
 	 * @author Michael Giddens
@@ -918,6 +919,64 @@ print_r($records);*/
 				print( json_encode( array( 'success' => false, 'error' => array( 'message' => 's3 Error' ) ) ));
 			}
 
+			break;
+
+		case 'audit':
+			$files = @json_decode(@stripslashes(trim($_REQUEST['filenames'])),true);
+			$autoProcess = @json_decode(@stripslashes(trim($_REQUEST['autoProcess'])),true);
+			$statsArray = array();
+			$tplArray = array('small','medium','large','thumb');
+			$linkArray = array('small' => '_s','medium' => '_m','large'=>'_l','thumb'=>'_thumb');
+			if(is_array($files) && count($files)) {
+				foreach($files as $file) {
+					$ar = array();
+					$fl = @pathinfo($file);
+					$prefix = $si->image->barcode_path($fl['filename']);
+					$response = $si->amazon->list_objects($config['s3']['bucket'],array('prefix' => $prefix));
+					if($response->isOK()) {
+						$ar = array_fill_keys($tplArray,false);
+						$opArray = array('small','medium','large','thumb');
+						$body = $response->body;
+					
+						for($i=0;$i<count($body->Contents);$i++){
+							$ky = $body->Contents[$i];
+							$filePath = $ky->Key;
+							$fileDetails = @pathinfo($filePath);
+							$barcode = $fileDetails['filename'];
+							if(count($opArray)) {
+								foreach($opArray as $op) {
+									if(@strpos($barcode,$linkArray[$op]) !== false) {
+										$ar[$op] = true;
+										$ky = @array_search($op,$opArray);
+										if($ky !== false) {
+											unset($opArray[$ky]);
+										}
+										break;
+									}
+								} # foreach
+							}
+						} # for contents
+						if( is_array($autoProcess) && count($autoProcess) ) {
+							foreach($autoProcess as $key => $value ) {
+								if($value == true) {
+									if(@in_array($key,$tplArray) && $ar[$key] == false) {
+										if(!$si->pqueue->field_exists($barcode,$key)) {
+											$si->pqueue->set('image_id', $barcode);
+											$si->pqueue->set('process_type', $key);
+											$si->pqueue->save();
+										}
+									}
+								}
+							} # foreach auto-process
+						} # if autoprocess
+
+					} # response ok
+					$statsArray[] = array('file' => $fl['basename'], 'barcode' => $fl['filename'], 'details' => $ar);
+
+
+				} # foreach file
+			} # if count file
+			print_c ( json_encode( array( 'success' => true, 'stats' => $statsArray ) ) );
 			break;
 
 		case 'zoomify_test':
