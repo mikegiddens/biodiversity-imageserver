@@ -21,3 +21,7 @@ Features of the the web portal are:
 The original goal for developing this software was to provide a way to easily manage the [http://www.cyberfloralouisiana.com Cyberflora Louisiana] 1 million+ specimen sheets.
 
 If this sounds like something that would be good to have for your image collection we suggest you try for yourself by following our [Quickstart Quickstart Guide].
+
+= General Diagram of Software and Image Server =
+
+http://biodiversity-imageserver.googlecode.com/svn/trunk/images/software/overview.jpg
