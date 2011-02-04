@@ -14,7 +14,8 @@
 	require_once( BASE_PATH . "resources/api/classes/class.process_queue.php");
 	require_once( BASE_PATH . "resources/api/classes/class.misc.php");
 	require_once( BASE_PATH . "resources/api/classes/class.picassa.php");
-//	require_once( BASE_PATH . "resources/api/classes/class.amazonS3.php");
+// 	require_once( BASE_PATH . "resources/api/classes/class.amazonS3.php");
+	require_once( BASE_PATH . "resources/api/classes/sdk/sdk.class.php");
 
 	Class SilverImage {
 	
@@ -28,7 +29,7 @@
 			$this->collection = new Collection();
 			$this->pqueue = new ProcessQueue();
 			$this->picassa = new PicassaWeb();
-//			$this->amazon = new Amazon($config['s3']);
+			$this->amazon = new AmazonS3($config['s3']['accessKey'],$config['s3']['secretKey']);
 			
 			$this->logger->db = &$this->db;
 			$this->images->db = &$this->db;
