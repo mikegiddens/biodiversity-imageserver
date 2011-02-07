@@ -8,7 +8,7 @@ ImagePortal.ImageViewer = function(config){
 	
 	this.infoTabPanel =	new ImagePortal.ImageInfoPanel();
 	this.largeImagePanel = new Ext.Panel({
-		title: 'Interactive'
+		title: 'Large Image'
 	,	tpl: new Ext.XTemplate(
 			'<div><img src={path}></div>'
 		)
@@ -85,16 +85,16 @@ Ext.extend(ImagePortal.ImageViewer, Ext.Window, {
 		}
 	
 	,	hideInteractiveTab:function(hideunhide,path){
-					if(hideunhide == 1 ){
-						Ext.getCmp('tabId').unhideTabStripItem(this.intimage);
-						Ext.getCmp('tabId').hideTabStripItem(this.largeImagePanel);
-						this.showImage(path);
-						//Ext.getCmp('tabId').setActiveTab(0);
-					}else{
+					if(hideunhide == 0 ){
 						Ext.getCmp('tabId').hideTabStripItem(this.intimage);
 						Ext.getCmp('tabId').unhideTabStripItem(this.largeImagePanel);
 						Ext.getCmp('tabId').setActiveTab(1);
-						this.showLargeImage(path);
+						this.showLargeImage(path);	
+					}else{
+						Ext.getCmp('tabId').hideTabStripItem(this.largeImagePanel);
+						Ext.getCmp('tabId').unhideTabStripItem(this.intimage);
+						this.showImage(path);
+						//Ext.getCmp('tabId').setActiveTab(0);
 					}	
 			}
 			

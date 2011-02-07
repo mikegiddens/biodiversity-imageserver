@@ -215,7 +215,6 @@
 			}]
 		,	changeHandler: this.changeView
 	});
-
 	
 	Ext.apply(this,config,{
 			title: 'Images'		
@@ -244,6 +243,7 @@
 				,	dataIndex: 'image_id'
 				,	width: 50
 				,	sortable: true
+				,	hidden: Config.image_id || false
 			},{
 					header: "Collection"
 				,	dataIndex: ''
@@ -267,8 +267,8 @@
 				,	width: 120				
 				,	sortable: true
 				,	scope:this	
+				,	hidden: Config.lastModified || false
 				,	renderer:function(a){
-				
 						return(this.rendererDatehandling(a));
 					}					
 			},{
@@ -296,7 +296,7 @@
 				,	scope:this				
 				,	filterable:true
 				,	filter: {type: 'string'}
-				,	hidden: false
+				,	hidden: Config.flickr_PlantID || false
 				,	sortable: true
 				,	renderer:function(a){
 						return(this.rendererPlantID(a));
@@ -307,7 +307,7 @@
 				,	width: 80
 				,	scope:this	
 				,	filterable:true
-				,	hidden: false
+				,	hidden: Config.picassa_PlantID || false
 				,	filter: {type: 'numeric'}				
 				,	sortable: true
 				,	renderer:function(a){
@@ -331,7 +331,7 @@
 				,	filterable:true
 				,	filter: {type: 'numeric'}				
 				,	sortable: true
-				,	hidden: false
+				,	hidden: Config.gTileProcessed || false
 				,	renderer:function(a){
 						return(this.renderergTileProcess(a));
 					}
@@ -350,7 +350,7 @@
 				,	filterable:true
 				,	filter: {type: 'numeric'}			
 				,	sortable: true
-				,	hidden: false
+				,	hidden: Config.processed || false
 				,	renderer:function(a){
 						return(this.renderergTileProcess(a));
 					}
@@ -368,23 +368,23 @@
 				, 	singleSelect: true	
 				,	emptyText: 'No images available.'
 				,	deferEmptyText: false
-				,	forceFit: false
+				,	forceFit: true
 				,	hideColumns: true
 			}		
 		,	bbar: new Ext.PagingToolbar({
 					pageSize: 100
 				,	store: this.store
 				,	scope:this
-				,	emptyMsg: ''
+				,	emptyMsg: 'No images available.'
 				,	displayInfo: true
 				,	displayMsg: 'Displaying Specimen Images {0} - {1} of {2}' 
 				,	ref:'../pgtoolbar'
 				,	items:['',{
-                		xtype:'button'
-                    ,	text:'View Image'   
+						xtype:'button'
+					,	text:'View Image'   
 					,	scope:this 
 					,	handler: this.viewImage
-               		}]
+					}]
 			})
 		,	listeners:{
 					 rowcontextmenu: this.rightClickMenu
