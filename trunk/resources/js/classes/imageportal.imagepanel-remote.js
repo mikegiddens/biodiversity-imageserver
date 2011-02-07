@@ -5,7 +5,7 @@
 */
 
 Ext.override(Ext.PagingToolbar, {
-		updateInfo: function(){
+	/*	updateInfo: function(){
 			if(this.displayItem){
 				var count = this.store.getCount();
 				var msg = count == 0 ?
@@ -18,7 +18,7 @@ Ext.override(Ext.PagingToolbar, {
 						);
 				this.displayItem.setText(msg);
 			}
-		}
+		} */
 	});
 
 
@@ -27,15 +27,22 @@ Ext.override(Ext.PagingToolbar, {
 	ImagePortal.ImagePortalRemote = function(config){
 
 	var config2 = {};
-	
+/*	this.proxy = '';
+		if(Config.mode == 'local'){
+			this.proxy = new Ext.data.HttpProxy({
+				url: Config.baseUrl + 'resources/api/api.php'
+			})
+		}else{
+			this.proxy = new Ext.data.ScriptTagProxy({
+					url: Config.baseUrl + 'resources/api/api.php'
+			})
+		}*/
 	Ext.apply(config2, config, {
 			border: true
 		,	width: 700
 		,	height: 420
-		,	store: new Ext.data.GroupingStore({
-						proxy: new Ext.data.ScriptTagProxy({
-								url: Config.baseUrl + 'resources/api/api.php'
-							})
+	/*	,	store: new Ext.data.GroupingStore({
+						proxy: this.proxy
 					,	baseParams: { 
 								cmd: 'images'
 							,	filter:''
@@ -67,7 +74,12 @@ Ext.override(Ext.PagingToolbar, {
 					,	remoteSort: true
 					,	sortInfo: 'login'
 					,	groupField: ''
-				})
+				})*/
+	/*	,	listeners: {
+				render: function(){
+					this.initLoadMethod();
+				}
+			}	*/	
  	});
 
 	ImagePortal.ImagePortalRemote.superclass.constructor.call(this, config2);
@@ -77,18 +89,12 @@ Ext.override(Ext.PagingToolbar, {
  
 	Ext.extend(ImagePortal.ImagePortalRemote, ImagePortal.Image, {
 			initLoadMethod:function(){
-							if(!Config.showCollection){
-									this.getBottomToolbar().insert(13, this.views);
-									this.getTopToolbar().setVisible(false);
-								}
-							this.doLayout();
-							this.search_value.setValue(Config.defaultCollection);
-							this.search_value.triggers[0].show();
-							this.store.baseParams= Config.imageStoreParams;
-							this.store.load();
-							this.search_value.setDisabled(Config.disableCollection);
-							this.search_value.setVisible(Config.showCollection);
-				}
+				this.search_value.hide();
+				this.getBottomToolbar().insert(13, this.views);
+				this.getTopToolbar().setVisible(false);
+				this.store.baseParams= Config.imageStoreParams;
+				this.store.load({params:{start:0, limit:100}});
+			}
 		,	rightClickMenu:function(grid,row,e){
 					grid.getSelectionModel().selectRow(row);
 					var record = grid.getSelectionModel().getSelected().data;
