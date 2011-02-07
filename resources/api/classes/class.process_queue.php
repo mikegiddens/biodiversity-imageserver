@@ -155,24 +155,9 @@ Class ProcessQueue {
 			if($record === false) {
 				$loop_flag = false;
 			} else {
+# $loop_flag = false;
 				$this->processType($record);
-
-// populating the image table (if current barcode is absent in the image table)
-/*		if(!$this->image->barcode_exists($record->image_id)) {
-		$image = new Image();
-		$image->db = &$this->db;
-		$image->set('barcode',$record->image_id);
-		$image->set('filename',$record->image_id.'.jpg');
-		$image->set('flickr_PlantID',0);
-		$image->set('picassa_PlantID',0);
-		$image->set('gTileProcessed',0);
-		$image->set('zoomEnabled',0);
-		$image->set('processed',0);
-		$image->save();
-		unset($image);
-	}*/
 				$count++;
-// 		$loop_flag = false; # for testing
 			}
 		}
 
@@ -223,33 +208,32 @@ Class ProcessQueue {
 				$query = "SELECT * FROM `process_queue` WHERE `process_type` = 'all' ORDER BY `date_added` LIMIT 1";
 				break;
 			default:
-	//         		$query = "SELECT * FROM `process_queue` ORDER BY `date_added` DESC LIMIT 1";
 				$query = "SELECT * FROM `process_queue` WHERE `process_type` NOT IN ('picassa_add','flicker_add') ORDER BY `date_added` LIMIT 1";
 				break;
 		}
-// echo $query . '<br>';
 		$result = $this->db->query_one($query);
 		if($result == NULL) {
-// 		print '<br> First loop false';
 			return false;
 		} else {
 			$delquery = sprintf("DELETE FROM `process_queue` WHERE `image_id` = '%s' AND `process_type` = '%s' ", mysql_escape_string($result->image_id), mysql_escape_string($result->process_type));
+
 			if($this->db->query($delquery)) {
 					return $result;
 			} else {
 					return false;
 			}
+
 			return $result;
 		}
 	}
 
 	public function processType($record) {
-		$image_path = PATH_IMAGES . $this->image->barcode_path( $record->image_id );
-//         $image = $image_path . $record->image_id . '.jpg';
 		$this->image->load_by_barcode($record->image_id);
-		$image = $image_path . $this->image->get('filename');
-
-		$this->image->set_fullpath($image);
+		if($this->data['mode'] != 's3') {
+			$image_path = PATH_IMAGES . $this->image->barcode_path( $record->image_id );
+			$image = $image_path . $this->image->get('filename');
+			$this->image->set_fullpath($image);
+		}
 		switch($record->process_type) {
 			case 'all':
 				$this->process_stats['small']++;
@@ -289,7 +273,7 @@ Class ProcessQueue {
 				$this->process_stats['small']++;
 				if($this->data['mode'] == 's3') {
 					$ar = array ('s3' => $this->data['s3'], 'obj' => $this->data['obj'], 'postfix' => $postFix, 'width' => $width, 'height' => $height);
-					$this->image->createThumbS3($record->image_id,$ar);
+					$rr = $this->image->createThumbS3($record->image_id,$ar);
 				} else {
 					if(IMAGE_PROCESSING == 1) {
 						$this->image->createThumbnailIMagik( $image, $width, $height, $postFix);

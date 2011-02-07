@@ -8,6 +8,7 @@
 			, 'limit'
 			, 'client_id'
 			, 'image_server_id'
+			, 'image_mode'
 	);
 
 	$domain = array('dev' => 'http://dev.helpingscience.org/silverarchive_engine/silverarchive.php', 'sandbox' => 'http://sandbox.helpingscience.org/silverarchive_engine/silverarchive.php');
@@ -17,10 +18,13 @@
 	foreach ($expected as $formvar)
 		$$formvar = (isset(${"_$_SERVER[REQUEST_METHOD]"}[$formvar])) ? ${"_$_SERVER[REQUEST_METHOD]"}[$formvar]:NULL;
 
+	$image_mode = ($image_mode != '') ? $image_mode : 's3';
 	$mode = ($mode != '') ? $mode : 'dev';
 	$limit = ($limit != '') ? $limit : 100;
 	$client_id = ($client_id != '') ? $client_id : 2;
 	$image_server_id = ($image_server_id != '') ? $image_server_id : 101;
+
+	
 
 	require_once("../config.php");
 	require_once("classes/class.master.php");
