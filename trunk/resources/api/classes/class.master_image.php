@@ -186,24 +186,22 @@ Class Image {
 	 */
 	function createThumbS3($barcode,$arr) {
 		if($this->load_by_barcode($barcode)) {
-
 			$filName = 'Img_' . time();
 			$tmpPath = sys_get_temp_dir() . '/' . $filName . '.jpg';
 			$tmpThumbPath = sys_get_temp_dir() . '/' . $filName . $arr['postfix'] . '.jpg';
-			$thumbName = $this->barcode_path($this->get($barcode)) . $barcode . $arr['postfix'] . '.jpg';
-			
+			$thumbName = $this->barcode_path($barcode) . $barcode . $arr['postfix'] . '.jpg';
+
 			$fp = fopen($tmpPath, "w+b");
 
 			# getting the image from s3
 			$bucket = $arr['s3']['bucket'];
 			$key = $this->barcode_path($barcode) . $this->get('filename');
-// 			$arr['obj']->getBucketFile($key, $bucket, $tmpPath);
 			$arr['obj']->get_object($bucket, $key, array('fileDownload' => $tmpPath));
 
 			$this->createThumb($tmpPath, $arr['width'], $arr['height'], $arr['postfix']);
+
 			# uploading thumb to s3
-			$arr['obj']->putFile($tmpThumbPath,$bucket,$thumbName);
-			$arr['obj']->create_object ( $bucket, $thumbName, array('fileUpload' => $tmpThumbPath) );
+			$response = $arr['obj']->create_object ( $bucket, $thumbName, array('fileUpload' => $tmpThumbPath,'acl' => AmazonS3::ACL_PUBLIC) );
 
 			@unlink($tmpPath);
 			@unlink($tmpThumbPath);

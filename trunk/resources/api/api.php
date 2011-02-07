@@ -903,6 +903,10 @@ print_r($records);*/
 			}
 			break;
 
+/**
+ * Populates the image table with the data of images present in the s3 account
+ */
+
 		case 'populateS3Data':
 
 			$prefix = 'trt/';
@@ -924,6 +928,11 @@ print_r($records);*/
 		case 'audit':
 			$files = @json_decode(@stripslashes(trim($_REQUEST['filenames'])),true);
 			$autoProcess = @json_decode(@stripslashes(trim($_REQUEST['autoProcess'])),true);
+
+			if(!(is_array($autoProcess) && count($autoProcess))) {
+				$autoProcess = array('small' => true, 'medium' => true, 'large' => true);
+			}
+
 			$statsArray = array();
 			$tplArray = array('small','medium','large','thumb');
 			$linkArray = array('small' => '_s','medium' => '_m','large'=>'_l','thumb'=>'_thumb');
@@ -931,7 +940,8 @@ print_r($records);*/
 				foreach($files as $file) {
 					$ar = array();
 					$fl = @pathinfo($file);
-					$prefix = $si->image->barcode_path($fl['filename']);
+					$barcode = $fl['filename'];
+					$prefix = $si->image->barcode_path($barcode);
 					$response = $si->amazon->list_objects($config['s3']['bucket'],array('prefix' => $prefix));
 					if($response->isOK()) {
 						$ar = array_fill_keys($tplArray,false);
@@ -942,10 +952,10 @@ print_r($records);*/
 							$ky = $body->Contents[$i];
 							$filePath = $ky->Key;
 							$fileDetails = @pathinfo($filePath);
-							$barcode = $fileDetails['filename'];
+							$bcode = $fileDetails['filename'];
 							if(count($opArray)) {
 								foreach($opArray as $op) {
-									if(@strpos($barcode,$linkArray[$op]) !== false) {
+									if(@strpos($bcode,$linkArray[$op]) !== false) {
 										$ar[$op] = true;
 										$ky = @array_search($op,$opArray);
 										if($ky !== false) {
@@ -968,6 +978,7 @@ print_r($records);*/
 									}
 								}
 							} # foreach auto-process
+
 						} # if autoprocess
 
 					} # response ok
