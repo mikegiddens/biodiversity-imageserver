@@ -36,6 +36,20 @@ body,td,th {
 </head>
 
 <body>
+	<script type="text/javascript" src="resources/js/classes/soundmanager2.js"></script>  	
+	<script type="text/javascript">
+		soundManager.url = 'resources/sounds/'; // directory where SM2 .SWFs live
+		soundManager.useFlashBlock = false;
+		soundManager.onload = function() {
+			soundManager.createSound({
+					id: 'Beep6'
+				,	url: 'resources/sounds/beep-6.mp3'
+			});
+		}
+	</script>
+
+	<script type="text/javascript" src="resources/ext/ext-core-debug.js"></script>
+	
   <div style="width: 400px;  margin-left: auto; margin-right: auto;" align="center">
     <label style="font-weight:bold;"><img src="images/biodiversity-image-server-logo.jpg" width="318" height="108" alt="Biodiveristy Image Server" /><br />
     </label>
@@ -48,11 +62,70 @@ body,td,th {
           <td width="308"><input name="user" type="text" class="ibox" id="user" size="40px" /></td>
         </tr>
         <tr>
-          <td colspan="2">{results here}</td>
+          <td colspan="2"><div id="tplID"><div></td>
         </tr>
       </table>
     </div>
   </div>
-</form>
+  <script>
+	Ext.onReady(function(){
+		Ext.get('user').on('keypress', function(e, el){
+				
+			if(e.keyCode == 13){
+				var bcValue= el.value;
+				if (Ext.isEmpty(bcValue)){
+					Ext.Msg.alert("Notice","Please enter barcode.");
+				} else{
+					Ext.Ajax.request({
+						scope: this
+					,	url: 'resources/api/api.php'
+					,	params: {
+								cmd : 'images'
+							,	'filter[0][data][type]': 'string'
+							,	'filter[0][data][value]': bcValue
+							,	'filter[0][field]': 'barcode'
+							}
+					,	success: function(response){
+							var data = Ext.decode(response.responseText);
+							if(Ext.isEmpty(data.data)){
+								soundManager.play('Beep6');
+								var t = new Ext.Template(
+									'<p align="center">{barcode}</p>'
+								)
+								t.overwrite('tplID', {	
+									barcode: 'Barcode not found.'
+							});	
+							} else{
+								var fileName = data.data[0].filename
+								var mediumFileName = fileName.split(".");
+								var path = data.data[0].path + mediumFileName[0]+'_l.'+mediumFileName[1];
+								var barcode = data.data[0].barcode;
+								var t = new Ext.Template(
+									'<p align="center">Barcode: {barcode}</p>'
+								,	'<p align="center"><img align="center" src={path}></p>'
+								)
+								t.overwrite('tplID', {
+										path: path
+									,	barcode: barcode	
+									});	
+							}
+						}
+					,	failure: function(result){
+							console.log("Fail",result)
+						}
+					});
+				}
+			}
+			if(e.keyCode == 8){
+				var t = new Ext.Template(
+					'<p>{barcode}</p>'
+				)
+				t.overwrite('tplID', {	
+					barcode: ''
+				});
+			}
+		})
+	});
+  </script>
 </body>
 </html>
