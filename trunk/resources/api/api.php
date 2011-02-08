@@ -536,6 +536,11 @@ print_r($records);*/
 			$filter['code'] = trim($_REQUEST['code']);
 			$filter['exist'] = trim($_REQUEST['exist']);
 			if($valid) {
+
+				$pathUrl = IMAGE_SEQUENCE_CACHE;
+				$pathUrl = @str_replace(BASE_PATH, BASE_URL . 'biodiversityimageserver/trt/', IMAGE_SEQUENCE_CACHE);
+
+
 				$si->image->setData($filter);
 				$data = $si->image->imageSequenceCache();
 				$datalist = json_encode($data);
@@ -545,7 +550,7 @@ print_r($records);*/
 				fclose($fp);
 
 				$total = $si->image->db->query_total();
-				print( json_encode( array( 'success' => true, 'totalCount' => $total, 'records' => $data ) ) );
+				print( json_encode( array( 'success' => true, 'totalCount' => $total, 'cacheFile' => $pathUrl, 'records' => $data ) ) );
 			}else {
 				print( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ) );
 			}
@@ -577,6 +582,8 @@ print_r($records);*/
 			break;
 
 		case 'sizeOfCollection':
+			$time = microtime(true);
+
 			$id = trim($_REQUEST['id']);
 			$data['start'] = (trim($_REQUEST['start']) != '') ? trim($_REQUEST['start']) : 0;
 			$data['limit'] = (trim($_REQUEST['limit']) != '') ? trim($_REQUEST['limit']) : 100;
@@ -584,7 +591,7 @@ print_r($records);*/
 			if($valid) {
 				$si->collection->setData($data);
 				$data = $si->collection->getSizeOfCollection();
-				print_c( json_encode( array( 'success' => true, 'data' => $data ) ) );
+				print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time, 'data' => $data ) ) );
 			} else {
 				print_c( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ) );
 			}
@@ -989,6 +996,24 @@ print_r($records);*/
 			} # if count file
 			print_c ( json_encode( array( 'success' => true, 'stats' => $statsArray ) ) );
 			break;
+
+/*
+		case 'clearProcessQueue':
+			$types = @json_decode(@stripslashes(trim($_REQUEST['types'])));
+			$imageIds = @json_decode(@stripslashes(trim($_REQUEST['imageId'])));
+			if(is_array($types) && count($types)) {
+				$data['processType'] = $types;
+			}
+			if(is_array($imageIds) && count($imageIds)) {
+				$data['imageId'] = $imageIds;
+			}
+			$si->pqueue->setData($data);
+
+			$allowedTypes = array('flicker_add','picassa_add','zoomify','google_tile','ocr_add','name_add');
+			$si->pqueue->clearQueue();
+
+			break
+*/
 
 		case 'zoomify_test':
 			$barcode = trim($_REQUEST['barcode']);

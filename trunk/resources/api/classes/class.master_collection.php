@@ -139,7 +139,7 @@ Class Collection {
 				$code = $ret->code;
 
 # logic to be changed, need to calculate from the master_log table
-				$query = "SELECT count(*) ct from `image` WHERE filename LIKE '$code%'";
+				$query = "SELECT count(*) ct from `image` WHERE `barcode` LIKE '$code%'";
 				$re = $this->db->query_one($query);
 				$ar['imaged'] = $re->ct;
 
