@@ -201,7 +201,7 @@ Class Image {
 			$this->createThumb($tmpPath, $arr['width'], $arr['height'], $arr['postfix']);
 
 			# uploading thumb to s3
-			$response = $arr['obj']->create_object ( $bucket, $thumbName, array('fileUpload' => $tmpThumbPath,'acl' => AmazonS3::ACL_PUBLIC) );
+			$response = $arr['obj']->create_object ( $bucket, $thumbName, array('fileUpload' => $tmpThumbPath,'acl' => AmazonS3::ACL_PUBLIC,'storage' => AmazonS3::STORAGE_REDUCED) );
 
 			@unlink($tmpPath);
 			@unlink($tmpThumbPath);

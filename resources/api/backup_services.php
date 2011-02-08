@@ -1,4 +1,6 @@
 <?php
+error_reporting(E_ALL ^ E_NOTICE);
+ini_set('display_errors', '1');
 
 /**
  * Flick API for CFLA Images Server
@@ -16,6 +18,8 @@
 
 
 require_once("../../config.php");
+$path = BASE_PATH . "resources/api/classes/";
+set_include_path(get_include_path() . PATH_SEPARATOR . $path);
 require_once("classes/phpFlickr/phpFlickr.php");
 require_once("classes/class.master.php");
 require_once("classes/class.picassa.php");
