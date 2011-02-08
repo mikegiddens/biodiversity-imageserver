@@ -90,6 +90,72 @@ ImagePortal.Queue = function(config) {
 				,	emptyText: 'No Images in Queue'
 				,	deferEmptyText: false
 			})
+		,	tbar: [{
+						xtype: 'tbbutton'
+					,	text: 'Check for New Images'
+					,	ref: '../chkImage'
+					,	scope: this	
+					,	handler: function(){
+							this.chkImage.disable();
+							Ext.Ajax.request({
+								scope: this
+							,	url: 'resources/api/api.php'
+							,	params: {
+									cmd: 'check-new-images'
+								}
+							,	success: function(response){
+									var images= Ext.decode(response.responseText).total_images;
+									ImagePortal.Notice.msg('Notice', images + ' images found.')
+								}
+							,	failure: function(result){
+									console.log(result);
+								}
+							});
+							this.chkImage.enable();
+						}
+					
+				}, {
+						xtype: 'tbbutton'
+					,	text: 'Process OCR'
+					,	scope: this	
+					,	handler: function(){
+							Ext.Ajax.request({
+								scope: this
+							,	url: 'resources/api/api.php'
+							,	params: {
+									cmd: 'processOCR'
+								}
+							,	success: function(response){
+									console.log(response);
+								}
+							,	failure: function(result){
+									console.log(result);
+								}
+							});
+						}
+				}, {
+						xtype: 'tbbutton'
+					,	text: 'Remove'
+					,	menu:[{
+								text: "Google Tiles"
+							,	scope: this
+							,	handler: function(){
+									this.removeQueue('google_tile')
+								}
+						}, {
+								text: "All"
+							,	scope: this	
+							,	handler: function(){
+									this.removeQueue('all')
+								}
+						}, {
+								text: "Flickr"
+							,	scope: this	
+							,	handler: function(){
+									this.removeQueue('flickr')
+								}
+						}]
+				}]	
 		,	bbar: new Ext.PagingToolbar({
 					pageSize: 100
 				,	store: this.ds
@@ -107,12 +173,27 @@ ImagePortal.Queue = function(config) {
 	} 
  
 	Ext.extend(ImagePortal.Queue, Ext.grid.GridPanel, {
-		
-		rendererDatehandling:function(value){
-			if(value == '0000-00-00 00:00:00')
-			 	return String.format('');
-			else
-				return value;
-		}		
+			removeQueue: function(processtype){
+				Ext.Ajax.request({
+					scope: this
+				,	url: 'resources/api/api.php'
+				,	params: {
+							cmd: 'removeQueue'
+						,	processtype: processtype
+						}
+				,	success: function(response){
+						console.log(response);
+					}
+				,	failure: function(result){
+						console.log(result);
+					}
+				});
+			}
+		,	rendererDatehandling:function(value){
+				if(value == '0000-00-00 00:00:00')
+					return String.format('');
+				else
+					return value;
+			}		
 		
 }); // end of extend

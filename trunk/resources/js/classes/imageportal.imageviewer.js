@@ -9,6 +9,7 @@ ImagePortal.ImageViewer = function(config){
 	this.infoTabPanel =	new ImagePortal.ImageInfoPanel();
 	this.largeImagePanel = new Ext.Panel({
 		title: 'Large Image'
+	,	autoScroll: true	
 	,	tpl: new Ext.XTemplate(
 			'<div><img src={path}></div>'
 		)
@@ -84,20 +85,20 @@ Ext.extend(ImagePortal.ImageViewer, Ext.Window, {
 			});
 		}
 	
-	,	hideInteractiveTab:function(hideunhide,path){
-					if(hideunhide == 0 ){
-						Ext.getCmp('tabId').hideTabStripItem(this.intimage);
-						Ext.getCmp('tabId').unhideTabStripItem(this.largeImagePanel);
-						Ext.getCmp('tabId').setActiveTab(1);
-						this.showLargeImage(path);	
-					}else{
-						Ext.getCmp('tabId').hideTabStripItem(this.largeImagePanel);
-						Ext.getCmp('tabId').unhideTabStripItem(this.intimage);
-						this.showImage(path);
-						//Ext.getCmp('tabId').setActiveTab(0);
-					}	
-			}
-			
+	,	hideInteractiveTab:function(hideunhide,path,fileName){
+			var largeFileName = fileName.split(".");
+			if(hideunhide == 1 ){
+				Ext.getCmp('tabId').hideTabStripItem(this.largeImagePanel);
+				Ext.getCmp('tabId').unhideTabStripItem(this.intimage);
+				this.showImage(path);
+				//Ext.getCmp('tabId').setActiveTab(0);
+			}else{
+				Ext.getCmp('tabId').hideTabStripItem(this.intimage);
+				Ext.getCmp('tabId').unhideTabStripItem(this.largeImagePanel);
+				Ext.getCmp('tabId').setActiveTab(1);
+				this.showLargeImage(path+largeFileName[0]+'_l.'+largeFileName[1]);	
+			}	
+		}
 			
 	,	hideFlickerTab:function(fId,data){
 					if(fId != 0 && fId > 0 ){
@@ -106,7 +107,7 @@ Ext.extend(ImagePortal.ImageViewer, Ext.Window, {
 					}else{
 						Ext.getCmp('tabId').hideTabStripItem(this.flicker);
 						if(Ext.getCmp('tabId').getActiveTab().title == 'Flickr');{
-								this.hideInteractiveTab(data.data.gTileProcessed,data.data.path);
+								this.hideInteractiveTab(data.data.gTileProcessed,data.data.path,data.data.filename);
 							}
 					}	
 			}			

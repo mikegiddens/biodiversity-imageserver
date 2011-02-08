@@ -6,7 +6,6 @@
 
 
 	Ext.namespace('ImagePortal');
-
 	ImagePortal.Image = function(config) {
 		this.proxy = '';
 		if(Config.mode == 'local'){
@@ -227,6 +226,7 @@
 		,	id:'imageGrid'
 		,	width:700
 		,	height:400
+		,	audit: []
 		,	tbar: [ 
 					'Collection: '
 				, ' ', this.search_value
@@ -396,7 +396,7 @@
 							var path = grid.getStore().getAt(index).get('path');
 							var data = grid.getSelectionModel().getSelected(index);
 							var fId = data.get('flickr_PlantID');
-							imv.hideInteractiveTab(data.get('gTileProcessed'),data.data.path);
+							imv.hideInteractiveTab(data.get('gTileProcessed'),data.data.path,data.data.filename);
 							imv.hideFlickerTab(fId,data);
 							imv.setBarcode(barcode,image_id);								
 						//	imv.showImage(path);
@@ -453,6 +453,49 @@
 						,	handler: function() {
 								//this.sendRotateRequest(grid, row, null,180);
 								this.rotateImageGUI(grid, row,180);
+							}
+					}, {
+							text: "Audit"
+						,	scope: this
+						,	handler: function() {
+								this.audit.push(record.filename);
+								var fname= grid.getStore().getAt(row).data
+								Ext.Ajax.request({
+										scope: this
+									,	url: 'resources/api/api.php'
+									,	params: {
+											cmd : 'audit'
+										,	filenames : Ext.encode(this.audit)
+										,	autoProcess: Ext.encode({"small":true,"medium":true,"large":true})
+											}
+									,	success: function(response){
+											var response = Ext.decode(response.responseText);
+											console.log("Success",response);
+										}
+									,	failure: function(result){
+											console.log("Fail",result)
+										}
+								});
+							}
+					}, {
+							text: "Process OCR"
+						,	scope: this
+						,	handler: function() {
+								var fname= grid.getStore().getAt(row).data
+								Ext.Ajax.request({
+										scope: this
+									,	url: 'resources/api/api.php'
+									,	params: {
+											cmd : 'processOCR'
+										}
+									,	success: function(response){
+											var response = Ext.decode(response.responseText);
+											console.log("Success",response);
+										}
+									,	failure: function(result){
+											console.log("Fail",result)
+										}
+								});
 							}
 					}/*,{
 							text: "Reset Image"
@@ -569,7 +612,7 @@
 				var imv = this.launchImage(index)
 				var data = this.getStore().getAt(index);
 				imv.show();
-				imv.hideInteractiveTab(data.data.gTileProcessed,data.data.path);
+				imv.hideInteractiveTab(data.data.gTileProcessed,data.data.path,data.data.filename);
 				imv.hideFlickerTab(data.data.flickr_PlantID,data);
 				var barcode = data.data.barcode;
 				imv.setBarcode(barcode,data.data.image_id);
@@ -600,13 +643,14 @@
 												var barcode = this.store.getAt(rowindex).get('barcode');
 												var path = this.store.getAt(rowindex).get('path');
 												var interact = this.store.getAt(rowindex).get('gTileProcessed');
+												var fileName = this.store.getAt(rowindex).get('filename');
 												imv.dwnpath = path;
 												var data = this.store.getAt(rowindex);
 												imv.setBarcode(barcode,data.data.image_id, path);
-												imv.hideInteractiveTab(interact,path);
+												imv.hideInteractiveTab(interact,path,fileName);
 												imv.showInfoData(data);
 												this.ownerCt.getSelectionModel().selectRow(99);
-												panel.setTitle(this.store.getAt(rowindex).get('filename'));
+												panel.setTitle(fileName);
 												
 												var fId = this.store.getAt(rowindex).get('flickr_PlantID');
 												imv.hideFlickerTab(fId,data);
@@ -624,13 +668,14 @@
 									imv.dwnpath = path
 									var data = this.getStore().getAt(rowindex);
 									var interact = this.store.getAt(rowindex).get('gTileProcessed');
+									var fileName = this.store.getAt(rowindex).get('filename');
 									imv.setBarcode(barcode,data.data.image_id, path);
-									imv.hideInteractiveTab(interact,path);
+									imv.hideInteractiveTab(interact,path,fileName);
 									imv.showInfoData(data);
 									var fId = this.store.getAt(rowindex).get('flickr_PlantID');
 									imv.hideFlickerTab(fId,data);
 									
-									panel.setTitle(this.getStore().getAt(rowindex).get('filename'));
+									panel.setTitle(fileName);
 									this.getSelectionModel().selectRow(rowindex);
 								}
 								
@@ -660,11 +705,12 @@
 															var fId = this.store.getAt(rowindex).get('flickr_PlantID');
 															var data = this.store.getAt(rowindex);
 															var interact = this.store.getAt(rowindex).get('gTileProcessed');
+															var fileName = this.store.getAt(rowindex).get('filename');
 															imv.hideFlickerTab(fId,data);
 															imv.showInfoData(data);
 															imv.setBarcode(barcode,data.data.image_id, path);
-															imv.hideInteractiveTab(interact,path);
-															panel.setTitle(this.store.getAt(rowindex).get('filename'));
+															imv.hideInteractiveTab(interact,path,fileName);
+															panel.setTitle(fileName);
 															this.ownerCt.getSelectionModel().selectRow(rowindex);
 														}, this);
 													}
@@ -679,11 +725,12 @@
 											var fId = this.getStore().getAt(rowindex).get('flickr_PlantID');
 											var data = this.getStore().getAt(rowindex);	
 											var interact = this.store.getAt(rowindex).get('gTileProcessed');
+											var fileName = this.store.getAt(rowindex).get('filename');
 											imv.hideFlickerTab(fId,data);		
 											imv.showInfoData(data);
 											imv.setBarcode(barcode,data.data.image_id, path);
-											imv.hideInteractiveTab(interact,path);	
-											panel.setTitle(this.getStore().getAt(rowindex).get('filename'));
+											imv.hideInteractiveTab(interact,path,fileName);	
+											panel.setTitle(fileName);
 											this.getSelectionModel().selectRow(rowindex);
 										}
 									}
