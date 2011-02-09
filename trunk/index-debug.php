@@ -33,9 +33,9 @@ if (!(isset($_SESSION['user']) && isset($_SESSION['pw']))) {
 	<link rel="stylesheet" type="text/css" href="resources/ext/gridfilters/css/GridFilters.css" />
 	<link rel="stylesheet" type="text/css" href="resources/ext/gridfilters/css/RangeMenu.css" /> 
 	<link rel="stylesheet" type="text/css" href="resources/css/tpl.css" />   
-  <!--
+ 
 	<script src="http://maps.google.com/maps?file=api&amp;v=2&amp;sensor=false&amp;key=<?php print $config["google_key"]; ?>" type="text/javascript"></script>
-	-->
+	
 
   <!-- Reporting -->
   <script type="text/javascript" src="http://www.google.com/jsapi?key=<?php print $config["google_key"]; ?>"></script>

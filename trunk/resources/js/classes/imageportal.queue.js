@@ -83,7 +83,7 @@ ImagePortal.Queue = function(config) {
 						return(this.rendererDatehandling(a));
 					}			
 			}]
-		,	sm: new Ext.grid.RowSelectionModel({singleSelect:true})
+		,	sm: new Ext.grid.RowSelectionModel({singleSelect: false})
 		,   loadMask: true
 		,	view: new Ext.grid.GroupingView({
 					forceFit: false
@@ -164,6 +164,9 @@ ImagePortal.Queue = function(config) {
 				,	emptyMsg: ''
 				,	scope:this	
 			})
+		,	listeners: {
+				rowcontextmenu: this.showContextMenu
+			}	
 	    });
 	
 	//	this.ds.load({params:{start:0, limit:100}});
@@ -173,7 +176,44 @@ ImagePortal.Queue = function(config) {
 	} 
  
 	Ext.extend(ImagePortal.Queue, Ext.grid.GridPanel, {
-			removeQueue: function(processtype){
+		showContextMenu: function(grid, row, e){
+			var record = grid.getSelectionModel().getSelections();
+			var imageID = [];
+			for(i=0; i<record.length; i++){
+				imageID.push(record[i].data.image_id);
+			}
+			var items = [];
+			items.push({
+				text: 'Remove'
+			,	scope: this	
+			,	handler: function() { 
+					if(Ext.isEmpty(imageID)){
+						ImagePortal.Notice.msg('Notice', 'Please select record');
+					} else {
+						 Ext.Ajax.request({
+							scope: this
+						,	url: 'resources/api/api.php'
+						,	params: {
+									cmd: 'removeByID'
+								,	imageID : Ext.encode(imageID)
+								}
+						,	success: function(response){
+								console.log(response);
+							}
+						,	failure: function(result){
+								console.log(result);
+							}
+						});
+					}	
+				}  	
+			});		
+			var menu = new Ext.menu.Menu({
+				items: items
+			});
+			var xy = e.getXY();
+			menu.showAt(xy);
+		}
+		,	removeQueue: function(processtype){
 				Ext.Ajax.request({
 					scope: this
 				,	url: 'resources/api/api.php'
