@@ -26,6 +26,12 @@ a:active {
 .ibox:focus { 
   background-color:#A5DC4B; 
 }
+.main {
+	float: left;
+}
+.results {
+	float: right;
+}
 body,td,th {
 	font-family: Arial, Helvetica, sans-serif;
 }
@@ -50,81 +56,81 @@ body,td,th {
 
 	<script type="text/javascript" src="resources/ext/ext-core-debug.js"></script>
 	
-  <div style="width: 400px;  margin-left: auto; margin-right: auto;" align="center">
-    <label style="font-weight:bold;"><img src="images/biodiversity-image-server-logo.jpg" width="318" height="108" alt="Biodiveristy Image Server" /><br />
-    </label>
+  <div style="margin-left: 10px;" align="center">
+  	<div class="main">
+    <label style="font-weight:bold;"><a href="index.php"><img src="images/biodiversity-image-server-logo.jpg" alt="Biodiveristy Image Server" width="318" height="108" border="0" /></a></label>
+		<br /> 
     <hr size="1" noshade="noshade" />
     <br />
-    <div>
-      <table width="400" border="0" cellspacing="5" cellpadding="0">
-        <tr>
-          <td width="77">Barcode:</td>
-          <td width="308"><input name="user" type="text" class="ibox" id="user" size="40px" /></td>
-        </tr>
-        <tr>
-          <td colspan="2"><div id="tplID"><div></td>
-        </tr>
-      </table>
+    Barcode: <input name="barcode" type="text" class="ibox" id="barcode" size="40px" />
     </div>
+    <div class="results" id="tplID"></div>
   </div>
   <script>
 	Ext.onReady(function(){
-		Ext.get('user').on('keypress', function(e, el){
-				
-			if(e.keyCode == 13){
-				var bcValue= el.value;
-				if (Ext.isEmpty(bcValue)){
-					Ext.Msg.alert("Notice","Please enter barcode.");
-				} else{
-					Ext.Ajax.request({
-						scope: this
-					,	url: 'resources/api/api.php'
-					,	params: {
-								cmd : 'images'
-							,	'filter[0][data][type]': 'string'
-							,	'filter[0][data][value]': bcValue
-							,	'filter[0][field]': 'barcode'
+											 
+		function process(e, el) {
+				if(e.keyCode == 13){
+					var bcValue = el.value;
+					el.value = "";
+					if (Ext.isEmpty(bcValue)){
+						Ext.Msg.alert("Notice", "Please enter barcode.");
+					} else {
+						Ext.get("tplID").update("<img src=\"resources/images/loading.gif\" alt=\"Loading...\">");
+						Ext.Ajax.request({
+							scope: this
+						,	url: 'resources/api/api.php'
+						,	params: {
+									cmd : 'images'
+								,	'filter[0][data][type]': 'string'
+								,	'filter[0][data][value]': bcValue
+								,	'filter[0][field]': 'barcode'
 							}
-					,	success: function(response){
-							var data = Ext.decode(response.responseText);
-							if(Ext.isEmpty(data.data)){
-								soundManager.play('Beep6');
-								var t = new Ext.Template(
-									'<p align="center">{barcode}</p>'
-								)
-								t.overwrite('tplID', {	
-									barcode: 'Barcode not found.'
-							});	
-							} else{
-								var fileName = data.data[0].filename
-								var mediumFileName = fileName.split(".");
-								var path = data.data[0].path + mediumFileName[0]+'_l.'+mediumFileName[1];
-								var barcode = data.data[0].barcode;
-								var t = new Ext.Template(
-									'<p align="center">Barcode: {barcode}</p>'
-								,	'<p align="center"><img align="center" src={path}></p>'
-								)
-								t.overwrite('tplID', {
-										path: path
-									,	barcode: barcode	
+						,	success: function(response){
+								var data = Ext.decode(response.responseText);
+								if(Ext.isEmpty(data.data)){
+									soundManager.play('Beep6');
+									var t = new Ext.Template(
+										'<p align="center">{barcode}</p>'
+									);
+									t.overwrite('tplID', {	
+										barcode: bcValue + ' not found.'
 									});	
+								} else {
+									var fileName = data.data[0].filename;
+									var mediumFileName = fileName.split(".");
+									var path = data.data[0].path + mediumFileName[0]+'_l.'+mediumFileName[1];
+									var barcode = data.data[0].barcode;
+									var t = new Ext.Template(
+											'<p align="center">Barcode: {barcode}</p>'
+										,	'<p align="center"><img align="center" src={path}></p>'
+									)
+									t.overwrite('tplID', {
+											path: path
+										,	barcode: barcode	
+									});	
+								}
 							}
-						}
-					,	failure: function(result){
-							console.log("Fail",result)
-						}
+						,	failure: function(result){
+							}
+						});
+					}
+				}
+
+				if(e.keyCode == 8){
+					var t = new Ext.Template(
+						'<p>{barcode}</p>'
+					);
+					t.overwrite('tplID', {	
+						barcode: ''
 					});
 				}
-			}
-			if(e.keyCode == 8){
-				var t = new Ext.Template(
-					'<p>{barcode}</p>'
-				)
-				t.overwrite('tplID', {	
-					barcode: ''
-				});
-			}
-		})
+
+		}
+		
+		Ext.get('barcode').on('keypress', process);
+		Ext.get('barcode').on('change', process);
+		Ext.get('barcode').focus();
 	});
   </script>
 </body>
