@@ -267,7 +267,7 @@ markers: [{
         
         if (this.rendered){
           
-        //  (function(){
+          (function(){
           
           if (this.gmapType === 'map'){
               this.gmap = new google.maps.Map(this.body.dom, {zoom:this.zoomLevel,mapTypeId: google.maps.MapTypeId.ROADMAP});
@@ -308,7 +308,7 @@ markers: [{
               }
           }
           
-          //});//.defer(200,this);
+          }).defer(200,this);
           
         }else{
           this.on('afterrender', this.apiReady, this);

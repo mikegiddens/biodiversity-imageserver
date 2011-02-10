@@ -8,7 +8,7 @@ ImagePortal.IVIntractive = function(config){
 
  	Ext.apply( this, config, {
 			mapConfOpts:['enableScrollWheelZoom','enableDoubleClicZoom','enableDragging']
-		,	mapControls:['GSmallControl','GMapTypeControl','NonExistantControl','GLargeMapControl']
+		,	mapControls:['GMapControl','GMapTypeControl','NonExistantControl','GLargeMapControl']
 		,	featureConfig:['enableContinuousZoom','enableScrollWheelZoom','enableDragging']
   		, controls:[new GLargeMapControl(),new GOverviewMapControl()]
 		,	iconCls: 'x-icon-templates'

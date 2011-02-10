@@ -40,12 +40,15 @@ if (!(isset($_SESSION['user']) && isset($_SESSION['pw']))) {
   <!-- Reporting -->
   <script type="text/javascript" src="http://www.google.com/jsapi?key=<?php print $config["google_key"]; ?>"></script>
   <script type="text/javascript">
-          google.load("maps", "2",{"other_params":"sensor=false"});
+          google.load("maps", "3",{"other_params":"sensor=false"});
           google.load('visualization', '1', {packages: ['linechart', 'barchart', 'piechart']});
   </script> 
 
  	<script type="text/javascript" src="resources/js/classes/GVisualizationPanel.js"></script>
- 	<script type="text/javascript" src="resources/js/classes/Ext.ux.GMapPanel.js"></script>	
+ <!--	<script type="text/javascript" src="resources/js/classes/Ext.ux.GMapPanel.js"></script>	 -->
+	
+	<script type="text/javascript" src="resources/js/classes/Ext.ux.GMapPanel3.js"></script>	
+	
  	<script type="text/javascript" src="config.js"></script> 	
  	<script type="text/javascript" src="resources/ext/treecombo.js"></script> 	
 	<script type="text/javascript" src="resources/ext/RandomInt.js"></script>  	
@@ -75,7 +78,11 @@ if (!(isset($_SESSION['user']) && isset($_SESSION['pw']))) {
 	<script type="text/javascript" src="resources/js/classes/imageportal.imageinfopanel.js"></script>	
 	<script type="text/javascript" src="resources/js/classes/imageportal.sequences.js"></script>	   
 	<script type="text/javascript" src="resources/js/classes/imageportal.ivflickr.js"></script>	   
-	<script type="text/javascript" src="resources/js/classes/imageportal.ivintractive.js"></script>	   
+<!--	<script type="text/javascript" src="resources/js/classes/imageportal.ivintractive.js"></script>	    -->
+	
+	<script type="text/javascript" src="unittest/gmap3/imageportal.ivintractive.js"></script>
+	<script type="text/javascript" src="unittest/gmap3/usgsoverlay.js"></script>
+	
 	<script type="text/javascript" src="resources/js/classes/imageportal.popupinput.js"></script>	   
 	<script type="text/javascript" src="resources/js/classes/imageportal.zoom.js"></script>	
 	<script type="text/javascript" src="resources/js/classes/imageportal.imageviewer.js"></script>
