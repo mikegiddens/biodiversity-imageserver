@@ -179,7 +179,9 @@ ImagePortal.Queue = function(config) {
 		showContextMenu: function(grid, row, e){
 			var record = grid.getSelectionModel().getSelections();
 			var imageID = [];
+			var imageType = [];
 			for(i=0; i<record.length; i++){
+				imageType.push(record[i].data.process_type);
 				imageID.push(record[i].data.image_id);
 			}
 			var items = [];
@@ -194,14 +196,15 @@ ImagePortal.Queue = function(config) {
 							scope: this
 						,	url: 'resources/api/api.php'
 						,	params: {
-									cmd: 'removeByID'
+									cmd: 'clearProcessQueue'
 								,	imageID : Ext.encode(imageID)
+								,	types: Ext.encode(imageType)
 								}
 						,	success: function(response){
-								console.log(response);
+								this.getStore().reload();
 							}
 						,	failure: function(result){
-								console.log(result);
+								
 							}
 						});
 					}	
