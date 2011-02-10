@@ -424,7 +424,7 @@ Class Image {
 	}
 
 	public function getZoomifyRecords($filter='') {
-		$query = " SELECT * FROM `image` WHERE `zoomEnabled` = 0 OR `zoomEnabled` IS NULL; ";
+		$query = " SELECT * FROM `image` WHERE `zoomEnabled` = 0 OR `zoomEnabled` IS NULL ";
 		if(trim($filter['start']) != '' && trim($filter['limit']) != '') {
 			$query .= build_limit(trim($filter['start']),trim($filter['limit']));
 		}
@@ -432,7 +432,7 @@ Class Image {
 	}
 
 	public function getNonProcessedRecords($filter='') {
-		$query = " SELECT * FROM `image` WHERE `processed` = 0 OR `processed` IS NULL; ";
+		$query = " SELECT * FROM `image` WHERE `processed` = 0 OR `processed` IS NULL ";
 		if(trim($filter['start']) != '' && trim($filter['limit']) != '') {
 			$query .= build_limit(trim($filter['start']),trim($filter['limit']));
 		}
@@ -532,21 +532,19 @@ Class Image {
 	 */
 	public function processGTileIM_S3($barcode, $arr) {
 		if($this->load_by_barcode($barcode)) {
-			if(!@file_exists(PATH_TMP)) {
-				@mkdir(PATH_TMP,0775);
-			}
-			if(!@file_exists(PATH_TMP . 'tiles/')) {
-				@mkdir(PATH_TMP . 'tiles/',0775);
-			}
-			$tilepath = PATH_TMP . 'tiles/';
 
-
+			$tmpPath = sys_get_temp_dir() . '/tiles/';
+			if(!@file_exists($tmpPath)) {
+				@mkdir($tmpPath,0775);
+			}
+			$tilepath = $tmpPath;
 
 			# getting the image from s3
-			$filename = PATH_TMP . $this->get('filename');
+			$filename = sys_get_temp_dir() . '/' . $this->get('filename');
 			$bucket = $arr['s3']['bucket'];
 			$key = $this->barcode_path($barcode) . $this->get('filename');
-			$arr['obj']->getBucketFile($key, $bucket, $filename);
+			$arr['obj']->get_object($bucket, $key, array('fileDownload' => $filename));
+
 
 			# creating tiles using Image Magik
 			$gTileRes = $this->createGTileIM($filename,$tilepath);
@@ -563,8 +561,71 @@ Class Image {
 							if ($tempHandle = @opendir($file)) {
 								while (false !== ($tile = @readdir($tempHandle))) {
 									if ($tile != '.' && $tile != '..') {
-										$arr['obj']->putObjectFile($tilepath . @basename($file) . '/' . @basename($tile), $bucket, $tiles3path . @basename($file) . '/' . @basename($tile), S3::ACL_PUBLIC_READ);
-										@unlink($tilepath . @basename($file) . '/' . @basename($tile));
+$tmpThumbPath = $tilepath . @basename($file) . '/' . @basename($tile);
+$response = $arr['obj']->create_object ( $bucket, $tiles3path, array('fileUpload' => $tmpThumbPath,'acl' => AmazonS3::ACL_PUBLIC,'storage' => AmazonS3::STORAGE_REDUCED) );
+@unlink($tilepath . @basename($file) . '/' . @basename($tile));
+									} # not . or ..
+								} # while tile
+								@closedir($tempHandle);
+							} # temp handle
+							rmdir($file);
+						} # is dir
+					} # not . or ..
+				} # while file
+				@closedir($handle);
+			} # handle
+			@unlink($filename);
+			@unlink($tmpPath);
+			return true;
+		}
+		return false;
+	}
+
+/*
+	public function processGTileIM_S3($barcode, $arr) {
+		if($this->load_by_barcode($barcode)) {
+
+			$tmpPath = sys_get_temp_dir() . '/tiles/';
+			if(!@file_exists($tmpPath)) {
+				@mkdir($tmpPath,0775);
+			}
+			$tilepath = $tmpPath;
+
+
+			if(!@file_exists(PATH_TMP)) {
+				@mkdir(PATH_TMP,0775);
+			}
+			if(!@file_exists(PATH_TMP . 'tiles/')) {
+				@mkdir(PATH_TMP . 'tiles/',0775);
+			}
+			$tilepath = PATH_TMP . 'tiles/';
+
+
+
+			# getting the image from s3
+			$filename = PATH_TMP . $this->get('filename');
+			$bucket = $arr['s3']['bucket'];
+			$key = $this->barcode_path($barcode) . $this->get('filename');
+			$arr['obj']->getBucketFile($key, $bucket, $filename);
+
+
+			# creating tiles using Image Magik
+			$gTileRes = $this->createGTileIM($filename,$tilepath);
+
+			# uploading to s3 and deleting the files
+			$tiles3path = $this->barcode_path($barcode) . 'google_tiles/';
+			
+			if ($handle = @opendir($tilepath)) {
+				while (false !== ($file = @readdir($handle))) {
+					if ($file != '.' && $file != '..') {
+						$file = $tilepath . $file;
+						if(is_dir($file)) {
+			
+							if ($tempHandle = @opendir($file)) {
+								while (false !== ($tile = @readdir($tempHandle))) {
+									if ($tile != '.' && $tile != '..') {
+$arr['obj']->putObjectFile($tilepath . @basename($file) . '/' . @basename($tile), $bucket, $tiles3path . @basename($file) . '/' . @basename($tile), S3::ACL_PUBLIC_READ);
+@unlink($tilepath . @basename($file) . '/' . @basename($tile));
 									} # not . or ..
 								} # while tile
 								@closedir($tempHandle);
@@ -580,6 +641,8 @@ Class Image {
 		}
 		return false;
 	}
+*/
+
 
 /**
  * Creates gTiles using IM

@@ -933,26 +933,35 @@ print_r($records);*/
 			break;
 
 		case 'audit':
+			$files = array();
 			$files = @json_decode(@stripslashes(trim($_REQUEST['filenames'])),true);
 			$autoProcess = @json_decode(@stripslashes(trim($_REQUEST['autoProcess'])),true);
-
 			if(!(is_array($autoProcess) && count($autoProcess))) {
-				$autoProcess = array('small' => true, 'medium' => true, 'large' => true);
+				$autoProcess = array('small' => true, 'medium' => true, 'large' => true, 'google_tile' => true);
 			}
-
+			if(!(is_array($files) && count($files))) {
+				$data['start'] = (trim($_REQUEST['limit']) != '') ? trim($_REQUEST['limit']) : 0;
+				$data['limit'] = trim($_REQUEST['limit']);
+				$ret = $si->image->getNonProcessedRecords($data);
+				while ($row = $ret->fetch_object())
+				{
+					$files[] = $row->filename;
+				}
+			}
 			$statsArray = array();
-			$tplArray = array('small','medium','large','thumb');
-			$linkArray = array('small' => '_s','medium' => '_m','large'=>'_l','thumb'=>'_thumb');
+			$tplArray = array('small','medium','large','thumb','google_tile');
+			$linkArray = array('small' => '_s','medium' => '_m','large'=>'_l','thumb'=>'_thumb','google_tile' => 'tile_');
 			if(is_array($files) && count($files)) {
 				foreach($files as $file) {
 					$ar = array();
 					$fl = @pathinfo($file);
 					$barcode = $fl['filename'];
+					if($barcode == '') {continue;}
 					$prefix = $si->image->barcode_path($barcode);
 					$response = $si->amazon->list_objects($config['s3']['bucket'],array('prefix' => $prefix));
 					if($response->isOK()) {
 						$ar = array_fill_keys($tplArray,false);
-						$opArray = array('small','medium','large','thumb');
+						$opArray = array('small','medium','large','thumb','google_tile');
 						$body = $response->body;
 					
 						for($i=0;$i<count($body->Contents);$i++){
@@ -994,10 +1003,119 @@ print_r($records);*/
 
 				} # foreach file
 			} # if count file
-			print_c ( json_encode( array( 'success' => true, 'stats' => $statsArray ) ) );
+			print_c ( json_encode( array( 'success' => true, 'recordCount' => count($statsArray), 'stats' => $statsArray ) ) );
 			break;
 
+case 'auditTest':
+echo '<pre>';
+$barcode = trim($_REQUEST['barcode']);
+// $limit = $_REQUEST['limit'] = 10000;
+
+$accessKey = 'AKIAJO3DSVOINCBELMZQ';
+$secretKey = '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';
+$bucket = 'silverbiology-imagingtour2010';
+
+$amazon = new AmazonS3($accessKey,$secretKey);
+
+$statsArray = array();
+
+$prefix = $si->image->barcode_path($barcode);
+$prefix = "test/";
+
+$response = $amazon->list_objects($bucket,array('prefix' => $prefix,'max-keys' => 1200));
+
+if($response->isOK()) {
+	$body = $response->body;
+	$barcode = '';
+	$skipGtileChk = false;
+	$lastFlag = false;
+
+$tplArray = array('small','medium','large','thumb','google_tile');
+$linkArray = array('small' => '_s','medium' => '_m','large'=>'_l','thumb'=>'_thumb','google_tile' => 'tile_');
+
+$ar = array_fill_keys($tplArray,false);
+$opArray = array('small','medium','large','thumb','google_tile');
+$autoProcess = array('small' => true, 'medium' => true, 'large' => true, 'google_tile' => true);
+
+echo '<br> Count : ' . count($body->Contents);
+
+// print_r($body);
+
+
+	for($i=0;$i<count($body->Contents);$i++){
+// if($i >= $limit) break;
+		$ky = $body->Contents[$i];
+		$filePath = $ky->Key;
+		if(stripos($filePath,'labels') !== false || stripos($filePath,'fields') !== false) continue;
+		if(stripos($filePath,'google_tiles') !== false) {$ar['google_tile'] = true;continue;}
+		$fileDetails = @pathinfo($filePath);
+		if(stripos($fileDetails['extension'],'json') !== false) continue;
+
+		# checking for each pic
+
+		if(strpos($fileDetails['filename'],'_s') !== false) {$ar['small'] = true;}
+		if(strpos($fileDetails['filename'],'_m') !== false) {$ar['medium'] = true;}
+		if(strpos($fileDetails['filename'],'_l') !== false) {$ar['large'] = true;}
+		if(strpos($fileDetails['filename'],'_thumb') !== false) {$ar['thumb'] = true;}
+
+		$bcode = str_replace(array('_l','_m','_s','_thumb'),'',$fileDetails['filename']);
+		if($bcode != $barcode) {
+			if($barcode != '') {
 /*
+if( is_array($autoProcess) && count($autoProcess) ) {
+	foreach($autoProcess as $key => $value ) {
+		if($value == true) {
+			if(@in_array($key,$tplArray) && $ar[$key] == false) {
+				if(!$si->pqueue->field_exists($barcode,$key)) {
+					$si->pqueue->set('image_id', $barcode);
+					$si->pqueue->set('process_type', $key);
+					$si->pqueue->save();
+				}
+			}
+		}
+	} # foreach auto-process
+} # if autoprocess
+*/
+echo '<br> Barcode : ' . $barcode;
+echo '<br>';
+print_r($ar);
+
+
+			} # barcode != ''
+			$barcode = $bcode;
+			$skipGtileChk = false;
+			$ar = array_fill_keys($tplArray,false);
+			$lastFlag = true;
+		}
+
+
+	} # for contents
+
+/*
+	if($lastFlag) {
+		if( is_array($autoProcess) && count($autoProcess) ) {
+			foreach($autoProcess as $key => $value ) {
+				if($value == true) {
+					if(@in_array($key,$tplArray) && $ar[$key] == false) {
+						if(!$si->pqueue->field_exists($barcode,$key)) {
+							$si->pqueue->set('image_id', $barcode);
+							$si->pqueue->set('process_type', $key);
+							$si->pqueue->save();
+						}
+					}
+				}
+			} # foreach auto-process
+		} # if autoprocess
+	} # last flag
+*/
+
+} else {
+echo 'Not Ok';
+} # response ok
+// $statsArray[] = array('file' => $fl['basename'], 'barcode' => $fl['filename'], 'details' => $ar);
+
+break;
+
 		case 'clearProcessQueue':
 			$types = @json_decode(@stripslashes(trim($_REQUEST['types'])));
 			$imageIds = @json_decode(@stripslashes(trim($_REQUEST['imageId'])));
@@ -1005,15 +1123,16 @@ print_r($records);*/
 				$data['processType'] = $types;
 			}
 			if(is_array($imageIds) && count($imageIds)) {
-				$data['imageId'] = $imageIds;
+				$data['imageIds'] = $imageIds;
 			}
+
 			$si->pqueue->setData($data);
-
 			$allowedTypes = array('flicker_add','picassa_add','zoomify','google_tile','ocr_add','name_add');
-			$si->pqueue->clearQueue();
+			$ret = $si->pqueue->clearQueue();
+			print_c(json_encode(array('success' => true, 'recordCount' => $ret['recordCount'])));
 
-			break
-*/
+			break;
+
 
 		case 'zoomify_test':
 			$barcode = trim($_REQUEST['barcode']);

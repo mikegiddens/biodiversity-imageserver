@@ -376,7 +376,7 @@ Class ProcessQueue {
 
 		return is_null($ret) ? array() : $ret;
 	}
-
+/*
 	public function clearQueue() {
 		if(!(is_array($this->data['processType']))) return false;
 		$types = implode("','",$this->data['processType']);
@@ -386,6 +386,33 @@ Class ProcessQueue {
 		$recordCount = $this->db->affected_rows;
 		return array('success' => true, 'recordCount' => $recordCount);
 	}
+*/
+
+	public function clearQueue() {
+		if(!(is_array($this->data['processType']) || is_array($this->data['imageIds']))) return array('success' => false, 'recordCount' => 0);
+		$where = '';
+		if(is_array($this->data['processType']) && count($this->data['processType'])) {
+			foreach($this->data['processType'] as &$type) {
+				$type = mysql_escape_string($type);
+			}
+			$where .= sprintf(" AND `process_type` IN ('%s') ",@implode("','",$this->data['processType']));
+		}
+		if(is_array($this->data['imageIds']) && count($this->data['imageIds'])) {
+			foreach($this->data['imageIds'] as &$imageId) {
+				$imageId = mysql_escape_string($imageId);
+			}
+			$where .= sprintf(" AND `image_id` IN ('%s') ",@implode("','",$this->data['imageIds']));
+		}
+		if($where != '') {
+			$query = sprintf(" DELETE FROM `process_queue` WHERE 1=1 %s ",$where);
+		}
+		$this->db->query($query);
+		$recordCount = $this->db->affected_rows;
+		$recordCount = is_null($recordCount) ? 0 : $recordCount;
+
+		return array('success' => true, 'recordCount' => $recordCount);
+	}
+
 
 }
 ?>
