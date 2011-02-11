@@ -4,12 +4,9 @@ function USGSOverlay(bounds, image, map) {
 			this.map_ = map;
 			this.div_ = null;
 			this.setMap(map);
-}
-
-	USGSOverlay.prototype = new google.maps.OverlayView();
+}USGSOverlay.prototype = new google.maps.OverlayView();
  
 	USGSOverlay.prototype.onAdd = function() {
-
 		var div = document.createElement('DIV');
 		div.style.border = "none";
 		div.style.borderWidth = "0px";
