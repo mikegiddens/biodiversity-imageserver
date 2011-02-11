@@ -538,6 +538,7 @@ class MysqliDatabase extends mysqli
 	    $Ret = false;
 	    if (stripos($Query, 'SELECT') === 0)
 	    {
+
 	        $Ret = $this->query(substr_replace($Query, 'SELECT SQL_CALC_FOUND_ROWS', 0, 6) . ' LIMIT ' . ($RecordsPerPage * $Page) . ', ' . $RecordsPerPage);
 	    }
 	    return $Ret;

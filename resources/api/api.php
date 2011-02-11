@@ -442,7 +442,7 @@ print_r($records);*/
 			break;
 
 		case 'images':
-
+			$time = microtime(true);
 			$data['start'] = ($_REQUEST['start'] != '') ? $_REQUEST['start'] : 0;
 			$data['limit'] = ($_REQUEST['limit'] != '') ? $_REQUEST['limit'] : 100;
 			$data['order'] = json_decode(stripslashes(trim($_REQUEST['order'])),true);
@@ -495,7 +495,7 @@ print_r($records);*/
 				}
 
 				$total = $si->image->db->query_total();
-				print_c( json_encode( array( 'success' => true, 'totalCount' => $total, 'data' => $data ) ) );
+				print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time, 'totalCount' => $total, 'data' => $data ) ) );
 			}else {
 				print_c( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ) );
 			}
@@ -933,11 +933,23 @@ print_r($records);*/
 			break;
 
 		case 'audit':
+			$autoProcessTemplate = array('thumb' => true, 'small' => true, 'medium' => true, 'large' => true, 'google_tile' => false, 'flickr_add' =>  false, 'picassa_add' => false);
+			$statsArray = array();
+			$tplArray = array('small','medium','large','thumb','google_tile','flickr_add','picassa_add');
+			$linkArray = array('small' => '_s','medium' => '_m','large'=>'_l','thumb'=>'_thumb','google_tile' => 'tile_');
+
 			$files = array();
 			$files = @json_decode(@stripslashes(trim($_REQUEST['filenames'])),true);
 			$autoProcess = @json_decode(@stripslashes(trim($_REQUEST['autoProcess'])),true);
+
 			if(!(is_array($autoProcess) && count($autoProcess))) {
-				$autoProcess = array('small' => true, 'medium' => true, 'large' => true, 'google_tile' => true);
+				$autoProcess = $autoProcessTemplate;
+			} else {
+				foreach($autoProcessTemplate as $key => $value) {
+					if(!@array_key_exists($key,$autoProcess)) {
+						$autoProcess[$key] = false;
+					}
+				}
 			}
 			if(!(is_array($files) && count($files))) {
 				$data['start'] = (trim($_REQUEST['limit']) != '') ? trim($_REQUEST['limit']) : 0;
@@ -948,9 +960,6 @@ print_r($records);*/
 					$files[] = $row->filename;
 				}
 			}
-			$statsArray = array();
-			$tplArray = array('small','medium','large','thumb','google_tile');
-			$linkArray = array('small' => '_s','medium' => '_m','large'=>'_l','thumb'=>'_thumb','google_tile' => 'tile_');
 			if(is_array($files) && count($files)) {
 				foreach($files as $file) {
 					$ar = array();
@@ -982,10 +991,22 @@ print_r($records);*/
 								} # foreach
 							}
 						} # for contents
+						$displayAr = array();
+						$displayAr = $ar;
+						if($ar['small'] == false && $ar['medium'] == false && $ar['large'] == false && $autoProcess['small'] == true && $autoProcess['medium'] == true && $autoProcess['large'] == true) {
+							unset($ar['small']);
+							unset($ar['medium']);
+							unset($ar['large']);
+							if(!$si->pqueue->field_exists($barcode,'all')) {
+								$si->pqueue->set('image_id', $barcode);
+								$si->pqueue->set('process_type', 'all');
+								$si->pqueue->save();
+							}
+						}
 						if( is_array($autoProcess) && count($autoProcess) ) {
 							foreach($autoProcess as $key => $value ) {
-								if($value == true) {
-									if(@in_array($key,$tplArray) && $ar[$key] == false) {
+								if($value === true) {
+									if(@in_array($key,$tplArray) && $ar[$key] === false) {
 										if(!$si->pqueue->field_exists($barcode,$key)) {
 											$si->pqueue->set('image_id', $barcode);
 											$si->pqueue->set('process_type', $key);
@@ -998,7 +1019,7 @@ print_r($records);*/
 						} # if autoprocess
 
 					} # response ok
-					$statsArray[] = array('file' => $fl['basename'], 'barcode' => $fl['filename'], 'details' => $ar);
+					$statsArray[] = array('file' => $fl['basename'], 'barcode' => $fl['filename'], 'details' => $displayAr);
 
 
 				} # foreach file
@@ -1127,7 +1148,7 @@ break;
 			}
 
 			$si->pqueue->setData($data);
-			$allowedTypes = array('flicker_add','picassa_add','zoomify','google_tile','ocr_add','name_add');
+			$allowedTypes = array('flickr_add','picassa_add','zoomify','google_tile','ocr_add','name_add');
 			$ret = $si->pqueue->clearQueue();
 			print_c(json_encode(array('success' => true, 'recordCount' => $ret['recordCount'])));
 

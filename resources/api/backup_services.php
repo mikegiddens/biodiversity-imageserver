@@ -51,7 +51,6 @@ if ( $si->load( $mysql_name ) ) {
 			print json_encode(array('success' => true, 'process_time' => $time, 'total_records_added' => $count));
 			break;
 		case 'populateOcrProcessQueue':
-// populate the queue for uploading to flicker
 			$time_start = microtime(true);
 			$count = 0;
 			$filter['start'] = 0;
@@ -72,17 +71,17 @@ if ( $si->load( $mysql_name ) ) {
 			$time = microtime(true) - $time_start;
 			print json_encode(array('success' => true, 'process_time' => $time, 'total_records_added' => $count));
 			break;
-		case 'populateFlickerProcessQueue':
-// populate the queue for uploading to flicker
+		case 'populateFlickrProcessQueue':
+// populate the queue for uploading to flickr
 			$time_start = microtime(true);
 			$count = 0;
 
-			$ret = $si->image->getFlickerRecords();
+			$ret = $si->image->getFlickrRecords();
 			$countFlag = true;
 			while(($record = $ret->fetch_object()) && ($countFlag)) {
-				if(!$si->pqueue->field_exists($record->barcode,'flicker_add')) {
+				if(!$si->pqueue->field_exists($record->barcode,'flickr_add')) {
 					$si->pqueue->set('image_id', $record->barcode);
-					$si->pqueue->set('process_type', 'flicker_add');
+					$si->pqueue->set('process_type', 'flickr_add');
 					$si->pqueue->save();
 					$count++;
 					if($limit != '' && $count >= $limit) {
@@ -271,7 +270,7 @@ if ( $si->load( $mysql_name ) ) {
 				$tDiff = time() - $tStart;
 				if( ($stop != '') && ( $tDiff > $stop) ) $loop_flag = false;
 				if($limit != '' && $image_count >= $limit) $loop_flag = false;
-				$record = $si->pqueue->popQueue('flicker_add');
+				$record = $si->pqueue->popQueue('flickr_add');
 				if($record === false) {
 					$loop_flag = false;
 				} else {
@@ -349,7 +348,7 @@ if ( $si->load( $mysql_name ) ) {
 			print json_encode(array('success' => true, 'process_time' => $time_taken, 'total' => $image_count, 'images' => $images_array));
 			break;
 
-		case 'flicker_test':
+		case 'flickr_test':
 			$barcode = 'NLU0062321';
 			if($si->image->load_by_barcode($barcode)) {
 				$f = new phpFlickr(FLKR_KEY,FLKR_SECRET);
