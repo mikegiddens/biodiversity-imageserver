@@ -184,12 +184,12 @@ Class Image {
 	 * @param string barcode
 	 * @param mixed s3 details and object
 	 */
-	function createThumbS3($barcode,$arr) {
+	function createThumbS3($barcode,$arr,$deleteFlag = true) {
 		if($this->load_by_barcode($barcode)) {
 			$filName = 'Img_' . time();
-			$tmpPath = sys_get_temp_dir() . '/' . $filName . '.jpg';
 			$tmpThumbPath = sys_get_temp_dir() . '/' . $filName . $arr['postfix'] . '.jpg';
 			$thumbName = $this->barcode_path($barcode) . $barcode . $arr['postfix'] . '.jpg';
+			$tmpPath = sys_get_temp_dir() . '/' . $filName . '.jpg';
 
 			$fp = fopen($tmpPath, "w+b");
 
@@ -202,14 +202,36 @@ Class Image {
 
 			# uploading thumb to s3
 			$response = $arr['obj']->create_object ( $bucket, $thumbName, array('fileUpload' => $tmpThumbPath,'acl' => AmazonS3::ACL_PUBLIC,'storage' => AmazonS3::STORAGE_REDUCED) );
-
-			@unlink($tmpPath);
+			
 			@unlink($tmpThumbPath);
-
-			return true;
+			if($deleteFlag) {
+				@unlink($tmpPath);
+				return true;
+			}
+			return $tmpPath;
 		}
 		return false;
 	}
+
+	function createFromFileS3($tmpPath,$barcode,$arr,$deleteFlag = false) {
+		if(!@file_exists($tmpPath)) return false;
+		$dtls = @pathinfo($tmpPath);
+		$extension = '.' . $dtls['extension'];
+		$tmpThumbPath =  $dtls['dirname'] . '/' . $dtls['filename'] . $arr['postfix'] . $extension;
+		$thumbName = $this->barcode_path($barcode) . $barcode . $arr['postfix'] . '.jpg';
+
+		# uploading thumb to s3
+		$this->createThumb($tmpPath, $arr['width'], $arr['height'],$arr['postfix']);
+		$response = $arr['obj']->create_object ( $arr['s3']['bucket'], $thumbName, array('fileUpload' => $tmpThumbPath,'acl' => AmazonS3::ACL_PUBLIC,'storage' => AmazonS3::STORAGE_REDUCED) );
+
+		@unlink($tmpPath);
+		if($deleteFlag) {
+			@unlink($tmpThumbPath);
+			return true;
+		}
+		return $tmpThumbPath;
+	}
+
 
     ///////////////////////////////////////////////
     // Type: Function
@@ -395,7 +417,7 @@ Class Image {
 		$ret = $this->db->query($query);
 		return($ret);
 	}
-	public function getFlickerRecords($filter = '') {
+	public function getFlickrRecords($filter = '') {
 		$query = " SELECT * FROM `image` WHERE `flickr_PlantID` = 0 OR `flickr_PlantID` IS NULL ";
 		if(trim($filter['start']) != '' && trim($filter['limit']) != '') {
 			$query .= build_limit(trim($filter['start']),trim($filter['limit']));
@@ -538,13 +560,22 @@ Class Image {
 				@mkdir($tmpPath,0775);
 			}
 			$tilepath = $tmpPath;
-
+/*
+			if(file_exists($tmpPath)) {
+				echo '<br> Tiles Temp folder created';
+			}
+*/
 			# getting the image from s3
 			$filename = sys_get_temp_dir() . '/' . $this->get('filename');
+
 			$bucket = $arr['s3']['bucket'];
 			$key = $this->barcode_path($barcode) . $this->get('filename');
 			$arr['obj']->get_object($bucket, $key, array('fileDownload' => $filename));
-
+/*
+			if(file_exists($filename)) {
+				echo '<br> File downloaded';
+			}
+*/
 
 			# creating tiles using Image Magik
 			$gTileRes = $this->createGTileIM($filename,$tilepath);

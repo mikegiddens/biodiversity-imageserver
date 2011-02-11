@@ -186,8 +186,8 @@ Class ProcessQueue {
 	public function popQueue($process_type = '') {
 
 		switch($process_type) {
-			case 'flicker_add':
-				$query = "SELECT * FROM `process_queue` WHERE `process_type` = 'flicker_add' ORDER BY `date_added` LIMIT 1";
+			case 'flickr_add':
+				$query = "SELECT * FROM `process_queue` WHERE `process_type` = 'flickr_add' ORDER BY `date_added` LIMIT 1";
 				break;
 			case 'picassa_add':
 				$query = "SELECT * FROM `process_queue` WHERE `process_type` = 'picassa_add' ORDER BY `date_added` LIMIT 1";
@@ -208,7 +208,7 @@ Class ProcessQueue {
 				$query = "SELECT * FROM `process_queue` WHERE `process_type` = 'all' ORDER BY `date_added` LIMIT 1";
 				break;
 			default:
-				$query = "SELECT * FROM `process_queue` WHERE `process_type` NOT IN ('picassa_add','flicker_add') ORDER BY `date_added` LIMIT 1";
+				$query = "SELECT * FROM `process_queue` WHERE `process_type` NOT IN ('picassa_add','flickr_add') ORDER BY `date_added` LIMIT 1";
 				break;
 		}
 		$result = $this->db->query_one($query);
@@ -242,13 +242,15 @@ Class ProcessQueue {
 
 				if($this->data['mode'] == 's3') {
 					$ar = array ('s3' => $this->data['s3'], 'obj' => $this->data['obj'], 'postfix' => '_s', 'width' => 100, 'height' => 100);
-					$this->image->createThumbS3($record->image_id,$ar);
+					$tmpPath = $this->image->createThumbS3($record->image_id,$ar,false);
 
 					$ar = array ('s3' => $this->data['s3'], 'obj' => $this->data['obj'], 'postfix' => '_m', 'width' => 275, 'height' => 275);
-					$this->image->createThumbS3($record->image_id,$ar);
+// 					$this->image->createThumbS3($record->image_id,$ar);
+					$tmpPath = $this->image->createFromFileS3($tmpPath,$record->image_id,$ar,false);
 
 					$ar = array ('s3' => $this->data['s3'], 'obj' => $this->data['obj'], 'postfix' => '_l', 'width' => 800, 'height' => 800);
-					$this->image->createThumbS3($record->image_id,$ar);
+// 					$this->image->createThumbS3($record->image_id,$ar);
+					$this->image->createFromFileS3($tmpPath,$record->image_id,$ar,true);
 
 				} else {
 					if(IMAGE_PROCESSING == 1) {
@@ -367,26 +369,18 @@ Class ProcessQueue {
 		$where .= build_order( $this->data['order']);
 // 		$where .= build_limit($this->data['start'], $this->data['limit']);
 
-		$query = "SELECT SQL_CALC_FOUND_ROWS * FROM `process_queue` " . $where;
+
+# $query = "SELECT SQL_CALC_FOUND_ROWS * FROM `process_queue` " . $where; - query if paging not used
+		$query = "SELECT * FROM `process_queue` " . $where; # query for paging
 
 		$page = ($this->data['limit'] != 0) ? floor($this->data['start']/$this->data['limit']) : 1;
-		$page = ($page == 0) ? 1 : $page;
-		$ret = $this->db->query_all( $query );
-// 		$ret = $this->db->query_page_all( $query, $this->data['limit'],$page );
+# 		$page = ($page == 0) ? 1 : $page;
+
+# 		$ret = $this->db->query_all( $query );
+		$ret = $this->db->query_page_all( $query, $this->data['limit'],$page );
 
 		return is_null($ret) ? array() : $ret;
 	}
-/*
-	public function clearQueue() {
-		if(!(is_array($this->data['processType']))) return false;
-		$types = implode("','",$this->data['processType']);
-		$query = sprintf(" DELETE FROM `process_queue` WHERE `process_type` IN ('%s') ",$types);
-// 		echo $query;
-		$this->db->query($query);
-		$recordCount = $this->db->affected_rows;
-		return array('success' => true, 'recordCount' => $recordCount);
-	}
-*/
 
 	public function clearQueue() {
 		if(!(is_array($this->data['processType']) || is_array($this->data['imageIds']))) return array('success' => false, 'recordCount' => 0);
