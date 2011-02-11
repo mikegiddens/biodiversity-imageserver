@@ -10,10 +10,27 @@
             	background-color: #e6e6e0;
             	border: 1px solid #d6d6d0;
             	float: left;
-            	margin-right: 10px;
-            	margin-bottom: 10px;
+            	margin-right: 20px;
+            	margin-bottom: 20px;
         	}
-			
+			#combo-carousel {
+				padding: 5px;
+				height: 240px;
+				width: 358px;
+				background-color: #E6E6E0;
+				margin-top: 20px;
+				overflow: hidden;
+			}
+
+			#combo-carousel p {
+				padding: 20px;
+			}
+
+			.ux-menu a.current {
+				background-image: url('../menu/images/menu-item-bg-current.png');
+				border-color: #cbc0b7;
+			} 
+						
     </style>
 
     <!-- ** CSS ** -->
@@ -28,13 +45,21 @@
 	
 	<link rel="stylesheet" type="text/css" href="http://images.cyberfloralouisiana.com/portal/examples/lightbox/lightbox.css" />
 
+	<script type="text/javascript" src="http://images.cyberfloralouisiana.com/portal/examples/lightbox/carousel.js"></script>
+	<script type="text/javascript" src="http://images.cyberfloralouisiana.com/portal/examples/lightbox/lightbox.js"></script>	
 	<script type="text/javascript" src="http://images.cyberfloralouisiana.com/portal/examples/lightbox/lightboxView.js"></script>
 	
+	
+	<script>
+			Ext.ux.Lightbox.register('a[rel^=lightbox]');
+			Ext.ux.Lightbox.register('a.lb-flower', true); // true to show them as a set
+	</script> 
 	
 </head>
 <body>
 	<div id= "imagepanel" ></div>
-
+		
+		
 		<script type="text/javascript">
 			
 			Ext.onReady(function(){
@@ -47,14 +72,14 @@
 							e.preventDefault();
 						});
 				
-					Config={
-						baseUrl:'http://images.cyberfloralouisiana.com/portal/'
-					}
-					
-					var lightDemo = new ImagePortal.LightboxView({
-							renderTo:Ext.get('imagepanel')
-					});
+				Config={
+					baseUrl:'http://images.cyberfloralouisiana.com/portal/'
+				}
 				
+				var lightDemo = new ImagePortal.LightboxView({
+						renderTo:Ext.get('imagepanel')
+					,	title:'Simple DataView'
+				});
 			}); 
 		</script>	 
 </body>
