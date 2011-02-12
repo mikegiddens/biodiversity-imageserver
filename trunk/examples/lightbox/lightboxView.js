@@ -16,6 +16,7 @@ ImagePortal.LightboxView = function(config) {
 					cmd: 'images'
 				,	filters:''
 				,	code:''
+				,	pagesize:10
 			}
 		,	reader: new Ext.data.JsonReader({
 				root: 'data'
@@ -49,9 +50,9 @@ ImagePortal.LightboxView = function(config) {
 	
 	this.tpl = new Ext.XTemplate(
 		'<tpl for=".">',
-			'<div class="thumb-wrap" id="{filename}">',
+			'<div class="ux-carousel-slide" id="{filename}">',
 			'<div class="thumbnail">',
-			'<a href="{path}{barcode}_m.jpg" rel="lightbox" title="Barcode : {barcode}<br/>',
+			'<a class="lb-flower" href="{path}{barcode}_m.jpg" rel="lightbox" title="Barcode : {barcode}<br/>',
 			'<tpl if="Family != 0">'+
 					'<span>Family : {Family}</span><br>'+
 			'</tpl>',
@@ -63,8 +64,7 @@ ImagePortal.LightboxView = function(config) {
 			'</tpl>',
 			'"><img src="{path}{barcode}_s.jpg" title="{filename}"></a></div>',
 			'</div>',
-		'</tpl>',
-		'</div>'
+		'</tpl>'
 	);
 	
 
@@ -83,21 +83,12 @@ ImagePortal.LightboxView = function(config) {
 		,	emptyText: 'No images to display'
 		,	listeners:{
 				beforerender:function(){
-					this.store.load();	
-					
+					this.store.load();						
 				}
 			}
-		,	bbar: new Ext.PagingToolbar({
-					pageSize: 10
-				,	store: this.store
-				,	scope:this
-				,	emptyMsg: 'No images available.'
-				,	displayInfo: true
-				,	displayMsg: 'Displaying Specimen Images {0} - {1} of {2}' 
-				,	ref:'../pgtoolbar'
-			})
 	});
 	//panel.render(document.body);
+	//new Ext.ux.Carousel(this.getEl().dom);
 	ImagePortal.LightboxView.superclass.constructor.call(this, config);
 }
 

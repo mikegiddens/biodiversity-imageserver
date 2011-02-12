@@ -272,7 +272,7 @@ Ext.ux.Lightbox = (function(){
 				els.imageNumber.update(this.labelImage + ' ' + (activeImage + 1) + ' ' + this.labelOf + ' ' + images.length);
 				els.imageNumber.show();
 			}
-
+			
 			els.dataContainer.fadeIn({
 				duration: this.resizeDuration/2,
 				scope: this,
