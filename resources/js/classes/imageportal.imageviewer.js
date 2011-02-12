@@ -91,7 +91,6 @@ Ext.extend(ImagePortal.ImageViewer, Ext.Window, {
 				Ext.getCmp('tabId').hideTabStripItem(this.largeImagePanel);
 				Ext.getCmp('tabId').unhideTabStripItem(this.intimage);
 				this.showImage(path);
-				//Ext.getCmp('tabId').setActiveTab(0);
 			}else{
 				Ext.getCmp('tabId').hideTabStripItem(this.intimage);
 				Ext.getCmp('tabId').unhideTabStripItem(this.largeImagePanel);
@@ -133,8 +132,8 @@ Ext.extend(ImagePortal.ImageViewer, Ext.Window, {
 			this.image_id = image_id;	
 		}
 	
-	,	showImage: function(path){
-				this.intimage.drawImage(path);
+	,	showImage: function(imagePath){
+			this.intimage.drawImage(imagePath);
 		}
 
 	,	showInfoData: function(data){

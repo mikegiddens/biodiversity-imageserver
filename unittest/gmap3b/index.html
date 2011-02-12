@@ -8,8 +8,9 @@
   <script type="text/javascript" src="http://extjs.cachefly.net/ext-3.3.1/ext-all-debug.js"></script>
   <script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=false"></script>
   <script src="Ext.ux.GMapPanel3.js"></script>
+  
   <script type="text/javascript">
-		// NLU0063388
+  
 		Ext.onReady(function() {
 
 			var barcode = "http://images.cyberfloralouisiana.com/images/specimensheets/nlu/0/6/33/88/";
@@ -26,21 +27,9 @@
 				name: "Image",
 				alt: "Specimen Sheet Image"
 			});
-/*
-			var options = {
-				zoom: 0,
-				minLevel: 0,
-				maxLevel: 5,
-				center: new google.maps.LatLng(30, -90)
-			}
 
-			var map = new google.maps.Map(document.getElementById("map"), options);
-			map.mapTypes.set('image', imgTiles);
-			map.setMapTypeId('image');
-*/
 			mp = new Ext.ux.GMapPanel({
 				zoomLevel: 2,
-//				gmapType: 'map',
 				id: 'my_map',
 				border: true,
 				mapConfOpts: ['enableScrollWheelZoom', 'enableDoubleClickZoom', 'enableDragging'],

@@ -263,6 +263,7 @@ markers: [{
         }
 
     },
+	
     apiReady : function(){
         
         if (this.rendered){
@@ -314,11 +315,12 @@ markers: [{
           this.on('afterrender', this.apiReady, this);
         }
     },
+	
     // private
     afterRender : function(){
         
-        var wh = this.ownerCt.getSize();
-        Ext.applyIf(this, wh);
+//        var wh = this.ownerCt.getSize();
+ //       Ext.applyIf(this, wh);
         
         Ext.ux.GMapPanel.superclass.afterRender.call(this);
 
