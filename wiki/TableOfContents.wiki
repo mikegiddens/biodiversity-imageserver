@@ -5,6 +5,10 @@
    * [Screenshots  Screen shots]
    * [Quickstart Quickstart]
    * [Demos Demos]
+ * *Examples*
+   * [Carousel  Carousel]
+   * [CarouselLightbox  Carousel + Lightbox]
+   * [DataviewLightbox  Dataview + Lightbox]
  * *Videos*
    * [InstructionalVideos  Instructional Videos]
  * [Timeline Timeline]
