@@ -1,0 +1,13 @@
+#summary Example of using web services on your website.
+
+= Carousel =
+
+This example shows a carousel from images...
+
+[http://a1.silverbiolology.com/biodiversityimageserver/imagingtour2010/examples/....  Live Example Here]
+
+{{{
+<?script ....>
+..code goes here on how to use the samepl.
+</script>
+}}}
