@@ -1,0 +1,104 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="en">
+    <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+      <title>Biodiveristy Image Server Carousel Example</title>		        
+      
+    	<link href="../syntaxhighliter/shCore.css" rel="stylesheet" />
+    	<link href="../syntaxhighliter/shThemeDefault.css" rel="stylesheet" />
+    	<script src="../syntaxhighliter/xrepexp.js"></script>
+    	<script src="../syntaxhighliter/shCore.js"></script>
+			<script type="text/javascript" src="../syntaxhighliter/shBrushJScript.js"></script>
+
+    	<link href="carousel.css" rel="stylesheet" />
+    	<script src="ext-core-debug.js"></script>
+    	<script src="jsonp.js"></script>
+			<script src="carousel.js"></script>
+			<script src="bis-carousel.js"></script>
+			<script>
+        Ext.onReady(function() {
+
+          params = {
+              wsUrl: 'http://images.cyberfloralouisiana.com/portal/resources/api/api.php'
+            ,	format: 'json'
+            ,	cmd: 'images'
+            ,	filters: ''
+            ,	code: ''
+						,	limit: 20
+          }
+
+          var example = new Ext.ux.BisCarousel('full-example');
+          example.loadPhotos(params);
+        });
+      </script>
+        
+			<style>
+				div.item {
+					padding: 20px;
+				}            
+      body,td,th {
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 12px;
+}
+a:link {
+	color: #036;
+}
+a:visited {
+	color: #036;
+}
+a:hover {
+	color: #036;
+}
+a:active {
+	color: #036;
+}
+</style>
+    </head>
+
+    <body>
+      <div style="float:right; width: 600px">
+			<pre type="syntaxhighlighter" class="brush: js">
+&lt;link href="carousel.css" rel="stylesheet" />
+&lt;script src="ext-core-debug.js">&lt;/script>
+&lt;script src="jsonp.js">&lt;/script>
+&lt;script src="carousel.js">&lt;/script>
+&lt;script src="bis-carousel.js">&lt;/script>
+&lt;script>
+Ext.onReady(function() {
+
+	params = {
+			wsUrl: 'http://images.cyberfloralouisiana.com/portal/resources/api/api.php'
+		,	format: 'json'
+		,	cmd: 'images'
+		,	filters: ''
+		,	code: ''
+		,	limit: 10
+	}
+
+	var example = new Ext.ux.BisCarousel('full-example');
+	example.loadPhotos(params);
+  
+  // or you can do it in one step like so:
+  // new Ext.ux.BisCarousel('full-example').loadPhotos(params);
+
+});
+&lt;/script>
+
+...
+
+&lt;div id="full-example" style="padding: 5px; height: 280px; width: 230px; background-color: #E6E6E0">&lt;/div>
+
+...</pre>
+      </div>
+    
+<h3>Biodiveristy Image Server Carousel Example</h3>
+      <div id="full-example" style="padding: 5px; height: 280px; width: 230px; background-color: #E6E6E0"></div>
+      <p>This example can be placed on any webpage and many carousel's can exist on one page.<br>
+        <a href="../">See more examples...</a><br>
+        <br>
+        <script type="text/javascript">
+				 SyntaxHighlighter.all()
+			  </script>
+      </p>
+</body>
+</html>
