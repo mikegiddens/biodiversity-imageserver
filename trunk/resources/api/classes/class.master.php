@@ -6,16 +6,17 @@
 	 * @website http://www.silverbiology.com
 	*/
 
-	require_once( BASE_PATH . "resources/api/classes/class.mysqli_database.php");
-	require_once( BASE_PATH . "resources/api/classes/class.master_log.php");
-	require_once( BASE_PATH . "resources/api/classes/class.master_images.php");
-	require_once( BASE_PATH . "resources/api/classes/class.master_image.php");
-	require_once( BASE_PATH . "resources/api/classes/class.master_collection.php");
-	require_once( BASE_PATH . "resources/api/classes/class.process_queue.php");
-	require_once( BASE_PATH . "resources/api/classes/class.misc.php");
-	require_once( BASE_PATH . "resources/api/classes/class.picassa.php");
-// 	require_once( BASE_PATH . "resources/api/classes/class.amazonS3.php");
-	require_once( BASE_PATH . "resources/api/classes/sdk/sdk.class.php");
+	require_once( BASE_PATH . 'resources/api/classes/class.mysqli_database.php');
+	require_once( BASE_PATH . 'resources/api/classes/class.master_log.php');
+	require_once( BASE_PATH . 'resources/api/classes/class.master_images.php');
+	require_once( BASE_PATH . 'resources/api/classes/class.master_image.php');
+	require_once( BASE_PATH . 'resources/api/classes/class.master_collection.php');
+	require_once( BASE_PATH . 'resources/api/classes/class.process_queue.php');
+	require_once( BASE_PATH . 'resources/api/classes/class.misc.php');
+	require_once( BASE_PATH . 'resources/api/classes/class.picassa.php');
+// 	require_once( BASE_PATH . 'resources/api/classes/class.amazonS3.php');
+	require_once( BASE_PATH . 'resources/api/classes/sdk/sdk.class.php');
+	require_once( BASE_PATH . 'resources/api/classes/class.bis2hs.php');
 
 	Class SilverImage {
 	
@@ -30,19 +31,21 @@
 			$this->pqueue = new ProcessQueue();
 			$this->picassa = new PicassaWeb();
 			$this->amazon = new AmazonS3($config['s3']['accessKey'],$config['s3']['secretKey']);
+			$this->bis = new Bis2hs();
 			
 			$this->logger->db = &$this->db;
 			$this->images->db = &$this->db;
 			$this->image->db = &$this->db;
 			$this->collection->db = &$this->db;
 			$this->pqueue->db = &$this->db;
+			$this->bis->db = &$this->db;
 			
 		}
 
 		function load($project) {
 
 			Global $mysql_host, $mysql_pass, $mysql_user,$record;
-			$connection_string="server=$mysql_host; database=$project; username=$mysql_user; password=$mysql_pass;";				
+			$connection_string="server=$mysql_host; database=$project; username=$mysql_user; password=$mysql_pass;";
 			$this->db = new MysqliDatabase($connection_string);
 
 			$this->logger->db = &$this->db;

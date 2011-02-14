@@ -578,6 +578,7 @@ Class Image {
 */
 
 			# creating tiles using Image Magik
+
 			$gTileRes = $this->createGTileIM($filename,$tilepath);
 
 			# uploading to s3 and deleting the files
@@ -593,7 +594,8 @@ Class Image {
 								while (false !== ($tile = @readdir($tempHandle))) {
 									if ($tile != '.' && $tile != '..') {
 $tmpThumbPath = $tilepath . @basename($file) . '/' . @basename($tile);
-$response = $arr['obj']->create_object ( $bucket, $tiles3path, array('fileUpload' => $tmpThumbPath,'acl' => AmazonS3::ACL_PUBLIC,'storage' => AmazonS3::STORAGE_REDUCED) );
+$tmpS3Path = $tiles3path . @basename($file) . '/' . @basename($tile);
+$response = $arr['obj']->create_object ( $bucket, $tmpS3Path, array('fileUpload' => $tmpThumbPath,'acl' => AmazonS3::ACL_PUBLIC,'storage' => AmazonS3::STORAGE_REDUCED) );
 @unlink($tilepath . @basename($file) . '/' . @basename($tile));
 									} # not . or ..
 								} # while tile
@@ -605,6 +607,7 @@ $response = $arr['obj']->create_object ( $bucket, $tiles3path, array('fileUpload
 				} # while file
 				@closedir($handle);
 			} # handle
+
 			@unlink($filename);
 			@unlink($tmpPath);
 			return true;

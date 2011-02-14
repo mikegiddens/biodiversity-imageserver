@@ -345,7 +345,7 @@ Class ProcessQueue {
 					$ret = $this->image->processGTileIM_S3($record->image_id,$ar);
 				} else {
 					$ret = $this->image->processGTileIM($record->image_id);
-//						$ret = $this->image->processGTile($record->image_id); // No image magic format uses GD but not as clear.
+//					$ret = $this->image->processGTile($record->image_id); # No image magic format uses GD but not as clear.
 				}
 				if($ret) {
 					$this->image->load_by_barcode($record->image_id);
