@@ -13,8 +13,23 @@
             	margin-right: 20px;
             	margin-bottom: 20px;
         	}
-			
-			 
+			#combo-carousel {
+				padding: 5px;
+				height: 240px;
+				width: 358px;
+				background-color: #E6E6E0;
+				margin-top: 20px;
+				overflow: hidden;
+			}
+
+			#combo-carousel p {
+				padding: 20px;
+			}
+
+			.ux-menu a.current {
+				background-image: url('../menu/images/menu-item-bg-current.png');
+				border-color: #cbc0b7;
+			} 
 			div.item {
 				padding: 20px;
 			}
@@ -33,22 +48,13 @@
 	<link rel="stylesheet" type="text/css" href="http://images.cyberfloralouisiana.com/portal/resources/css/tpl.css" />   
 	
 	<link rel="stylesheet" type="text/css" href="http://images.cyberfloralouisiana.com/portal/examples/lightbox/lightbox.css" />
+	<link rel="stylesheet" type="text/css" href="http://images.cyberfloralouisiana.com/portal/examples/carousel/carousel.css" />
 
+	<script type="text/javascript" src="http://images.cyberfloralouisiana.com/portal/examples/carousel/carousel.js"></script>
 	<script type="text/javascript" src="http://images.cyberfloralouisiana.com/portal/examples/lightbox/lightbox.js"></script>	
-	<script type="text/javascript" src="http://images.cyberfloralouisiana.com/portal/examples/lightbox/lightboxView.js"></script>
+	<script type="text/javascript" src="http://images.cyberfloralouisiana.com/portal/examples/carousel/lightboxView.js"></script>
 	
-	
-	<script>
-			Ext.ux.Lightbox.register('a[rel^=lightbox]');
-			Ext.ux.Lightbox.register('a.lb-flower', true); // true to show them as a set
-	</script> 
-	
-</head>
-<body>
-	<div id= "imagepanel" ></div>
-		
-		
-		<script type="text/javascript">
+	<script type="text/javascript">
 			
 			Ext.onReady(function(){
 	
@@ -65,10 +71,37 @@
 				}
 				
 				var lightDemo = new ImagePortal.LightboxView({
-						renderTo:Ext.get('imagepanel')
+						renderTo:Ext.get('ext-gen2')
 					,	title:'Simple DataView'
 				});
+				
+				var coroDemo = new Ext.ux.Carousel('imagepanel');
 			}); 
 		</script>	 
+	<!--
+	<script>
+			Ext.ux.Lightbox.register('a[rel^=lightbox]');
+			Ext.ux.Lightbox.register('div.ux-carousel-container', true); // true to show them as a set
+	</script> 
+	-->	
+</head>
+<body>
+	<div id= "imagepanel" style="padding: 5px; height: 280px; width: 420px; background-color: rgb(230, 230, 224); overflow: hidden;">
+		<div style="width: 420px; height: 280px;" id="ext-gen1" class="ux-carousel-container">
+				
+			<div style="width: 252px; left: 0pt;" id="ext-gen2" class="ux-carousel-slides-wrap">		
+					
+			</div>
+					
+			<div style="visibility: visible;" id="ext-gen3" class="ux-carousel-nav">
+			<h2 style="width: 340px;" id="ext-gen4" class="ux-carousel-caption">Barcode</h2>
+			<a id="ext-gen5" href="#" class="ux-carousel-nav-next"></a>
+			<a id="ext-gen6" href="#" class="ux-carousel-nav-prev ux-carousel-nav-disabled"></a>
+			</div>		
+		</div>
+	</div>
+		
+		
+		
 </body>
 </html>

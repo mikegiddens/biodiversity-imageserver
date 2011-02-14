@@ -100,7 +100,7 @@
                 
                loadPhotos: function() {
 					Ext.ux.JSONP.request('http://images.cyberfloralouisiana.com/portal/resources/api/api.php', {
-                        callbackKey: 'jsoncallback',
+                        callbackKey: 'callback',
                         params: {
                             format: 'json',
                           	cmd: 'images',

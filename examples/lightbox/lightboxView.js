@@ -16,7 +16,8 @@ ImagePortal.LightboxView = function(config) {
 					cmd: 'images'
 				,	filters:''
 				,	code:''
-				,	pagesize:10
+				,	start: 10
+				,	limit: 10
 			}
 		,	reader: new Ext.data.JsonReader({
 				root: 'data'
@@ -51,18 +52,20 @@ ImagePortal.LightboxView = function(config) {
 	this.tpl = new Ext.XTemplate(
 		'<tpl for=".">',
 			'<div class="ux-carousel-slide" id="{filename}">',
-			'<div class="thumbnail">',
-			'<a class="lb-flower" href="{path}{barcode}_m.jpg" rel="lightbox" title="Barcode : {barcode}<br/>',
-			'<tpl if="Family != 0">'+
-					'<span>Family : {Family}</span><br>'+
-			'</tpl>',
-			'<tpl if="Genus != 0">'+
-					'<span>Genus : {Genus}</span><br>'+
-			'</tpl>',
-			'<tpl if="SpecificEpithet != 0">'+
-					'<span>SpecificEpithet : {SpecificEpithet}</span><br>'+
-			'</tpl>',
-			'"><img src="{path}{barcode}_s.jpg" title="{filename}"></a></div>',
+				'<div class="thumbnail">',
+					'<a class="lb-flower" href="{path}{barcode}_m.jpg" rel="lightbox" title="Barcode : {barcode}<br/>',
+						'<tpl if="Family != 0">'+
+								'<span>Family : {Family}</span><br>'+
+						'</tpl>',
+						'<tpl if="Genus != 0">'+
+								'<span>Genus : {Genus}</span><br>'+
+						'</tpl>',
+						'<tpl if="SpecificEpithet != 0">'+
+								'<span>SpecificEpithet : {SpecificEpithet}</span><br>'+
+						'</tpl>',
+						'"><img src="{path}{barcode}_s.jpg" title="{filename}">',
+					'</a>',
+				'</div>',
 			'</div>',
 		'</tpl>'
 	);
@@ -77,13 +80,13 @@ ImagePortal.LightboxView = function(config) {
 		,	autoScroll: true
 		,	tpl: this.tpl
 		,	multiSelect: true
-		,	overClass:'x-view-over'
+		,	overClass:'ux-carousel-slide'//'x-view-over'
 		,	padding: '20px'
 		,	itemSelector:'div.thumb-wrap'
 		,	emptyText: 'No images to display'
 		,	listeners:{
 				beforerender:function(){
-					this.store.load();						
+					this.store.load();	
 				}
 			}
 	});
