@@ -1,0 +1,119 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+
+	<link rel="stylesheet" type="text/css" href="http://extjs.cachefly.net/ext-3.3.1/resources/css/ext-all.css" />
+	<script type="text/javascript" src="http://extjs.cachefly.net/ext-3.3.1/adapter/ext/ext-base.js"></script>
+	<script type="text/javascript" src="http://extjs.cachefly.net/ext-3.3.1/ext-all.js"></script>
+	
+	<script type="text/javascript" src="ux/FileUploadField.js"></script>
+	<script type="text/javascript" src="ux/swfupload.swfobject.js"></script>
+	<script type="text/javascript" src="ux/swfupload.js"></script>
+	
+	<script type="text/javascript" src="ux/Ext.ux.XHRUpload.js"></script> 
+	<script type="text/javascript" src="class.ddupload.js"></script>
+	
+	<style>
+		.au-hidden, .au-hidden *, *.au-hidden {
+			visibility: hidden;
+			width:1px;
+			height:1px;
+			display:block;
+			z-index:-99;
+			position:absolute;
+		}
+		.x-form-file-wrap {
+			height:22px;
+			position:relative;
+		}
+		.x-form-file-wrap .x-form-file {
+			height:22px;
+			opacity:0;
+			position:absolute;
+			right:0;
+			z-index:2;
+		}
+		.x-form-file-wrap .x-form-file-btn {
+			position:absolute;
+			right:0;
+			z-index:1;
+		}
+		.x-form-file-wrap .x-form-file-text {
+			color:#777777;
+			left:0;
+			position:absolute;
+			z-index:3;
+		}
+		.ux-progress-cell-inner {
+			position: absolute;
+			top: 0;
+			left: 0;
+			height: 100%;
+			width: 100%;
+			overflow: hidden;
+		}
+		.ux-progress-cell-background {
+			background: #E0E8F3;
+			white-space: nowrap;
+		}
+		.x-grid3-td-progress-cell .low {
+			background: #11aa11;
+		}
+		.x-grid3-td-progress-cell .medium {
+			background: #f1fa1a;
+		}
+		.x-grid3-td-progress-cell .high {
+			background: #ee1111;
+		}
+		.ux-progress-cell-foreground {
+			color: #000;
+			background-color: #9CBFEE;
+			white-space: nowrap;
+			overflow: hidden
+		}
+		.ux-progress-cell-inner-right {
+			text-align: right;
+		}
+		.ux-progress-cell-inner-center {
+			text-align: center;
+		}
+		.ux-progress-cell .ux-progress-cell-inner div {
+			padding: 3px 0 0 4px;
+		}
+		.ux-progress-cell-inner-right div {
+			padding: 3px 4px 0 0;
+			position: relative;
+		}
+		.ux-progress-cell-inner-center div {
+			padding: 3px 0 0 0;
+			position: relative;
+		}		
+		td.x-grid3-td-progress-cell {
+			padding: 0;
+		}
+
+		td.x-grid3-td-progress-cell div.x-grid3-cell-inner {
+			padding: 0;
+			position: relative;
+			height: 21px;
+		}
+		.ux-progress-cell-inner-left div {
+			padding: 3px 0 0 4px;
+			position: relative;
+		}
+	</style>
+<script type="text/javascript">
+    Ext.onReady(function() {     
+		var upload =new ImagePortal.ddupload({
+			renderTo: 'upload'
+		}) 
+    });
+</script>
+
+<title>Upload demo</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+</head>
+<body>
+   <div id="upload"></div>
+</body>
+</html>
