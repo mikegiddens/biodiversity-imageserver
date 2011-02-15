@@ -169,7 +169,6 @@ ImagePortal.Queue = function(config) {
 			}	
 	    });
 	
-	//	this.ds.load({params:{start:0, limit:100}});
 
 	ImagePortal.Queue.superclass.constructor.call(this, config);
 
