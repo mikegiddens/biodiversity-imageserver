@@ -53,6 +53,7 @@
 			$this->image->db = &$this->db;
 			$this->collection->db = &$this->db;
 			$this->pqueue->db = &$this->db;
+			$this->bis->db = &$this->db;
 
 			return( true );
 		}

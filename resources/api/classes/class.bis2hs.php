@@ -122,6 +122,18 @@ Class Bis2hs {
 			return true;
 		}
 	}
+	public function listHSQueue() {
+		$where = buildWhere($this->data['filter']);
+		if ($where != '') {
+			$where = " WHERE " . $where;
+		}
+		$where .= build_order( $this->data['order']);
+		$query = 'SELECT * FROM `bis2hs` ' . $where; # query for paging
+		$page = ($this->data['limit'] != 0) ? floor($this->data['start']/$this->data['limit']) : 1;
+		$ret = $this->db->query_page_all( $query, $this->data['limit'],$page );
+		return is_null($ret) ? array() : $ret;
+	}
+
 }
 	
 ?>
