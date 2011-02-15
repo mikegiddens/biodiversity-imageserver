@@ -192,8 +192,18 @@ if ( $si->load( $mysql_name ) ) {
 				if($record === false) {
 					$loop_flag = false;
 				} else {
-					$imagePath = PATH_IMAGES . $si->image->barcode_path($record->image_id) . $record->image_id;
+/*
+				if($config['mode'] == 's3') {
 
+	$imagePath
+	$key = $si->image->barcode_path($record->image_id) . $record->image_id . '.jpg';
+	$si->amazon->get_object($config['s3']['bucket'], $key, array('fileDownload' => $tmpPath));
+
+
+				} else {
+*/
+					$imagePath = PATH_IMAGES . $si->image->barcode_path($record->image_id) . $record->image_id;
+// 				}
 
 					$tmpImage = $imagePath . '_tmp.jpg';
 					$cd = "convert " . $imagePath . '.jpg' . " -colorspace Gray  -contrast-stretch 15% " . $tmpImage;

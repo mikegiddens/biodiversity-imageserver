@@ -46,51 +46,25 @@ $image_server_id = ($image_server_id != '') ? $image_server_id : $config['image_
 
 
 if ( $si->load( $mysql_name ) ) {
-# listing barcodes
-$barCount = 0;
-$count = 0;
-
-$barcodes = @json_decode(stripslashes(trim($barcodes)),true);
-if(is_array($barcodes) && count($barcodes)) {
-	foreach($barcodes as $barcode) {
-
-		if($si->image->load_by_barcode($barcode)) {
-			$barCount++;
-			if($image_mode == 's3') {
-				$path = $config['s3']['url'] . $si->image->barcode_path($barcode) . $si->image->get('filename');
-			} else {
-				$path = PATH_IMAGES . $si->image->barcode_path($barcode) .  $si->image->get('filename');
-			}
-			$ar = getimagesize($path);
-			usleep(500000);
-			$url = $domain[$mode] . '?task=add_specimensheet&client_id=' . $client_id . '&filename=' . $barcode . '&image_server_id=' . $image_server_id . '&collection_id=' . $collection_id . '&width=' . $ar[0] . '&height=' . $ar[1];
-
-			$rt = file_get_contents($url);
-			$rt = json_decode($rt);
-			if($rt->success) {
-				$count++;
-				$si->bis->set('image_id',$si->image->get('image_id'));
-				$si->bis->set('filename',$si->image->get('filename'));
-				$si->bis->set('barcode',$si->image->get('barcode'));
-				$si->bis->set('client_id',$client_id);
-				$si->bis->set('collection_id',$collection_id);
-				$si->bis->set('imageserver_id',$image_server_id);
-				$si->bis->save();
-			}
-
-		} # barcode exists
-
-	} # foreach
-
-} else {
+	# listing barcodes
+	$barCount = 0;
+	$count = 0;
 	$where = '';
+	
+	$barcodes = @json_decode(stripslashes(trim($barcodes)),true);
+	if(is_array($barcodes) && count($barcodes)) {
+		@array_walk($barcodes,'escapeFn');
+		$where .= sprintf(" AND `barcode` IN ('%s') ",@implode("','",$barcodes));
+	}
+/*
 	$image_id = $si->bis->getId();
-// 	$image_id = 5;
 	if($image_id !== false) {
 		$where .= sprintf(" WHERE 1=1 AND `image_id` > '%s' ", mysql_escape_string($image_id));
 	}
-
 	$query =  sprintf(" SELECT `image_id`, `barcode`, `filename` FROM `image` %s LIMIT %d ",$where, mysql_escape_string($limit));
+*/
+
+	$query = ' SELECT `image_id`, `barcode`, `filename` FROM `image` WHERE `image_id` NOT IN ( SELECT `image_id` FROM `bis2hs`) ' . $where . ' ORDER BY `timestamp_modified` DESC ' . sprintf(" LIMIT %d ", $limit);
 
 	$Ret = $si->db->query($query);
 	if (is_object($Ret)) {
@@ -125,14 +99,17 @@ if(is_array($barcodes) && count($barcodes)) {
 				$si->bis->save();
 			}
 
-		}
-	}
-}
+		} # while
+	} # if object
 
-print '<br> No. of barcodes : ' . $barCount;
-print '<br> No. of files added : ' . $count;
+	print '<br> No. of barcodes : ' . $barCount;
+	print '<br> No. of files added : ' . $count;
 
 } else print 'Database Not Loaded';
 
+
+function escapeFn(&$value) {
+	$value = mysql_escape_string($value);
+}
 
 ?>

@@ -932,11 +932,38 @@ print_r($records);*/
 
 			break;
 
+		case 'listHSQueue':
+			$data['start'] = ($_REQUEST['start'] != '') ? $_REQUEST['start'] : 0;
+			$data['limit'] = ($_REQUEST['limit'] != '') ? $_REQUEST['limit'] : 100;
+			if(is_array($_REQUEST['filter'])) {
+				$data['filter'] = $_REQUEST['filter'];
+			} else {
+				$data['filter'] = json_decode(stripslashes($_REQUEST['filter']),true);
+			}
+			$order = json_decode(stripslashes($_REQUEST['order']),true);
+			$dir = (in_array(strtolower(trim($_REQUEST['dir'])),array('asc','desc'))) ? trim($_REQUEST['dir']) : 'ASC';
+			if(trim($_REQUEST['sort']) != '') {
+				$order[] = array('field' => trim($_REQUEST['sort']), 'dir' => $dir);
+			}
+			$data['order'] = $order;
+
+			header('Content-type: application/json');
+			if($valid) {
+				$si->bis->setData($data);
+				$data = $si->bis->listHSQueue();
+				$total = $si->bis->db->query_total();
+				print( json_encode( array( 'success' => true, 'totalCount' => $total, 'data' => $data ) ) );
+			}else {
+				print( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ) );
+			}
+
+			break;
+
 		case 'audit':
-			$autoProcessTemplate = array('thumb' => true, 'small' => true, 'medium' => true, 'large' => true, 'google_tile' => false, 'flickr_add' =>  false, 'picassa_add' => false);
+			$autoProcessTemplate = array('small' => true, 'medium' => true, 'large' => true, 'google_tile' => false, 'flickr_add' =>  false, 'picassa_add' => false);
 			$statsArray = array();
-			$tplArray = array('small','medium','large','thumb','google_tile','flickr_add','picassa_add');
-			$linkArray = array('small' => '_s','medium' => '_m','large'=>'_l','thumb'=>'_thumb','google_tile' => 'tile_');
+			$tplArray = array('small','medium','large','google_tile','flickr_add','picassa_add');
+			$linkArray = array('small' => '_s','medium' => '_m','large'=>'_l','google_tile' => 'tile_');
 
 			$files = array();
 			$files = @json_decode(@stripslashes(trim($_REQUEST['filenames'])),true);
@@ -955,9 +982,11 @@ print_r($records);*/
 				$data['start'] = (trim($_REQUEST['limit']) != '') ? trim($_REQUEST['limit']) : 0;
 				$data['limit'] = trim($_REQUEST['limit']);
 				$ret = $si->image->getNonProcessedRecords($data);
-				while ($row = $ret->fetch_object())
-				{
-					$files[] = $row->filename;
+				if(is_object($ret) && !is_null($ret)) {
+					while ($row = $ret->fetch_object())
+					{
+						$files[] = $row->filename;
+					}
 				}
 			}
 			if(is_array($files) && count($files)) {
@@ -970,7 +999,7 @@ print_r($records);*/
 					$response = $si->amazon->list_objects($config['s3']['bucket'],array('prefix' => $prefix));
 					if($response->isOK()) {
 						$ar = array_fill_keys($tplArray,false);
-						$opArray = array('small','medium','large','thumb','google_tile');
+						$opArray = array('small','medium','large','google_tile');
 						$body = $response->body;
 					
 						for($i=0;$i<count($body->Contents);$i++){
