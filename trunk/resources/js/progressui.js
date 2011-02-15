@@ -116,6 +116,18 @@ Ext.onReady(function() {
 						this.items.items[0].cbCollections.store.load();
 						}
 					}
+				},{
+						title: 'HelpingScience Queue '
+					,	tabTip: ''
+					,	iconCls: 'x-icon-templates'								
+					,	style: 'padding: 10px;'
+					,	layout: 'fit'
+					, 	items: [ new ImagePortal.hsQueue() ] 
+					,	listeners:{
+						render:function(){
+						//	this.items.items[0].store.load({params:{start:0, limit:100}})
+						}
+					}
 				}]
 			}];
 	

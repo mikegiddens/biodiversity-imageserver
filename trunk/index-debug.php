@@ -93,7 +93,7 @@ if (!(isset($_SESSION['user']) && isset($_SESSION['pw']))) {
 	<script type="text/javascript" src="resources/js/classes/imageportal.progressofcollection.js"></script>	
 	<script type="text/javascript" src="resources/js/classes/imageportal.bystaff.js"></script>  	
 	<script type="text/javascript" src="resources/js/classes/imageportal.bycollection.js"></script>
-  
+	<script type="text/javascript" src="resources/js/classes/imageportal.hsqueue.js"></script>	
   	<script type="text/javascript" src="resources/js/classes/imageportal.piareports.js"></script>
   	<script type="text/javascript" src="resources/js/classes/imageportal.barreports.js"></script>
   	<script type="text/javascript" src="resources/js/classes/imageportal.reporttree.js"></script>

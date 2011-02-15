@@ -231,6 +231,49 @@
 					'Collection: '
 				, ' ', this.search_value
 				, ' ',	this.views
+				, ' ', {
+							text: "Send all to HelpingScience"
+						,	scope: this
+						,	iconCls: ''
+						,	handler: function(){
+								Ext.Msg.show({
+									msg: 'Are you sure ?'
+								,	buttons: Ext.Msg.YESNO
+								,	icon: Ext.MessageBox.QUESTION
+								,	scope:this
+								,	fn: function(btn) {
+										if (btn == 'yes') {
+											var filterList = [];
+											var record = this.filters.getFilterData()
+										//	for(i=0; i<record.length; i++){
+										//		filterList.push(record[i]);
+										//	}
+											var fillter = Ext.encode(filterList);
+											var comaprison = Ext.isDefined(record[0])? record[0].data.comparison : '';
+											var value = Ext.isDefined(record[0])? record[0].data.value : '';
+											Ext.Ajax.request({
+													scope: this
+												,	url: 'resources/api/bis2hs.php'
+												,	params: {
+													//	fillter : fillter
+														'filter[0][data][comparison]': comaprison
+													,	'filter[0][data][type]': 'date'
+													,	'filter[0][data][value]': value
+													,	'filter[0][field]': 'timestamp_modified'
+													}
+												,	success: function(response){
+														var response = Ext.decode(response.responseText);
+														console.log("Success",response);
+													}
+												,	failure: function(result){
+														console.log("Fail",result)
+													}
+											});
+										}
+									}
+								})
+							}
+					}	
 				/*,	{
 							text:"Save Image Changes"
 						,	iconCls:'icon_saveImageChanges'
@@ -355,7 +398,7 @@
 						return(this.renderergTileProcess(a));
 					}
 			}]
-		,	sm: new Ext.grid.RowSelectionModel({singleSelect:true})
+		,	sm: new Ext.grid.RowSelectionModel({singleSelect: false})
 		/*,	view: new Ext.grid.GroupingView({
 					forceFit: false
 				,	emptyText: 'No Image'
@@ -425,151 +468,199 @@
 		}	
 	
 	,	rightClickMenu:function(grid,row,e){
-					grid.getSelectionModel().selectRow(row);
-					var record = grid.getSelectionModel().getSelected().data;
-					
-					var items = [];
-					
-					items.push({
-							text: "Rotate 90' Right"
-						,	iconCls: 'icon_rotate_right'
-						,	scope: this
-						,	handler: function() {
-									//this.sendRotateRequest(grid, row, "right",90);
-									this.rotateImageGUI(grid, row, 90);
+				var record = grid.getSelectionModel().getSelections();
+				var items = [];
+				items.push({
+						text: "Rotate 90' Right"
+					,	iconCls: 'icon_rotate_right'
+					,	scope: this
+					,	handler: function() {
+								//this.sendRotateRequest(grid, row, "right",90);
+								this.rotateImageGUI(grid, row, 90);
+						}
+				}, {
+						text: "Rotate 90' Left"
+					,	iconCls: 'icon_rotate_left'
+					,	scope: this
+					,	handler: function() {
+							//this.sendRotateRequest(grid, row, "left",270);
+							this.rotateImageGUI(grid, row, 270);
+						}
+				}, {
+						text: "Rotate 180'"
+					,	iconCls: 'icon_rotate_image'
+					,	scope: this
+					,	handler: function() {
+							//this.sendRotateRequest(grid, row, null,180);
+							this.rotateImageGUI(grid, row,180);
+						}
+				}, {
+						text: "Audit"
+					,	scope: this
+					,	handler: function() {
+							this.imageName = [];
+							for(i=0; i<record.length; i++){
+								this.imageName.push(record[i].data.filename);
 							}
-					}, {
-							text: "Rotate 90' Left"
-						,	iconCls: 'icon_rotate_left'
-						,	scope: this
-						,	handler: function() {
-								//this.sendRotateRequest(grid, row, "left",270);
-								this.rotateImageGUI(grid, row, 270);
-							}
-					}, {
-							text: "Rotate 180'"
-						,	iconCls: 'icon_rotate_image'
-						,	scope: this
-						,	handler: function() {
-								//this.sendRotateRequest(grid, row, null,180);
-								this.rotateImageGUI(grid, row,180);
-							}
-					}, {
-							text: "Audit"
-						,	scope: this
-						,	handler: function() {
-								this.audit.push(record.filename);
-								var fname= grid.getStore().getAt(row).data
-								Ext.Ajax.request({
-										scope: this
-									,	url: 'resources/api/api.php'
-									,	params: {
-											cmd : 'audit'
-										,	filenames : Ext.encode(this.audit)
-										,	autoProcess: Ext.encode({"small":true,"medium":true,"large":true})
-											}
-									,	success: function(response){
-											var response = Ext.decode(response.responseText);
-											console.log("Success",response);
+							Ext.Ajax.request({
+									scope: this
+								,	url: 'resources/api/api.php'
+								,	params: {
+										cmd : 'audit'
+									,	filenames : Ext.encode(this.imageName)
+									,	autoProcess: Ext.encode({"small":true,"medium":true,"large":true})
 										}
-									,	failure: function(result){
-											console.log("Fail",result)
-										}
-								});
+								,	success: function(response){
+										var response = Ext.decode(response.responseText);
+										console.log("Success",response);
+									}
+								,	failure: function(result){
+										console.log("Fail",result)
+									}
+							});
+						}
+				}, {
+						text: "Process OCR"
+					,	scope: this
+					,	handler: function() {
+							Ext.Ajax.request({
+									scope: this
+								,	url: 'resources/api/api.php'
+								,	params: {
+										cmd : 'processOCR'
+									}
+								,	success: function(response){
+										var response = Ext.decode(response.responseText);
+										console.log("Success",response);
+									}
+								,	failure: function(result){
+										console.log("Fail",result)
+									}
+							});
+						}
+				}, {
+						text: "Process Tiles"
+					,	scope: this
+					,	handler: function() {
+							this.imageName = [];
+							for(i=0; i<record.length; i++){
+								this.imageName.push(record[i].data.filename);
 							}
-					}, {
-							text: "Process OCR"
-						,	scope: this
-						,	handler: function() {
-								var fname= grid.getStore().getAt(row).data
-								Ext.Ajax.request({
-										scope: this
-									,	url: 'resources/api/api.php'
-									,	params: {
-											cmd : 'processOCR'
-										}
-									,	success: function(response){
-											var response = Ext.decode(response.responseText);
-											console.log("Success",response);
-										}
-									,	failure: function(result){
-											console.log("Fail",result)
-										}
-								});
+							Ext.Ajax.request({
+									scope: this
+								,	url: 'resources/api/api.php'
+								,	params: {
+										cmd: 'audit'
+									,	filenames: Ext.encode(this.imageName)
+									,	autoProcess: Ext.encode({"google_tile":true})
+									}
+								,	success: function(response){
+										var response = Ext.decode(response.responseText);
+										console.log("Success",response);
+									}
+								,	failure: function(result){
+										console.log("Fail",result)
+									}
+							});
+						}
+				}, {
+						text: "Send to HelpingScience"
+					,	scope: this
+					,	handler: function() {
+							var barcodeList = [];
+							for(i=0; i<record.length; i++){
+								barcodeList.push(record[i].data.barcode);
 							}
-					}/*,{
-							text: "Reset Image"
-						,	iconCls: 'icon_reset_image'
-						,	scope: this
-						,	handler: function() {
-								//this.sendRotateRequest(grid, row, null,0);
-								this.rotateImageGUI(grid, row, nul,0);
-							}
-					}*/,'-',{
-							text: "Delete Record"
-						,	iconCls: 'icon_delete_image'
-						,	scope: this
-						,	handler: function() {
-								this.sendDeleteRequest(grid, row, null);
-							}
-					});
-					
-					var menu = new Ext.menu.Menu({
-							items: items
-						,	record: record
-					});
-					var xy = e.getXY();
-					menu.showAt(xy);
+							this.sendHSQueue(barcodeList);
+						}
+				}/*,{
+						text: "Reset Image"
+					,	iconCls: 'icon_reset_image'
+					,	scope: this
+					,	handler: function() {
+							//this.sendRotateRequest(grid, row, null,0);
+							this.rotateImageGUI(grid, row, nul,0);
+						}
+				}*/,'-',{
+						text: "Delete Record"
+					,	iconCls: 'icon_delete_image'
+					,	scope: this
+					,	handler: function() {
+							this.sendDeleteRequest(grid, row, null);
+						}
+				});
+				
+				var menu = new Ext.menu.Menu({
+						items: items
+					,	record: record
+				});
+				var xy = e.getXY();
+				menu.showAt(xy);
 			}
 	
 	,	sendDeleteRequest: function(grid, index,column){
-						var items = grid.getStore().getAt(index).data;
-						function process(btn, text){
-							if (btn === 'yes') {	
-								var params = {};
-									Ext.apply(params, {
-												cmd:'delete-image'
-											,	imageId: items.image_id
-									});
-									Ext.Ajax.request({
-										url: Config.baseUrl + 'resources/api/api.php'
-									,	scope: this
-									,	params:params
-									,	success: function(responseObject){
-												var o = Ext.decode(responseObject.responseText);
-												if(o.success){
-													this.store.reload();
-												}else{
-													Ext.MessageBox.alert('Error: '+o.error.code, o.error.message);
-												}
-											}
-									});
-							}
-						};		
-						Ext.MessageBox.confirm('Delete Image','The selected image will be deleted.<br>Are you sure you wish to delete this image?', process);
-			}
-	
-	,	rotateImageGUI:function(grid, row, degree){
-					  	var data = this.getSelectionModel().getSelections()[0].data;	
-					  	var params = {};
-						Ext.apply(params, {
-									cmd:'rotate-images'
-								,	image_id: data.image_id
-								,	degree:degree
-						});
-						Ext.Ajax.request({
-							url: Config.baseUrl + 'resources/api/api.php'
-						,	scope: this
-						,	params:params
-						,	success: function(responseObject){
-									var o = Ext.decode(responseObject.responseText);
+				var items = grid.getStore().getAt(index).data;
+				function process(btn, text){
+					if (btn === 'yes') {	
+						var params = {};
+							Ext.apply(params, {
+										cmd:'delete-image'
+									,	imageId: items.image_id
+							});
+							Ext.Ajax.request({
+								url: Config.baseUrl + 'resources/api/api.php'
+							,	scope: this
+							,	params:params
+							,	success: function(responseObject){
+										var o = Ext.decode(responseObject.responseText);
 										if(o.success){
 											this.store.reload();
 										}else{
-											Ext.MessageBox.alert('Error: '+o.error.code, o.error.message)
-										}	
-								}
-						});
+											Ext.MessageBox.alert('Error: '+o.error.code, o.error.message);
+										}
+									}
+							});
+					}
+				};		
+				Ext.MessageBox.confirm('Delete Image','The selected image will be deleted.<br>Are you sure you wish to delete this image?', process);
+			}
+	,	sendHSQueue: function(barcodeList){
+			Ext.Ajax.request({
+					scope: this
+				,	url: 'resources/api/bis2hs.php'
+				,	params: {
+						barcode : Ext.encode(barcodeList)
+					}
+				,	success: function(response){
+						var response = Ext.decode(response.responseText);
+						console.log("Success",response);
+					}
+				,	failure: function(result){
+						console.log("Fail",result)
+					}
+			});
+		}
+	,	rotateImageGUI:function(grid, row, degree){
+				var data = this.getSelectionModel().getSelections()[0].data;	
+				var params = {};
+				Ext.apply(params, {
+							cmd:'rotate-images'
+						,	image_id: data.image_id
+						,	degree:degree
+				});
+				Ext.Ajax.request({
+					url: Config.baseUrl + 'resources/api/api.php'
+				,	scope: this
+				,	params:params
+				,	success: function(responseObject){
+							var o = Ext.decode(responseObject.responseText);
+								if(o.success){
+									this.store.reload();
+								}else{
+									Ext.MessageBox.alert('Error: '+o.error.code, o.error.message)
+								}	
+						}
+				});
 			}
 	
 	
