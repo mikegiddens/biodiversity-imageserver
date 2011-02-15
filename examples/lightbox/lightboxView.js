@@ -3,9 +3,7 @@
  * @author Shashank
  * @website http://www.silverbiology.com
 */
-Ext.namespace('ImagePortal');
-
-ImagePortal.LightboxView = function(config) {
+BisLightbox = function(config) {
 	this.proxy = new Ext.data.HttpProxy({
 				url: Config.baseUrl + 'resources/api/api.php'
 			});
@@ -17,7 +15,7 @@ ImagePortal.LightboxView = function(config) {
 				,	filters:''
 				,	code:''
 				,	start: 10
-				,	limit: 10
+				,	limit: 4
 			}
 		,	reader: new Ext.data.JsonReader({
 				root: 'data'
@@ -75,8 +73,8 @@ ImagePortal.LightboxView = function(config) {
 //	var panel =  new Ext.DataView({
 			id:'images-view'
 		,	store: this.store
-		,	width:900
-		,	height:500
+		,	width:235
+		,	height:450
 		,	autoScroll: true
 		,	tpl: this.tpl
 		,	multiSelect: true
@@ -92,10 +90,10 @@ ImagePortal.LightboxView = function(config) {
 	});
 	//panel.render(document.body);
 	//new Ext.ux.Carousel(this.getEl().dom);
-	ImagePortal.LightboxView.superclass.constructor.call(this, config);
+	BisLightbox.superclass.constructor.call(this, config);
 }
 
-Ext.extend(ImagePortal.LightboxView, Ext.DataView, {
+Ext.extend(BisLightbox, Ext.DataView, {
 
 });
 	
