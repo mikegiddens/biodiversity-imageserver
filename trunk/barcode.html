@@ -37,6 +37,7 @@ body,td,th {
 }
 
 -->
+
 </style>
 
 </head>
@@ -63,73 +64,108 @@ body,td,th {
     <hr size="1" noshade="noshade" />
     <br />
     Barcode: <input name="barcode" type="text" class="ibox" id="barcode" size="40px" />
+	<br/><br/>
+	<div>Last Scan Result</div>
+	<div id="tplResult" align="left"></div>
     </div>
-    <div class="results" id="tplID"></div>
+	
+    <div class="results" id="tplID"><a name="result" title = "View Original"><a></div> 
   </div>
   <script>
 	Ext.onReady(function(){
-											 
 		function process(e, el) {
-				if(e.keyCode == 13){
-					var bcValue = el.value;
-					el.value = "";
-					if (Ext.isEmpty(bcValue)){
-						Ext.Msg.alert("Notice", "Please enter barcode.");
-					} else {
-						Ext.get("tplID").update("<img src=\"resources/images/loading.gif\" alt=\"Loading...\">");
-						Ext.Ajax.request({
-							scope: this
-						,	url: 'resources/api/api.php'
-						,	params: {
-									cmd : 'images'
-								,	'filter[0][data][type]': 'string'
-								,	'filter[0][data][value]': bcValue
-								,	'filter[0][field]': 'barcode'
+			var bcValue = el.value;
+			if(e.keyCode==13 || (e.ctrlKey && e.keyCode==86) ){
+				if (Ext.isEmpty(bcValue)){
+				//	Ext.Msg.alert("Notice", "Please enter barcode.");
+				}	
+				else if(bcValue.length > 1){
+					Ext.get("tplID").update("<img src=\"resources/images/loading.gif\" alt=\"Loading...\">");
+					Ext.Ajax.request({
+						scope: this
+					,	url: 'resources/api/api.php'
+					,	params: {
+								cmd : 'images'
+							,	'filter[0][data][type]': 'string'
+							,	'filter[0][data][value]': bcValue
+							,	'filter[0][field]': 'barcode'
+						}
+					,	success: function(response){
+							var data = Ext.decode(response.responseText);
+							var found = false
+							if(Ext.isEmpty(data.data)){
+								soundManager.play('Beep6');
+								var t = new Ext.Template(
+									'<p align="center">Barcode {barcode}</p>'
+								);
+								t.overwrite('tplID', {
+									barcode: bcValue + ' not found.'
+								});
+								found = false
+							} else {
+								var fileName = data.data[0].filename;
+								var mediumFileName = fileName.split(".");
+								var path = data.data[0].path + mediumFileName[0]+'_l.'+mediumFileName[1];
+								var barcode = data.data[0].barcode;
+								var t = new Ext.Template(
+										'<p align="center">Barcode: {barcode}</p>'
+									,	'<p align="center"><a href={path} title="View Original" target="_blank"><img align="center" src={path}></p>'
+								)
+								t.overwrite('tplID', {
+										path: path
+									,	barcode: barcode	
+								});	
+								found = true
 							}
-						,	success: function(response){
-								var data = Ext.decode(response.responseText);
-								if(Ext.isEmpty(data.data)){
-									soundManager.play('Beep6');
-									var t = new Ext.Template(
-										'<p align="center">{barcode}</p>'
-									);
-									t.overwrite('tplID', {	
-										barcode: bcValue + ' not found.'
-									});	
-								} else {
-									var fileName = data.data[0].filename;
-									var mediumFileName = fileName.split(".");
-									var path = data.data[0].path + mediumFileName[0]+'_l.'+mediumFileName[1];
-									var barcode = data.data[0].barcode;
-									var t = new Ext.Template(
-											'<p align="center">Barcode: {barcode}</p>'
-										,	'<p align="center"><img align="center" src={path}></p>'
-									)
-									t.overwrite('tplID', {
-											path: path
-										,	barcode: barcode	
-									});	
-								}
+							var t1 = new Ext.Template(
+								'<br><span>{barcode}</span>'
+							);
+							var t2 = new Ext.Template(
+								'<br><span class="foundcode" title="Click to View Original" path={path} barcode={barcode} >{barcode}</span>'
+							);
+							
+							var barcodeValue = bcValue + ' found.'
+							if(!found){
+								t1.append('tplResult', {
+									barcode: bcValue + ' not found.'
+								});
+							} else {
+								t2.append('tplResult', {
+									path: path
+								,	barcode: barcodeValue
+								});
 							}
-						,	failure: function(result){
+							var arrLastResult = Ext.get('tplResult').dom.innerHTML.split('<br>');
+							if(arrLastResult[0]==''){
+								arrLastResult.splice(0,1);
 							}
-						});
-					}
+							if(arrLastResult.length > 3){
+								arrLastResult.splice(0,1);
+								var lastResult = arrLastResult.join('<br>')
+								Ext.get("tplResult").update(lastResult);
+							}
+							Ext.fly('tplResult').select('span.foundcode').on('click',function(e, el){
+								tplLoad(e, el);
+							});
+						}
+					,	failure: function(result){}
+					});	
 				}
-
-				if(e.keyCode == 8){
-					var t = new Ext.Template(
-						'<p>{barcode}</p>'
-					);
-					t.overwrite('tplID', {	
-						barcode: ''
-					});
-				}
-
+			}
 		}
-		
-		Ext.get('barcode').on('keypress', process);
-		Ext.get('barcode').on('change', process);
+		function tplLoad(e, el){
+			var t = new Ext.Template(
+					'<p align="center">Barcode: {barcode}</p>'
+				,	'<p align="center"><a href={path} title="View Original" target="_blank"><img align="center" src={path}></p>'
+			);
+			t.overwrite('tplID', {
+					path: el.attributes.getNamedItem('path').nodeValue
+				,	barcode: el.attributes.getNamedItem('barcode').nodeValue
+			});
+		}
+	//	Ext.get('barcode').on('blur', process);	
+		Ext.get('barcode').on('keypress', process);	
+	//	Ext.get('barcode').on('change', process);	
 		Ext.get('barcode').focus();
 	});
   </script>
