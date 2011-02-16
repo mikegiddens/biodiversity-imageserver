@@ -22,10 +22,6 @@ $domain = array('dev' => 'http://dev.helpingscience.org/silverarchive_engine/sil
 foreach ($expected as $formvar)
 	$$formvar = (isset(${"_$_SERVER[REQUEST_METHOD]"}[$formvar])) ? ${"_$_SERVER[REQUEST_METHOD]"}[$formvar]:NULL;
 
-$image_mode = ($image_mode != '') ? $image_mode : 's3';
-$mode = ($mode != '') ? $mode : 'dev';
-$limit = ($limit != '') ? $limit : 100;
-
 
 require_once('../../config.php');
 if(@file_exists('../../hs-config.php')) {
@@ -39,6 +35,10 @@ set_include_path(get_include_path() . PATH_SEPARATOR . $path);
 require_once('classes/class.master.php');
 
 $si = new SilverImage;
+
+$image_mode = ($image_mode != '') ? $image_mode : IMAGE_MODE;
+$mode = ($mode != '') ? $mode : 'dev';
+$limit = ($limit != '') ? $limit : 100;
 
 $client_id = ($client_id != '') ? $client_id : $config['client_id'];
 $collection_id = ($collection_id != '') ? $collection_id : $config['collection_id'];
