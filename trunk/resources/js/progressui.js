@@ -125,7 +125,7 @@ Ext.onReady(function() {
 					, 	items: [ new ImagePortal.hsQueue() ] 
 					,	listeners:{
 						render:function(){
-						//	this.items.items[0].store.load({params:{start:0, limit:100}})
+							this.items.items[0].store.load({params:{start:0, limit:100}})
 						}
 					}
 				}]
