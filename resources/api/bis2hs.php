@@ -84,7 +84,7 @@ if ( $si->load( $mysql_name ) ) {
 
 			usleep(500000);
 
-			$url = $domain[$mode] . '?task=add_specimensheet&client_id=' . $client_id . '&filename=' . $barcode . '&image_server_id=' . $image_server_id . '&collection_id=' . $collection_id . '&width=' . $ar[0] . '&height=' . $ar[1];
+			$url = $domain[$mode] . '?task=add_specimensheet&client_id=' . $client_id . '&filename=' . $barcode . '&image_server_id=' . $image_server_id . '&collection_id=' . $collection_id . '&width=' . $ar[0] . '&height=' . $ar[1] . '&duplicate_check=1';
 
 			$rt = file_get_contents($url);
 			$rt = json_decode($rt);
@@ -102,11 +102,12 @@ if ( $si->load( $mysql_name ) ) {
 		} # while
 	} # if object
 
-	print '<br> No. of barcodes : ' . $barCount;
-	print '<br> No. of files added : ' . $count;
-
-} else print 'Database Not Loaded';
-
+	header('Content-type: application/json');
+	print( json_encode( array( 'success' => true, 'barcodesAdded' => $barCount, 'filesAdded' => $count ) ) );
+} else {
+	header('Content-type: application/json');
+	print( json_encode( array( 'success' => false, 'error' => array('code' => 115, 'message' => $si->getError(115)) ) ) );
+}
 
 function escapeFn(&$value) {
 	$value = mysql_escape_string($value);
