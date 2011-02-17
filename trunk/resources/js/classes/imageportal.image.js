@@ -398,13 +398,7 @@
 						return(this.renderergTileProcess(a));
 					}
 			}]
-		,	sm: new Ext.grid.RowSelectionModel({singleSelect: false})
-		/*,	view: new Ext.grid.GroupingView({
-					forceFit: false
-				,	emptyText: 'No Image'
-				,	deferEmptyText: false
-			//	,	rowTemplate: this.smallIcons
-			})*/		
+		,	sm: new Ext.grid.RowSelectionModel({singleSelect: false})		
 		,	viewConfig: {
 					rowTemplate: this.smallIcons
 				,	multiSelect: false
@@ -571,7 +565,11 @@
 							for(i=0; i<record.length; i++){
 								barcodeList.push(record[i].data.barcode);
 							}
-							this.sendHSQueue(barcodeList);
+							if(Ext.isEmpty(barcodeList)){
+								ImagePortal.Notice.msg('Notice','Please select barcode.');
+							} else {	
+								this.sendHSQueue(barcodeList);
+							}
 						}
 				}/*,{
 						text: "Reset Image"
@@ -633,10 +631,12 @@
 					}
 				,	success: function(response){
 						var response = Ext.decode(response.responseText);
-						console.log("Success",response);
+						if(response.barcodesAdded == 0){
+							ImagePortal.Notice.msg('Notice','Selected barcodes is already sent to helping science.');
+						}
 					}
 				,	failure: function(result){
-						console.log("Fail",result)
+						
 					}
 			});
 		}
