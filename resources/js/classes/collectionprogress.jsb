@@ -133,7 +133,9 @@
     <include name="imageportal.piareports.js" />
     <include name="imageportal.barreports.js" />
     <include name="imageportal.reporttree.js" />
+    <include name="imageportal.hsqueue.js" />
     <include name="imageportal.reportpanel.js" />
     <include name="imageportal.sequences.js" />
   </target>
+  <file name="imageportal.hsqueue.js" path="" />
 </project>

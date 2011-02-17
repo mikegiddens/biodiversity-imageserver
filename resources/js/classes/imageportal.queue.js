@@ -196,7 +196,7 @@ ImagePortal.Queue = function(config) {
 						,	url: 'resources/api/api.php'
 						,	params: {
 									cmd: 'clearProcessQueue'
-								,	imageID : Ext.encode(imageID)
+								,	imageId : Ext.encode(imageID)
 								,	types: Ext.encode(imageType)
 								}
 						,	success: function(response){
@@ -216,20 +216,32 @@ ImagePortal.Queue = function(config) {
 			menu.showAt(xy);
 		}
 		,	removeQueue: function(processtype){
-				Ext.Ajax.request({
-					scope: this
-				,	url: 'resources/api/api.php'
-				,	params: {
-							cmd: 'removeQueue'
-						,	processtype: processtype
+				if(Ext.isEmpty(this.store.data.items)){
+					ImagePortal.Notice.msg('Notice','No images in queue')
+				} else {
+				var type = [processtype]
+					Ext.Ajax.request({
+						scope: this
+					,	url: 'resources/api/api.php'
+					,	params: {
+								cmd: 'clearProcessQueue'
+							,	types: Ext.encode(type)
+							}
+					,	success: function(response){
+							response = Ext.decode(response.responseText);
+							if(response.recordCount == 0){
+								ImagePortal.Notice.msg("Notice","No data present for "+ type);
+							} else if(response.recordCount > 0) {
+								var successText = response.recordCount+" recored for "+type+" is removed."
+								ImagePortal.Notice.msg("Success", successText);
+								this.getStore().reload();
+							}
 						}
-				,	success: function(response){
-						console.log(response);
-					}
-				,	failure: function(result){
-						console.log(result);
-					}
-				});
+					,	failure: function(result){
+							console.log(result);
+						}
+					});
+				}
 			}
 		,	rendererDatehandling:function(value){
 				if(value == '0000-00-00 00:00:00')
