@@ -958,6 +958,7 @@ $strips_array[$end][] = array('startRange' => $tmp_start, 'endRange' => $tmp_end
 		return $ret;
 	}
 
+/*
 	public function deleteImage() {
 		$imageId = $this->get('image_id');
 		if($image_id != '' && $this->field_exists($imageId)) {
@@ -983,6 +984,36 @@ $strips_array[$end][] = array('startRange' => $tmp_start, 'endRange' => $tmp_end
 		}
 		return false;
 	}
+*/
+
+	public function deleteImage() {
+// 		$imageId = $this->get('image_id');
+		$imageId = $this->data['image_id'];
+		if($imageId != '' && $this->field_exists($imageId)) {
+			$this->load_by_id($imageId);
+			$barcode = $this->get('barcode');
+			$imagePath = PATH_IMAGES . $this->barcode_path( $barcode );
+			# deleting related images
+			if(is_dir($imagePath)) {
+				$handle = opendir($imagePath);
+				while (false !== ($file = readdir($handle))) {
+					if( $file == '.' || $file == '..' /* || $file == $this->get('filename') */ ) continue;
+					if (is_dir($imagePath.$file)) {
+						$this->rrmdir($imagePath.$file);
+					} else if(is_file($imagePath.$file)) {
+						@unlink($imagePath.$file);
+					}
+				}
+			}
+			$delquery = sprintf("DELETE FROM `image` WHERE `image_id` = '%s' ", mysql_escape_string($imageId));
+			if($this->db->query($delquery)) {
+				return  array('success' => true);
+			}
+			return array('success' => false, 'code' => 117);
+		}
+		return array('success' => false, 'code' => 116);
+	}
+
 
 	public function getGeneraList($filter=array()) {
 		$query = "SELECT DISTINCT `Genus` FROM `image` WHERE `Family` = '' AND `Genus` != '' ";

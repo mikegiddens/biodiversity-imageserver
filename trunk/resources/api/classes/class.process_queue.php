@@ -400,6 +400,9 @@ Class ProcessQueue {
 		if($where != '') {
 			$query = sprintf(" DELETE FROM `process_queue` WHERE 1=1 %s ",$where);
 		}
+
+// echo $query;
+
 		$this->db->query($query);
 		$recordCount = $this->db->affected_rows;
 		$recordCount = is_null($recordCount) ? 0 : $recordCount;

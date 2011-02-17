@@ -70,11 +70,14 @@
 				 , 107 => 'image_id Should be provided.'
 				 , 108 => 'Barcode was not found.'
 				 , 109 => 'id Should be provided.'
-				 , 110 => ' Images Rotated and Added to Queue !.'
+				 , 110 => 'Images Rotated and Added to Queue.'
 				 , 111 => 'degree Should be provided.'
 				 , 112 => 'width and height Should be provided.'
 				 , 113 => 'User is not logged-in or do not have the previlege to access this command.'
 				, 114 => 'Not an allowed value for nodeApi'
+				, 115 => 'Database Not Loaded'
+				, 116 => 'Image Id does not exist.'
+				, 117 => 'Error in deleting from the database.'
 			);
 			return $ar[$error_code];
 		}

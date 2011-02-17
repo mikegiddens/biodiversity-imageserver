@@ -675,7 +675,7 @@ print_r($records);*/
 				$data['image_id'] = trim($_REQUEST['image_id']);
 			} else {
 				$valid = false;
-				$code = 110;
+				$code = 107;
 			}
 
 			if(!($user_access->is_logged_in() && $user_access->get_access_level() == 10)){
@@ -687,9 +687,9 @@ print_r($records);*/
 				$si->image->setData($data);
 				$ret = $si->image->deleteImage();
 				if($ret['success']) {
-					print( json_encode( array( 'success' => true,  'message' => $ret['message'] ) ) );
+					print( json_encode( array( 'success' => true ) ) );
 				} else {
-					print( json_encode( array( 'success' => false,  'message' => $ret['message'] ) ) );
+					print( json_encode( array( 'success' => false, 'error' => array('code' => $ret['code'], 'message' => $si->getError($ret['code']))) ) );
 				}
 			} else {
 				print( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ) );
@@ -1177,7 +1177,7 @@ break;
 			}
 
 			$si->pqueue->setData($data);
-			$allowedTypes = array('flickr_add','picassa_add','zoomify','google_tile','ocr_add','name_add');
+			$allowedTypes = array('flickr_add','picassa_add','zoomify','google_tile','ocr_add','name_add','all');
 			$ret = $si->pqueue->clearQueue();
 			print_c(json_encode(array('success' => true, 'recordCount' => $ret['recordCount'])));
 
