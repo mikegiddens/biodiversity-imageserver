@@ -18,6 +18,7 @@ ob_start();
 		,	'stop'
 		,	'api'
 		,	'limit'
+		,	'output'
 	);
 	// Initialize allowed variables
 	foreach ($expected as $formvar)
@@ -466,7 +467,7 @@ print_r($records);*/
 
 			$data['code'] = ($_REQUEST['code'] != '') ? $_REQUEST['code'] : '';
 
-			header('Content-type: application/json');
+			
 			if($valid) {
 				$si->image->setData($data);
 				$data = $si->image->listImages();
@@ -493,10 +494,43 @@ print_r($records);*/
 
 					}
 				}
+//***
+				if($output=='rss'){
+					include("feedwriter.php");
+						
+						$TestFeed = new FeedWriter(RSS2);
+						$TestFeed->setTitle('Toronto Image Server');
+						$TestFeed->setLink('http://a1.silverbiology.com/biodiversityimageserver/trt/');
+						
 
-				$total = $si->image->db->query_total();
-				print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time, 'totalCount' => $total, 'data' => $data ) ) );
+						foreach($data as $key=>$value){
+							
+							$key1=get_object_vars($value);
+							
+							$imgMed = $key1['path'].$key1['barcode'].'_m.jpg';
+							$imgLarg = $key1['path'].$key1['barcode'].'_l.jpg';
+						
+							$title = $key1['barcode'];  
+							$newItem = $TestFeed->createNewItem();
+						   
+							//Add elements to the feed item    
+							$newItem->setTitle($title);
+							$newItem->setLink($img1);
+							$newItem->setDescription("<a href='".$imgLarg."'><img style='border:1px solid #5C7FB9'src='".$imgMed."'/></a>");
+							$newItem->setEncloser($imgLarg,'7','image/jpeg');
+							//set the feed item
+							$TestFeed->addItem($newItem);
+						}
+
+					  $TestFeed->genarateFeed();
+				
+				} else{
+					header('Content-type: application/json');
+					$total = $si->image->db->query_total();
+					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time, 'totalCount' => $total, 'data' => $data ) ) );
+				}
 			}else {
+				
 				print_c( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ) );
 			}
 
