@@ -8,6 +8,7 @@
 	Ext.namespace('ImagePortal');
 	ImagePortal.Image = function(config) {
 		this.proxy = '';
+		var staticIndex = 0;
 		if(Config.mode == 'local'){
 			this.proxy = new Ext.data.HttpProxy({
 				url: Config.baseUrl + 'resources/api/api.php'
@@ -146,7 +147,7 @@
 	
 	this.both = new Ext.XTemplate(
 		'<div class="x-grid3-row ux-explorerview-item ux-explorerview-mixed-item">'+
-			'<div class="ux-explorerview-icon"><img onerror="this.src=\'http://images.cyberfloralouisiana.com/portal/resources/images/no-image.gif\'" src="{path}{barcode}_s.jpg"></div>'+
+			'<div class="ux-explorerview-icon"><img onerror="this.src=\'http://images.cyberfloralouisiana.com/portal/resources/images/no-image.gif\'" src="{path:this.testMirror}{barcode}_s.jpg"></div>'+
 				'<div class="ux-explorerview-text"><div class="x-grid3-cell x-grid3-td-name" unselectable="on">{barcode} {Family}<br/>{Genus} {SpecificEpithet}<br/>'+
 				'<tpl if="barcode != 0">'+
 					'<span>Barcode: {barcode}</span><br>'+
@@ -165,6 +166,15 @@
 									return dt2;
 							}
 					}
+		,	testMirror:function(value){ 
+				if(value){
+					if (staticIndex+1 > Config.mirrors[0].mirrors.length)
+						staticIndex = 0 ;
+					else 
+					   staticIndex++;
+					return value.replace(Config.mirrors[0].main,Config.mirrors[0].mirrors[staticIndex]);//Config.mirrors[0].mirrors
+				}
+			}
 		}
 	);
 	
@@ -176,15 +186,53 @@
 				'<tpl if="Family != \'\' " >{Family}<br></tpl>'+
 				'<tpl if="Genus != \'\' " >{Genus} {SpecificEpithet}"</tpl>'+
 			'</tpl>' +
-			'src="{path}{barcode}_s.jpg"></div>' +
-		'</div>'
+			'src="{path:this.testMirror}{barcode}_s.jpg"></div>' +
+		'</div>',
+		{
+			testMirror:function(value){ 
+				if(value){
+					if (staticIndex+1 > Config.mirrors[0].mirrors.length)
+						staticIndex = 0 ;
+					else 
+					   staticIndex++;
+					return value.replace(Config.mirrors[0].main,Config.mirrors[0].mirrors[staticIndex]);//Config.mirrors[0].mirrors
+				}
+			}
+		}
 	);
 
 	
 	this.tileIcons = new Ext.Template(
 		'<div class="x-grid3-row ux-explorerview-item ux-explorerview-tiles-item">'+
-		'<div class="ux-explorerview-icon"><img onerror="this.src=\'http://images.cyberfloralouisiana.com/portal/resources/images/no-image.gif\'" src="{path}{barcode}_m.jpg"></div>'+
-		'<div class="ux-explorerview-text"><div class="x-grid3-cell x-grid3-td-name" unselectable="on">{barcode}<br/> {Family}<span>{Genus} {SpecificEpithet}</span></div></div></div>'
+		'<div class="ux-explorerview-icon"><img onerror="this.src=\'http://images.cyberfloralouisiana.com/portal/resources/images/no-image.gif\'" src="{path:this.testMirror}{barcode}_m.jpg"></div>'+
+		'<div class="ux-explorerview-text"><div class="x-grid3-cell x-grid3-td-name" unselectable="on">{barcode}<br/> {Family}<span>{Genus} {SpecificEpithet}</span></div></div></div>',
+		{	
+			
+			/*testMirror:function(path){
+				var mirrors = findMirrors(path);
+				if (mirrors) {
+					if (staticIndex+1 > mirror.length)
+						staticIndex = 0 ;
+					else 
+					   staticIndex++;
+					return(mirrors[staticIndex]);
+					console.log(mirrors[staticIndex]);
+				}
+			}*/
+			testMirror:function(value){ 
+				if(value){
+					if (staticIndex+1 > Config.mirrors[0].mirrors.length)
+						staticIndex = 0 ;
+					else 
+					   staticIndex++;
+					return value.replace(Config.mirrors[0].main,Config.mirrors[0].mirrors[staticIndex]);//Config.mirrors[0].mirrors
+				}
+			}
+		/*,	getNextMirror:function(){
+				for(var j = 0, len = Config.mirrors[0].mirrors.length; j < len; j++)
+					return (Config.mirrors[0].mirrors[j]);
+			}*/
+		}
 	);
 	
 	this.rotatedImages=[];
@@ -631,7 +679,7 @@
 					}
 				,	success: function(response){
 						var response = Ext.decode(response.responseText);
-						if(response.barcodesAdded == 0){
+						if(response.barcodesAdded == 1){
 							ImagePortal.Notice.msg('Notice','Selected barcodes is already sent to helping science.');
 						}
 					}
@@ -831,5 +879,8 @@
 						}]
 					});
 			return imv;
-		}	
+		}
+	/*,	getNextMirror:function(){
+			return Config.baseUrl.mirrors;
+		}*/
 	}); // end of extend
