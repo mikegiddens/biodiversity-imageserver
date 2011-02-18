@@ -150,7 +150,7 @@ a:hover {
     background-image:url(images/page_attach.png) !important;
 }
 .icon-rss {
-    background-image:url(images/icons/rss.png) !important;
+    background-image:url(../images/icons/rss.png) !important;
 }
 /* Custom rule to make the toolbar fit within a framed panel with no margin: */
 .email-form .x-panel-mc .x-panel-tbar .x-toolbar {

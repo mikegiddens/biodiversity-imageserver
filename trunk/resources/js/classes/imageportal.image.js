@@ -3,8 +3,37 @@
  * @author Shashank
  * @website http://www.silverbiology.com
 */
+/*
+var staticIndex = 0;
+var mirrorIndex = false;
+Ext.XTemplate.prototype.testMirror = function(value){
+		var mirrorIndex = this.getMirror(value);
+		if(typeof (mirrorIndex) != 'undefined'){
+			if (staticIndex+1 > this.mirrorObj[mirrorIndex].mirrors.length){
+				staticIndex = 0 ;
+				return value;
+			}else{ 
+				var val = value.replace(this.mirrorObj[mirrorIndex].main,this.mirrorObj[mirrorIndex].mirrors[staticIndex]);//Config.mirrors[0].mirrors
+				staticIndex++;
+				return val;
+			}
+		}
+	}
+
+Ext.XTemplate.prototype.getMirror = function(value){
+		for (var i = 0; i< this.mirrorObj.length;i++){
+			var index = value.search(this.mirrorObj[i].main);//Config.mirrors[0].mirrors
+				if( index!= -1 ){
+					return i;
+				}
+		}; 
+	}
 
 
+Ext.XTemplate.prototype.setMirror = function(value){
+		this.mirrorObj = value;
+	}	
+	*/
 	Ext.namespace('ImagePortal');
 	ImagePortal.Image = function(config) {
 		this.proxy = '';
@@ -23,7 +52,7 @@
 			//proxy: new Ext.data.ScriptTagProxy({
 					url: Config.baseUrl + 'resources/api/api.php'
 			})
-*/
+		*/
 	this.store =  new Ext.data.GroupingStore({
 			proxy:this.proxy 
 		,	baseParams: { 
@@ -145,7 +174,7 @@
 	});
 	
 	
-	this.both = new Ext.XTemplate(
+	this.both = new Ext.ux.XTemplate(
 		'<div class="x-grid3-row ux-explorerview-item ux-explorerview-mixed-item">'+
 			'<div class="ux-explorerview-icon"><img onerror="this.src=\'http://images.cyberfloralouisiana.com/portal/resources/images/no-image.gif\'" src="{path:this.testMirror}{barcode}_s.jpg"></div>'+
 				'<div class="ux-explorerview-text"><div class="x-grid3-cell x-grid3-td-name" unselectable="on">{barcode} {Family}<br/>{Genus} {SpecificEpithet}<br/>'+
@@ -154,31 +183,12 @@
 				'</tpl>'+
 				'<span>Date Added: {timestamp_modified:this.convDate}</span></div>'+
 			'</div>'+
-		'</div>',
-		{
-			convDate:function(value){
-								if (value == '0000-00-00 00:00:00') 
-									return String.format('');
-								else {
-									var dt = Date.parseDate(value, "Y-m-d H:i:s", true);
-									var dt1 = new Date(dt);
-									var dt2= dt1.format('d-M-Y');
-									return dt2;
-							}
-					}
-		,	testMirror:function(value){ 
-				if(value){
-					if (staticIndex+1 > Config.mirrors[0].mirrors.length)
-						staticIndex = 0 ;
-					else 
-					   staticIndex++;
-					return value.replace(Config.mirrors[0].main,Config.mirrors[0].mirrors[staticIndex]);//Config.mirrors[0].mirrors
-				}
-			}
-		}
+		'</div>'
 	);
 	
-	this.smallIcons = new Ext.XTemplate(
+	this.both.setMirror(Config.mirrors);
+	
+	this.smallIcons = new Ext.ux.XTemplate(
 		'<div class="x-grid3-row ux-explorerview-item ux-explorerview-small-item">'+
 		'<div class="ux-explorerview-icon"><img onerror="this.src=\'http://images.cyberfloralouisiana.com/portal/resources/images/no-image.gif\'" ' +
 		  	'<tpl if="Family != \'\' || Genus != \'\' || SpecificEpithet != \'\' ">'+
@@ -187,54 +197,16 @@
 				'<tpl if="Genus != \'\' " >{Genus} {SpecificEpithet}"</tpl>'+
 			'</tpl>' +
 			'src="{path:this.testMirror}{barcode}_s.jpg"></div>' +
-		'</div>',
-		{
-			testMirror:function(value){ 
-				if(value){
-					if (staticIndex+1 > Config.mirrors[0].mirrors.length)
-						staticIndex = 0 ;
-					else 
-					   staticIndex++;
-					return value.replace(Config.mirrors[0].main,Config.mirrors[0].mirrors[staticIndex]);//Config.mirrors[0].mirrors
-				}
-			}
-		}
+		'</div>'
 	);
 
-	
-	this.tileIcons = new Ext.Template(
+	this.smallIcons.setMirror(Config.mirrors);
+	this.tileIcons = new Ext.ux.XTemplate(
 		'<div class="x-grid3-row ux-explorerview-item ux-explorerview-tiles-item">'+
 		'<div class="ux-explorerview-icon"><img onerror="this.src=\'http://images.cyberfloralouisiana.com/portal/resources/images/no-image.gif\'" src="{path:this.testMirror}{barcode}_m.jpg"></div>'+
-		'<div class="ux-explorerview-text"><div class="x-grid3-cell x-grid3-td-name" unselectable="on">{barcode}<br/> {Family}<span>{Genus} {SpecificEpithet}</span></div></div></div>',
-		{	
-			
-			/*testMirror:function(path){
-				var mirrors = findMirrors(path);
-				if (mirrors) {
-					if (staticIndex+1 > mirror.length)
-						staticIndex = 0 ;
-					else 
-					   staticIndex++;
-					return(mirrors[staticIndex]);
-					console.log(mirrors[staticIndex]);
-				}
-			}*/
-			testMirror:function(value){ 
-				if(value){
-					if (staticIndex+1 > Config.mirrors[0].mirrors.length)
-						staticIndex = 0 ;
-					else 
-					   staticIndex++;
-					return value.replace(Config.mirrors[0].main,Config.mirrors[0].mirrors[staticIndex]);//Config.mirrors[0].mirrors
-				}
-			}
-		/*,	getNextMirror:function(){
-				for(var j = 0, len = Config.mirrors[0].mirrors.length; j < len; j++)
-					return (Config.mirrors[0].mirrors[j]);
-			}*/
-		}
+		'<div class="ux-explorerview-text"><div class="x-grid3-cell x-grid3-td-name" unselectable="on">{barcode}<br/> {Family}<span>{Genus} {SpecificEpithet}</span></div></div></div>'
 	);
-	
+	this.tileIcons.setMirror(Config.mirrors);
 	this.rotatedImages=[];
 	
 	this.views = new Ext.CycleButton({
@@ -321,6 +293,12 @@
 									}
 								})
 							}
+					}
+				,'->' , {
+						iconCls: 'icon-rss'
+					,	handler: function(){ 
+							window.open(Config.baseUrl+'resources/api/api.php?cmd=images&code=&dir=ASC&filters=&output=rss', '_blank');
+						}
 					}	
 				/*,	{
 							text:"Save Image Changes"

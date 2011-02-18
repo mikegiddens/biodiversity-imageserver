@@ -64,7 +64,10 @@ if (!(isset($_SESSION['user']) && isset($_SESSION['pw']))) {
 	<script type="text/javascript" src="resources/ext/gridfilters/filter/ListFilter.js"></script>
 	<script type="text/javascript" src="resources/ext/gridfilters/filter/NumericFilter.js"></script>
 	<script type="text/javascript" src="resources/ext/gridfilters/filter/BooleanFilter.js"></script>
-
+	
+	<!-- Ux file for XTemplate-->
+	<script type="text/javascript" src="resources/plugins/ext.ux.xtemplate.js"></script>
+	
 	<script type="text/javascript" src="resources/js/classes/imageportal.help.js"></script>
 
 	<!--Files for expoler view & combobox
