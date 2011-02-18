@@ -85,7 +85,7 @@ if ( $si->load( $mysql_name ) ) {
 			usleep(500000);
 
 			$url = $domain[$mode] . '?task=add_specimensheet&client_id=' . $client_id . '&filename=' . $barcode . '&image_server_id=' . $image_server_id . '&collection_id=' . $collection_id . '&width=' . $ar[0] . '&height=' . $ar[1] . '&duplicate_check=1';
-
+echo $url;
 			$rt = file_get_contents($url);
 			$rt = json_decode($rt);
 			if($rt->success) {

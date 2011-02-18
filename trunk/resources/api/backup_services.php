@@ -192,31 +192,37 @@ if ( $si->load( $mysql_name ) ) {
 				if($record === false) {
 					$loop_flag = false;
 				} else {
+					if($config['mode'] == 's3') {
+						$tmpFileName = 'Img_' . time();
+						$tmpFilePath = sys_get_temp_dir() . '/' . $tmpFileName;
+						$tmpFile = $tmpFilePath . '.jpg';
+						$key = $si->image->barcode_path($record->image_id) . $record->image_id . '.jpg';
+
+						$si->amazon->get_object($config['s3']['bucket'], $key, array('fileDownload' => $tmpFile));
 /*
-				if($config['mode'] == 's3') {
-
-	$imagePath
-	$key = $si->image->barcode_path($record->image_id) . $record->image_id . '.jpg';
-	$si->amazon->get_object($config['s3']['bucket'], $key, array('fileDownload' => $tmpPath));
-
-
-				} else {
+if(file_exists($tmpFile)) {
+echo '<br> File Created';
+}
 */
-					$imagePath = PATH_IMAGES . $si->image->barcode_path($record->image_id) . $record->image_id;
-// 				}
-
-					$tmpImage = $imagePath . '_tmp.jpg';
-					$cd = "convert " . $imagePath . '.jpg' . " -colorspace Gray  -contrast-stretch 15% " . $tmpImage;
+					} else {
+// echo '<br> In local Path';
+						$tmpFilePath = PATH_IMAGES . $si->image->barcode_path($record->image_id) . $record->image_id;
+						$tmpFile = $tmpFilePath . '.jpg';
+					}
+					$tmpImage = $tmpFilePath . '_tmp.jpg';
+					$cd = "convert " . $tmpFile . " -colorspace Gray  -contrast-stretch 15% " . $tmpImage;
+// echo '<br> Command : ' . $cd;
 					exec($cd);
 
-// 					$command = sprintf("tesseract %s %s", $imagePath . '.jpg', $imagePath);
-					$command = sprintf("tesseract %s %s", $tmpImage, $imagePath);
+					$command = sprintf("tesseract %s %s", $tmpImage, $tmpFilePath);
+// echo '<br> Tesseract Command : ' . $command;
 					exec($command);
 
 					exec(sprintf("rm %s",$tmpImage));
 
-					if(@file_exists($imagePath . '.txt')){
-						$value = file_get_contents($imagePath . '.txt');
+					if(@file_exists($tmpFilePath . '.txt')){
+// echo '<br> Text File Exists';
+						$value = file_get_contents($tmpFilePath . '.txt');
 						$si->image->load_by_barcode($record->image_id);
 						$images_array[] = array('image_id' => $si->image->get('image_id'), 'barcode' => $si->image->get('barcode'));
 						$image_count++;
@@ -225,6 +231,12 @@ if ( $si->load( $mysql_name ) ) {
 						$si->image->set('ocr_value',$value);
 						$si->image->save();
 					}
+
+					if($config['mode'] == 's3') {
+						exec(sprintf("rm %s",$tmpFile));
+						exec(sprintf("rm %s",$tmpFilePath . '.txt'));
+					}
+
 				}
 			}
 			$time_taken = microtime(true) - $time_start;
@@ -284,9 +296,17 @@ if ( $si->load( $mysql_name ) ) {
 				if($record === false) {
 					$loop_flag = false;
 				} else {
-					$image = PATH_IMAGES . $si->image->barcode_path($record->image_id) . $record->image_id . '.jpg';
-// 					$res = $f->sync_upload( $image, $record->image_id );
-# change setting photo to private while uploading
+
+					if($config['mode'] == 's3') {
+						$tmpFileName = 'Img_' . time();
+						$tmpFilePath = sys_get_temp_dir() . '/' . $tmpFileName;
+						$image = $tmpFilePath . '.jpg';
+						$key = $si->image->barcode_path($record->image_id) . $record->image_id . '.jpg';
+						$si->amazon->get_object($config['s3']['bucket'], $key, array('fileDownload' => $image));
+					} else {
+						$image = PATH_IMAGES . $si->image->barcode_path($record->image_id) . $record->image_id . '.jpg';
+					}
+					# change setting photo to private while uploading
 					$res = $f->sync_upload( $image, $record->image_id, '', '', 0 );
 					if( $res != false ) {
 
@@ -305,6 +325,11 @@ if ( $si->load( $mysql_name ) ) {
 						$si->image->set('flickr_details',$flickr_details);
 						$si->image->save();
 					}
+
+					if($config['mode'] == 's3') {
+						exec(sprintf("rm %s",$image));
+					}
+
 				}
 			}
 			$time_taken = microtime(true) - $time_start;
@@ -335,7 +360,14 @@ if ( $si->load( $mysql_name ) ) {
 					$loop_flag = false;
 				} else {
 					$image = array();
-					$image['tmp_name'] = PATH_IMAGES . $si->image->barcode_path($record->image_id) . $record->image_id . '.jpg';
+					if($config['mode'] == 's3') {
+						$tmpFile = sys_get_temp_dir() . '/' . 'Img_' . time() . '.jpg';
+						$key = $si->image->barcode_path($record->image_id) . $record->image_id . '.jpg';
+						$si->amazon->get_object($config['s3']['bucket'], $key, array('fileDownload' => $tmpFile));
+						$image['tmp_name'] = $tmpFile;
+					} else {
+						$image['tmp_name'] = PATH_IMAGES . $si->image->barcode_path($record->image_id) . $record->image_id . '.jpg';
+					}
 					$image['name'] = $record->image_id;
 					$image['type'] = 'image/jpeg';
 					$image['tags'] = $record->image_id;
@@ -353,6 +385,9 @@ if ( $si->load( $mysql_name ) ) {
 						$si->image->save();
 					}
 				}
+				if($config['mode'] == 's3') {
+					exec(sprintf("rm %s",$tmpFile));
+				}
 			}
 			$time_taken = microtime(true) - $time_start;
 			print json_encode(array('success' => true, 'process_time' => $time_taken, 'total' => $image_count, 'images' => $images_array));
@@ -364,15 +399,16 @@ if ( $si->load( $mysql_name ) ) {
 				$f = new phpFlickr(FLKR_KEY,FLKR_SECRET);
 // print '<pre>';
 // var_dump($f);
-			if( $f->auth_checkToken() === false) {
-// 				print '<br> In Oauth Loop';
-				$f->auth('write');
-			}
-					$image = PATH_IMAGES . $si->image->barcode_path($barcode) . $barcode . '.jpg';
+				if( $f->auth_checkToken() === false) {
+	// 				print '<br> In Oauth Loop';
+					$f->auth('write');
+				}
+
+				$image = PATH_IMAGES . $si->image->barcode_path($barcode) . $barcode . '.jpg';
 // print '<br>' . $image;
-// 					$res = $f->sync_upload( $image, $barcode );
+// 				$res = $f->sync_upload( $image, $barcode );
 # change setting photo to private while uploading
-					$res = $f->sync_upload( $image, $barcode,'','', 0 );
+				$res = $f->sync_upload( $image, $barcode,'','', 0 );
 
 // 				$res = $f->photos_getInfo($si->image->get('flickr_PlantID'));
 				var_dump($res);

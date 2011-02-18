@@ -993,6 +993,12 @@ print_r($records);*/
 
 			break;
 
+/**
+ * Audits the images and reports and populate the pqueue with the missing ones
+ * @param string filenames : json list of the filenames
+ * @param string autoProcess : json list to autoProcess
+ */
+
 		case 'audit':
 			$autoProcessTemplate = array('small' => true, 'medium' => true, 'large' => true, 'google_tile' => false, 'flickr_add' =>  false, 'picassa_add' => false);
 			$statsArray = array();
@@ -1029,31 +1035,90 @@ print_r($records);*/
 					$fl = @pathinfo($file);
 					$barcode = $fl['filename'];
 					if($barcode == '') {continue;}
-					$prefix = $si->image->barcode_path($barcode);
-					$response = $si->amazon->list_objects($config['s3']['bucket'],array('prefix' => $prefix));
-					if($response->isOK()) {
-						$ar = array_fill_keys($tplArray,false);
-						$opArray = array('small','medium','large','google_tile');
-						$body = $response->body;
-					
-						for($i=0;$i<count($body->Contents);$i++){
-							$ky = $body->Contents[$i];
-							$filePath = $ky->Key;
-							$fileDetails = @pathinfo($filePath);
-							$bcode = $fileDetails['filename'];
-							if(count($opArray)) {
-								foreach($opArray as $op) {
-									if(@strpos($bcode,$linkArray[$op]) !== false) {
-										$ar[$op] = true;
-										$ky = @array_search($op,$opArray);
-										if($ky !== false) {
-											unset($opArray[$ky]);
+
+					if($config['mode'] == 's3') {
+						$prefix = $si->image->barcode_path($barcode);
+						$response = $si->amazon->list_objects($config['s3']['bucket'],array('prefix' => $prefix));
+						if($response->isOK()) {
+							$ar = array_fill_keys($tplArray,false);
+							$opArray = array('small','medium','large','google_tile');
+							$body = $response->body;
+						
+							for($i=0;$i<count($body->Contents);$i++){
+								$ky = $body->Contents[$i];
+								$filePath = $ky->Key;
+								$fileDetails = @pathinfo($filePath);
+								$bcode = $fileDetails['filename'];
+								if(count($opArray)) {
+									foreach($opArray as $op) {
+										if(@strpos($bcode,$linkArray[$op]) !== false) {
+											$ar[$op] = true;
+											$ky = @array_search($op,$opArray);
+											if($ky !== false) {
+												unset($opArray[$ky]);
+											}
+											break;
 										}
-										break;
-									}
-								} # foreach
+									} # foreach
+								}
+							} # for contents
+							$displayAr = array();
+							$displayAr = $ar;
+							if($ar['small'] == false && $ar['medium'] == false && $ar['large'] == false && $autoProcess['small'] == true && $autoProcess['medium'] == true && $autoProcess['large'] == true) {
+								unset($ar['small']);
+								unset($ar['medium']);
+								unset($ar['large']);
+								if(!$si->pqueue->field_exists($barcode,'all')) {
+									$si->pqueue->set('image_id', $barcode);
+									$si->pqueue->set('process_type', 'all');
+									$si->pqueue->save();
+								}
 							}
-						} # for contents
+							if( is_array($autoProcess) && count($autoProcess) ) {
+								foreach($autoProcess as $key => $value ) {
+									if($value === true) {
+										if(@in_array($key,$tplArray) && $ar[$key] === false) {
+											if(!$si->pqueue->field_exists($barcode,$key)) {
+												$si->pqueue->set('image_id', $barcode);
+												$si->pqueue->set('process_type', $key);
+												$si->pqueue->save();
+											}
+										}
+									}
+								} # foreach auto-process
+	
+							} # if autoprocess
+	
+						} # response ok
+						$statsArray[] = array('file' => $fl['basename'], 'barcode' => $fl['filename'], 'details' => $displayAr);
+					} else {
+					# config mode local
+	
+						$imagePath = PATH_IMAGES . $si->image->barcode_path( $barcode );
+						clearstatcache();
+						if(@file_exists($imagePath)) {
+							$ar = array_fill_keys($tplArray,false);
+							$opArray = array('small','medium','large');
+							$handle = opendir($imagePath);
+							while (false !== ($file = readdir($handle))) {
+								if( $file == '.' || $file == '..' ) continue;
+								if(count($opArray)) {
+									foreach($opArray as $op) {
+										if(@strpos($file,$linkArray[$op]) !== false) {
+											$ar[$op] = true;
+											$ky = @array_search($op,$opArray);
+											if($ky !== false) {
+												unset($opArray[$ky]);
+											}
+											break;
+										}
+									} # foreach
+								}
+								if (@strpos($file,'google_tile') !== false) {
+									$ar['google_tile'] = true;
+								}
+							} # while
+						} # is valid path
 						$displayAr = array();
 						$displayAr = $ar;
 						if($ar['small'] == false && $ar['medium'] == false && $ar['large'] == false && $autoProcess['small'] == true && $autoProcess['medium'] == true && $autoProcess['large'] == true) {
@@ -1078,12 +1143,10 @@ print_r($records);*/
 									}
 								}
 							} # foreach auto-process
-
 						} # if autoprocess
+						$statsArray[] = array('file' => $fl['basename'], 'barcode' => $fl['filename'], 'details' => $displayAr);
 
-					} # response ok
-					$statsArray[] = array('file' => $fl['basename'], 'barcode' => $fl['filename'], 'details' => $displayAr);
-
+					} # else local
 
 				} # foreach file
 			} # if count file
