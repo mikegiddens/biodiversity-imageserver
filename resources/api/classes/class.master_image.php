@@ -705,7 +705,6 @@ function createGTileIM($filename, $outputPath) {
 			$height = $oheight;
 			$tmpFile = $filename;
 		} else {
-			$tmpFile = $z . "tmp" . $filename;
 			$tmpFile = $filePath . $z . "tmp" . @basename($filename);
 			$percent = 1 / pow(2, $z);
 			$width = $owidth * $percent;
