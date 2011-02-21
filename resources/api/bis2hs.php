@@ -44,6 +44,7 @@ $client_id = ($client_id != '') ? $client_id : $config['client_id'];
 $collection_id = ($collection_id != '') ? $collection_id : $config['collection_id'];
 $image_server_id = ($image_server_id != '') ? $image_server_id : $config['image_server_id'];
 
+$valid = true;
 
 if ( $si->load( $mysql_name ) ) {
 	# listing barcodes
@@ -85,7 +86,7 @@ if ( $si->load( $mysql_name ) ) {
 			usleep(500000);
 
 			$url = $domain[$mode] . '?task=add_specimensheet&client_id=' . $client_id . '&filename=' . $barcode . '&image_server_id=' . $image_server_id . '&collection_id=' . $collection_id . '&width=' . $ar[0] . '&height=' . $ar[1] . '&duplicate_check=1';
-echo $url;
+// echo $url;
 			$rt = file_get_contents($url);
 			$rt = json_decode($rt);
 			if($rt->success) {
@@ -97,13 +98,24 @@ echo $url;
 				$si->bis->set('collection_id',$collection_id);
 				$si->bis->set('imageserver_id',$image_server_id);
 				$si->bis->save();
+			} else {
+				# checking if the collection - ss limit is reached.
+				if($rt->error->code == 158) {
+					$valid = false;
+					$message = $rt->error->message;
+					break;
+				}
 			}
 
 		} # while
 	} # if object
 
 	header('Content-type: application/json');
-	print( json_encode( array( 'success' => true, 'barcodesAdded' => $barCount, 'filesAdded' => $count ) ) );
+	if($valid) {
+		print( json_encode( array( 'success' => true, 'barcodesAdded' => $barCount, 'filesAdded' => $count ) ) );
+	} else {
+		print( json_encode( array( 'success' => false, 'barcodesAdded' => $barCount, 'filesAdded' => $count, 'error' => array('code' => '', 'message' => $message ) ) ) );
+	}
 } else {
 	header('Content-type: application/json');
 	print( json_encode( array( 'success' => false, 'error' => array('code' => 115, 'message' => $si->getError(115)) ) ) );
