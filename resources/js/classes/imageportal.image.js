@@ -472,6 +472,9 @@ Ext.extend(ImagePortal.Image, Ext.grid.GridPanel, {
 	
 	,	rightClickMenu:function(grid,row,e){
 			var record = grid.getSelectionModel().getSelections();
+			if(record.length <= 1){
+				grid.getSelectionModel().selectRow(row);
+			}
 			var items = [];
 			items.push({
 					text: "Rotate 90' Right"

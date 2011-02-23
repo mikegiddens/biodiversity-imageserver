@@ -177,6 +177,9 @@ ImagePortal.Queue = function(config) {
 	Ext.extend(ImagePortal.Queue, Ext.grid.GridPanel, {
 		showContextMenu: function(grid, row, e){
 			var record = grid.getSelectionModel().getSelections();
+			if(record.length <= 1){
+				grid.getSelectionModel().selectRow(row);
+			}
 			var imageID = [];
 			var imageType = [];
 			for(i=0; i<record.length; i++){
