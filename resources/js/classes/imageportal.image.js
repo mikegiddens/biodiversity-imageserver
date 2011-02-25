@@ -50,7 +50,7 @@ ImagePortal.Image = function(config) {
 			url: Config.baseUrl + 'resources/api/api.php'
 		})
 	}
-		
+	
 	this.store =  new Ext.data.GroupingStore({
 			proxy: this.proxy 
 		,	baseParams: { 
@@ -179,15 +179,15 @@ ImagePortal.Image = function(config) {
 	this.both.setMirror(Config.mirrors || [] );
 	
 	this.smallIcons = new Ext.ux.XTemplate(
-		'<div class="x-grid3-row ux-explorerview-item ux-explorerview-small-item">'+
-		'<div class="ux-explorerview-icon"><img onerror="this.src=\'http://images.cyberfloralouisiana.com/portal/resources/images/no-image.gif\'" ' +
+		'<div class="x-grid3-row ux-explorerview-item ux-explorerview-small-item">'
+	,	'<div class="ux-explorerview-icon"><img  ' +
 		  	'<tpl if="Family != \'\' || Genus != \'\' || SpecificEpithet != \'\' ">'+
 				' qtip="' +
 				'<tpl if="Family != \'\' " >{Family}<br></tpl>'+
 				'<tpl if="Genus != \'\' " >{Genus} {SpecificEpithet}"</tpl>'+
 			'</tpl>' +
-			'src="{path:this.testMirror}{barcode}_s.jpg"></div>' +
-		'</div>'
+			'src="{path:this.testMirror}{barcode}_s.jpg" onerror="this.src=\'http://images.cyberfloralouisiana.com/portal/resources/images/no-image.gif\'" /></div>'
+	,	'</div>'
 	);
 
 	this.smallIcons.setMirror(Config.mirrors);
@@ -234,6 +234,7 @@ ImagePortal.Image = function(config) {
 		,	plugins: [filters]	
 		,	loadMask: true
 		,	id:'imageGrid'
+		,	loadedFirst:false
 		,	width:700
 		,	height:400
 		,	audit: []
@@ -517,8 +518,17 @@ Ext.extend(ImagePortal.Image, Ext.grid.GridPanel, {
 								,	autoProcess: Ext.encode({"small":true,"medium":true,"large":true})
 									}
 							,	success: function(response){
-									var response = Ext.decode(response.responseText);
-									console.log("Success",response);
+									var o = Ext.decode(response.responseText);
+									var message = ''
+									if(o.success){
+										for(var i=0; i<o.recordCount; i++){
+											var largeFound = (o.stats[i].details.large) ? 'Found.' :'Not Found.';
+											var mediumFound = (o.stats[i].details.medium) ? 'Found.' :'Not Found.';
+											var smallFound = (o.stats[i].details.small) ? 'Found.' :'Not Found.';
+											message = 'Images: '+o.stats[i].file+'<br/>Large: '+largeFound+'<br/>Medium: '+mediumFound+'<br/>Small: '+smallFound;
+											ImagePortal.Notice.msg("Notice", message);
+										}
+									}
 								}
 							,	failure: function(result){
 									console.log("Fail",result)
@@ -531,9 +541,11 @@ Ext.extend(ImagePortal.Image, Ext.grid.GridPanel, {
 				,	handler: function() {
 						Ext.Ajax.request({
 								scope: this
-							,	url: 'resources/api/api.php'
+							,	url: 'resources/api/backup_services.php'
 							,	params: {
 									cmd : 'processOCR'
+								,	limit: ''
+								,	stop: ''
 								}
 							,	success: function(response){
 									var response = Ext.decode(response.responseText);
@@ -561,8 +573,7 @@ Ext.extend(ImagePortal.Image, Ext.grid.GridPanel, {
 								,	autoProcess: Ext.encode({"google_tile":true})
 								}
 							,	success: function(response){
-									var response = Ext.decode(response.responseText);
-									console.log("Success",response);
+									var o = Ext.decode(response.responseText);
 								}
 							,	failure: function(result){
 									console.log("Fail",result)
@@ -615,7 +626,7 @@ Ext.extend(ImagePortal.Image, Ext.grid.GridPanel, {
 						var params = {};
 							Ext.apply(params, {
 										cmd:'delete-image'
-									,	imageId: items.image_id
+									,	image_id: items.image_id
 							});
 							Ext.Ajax.request({
 								url: Config.baseUrl + 'resources/api/api.php'
@@ -624,7 +635,8 @@ Ext.extend(ImagePortal.Image, Ext.grid.GridPanel, {
 							,	success: function(responseObject){
 									var o = Ext.decode(responseObject.responseText);
 									if (o.success) {
-										this.store.reload();
+										Ext.getCmp('imageGrid').store.reload()
+										ImagePortal.Notice.msg('Success', 'Image successfuly deletetd');	
 									} else {
 										Ext.MessageBox.alert('Error: '+o.error.code, o.error.message);
 									}
@@ -661,6 +673,7 @@ Ext.extend(ImagePortal.Image, Ext.grid.GridPanel, {
 				,	image_id: data.image_id
 				,	degree:degree
 			});
+			ImagePortal.Notice.msg('Notice', 'Sending request...')
 			Ext.Ajax.request({
 					url: Config.baseUrl + 'resources/api/api.php'
 				,	scope: this
@@ -668,9 +681,10 @@ Ext.extend(ImagePortal.Image, Ext.grid.GridPanel, {
 				,	success: function(responseObject){
 						var o = Ext.decode(responseObject.responseText);
 						if(o.success) {
-							this.store.reload();
+							ImagePortal.Notice.msg('Notice', o.message);
+						//	this.store.reload();
 						} else {
-							Ext.MessageBox.alert('Error: ' + o.error.code, o.error.message)
+							Ext.MessageBox.alert('Error: ' + o.error.code, o.error.message);
 						}	
 					}
 			});

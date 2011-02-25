@@ -55,6 +55,7 @@ ImagePortal.Queue = function(config) {
 		,	enableColumnMove: false
 		,	enableColumnHide: false
 		,	store: this.ds
+		,	loadedFirst:false
 		,	plugins: [filters]	
 		,	columns: [/*
 {
@@ -121,9 +122,11 @@ ImagePortal.Queue = function(config) {
 					,	handler: function(){
 							Ext.Ajax.request({
 								scope: this
-							,	url: 'resources/api/api.php'
+							,	url: 'resources/api/backup_services.php'
 							,	params: {
-									cmd: 'processOCR'
+									cmd : 'processOCR'
+								,	limit: ''
+								,	stop: ''
 								}
 							,	success: function(response){
 									console.log(response);
