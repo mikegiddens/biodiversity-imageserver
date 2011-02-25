@@ -85,12 +85,15 @@ Ext.onReady(function() {
 					,	layout: 'fit'
 					, 	items: [ new ImagePortal.Image() ]
 					,	listeners:{
-						render:function(){
-							this.items.items[0].store.load({params:{start:0, limit:100}})
-							//this.items.items[0].comboStore.load()
+							activate:function(){
+								var panel = this.items.items[0];	
+								if(!panel.loadedFirst){
+									panel.loadedFirst= true;
+									panel.store.load({params:{start:0, limit:100}})
+								}
+							}
 						}
-					}
-				},{
+					},{
 						title: ' Queue '
 					,	tabTip: ''
 					,	iconCls: 'x-icon-templates'								
@@ -98,10 +101,14 @@ Ext.onReady(function() {
 					,	layout: 'fit'
 					, 	items: [ new ImagePortal.Queue() ] 
 					,	listeners:{
-						render:function(){
-							this.items.items[0].store.load({params:{start:0, limit:100}})
+						activate:function(){
+								var panel = this.items.items[0];	
+								if(!panel.loadedFirst){
+									panel.loadedFirst= true;
+									panel.store.load({params:{start:0, limit:100}})
+								}
+							}
 						}
-					}
 				},{
 						title: ' Sequences '
 					,	tabTip: ''
@@ -110,10 +117,10 @@ Ext.onReady(function() {
 					,	layout: 'fit'
 					, 	items: [ new ImagePortal.Sequences() ] 
 					,	listeners:{
-						render:function(){
-						//	this.items.items[0].store.load({params:{start:0, limit:100}})
-						//	this.items.items[0].comboStore.load()
-						this.items.items[0].cbCollections.store.load();
+							render:function(){
+							//	this.items.items[0].store.load({params:{start:0, limit:100}})
+							//	this.items.items[0].comboStore.load()
+							this.items.items[0].cbCollections.store.load();
 						}
 					}
 				},{
@@ -124,10 +131,14 @@ Ext.onReady(function() {
 					,	layout: 'fit'
 					, 	items: [ new ImagePortal.hsQueue() ] 
 					,	listeners:{
-						render:function(){
-							this.items.items[0].store.load({params:{start:0, limit:100}})
+							activate:function(){
+								var panel = this.items.items[0];	
+								if(!panel.loadedFirst){
+									panel.loadedFirst= true;
+									panel.store.load({params:{start:0, limit:100}})
+								}
+							}
 						}
-					}
 				}]
 			}];
 	

@@ -29,6 +29,7 @@ ImagePortal.hsQueue = function(config) {
 		,	enableColumnMove: false
 		,	enableColumnHide: false
 		,	store: this.ds
+		,	loadedFirst:false
 		,	columns: [{
 					header: "Image Id"
 				,	dataIndex: 'image_id'
