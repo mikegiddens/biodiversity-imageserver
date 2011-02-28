@@ -42,4 +42,7 @@
 	define('DOC_ROOT', '/var/www/');
 
 // 	define("BASE_PATH", $_SERVER[DOCUMENT_ROOT] . "/");
+	$path = BASE_PATH . 'resources/api/classes/';
+	set_include_path(get_include_path() . PATH_SEPARATOR . $path);
+
 ?>
