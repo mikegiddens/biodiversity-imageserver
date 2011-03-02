@@ -18,7 +18,8 @@ ImagePortal.IVIntractive = function(config){
 			}
 		,	width: 600
 		,	height: 400
-		,	title: 'Specimen Image'					
+		,	title: 'Specimen Image'	
+		,	ismapReady:false	
 	});
 		
 	ImagePortal.IVIntractive.superclass.constructor.call(this, config);
@@ -28,23 +29,30 @@ ImagePortal.IVIntractive = function(config){
 Ext.extend(ImagePortal.IVIntractive, Ext.ux.GMapPanel, {
 	drawImage: function(imagePath){
 		var imgTiles = new google.maps.ImageMapType({
-				getTileUrl: function(ll, z) {
-					var X = ll.x % (1 << z);  
-					var path = imagePath + "google_tiles/" + (5-z) + "/tile_"+ (5-z) + "_" + X + "_" + ll.y + ".jpg";
-					return path;				
-				},
-				tileSize: new google.maps.Size(256, 256),
-				isPng: false,
-				maxZoom: 5,
-				name: "Image",
-				minZoom: 0,
-				alt: "Specimen Sheet Image"
-			});
-		this.on('mapready', function(map){  
+			getTileUrl: function(ll, z) {
+				var X = ll.x % (1 << z);  
+				var path = imagePath + "google_tiles/" + (5-z) + "/tile_"+ (5-z) + "_" + X + "_" + ll.y + ".jpg";
+				return path;				
+			},
+			tileSize: new google.maps.Size(256, 256),
+			isPng: false,
+			maxZoom: 5,
+			name: "Image",
+			minZoom: 0,
+			alt: "Specimen Sheet Image"
+		});
+		if(!this.ismapReady){
+			this.ismapReady = true;
+			this.on('mapready', function(map){  
 				map.getMap().mapTypes.set('image', imgTiles);
 				map.getMap().setMapTypeId('image');
 				map.getMap().unbind(map.getMap().mapTypes.roadmap);
-			})
+			});
+		}else{
+			this.getMap().mapTypes.set('image', imgTiles);
+			this.getMap().setMapTypeId('image');
+		}	
+		
 	}
 
 });

@@ -269,9 +269,20 @@ markers: [{
         if (this.rendered){
           
           (function(){
-          
+			var myOptions = {
+						panControl: true//navigation controls
+					,	zoomControl: true//+ or - zoom
+					,	scaleControl: false//Displays distance unit at bottom
+					, 	mapTypeControl: false//type of map view
+					,	streetViewControl: false//little man Icon
+					,	zoom:this.zoomLevel
+					,	mapTypeId: google.maps.MapTypeId.ROADMAP
+				//	,	disableDefaultUI : true
+					,	backgroundColor:'#FFF'
+				}
+		  
           if (this.gmapType === 'map'){
-              this.gmap = new google.maps.Map(this.body.dom, {zoom:this.zoomLevel,mapTypeId: google.maps.MapTypeId.ROADMAP});
+              this.gmap = new google.maps.Map(this.body.dom, myOptions);
               this.mapDefined = true;
               this.mapDefinedGMap = true;
           }
@@ -325,7 +336,8 @@ markers: [{
         Ext.ux.GMapPanel.superclass.afterRender.call(this);
 
     },
-    // private
+	
+	// private
     buildScriptTag: function(filename, callback) {
         var script  = document.createElement('script'),
         head        = document.getElementsByTagName("head")[0];

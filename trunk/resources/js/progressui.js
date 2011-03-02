@@ -77,6 +77,7 @@ Ext.onReady(function() {
 					,	tabTip: ''
 					,	style: 'padding: 10px;'
 					,	layout: 'fit'
+					,	html:'<div style="padding:10px; color:#4e78b2;"><b>Console text needs to go here...</b></div>'
 				},{
 						title: ' Images '
 					,	tabTip: ''
@@ -103,10 +104,10 @@ Ext.onReady(function() {
 					,	listeners:{
 						activate:function(){
 								var panel = this.items.items[0];	
-								if(!panel.loadedFirst){
-									panel.loadedFirst= true;
-									panel.store.load({params:{start:0, limit:100}})
-								}
+							/*	if(!panel.loadedFirst){
+									panel.loadedFirst= true;*/
+									panel.store.reload({params:{start:0, limit:100}})
+								//}
 							}
 						}
 				},{
@@ -151,6 +152,7 @@ Ext.onReady(function() {
 							,	tabTip: ''
 							,	style: 'padding: 10px;'
 							,	layout: 'fit'
+							,	html:'<div style="padding:10px; color:#4e78b2;"><b>Reports text needs to go here...</b></div>'
 						},{
 								title: 'Progress of Collections'
 							,	tabTip: ''

@@ -242,45 +242,6 @@ ImagePortal.Image = function(config) {
 					'Collection: '
 				, ' ', this.search_value
 				, ' ',	this.views
-				, ' ', {
-							text: "Send all to HelpingScience"
-						,	scope: this
-						,	iconCls: ''
-						,	handler: function(){
-								Ext.Msg.show({
-									msg: 'Are you sure ?'
-								,	buttons: Ext.Msg.YESNO
-								,	icon: Ext.MessageBox.QUESTION
-								,	scope:this
-								,	fn: function(btn) {
-										if (btn == 'yes') {
-											var filterList = [];
-											var record = this.filters.getFilterData()
-											var fillter = Ext.encode(filterList);
-											var comaprison = Ext.isDefined(record[0])? record[0].data.comparison : '';
-											var value = Ext.isDefined(record[0])? record[0].data.value : '';
-											Ext.Ajax.request({
-													scope: this
-												,	url: 'resources/api/bis2hs.php'
-												,	params: {
-															'filter[0][data][comparison]': comaprison
-														,	'filter[0][data][type]': 'date'
-														,	'filter[0][data][value]': value
-														,	'filter[0][field]': 'timestamp_modified'
-													}
-												,	success: function(response){
-														var response = Ext.decode(response.responseText);
-//														console.log("Success",response);
-													}
-												,	failure: function(result){
-//														console.log("Fail",result)
-													}
-											});
-										}
-									}
-								})
-							}
-					}
 				,'->' , {
 						iconCls: 'icon-rss'
 					,	handler: function(){ 
@@ -434,6 +395,46 @@ ImagePortal.Image = function(config) {
 					,	text:'View Image'   
 					,	scope:this 
 					,	handler: this.viewImage
+					}
+					,' '
+					,{
+						text: "Send all to HelpingScience"
+					,	scope: this
+					,	iconCls: ''
+					,	handler: function(){
+							Ext.Msg.show({
+								msg: 'Are you sure ?'
+							,	buttons: Ext.Msg.YESNO
+							,	icon: Ext.MessageBox.QUESTION
+							,	scope:this
+							,	fn: function(btn) {
+									if (btn == 'yes') {
+										var filterList = [];
+										var record = this.filters.getFilterData()
+										var fillter = Ext.encode(filterList);
+										var comaprison = Ext.isDefined(record[0])? record[0].data.comparison : '';
+										var value = Ext.isDefined(record[0])? record[0].data.value : '';
+										Ext.Ajax.request({
+												scope: this
+											,	url: 'resources/api/bis2hs.php'
+											,	params: {
+														'filter[0][data][comparison]': comaprison
+													,	'filter[0][data][type]': 'date'
+													,	'filter[0][data][value]': value
+													,	'filter[0][field]': 'timestamp_modified'
+												}
+											,	success: function(response){
+													var response = Ext.decode(response.responseText);
+	//														console.log("Success",response);
+												}
+											,	failure: function(result){
+	//														console.log("Fail",result)
+												}
+										});
+									}
+								}
+							})
+						}
 					}]
 			})
 		,	listeners:{
@@ -509,6 +510,7 @@ Ext.extend(ImagePortal.Image, Ext.grid.GridPanel, {
 						for(i=0; i<record.length; i++){
 							this.imageName.push(record[i].data.filename);
 						}
+						ImagePortal.Notice.msg("Notice","Auditing please wait");
 						Ext.Ajax.request({
 								scope: this
 							,	url: 'resources/api/api.php'
