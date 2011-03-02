@@ -90,6 +90,7 @@ Ext.extend(ImagePortal.ImageViewer, Ext.Window, {
 			if(hideunhide == 1 ){
 				Ext.getCmp('tabId').hideTabStripItem(this.largeImagePanel);
 				Ext.getCmp('tabId').unhideTabStripItem(this.intimage);
+				Ext.getCmp('tabId').setActiveTab(0);
 				this.showImage(path);
 			}else{
 				Ext.getCmp('tabId').hideTabStripItem(this.intimage);

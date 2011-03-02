@@ -72,9 +72,16 @@
 								}
  							}
  				},'-',{
-					xtype: 'checkbox',
-					boxLabel: 'Include Existing Ranges'
-				
+					xtype: 'checkbox'
+				,	boxLabel: 'Include Existing Ranges'
+				,	listeners:{
+						check: function (e,state) {
+							if(this.cbCollections.getValue() != ''){
+								this.store.reload();
+							}	
+						}
+					,	scope: this
+					}
 				}] 	
 		,	columns: [{
 					header: "Start Range"

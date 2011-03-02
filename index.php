@@ -34,7 +34,7 @@ if (!(isset($_SESSION['user']) && isset($_SESSION['pw']))) {
  
   <script type="text/javascript" src="http://www.google.com/jsapi?key=<?php print $config["google_key"]; ?>"></script>
   <script type="text/javascript">
-          google.load("maps", "2",{"other_params":"sensor=false"});
+          google.load("maps", "3",{"other_params":"sensor=false"});
           google.load('visualization', '1', {packages: ['linechart', 'barchart', 'piechart']});
   </script> 
 

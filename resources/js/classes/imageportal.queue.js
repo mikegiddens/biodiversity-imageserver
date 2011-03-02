@@ -55,7 +55,7 @@ ImagePortal.Queue = function(config) {
 		,	enableColumnMove: false
 		,	enableColumnHide: false
 		,	store: this.ds
-		,	loadedFirst:false
+	//	,	loadedFirst:false
 		,	plugins: [filters]	
 		,	columns: [/*
 {

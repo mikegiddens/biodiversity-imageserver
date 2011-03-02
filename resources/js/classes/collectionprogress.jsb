@@ -97,13 +97,13 @@
   <file name="imageportal.notice.js" path="" />
   <target name="biodiversity.js" file="biodiversity.js" debug="False" shorthand="False" shorthand-list="YAHOO.util.Dom.setStyle&#xD;&#xA;YAHOO.util.Dom.getStyle&#xD;&#xA;YAHOO.util.Dom.getRegion&#xD;&#xA;YAHOO.util.Dom.getViewportHeight&#xD;&#xA;YAHOO.util.Dom.getViewportWidth&#xD;&#xA;YAHOO.util.Dom.get&#xD;&#xA;YAHOO.util.Dom.getXY&#xD;&#xA;YAHOO.util.Dom.setXY&#xD;&#xA;YAHOO.util.CustomEvent&#xD;&#xA;YAHOO.util.Event.addListener&#xD;&#xA;YAHOO.util.Event.getEvent&#xD;&#xA;YAHOO.util.Event.getTarget&#xD;&#xA;YAHOO.util.Event.preventDefault&#xD;&#xA;YAHOO.util.Event.stopEvent&#xD;&#xA;YAHOO.util.Event.stopPropagation&#xD;&#xA;YAHOO.util.Event.stopEvent&#xD;&#xA;YAHOO.util.Anim&#xD;&#xA;YAHOO.util.Motion&#xD;&#xA;YAHOO.util.Connect.asyncRequest&#xD;&#xA;YAHOO.util.Connect.setForm&#xD;&#xA;YAHOO.util.Dom&#xD;&#xA;YAHOO.util.Event">
     <include name="GVisualizationPanel.js" />
-    <include name="Ext.ux.GMapPanel.js" />
     <include name="..\..\ext\treecombo.js" />
     <include name="..\..\ext\RandomInt.js" />
     <include name="..\..\ext\GroupTabPanel.js" />
     <include name="..\..\ext\GroupTab.js" />
     <include name="..\..\ext\gridfilters\menu\RangeMenu.js" />
     <include name="..\..\ext\gridfilters\menu\ListMenu.js" />
+    <include name="Ext.ux.GMapPanel3.js" />
     <include name="..\..\ext\gridfilters\GridFilters.js" />
     <include name="..\..\ext\gridfilters\filter\Filter.js" />
     <include name="..\..\ext\gridfilters\filter\BooleanFilter.js" />
@@ -112,6 +112,7 @@
     <include name="..\..\ext\gridfilters\filter\ListFilter.js" />
     <include name="..\..\ext\gridfilters\filter\NumericFilter.js" />
     <include name="..\..\plugins\explorerview\Ext.ux.grid.ExplorerView.js" />
+    <include name="..\..\plugins\ext.ux.xtemplate.js" />
     <include name="..\..\plugins\TwinComboBox.js" />
     <include name="imageportal.notice.js" />
     <include name="imageportal.help.js" />
@@ -138,4 +139,5 @@
     <include name="imageportal.sequences.js" />
   </target>
   <file name="imageportal.hsqueue.js" path="" />
+  <file name="..\..\plugins\ext.ux.xtemplate.js" path="" />
 </project>
