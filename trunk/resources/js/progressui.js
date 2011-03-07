@@ -241,7 +241,30 @@ Ext.onReady(function() {
 			
 			items.push(reports);
 	}
-	
+	var exampleHtml = '<div style="padding:10px; color: #4e78b2;"><ul style="list-style-type: disc; margin-left: 30px;">'
+					+ '<li Style="padding-top: 10px;"><div><b><a href="'+Config.baseUrl+'examples/lightbox/" target="_blank" title="View Example">Lightbox Example</a></b></div>'
+					+ '<div>Desription: This is Biodiveristy Image Server Lightbox Example.</div></li>'
+					+ '<li Style="padding-top: 10px;"><div><b><a href="'+Config.baseUrl+'examples/carousel/" target="_blank" title="View Example">Carousel Example</a></b></div>'
+					+ '<div>Desription: This is Biodiveristy Image Server Carousel Example.</div></li>'
+					+ '<li Style="padding-top: 10px;"><div><b><a href="'+Config.baseUrl+'examples/progress/" target="_blank" title="View Example">Progress of Collection Example</a></b></div>'
+					+ '<div>Desription: This is Progress of Collection Example.</div></li>'
+					+ '<li Style="padding-top: 10px;"><div><b><a href="'+Config.baseUrl+'examples/specimen/" target="_blank" title="View Example">Specimen Example</a></b></div>'
+					+ '<div>Desription: This is Biodiveristy Image Server Specimen Example.</div></li>'
+					+ '<li Style="padding-top: 10px;"><div><b><a href="'+Config.baseUrl+'examples/viewer/" target="_blank" title="View Example">Plants Images Example</a></b></div>'
+					+ '<div>Desription: This is Biodiveristy Image Server Plants Images Example.</div></li>'
+					+ '</ul></div>'
+	var examples ={
+			mainItem: 0
+		,	items: [{
+					title: 'Examples'
+				,	iconCls: 'x-icon-subscriptions'
+				,	tabTip: ''
+				,	style: 'padding: 10px;'
+				,	layout: 'fit'
+				,	html: exampleHtml
+			}]
+	}
+	items.push(examples);	
 	var Viewport = new Ext.Viewport({
 			layout:'border'
 		,	id:'mainviewport'			

@@ -48,6 +48,7 @@ BisLightbox = function(config) {
 	
 	
 	this.tpl = new Ext.XTemplate(
+		'<div style="padding: 10px">',
 		'<tpl for=".">',
 			'<div class="ux-carousel-slide" id="{filename}">',
 				'<div class="thumbnail">',
@@ -65,7 +66,8 @@ BisLightbox = function(config) {
 					'</a>',
 				'</div>',
 			'</div>',
-		'</tpl>'
+		'</tpl>',
+		'</div>'
 	);
 	
 
