@@ -179,15 +179,15 @@ ImagePortal.Image = function(config) {
 	this.both.setMirror(Config.mirrors || [] );
 	
 	this.smallIcons = new Ext.ux.XTemplate(
-		'<div class="x-grid3-row ux-explorerview-item ux-explorerview-small-item">'
-	,	'<div class="ux-explorerview-icon"><img  ' +
+		'<div class="x-grid3-row ux-explorerview-item ux-explorerview-small-item">'+
+		'<div class="ux-explorerview-icon"><img  ' +
 		  	'<tpl if="Family != \'\' || Genus != \'\' || SpecificEpithet != \'\' ">'+
 				' qtip="' +
 				'<tpl if="Family != \'\' " >{Family}<br></tpl>'+
 				'<tpl if="Genus != \'\' " >{Genus} {SpecificEpithet}"</tpl>'+
 			'</tpl>' +
-			'src="{path:this.testMirror}{barcode}_s.jpg" onerror="this.src=\'http://images.cyberfloralouisiana.com/portal/resources/images/no-image.gif\'" /></div>'
-	,	'</div>'
+			'src="{path:this.testMirror}{barcode}_s.jpg" onerror="this.src=\'http://images.cyberfloralouisiana.com/portal/resources/images/no-image.gif\'" /></div>'+
+		'</div>'
 	);
 
 	this.smallIcons.setMirror(Config.mirrors);
@@ -401,6 +401,7 @@ ImagePortal.Image = function(config) {
 						text: "Send all to HelpingScience"
 					,	scope: this
 					,	iconCls: ''
+					,	id: 'sendToHS'
 					,	handler: function(){
 							Ext.Msg.show({
 								msg: 'Are you sure ?'

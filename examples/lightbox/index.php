@@ -4,12 +4,14 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title>Biodiveristy Image Server Lightbox Example</title>
 	
-		<link href="../syntaxhighliter/shCore.css" rel="stylesheet" />
-    	<link href="../syntaxhighliter/shThemeDefault.css" rel="stylesheet" />
-    	<script src="../syntaxhighliter/xrepexp.js"></script>
-    	<script src="../syntaxhighliter/shCore.js"></script>
-			<script type="text/javascript" src="../syntaxhighliter/shBrushJScript.js"></script>
-	
+	<link href="../syntaxhighliter/shCore.css" rel="stylesheet" />
+    <link href="../syntaxhighliter/shThemeDefault.css" rel="stylesheet" />
+    <script src="../syntaxhighliter/xrepexp.js"></script>
+	<script src="../syntaxhighliter/shCore.js"></script>
+	<script type="text/javascript" src="../syntaxhighliter/shBrushJScript.js"></script>
+	<?php
+	//	include("../../config.dynamic.php");
+	?>
 	<link href="ext-all.css" rel="stylesheet" />
 	<script src="ext-base.js"></script>
 	<script src="ext-all.js"></script>
@@ -31,7 +33,7 @@
 						});
 				
 				Config={
-					baseUrl:'http://images.cyberfloralouisiana.com/portal/'
+					baseUrl: 'http://images.cyberfloralouisiana.com/portal/'//"<?php print $config['configWebPath'];?>"
 				}
 				
 				var lightDemo = new BisLightbox({
@@ -47,12 +49,10 @@
 	
 	<style>
             .thumbnail {
-            	padding: 4px;
+            	padding: 10px;
             	background-color: #e6e6e0;
             	border: 1px solid #d6d6d0;
             	float: left;
-            	margin-right: 20px;
-            	margin-bottom: 20px;
         	}
 			
 			 

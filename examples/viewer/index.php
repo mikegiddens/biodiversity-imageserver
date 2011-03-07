@@ -1,6 +1,6 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html><head>
-<title>Plants Image</title>
+<title>Plants Images</title>
 
 <link rel="stylesheet" type="text/css" href="http://extjs.cachefly.net/ext-3.3.0/resources/css/ext-all.css">
 <link rel="stylesheet" type="text/css" href="http://extjs.cachefly.net/ext-3.3.0/resources/css/xtheme-gray.css">
@@ -10,13 +10,19 @@
 <link rel="stylesheet" type="text/css" href="../../resources/css/explorerview.css">
 <link rel="stylesheet" type="text/css" href="../../resources/css/tpl.css">   
 <link rel="stylesheet" type="text/css" href="GridFilters.css">
-<script src="maps" type="text/javascript"></script>
 <script type="text/javascript" src="http://extjs.cachefly.net/ext-3.3.0/adapter/ext/ext-base.js"></script>
 <script type="text/javascript" src="http://extjs.cachefly.net/ext-3.3.0/ext-all.js"></script>
-	
+<script type="text/javascript" src="http://www.google.com/jsapi"></script>
+<script type="text/javascript">
+          google.load("maps", "3",{"other_params":"sensor=false"});
+          google.load('visualization', '1', {packages: ['linechart', 'barchart', 'piechart']});
+</script> 
+<?php
+	//	include("../../config.dynamic.php");
+?>
 	<script type="text/javascript" src="../../resources/plugins/ext.ux.xtemplate.js"></script>
 	<script type="text/javascript" src="../../resources/js/classes/GVisualizationPanel.js"></script>
- 	<script type="text/javascript" src="../../resources/js/classes/Ext.ux.GMapPanel.js"></script>	
+ 	<script type="text/javascript" src="../../resources/js/classes/Ext.ux.GMapPanel3.js"></script>	
 	<script type="text/javascript" src="../../resources/plugins/explorerview/Ext.ux.grid.ExplorerView.js"></script>
 	<script type="text/javascript" src="../../resources/plugins/TwinComboBox.js"></script>
 	<script type="text/javascript" src="../../resources/ext/gridfilters/menu/RangeMenu.js"></script>
@@ -42,7 +48,7 @@
   	<script type="text/javascript" src="../../resources/js/classes/imageportal.barreports.js"></script>
   	<script type="text/javascript" src="../../resources/js/classes/imageportal.reporttree.js"></script>
   	<script type="text/javascript" src="../../resources/js/classes/imageportal.reportpanel.js"></script>
- 	<script type="text/javascript" src="../../resources/js/classes/imageportal.imagepanel-remote.js"></script>
+ 	<script type="text/javascript" src="imageportal.imagepanel-remote.js"></script>
 	
 
 <script type="text/javascript">
@@ -54,7 +60,7 @@
 
 	
 	Config = {
-			baseUrl: "http://a1.silverbiology.com/biodiversityimageserver/trt/" //"http://images.cyberfloralouisiana.com/portal/" // 
+			baseUrl: "http://images.cyberfloralouisiana.com/portal/" //"<?php print $config['configWebPath'];?>"
 		,	imageStoreParams: { 
 					cmd: 'images'
 				,	filter:''
