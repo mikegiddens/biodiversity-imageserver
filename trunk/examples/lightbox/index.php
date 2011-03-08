@@ -58,7 +58,7 @@
 			 
 			
 			div.item {
-					padding: 20px;
+					padding: 10px;
 				}            
 			body,td,th {
 				font-family: Arial, Helvetica, sans-serif;
@@ -80,7 +80,7 @@
     </style>
 	
 </head>
-<body>
+<body style="padding: 10px">
 	
 	<div style="float:right; width: 600px">
 			<pre type="syntaxhighlighter" class="brush: js">
@@ -101,7 +101,7 @@ Ext.onReady(function() {
 						});
 				
 	Config={
-			baseUrl:'http://images.cyberfloralouisiana.com/portal/'
+			baseUrl: 'http://images.cyberfloralouisiana.com/portal/'
 		}
 				
 	var lightDemo = new BisLightbox({
@@ -117,13 +117,13 @@ Ext.onReady(function() {
 
 ...
 
-&lt;div id="imagepanel" style="padding: 5px; height: 280px; width: 230px; background-color: #E6E6E0">&lt;/div>
+&lt;div id= "imagepanel" style="padding: 5px; height: 280px; width: 230px; background-color: #E6E6E0">&lt;/div>
 
 ...</pre>
       </div>
 	
-<h3>Biodiveristy Image Server Lightbox Example</h3>
-	<div id= "imagepanel" style="padding: 5px; height: 280px; width: 230px; background-color: #E6E6E0"></div>
+<h3>Biodiveristy Image Server Lightbox Example</h3><br>
+	<div id= "imagepanel" style="padding: 5px; height: 270px; width: 230px; background-color: #E6E6E0"></div><br>
 		
 	<p>This example can be placed on any webpage.<br>
         <a href="../">See more examples...</a><br>

@@ -29,8 +29,8 @@
 	
 	Ext.apply(config2, config, {
 			border: true
-		,	height: 550
-		,	width:400
+		,	height: 380
+		,	width:350
 		,	title:'Image'
 		,	iconCls:''
  	});
