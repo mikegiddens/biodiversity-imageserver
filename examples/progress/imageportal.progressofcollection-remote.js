@@ -3,8 +3,8 @@ Ext.namespace('ImagePortal');
 		var config2={};
 		Ext.apply(config2,config,{
 			border:true
-		,	width:700
-		,	height:420
+		,	width:350
+		,	height:380
 		,	store:new Ext.data.JsonStore({
 				proxy:new Ext.data.ScriptTagProxy({
 					url:Config.baseUrl+'resources/api/api.php'
