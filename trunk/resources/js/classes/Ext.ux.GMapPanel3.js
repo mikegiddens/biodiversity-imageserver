@@ -1,5 +1,7 @@
 Ext.namespace('Ext.ux.panel');
-
+	/**
+		3rd Party Libs Used: https://github.com/VinylFox/ExtJS.ux.GMapPanel
+	*/
 Ext.ux.GMapPanel = Ext.extend(Ext.Panel, {
     /**
      * @cfg {Boolean} border
