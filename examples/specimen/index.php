@@ -27,8 +27,7 @@
           google.load('visualization', '1', {packages: ['linechart', 'barchart', 'piechart']});
 </script> 
 
-	<script type="text/javascript" src="../../resources/js/classes/GVisualizationPanel.js"></script>
- 	<script type="text/javascript" src="../../resources/js/classes/Ext.ux.GMapPanel3.js"></script>	
+	<script type="text/javascript" src="../../resources/js/classes/Ext.ux.GMapPanel3.js"></script>	
 	
 	<script type="text/javascript" src="../../resources/js/classes/imageportal.ivintractive.js"></script>	   
   	<script type="text/javascript" src="imageportal.ivintractive-remote.js"></script>
@@ -48,7 +47,8 @@
 
 	var imagepanel = new ImagePortal.IVIntractiveRemote({
             title: 'Sample Specimen: Achillea lanulosa (Mountain Yarrow)'
-        ,    renderTo: 'imagepanel'
+        ,   renderTo: 'imagepanel'
+		,	ismapReady: true
         ,    tbar: [{
                     text: 'Visit USDA Plants Profile Page'
                 ,    handler: function() {
@@ -96,7 +96,6 @@
     google.load('visualization', '1', {packages: ['linechart', 'barchart', 'piechart']});
 &lt;/script> 
 
-&lt;script type="text/javascript" src="../../resources/js/classes/GVisualizationPanel.js">&lt;/script>
 &lt;script type="text/javascript" src="../../resources/js/classes/Ext.ux.GMapPanel3.js">&lt;/script>	
 	
 &lt;script type="text/javascript" src="../../resources/js/classes/imageportal.ivintractive.js">&lt;/script>	   
@@ -115,6 +114,7 @@ Ext.onReady(function(){
 	var imagepanel = new ImagePortal.IVIntractiveRemote({
 		title: 'Sample Specimen: Achillea lanulosa (Mountain Yarrow)'
 	,   renderTo: 'imagepanel'
+	,	ismapReady: true
 	,   tbar: [{
 				text: 'Visit USDA Plants Profile Page'
 			,   handler: function() {

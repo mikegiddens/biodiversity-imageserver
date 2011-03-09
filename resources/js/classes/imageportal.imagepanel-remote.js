@@ -89,10 +89,10 @@ Ext.override(Ext.PagingToolbar, {
  
 	Ext.extend(ImagePortal.ImagePortalRemote, ImagePortal.Image, {
 			initLoadMethod:function(){
-				this.search_value.hide();
+			//	this.search_value.hide();
 				this.getBottomToolbar().insert(13, this.views);
 				Ext.getCmp('sendToHS').hide();
-				this.getTopToolbar().setVisible(false);
+			//	this.getTopToolbar().setVisible(false);
 				this.store.baseParams= Config.imageStoreParams;
 				this.store.load({params:{start:0, limit:100}});
 			}
