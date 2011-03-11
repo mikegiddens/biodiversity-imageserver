@@ -177,6 +177,7 @@ if ( $si->load( $mysql_name ) ) {
 				}
 			}
 			$time = microtime(true) - $time_start;
+			header('Content-type: application/json');
 			print json_encode(array('success' => true, 'process_time' => $time, 'total_records_added' => $count));
 			break;
 		case 'processOcr':
@@ -201,7 +202,7 @@ if ( $si->load( $mysql_name ) ) {
 						$si->amazon->get_object($config['s3']['bucket'], $key, array('fileDownload' => $tmpFile));
 /*
 if(file_exists($tmpFile)) {
-echo '<br> File Created';
+echo '<br> Temp File Created';
 }
 */
 					} else {
@@ -214,7 +215,7 @@ echo '<br> File Created';
 // echo '<br> Command : ' . $cd;
 					exec($cd);
 
-					$command = sprintf("tesseract %s %s", $tmpImage, $tmpFilePath);
+					$command = sprintf("/usr/local/bin/tesseract %s %s", $tmpImage, $tmpFilePath);
 // echo '<br> Tesseract Command : ' . $command;
 					exec($command);
 
@@ -240,6 +241,7 @@ echo '<br> File Created';
 				}
 			}
 			$time_taken = microtime(true) - $time_start;
+			header('Content-type: application/json');
 			print json_encode(array('success' => true, 'process_time' => $time_taken, 'total' => $image_count, 'images' => $images_array));
 			
 			break;

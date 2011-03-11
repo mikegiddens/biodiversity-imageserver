@@ -12,7 +12,7 @@ $expected=array(
 		, 'collection_id'
 		, 'image_server_id'
 		, 'image_mode'
-		, 'barcodes'
+		, 'barcode'
 );
 
 $domain = array('dev' => 'http://dev.helpingscience.org/silverarchive_engine/silverarchive.php', 'sandbox' => 'http://sandbox.helpingscience.org/silverarchive_engine/silverarchive.php');
@@ -52,7 +52,7 @@ if ( $si->load( $mysql_name ) ) {
 	$count = 0;
 	$where = '';
 	
-	$barcodes = @json_decode(stripslashes(trim($barcodes)),true);
+	$barcodes = @json_decode(stripslashes(trim($barcode)),true);
 	if(is_array($barcodes) && count($barcodes)) {
 		@array_walk($barcodes,'escapeFn');
 		$where .= sprintf(" AND `barcode` IN ('%s') ",@implode("','",$barcodes));
