@@ -911,7 +911,6 @@ $strips_array[$end][] = array('startRange' => $tmp_start, 'endRange' => $tmp_end
 
 	public function rotateImage($image = array()) {
 		if($image['image_id'] == '' || !$this->field_exists($image['image_id'])) {
-			echo '<br> In false loop';
 			$ret['success'] = false;
 			return $ret;
 		}
