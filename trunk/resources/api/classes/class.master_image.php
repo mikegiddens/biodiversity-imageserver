@@ -165,6 +165,15 @@ Class Image {
 			$destination =  $dtls['dirname'] . '/' . $dtls['filename'] . $postfix . $extension;
 			$tmp = sprintf("convert %s -thumbnail %sx%s %s", $tmp_path,$new_width,$new_height,$destination);
 			$res = system($tmp);
+			if($display_flag) {
+				$fp = fopen($destination, 'rb');
+				header("Content-Type: $content_type");
+				header("Content-Length: " . filesize($destination));
+				fpassthru($fp);
+				fclose($fp);
+				unlink($destination);
+				exit;
+			}
 		} else {
 			$func = 'imagecreatefrom' . (@strtolower($dtls['extension']) == 'jpg' ? 'jpeg' : @strtolower($dtls['extension']));
 			$im = @$func($tmp_path);
@@ -265,8 +274,6 @@ Class Image {
  */
 
     public function getImage() {
-
-
 	$this->load_by_id($this->data['image_id']);
 	$ext = @strtolower($this->getName('ext'));
 	$extension = '.' . $ext;
@@ -301,9 +308,7 @@ Class Image {
 #custom dimensions
 		$width = ($this->data['width']!='')?$this->data['width']:$this->data['height'];
 		$height = ($this->data['height']!='')?$this->data['height']:$this->data['width'];
-		header("Content-Type: $content_type");
-		$this->createThumbnail( $image, $width, $height, "", true);
-		exit;
+		$this->createThumb( $image, $width, $height, 'tmp', true);
 	} else {
 		return false;
 	}
