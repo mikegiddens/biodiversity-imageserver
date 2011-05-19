@@ -1,19 +1,17 @@
-/**
- * @copyright SilverBiology, LLC
- * @author Shashank
- * @website http://www.silverbiology.com
-*/
-
 Ext.namespace("ImagePortal")
 
 	ImagePortal.CustomeInputPopup = function(config){
 
-	var store = new Ext.data.JsonStore({
+/*	var store = new Ext.data.JsonStore({
 			url:'jsondata.json'
 		,	root:'filetype'
 		,	fields:['id','fltype']
-	})
-	
+	})*/
+	var store = new Ext.data.ArrayStore({
+			fields:['id','fltype']
+	});
+	var data = [['jpeg', 'jpeg'],['png','png'],['jpg','jpg']];
+	store.loadData(data);
 	Ext.apply(config,config,{
 			title:'Custom Size'
 		,	height:150
@@ -46,7 +44,6 @@ Ext.namespace("ImagePortal")
 					,   ref:'../flwidth'
 					,   width: 90
 					,   height:20
-					,	allowBlank: false
 					,	scope:this
 				},{       
 						fieldLabel: 'Height'
@@ -55,12 +52,11 @@ Ext.namespace("ImagePortal")
 					,   ref:'../flheight'
 					,   width: 90
 					,   height:20
-					,	allowBlank: false
 					,	scope:this
 				},{
 						xtype:'combo'
 					, 	fieldLabel: 'File Type'
-					, 	name: 'passin'
+				//	, 	name: 'passin'
 					, 	store: store
 					,	displayField: 'fltype'
 					,	valueField: 'fltype'
@@ -72,11 +68,14 @@ Ext.namespace("ImagePortal")
 					,	scope:this
 					,	editable:false
 					, 	emptyText: 'Select'
-					, 	listeners: {
+					,	forceSelection: true
+					,	triggerAction: 'all'
+					,	selectOnFocus:true
+				/*	, 	listeners: {
 							render: function(){
 								this.store.load();
 							}
-       					}
+       					}*/
 				}]
 			}]
 		});
@@ -87,23 +86,20 @@ Ext.namespace("ImagePortal")
 	Ext.extend( ImagePortal.CustomeInputPopup, Ext.Window, {
 
 		download:function(){
-			var flwidth = this.flwidth.getValue();
-			var flheight = this.flheight.getValue();
-			var fltype = this.fltype.getValue();
-			if(Ext.isEmpty(flwidth)){
-				ImagePortal.Notice.msg('Notice', 'Please enter width');
-			} if(Ext.isEmpty(flheight)){
-				ImagePortal.Notice.msg('Notice', 'Please enter height');
-			} else {
-				var url = Config.baseUrl + "resources/api/api.php?cmd=get_image&width="+flwidth+"&height="+flheight+"&image_id="+this.image_id+"&type="+this.fltype.getValue()  	
-				window.open(url,'_blank');	
-				this.hide();
-			}
+				var flwidth = this.flwidth.getValue();
+				var flheight = this.flheight.getValue();
+				var fltype = this.fltype.getValue();
+				if(Ext.isEmpty(flwidth) && Ext.isEmpty(flheight)){
+					ImagePortal.Notice.msg("Notice", "At least one dimension is required.")
+				}else{
+					var url = Config.baseUrl + "resources/api/api.php?cmd=get_image&width="+flwidth+"&height="+flheight+"&image_id="+this.image_id+"&type="+this.fltype.getValue()  	
+					window.open(url,'_blank');	
+					this.hide();
+				}
 		}
-	
 	,	cancel: function(){
 				this.hide();
-			}		
+		}		
 	});
 
 

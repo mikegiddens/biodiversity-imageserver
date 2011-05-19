@@ -49,8 +49,10 @@ Ext.extend(ImagePortal.IVIntractive, Ext.ux.GMapPanel, {
 				map.getMap().unbind(map.getMap().mapTypes.roadmap);
 			});
 		}else{
-			this.getMap().mapTypes.set('image', imgTiles);
-			this.getMap().setMapTypeId('image');
+			if(Ext.isDefined(this.getMap())){
+				this.getMap().mapTypes.set('image', imgTiles);
+				this.getMap().setMapTypeId('image');
+			}
 		}	
 		
 	}

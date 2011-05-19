@@ -166,6 +166,9 @@ ImagePortal.Image = function(config) {
 	
 	this.both = new Ext.ux.XTemplate(
 		'<div class="x-grid3-row ux-explorerview-item ux-explorerview-mixed-item">' +
+			'<tpl if="gTileProcessed == 1">'+
+				'<div class="divZoom bothIconZoomIn"  title="Double click to view large image.">&nbsp;</div>'+
+			'</tpl>'+
 			'<div class="ux-explorerview-icon"><img onerror="this.src=\'http://images.cyberfloralouisiana.com/portal/resources/images/no-image.gif\'" src="{path:this.testMirror}{barcode}_s.jpg"></div>'+
 				'<div class="ux-explorerview-text"><div class="x-grid3-cell x-grid3-td-name" unselectable="on">{barcode} {Family}<br/>{Genus} {SpecificEpithet}<br/>'+
 				'<tpl if="barcode != 0">'+
@@ -180,6 +183,9 @@ ImagePortal.Image = function(config) {
 	
 	this.smallIcons = new Ext.ux.XTemplate(
 		'<div class="x-grid3-row ux-explorerview-item ux-explorerview-small-item">'+
+		'<tpl if="gTileProcessed == 1">'+
+			'<div class="divZoom smallIconZoomIn"  title="Double click to view large image.">&nbsp;</div>'+
+		'</tpl>'+	
 		'<div class="ux-explorerview-icon"><img  ' +
 		  	'<tpl if="Family != \'\' || Genus != \'\' || SpecificEpithet != \'\' ">'+
 				' qtip="' +
@@ -193,6 +199,9 @@ ImagePortal.Image = function(config) {
 	this.smallIcons.setMirror(Config.mirrors);
 	this.tileIcons = new Ext.ux.XTemplate(
 		'<div class="x-grid3-row ux-explorerview-item ux-explorerview-tiles-item">'+
+		'<tpl if="gTileProcessed == 1">'+
+			'<div class="divZoom largeIconZoomIn" title="Double click to view large image.">&nbsp;</div>'+
+		'</tpl>'+
 		'<div class="ux-explorerview-icon"><img onerror="this.src=\'http://images.cyberfloralouisiana.com/portal/resources/images/no-image.gif\'" src="{path:this.testMirror}{barcode}_m.jpg"></div>'+
 		'<div class="ux-explorerview-text"><div class="x-grid3-cell x-grid3-td-name" unselectable="on">{barcode}<br/> {Family}<span>{Genus} {SpecificEpithet}</span></div></div></div>'
 	);
@@ -759,20 +768,21 @@ Ext.extend(ImagePortal.Image, Ext.grid.GridPanel, {
 											this.doLoad(Math.max(0, this.cursor - this.pageSize));
 											tb.on('change', function(){
 												rowindex = 99;
-												var barcode = this.store.getAt(rowindex).get('barcode');
-												var path = this.store.getAt(rowindex).get('path');
-												var interact = this.store.getAt(rowindex).get('gTileProcessed');
-												var fileName = this.store.getAt(rowindex).get('filename');
-												imv.dwnpath = path;
-												var data = this.store.getAt(rowindex);
-												imv.setBarcode(barcode,data.data.image_id, path);
-												imv.hideInteractiveTab(interact,path,fileName);
-												imv.showInfoData(data);
-												this.ownerCt.getSelectionModel().selectRow(99);
-												panel.setTitle(fileName);
-												
-												var fId = this.store.getAt(rowindex).get('flickr_PlantID');
-												imv.hideFlickerTab(fId,data);
+												if(Ext.isDefined(this.store.getAt(rowindex))){
+														var barcode = this.store.getAt(rowindex).get('barcode');
+														var path = this.store.getAt(rowindex).get('path');
+														var interact = this.store.getAt(rowindex).get('gTileProcessed');
+														var fileName = this.store.getAt(rowindex).get('filename');
+														imv.dwnpath = path;
+														var data = this.store.getAt(rowindex);
+														imv.setBarcode(barcode,data.data.image_id, path);
+														imv.hideInteractiveTab(interact,path,fileName);
+														imv.showInfoData(data);
+														this.ownerCt.getSelectionModel().selectRow(99);
+														panel.setTitle(fileName);
+														var fId = this.store.getAt(rowindex).get('flickr_PlantID');
+														imv.hideFlickerTab(fId,data);
+												}	
 												
 											}, this);
 										}
@@ -781,20 +791,21 @@ Ext.extend(ImagePortal.Image, Ext.grid.GridPanel, {
 								}
 							}	else {
 								if (rowindex > -1) {
-									var barcode = this.getStore().getAt(rowindex).get('barcode');
-									var path = this.getStore().getAt(rowindex).get('path');
-									imv.dwnpath = path
-									var data = this.getStore().getAt(rowindex);
-									var interact = this.store.getAt(rowindex).get('gTileProcessed');
-									var fileName = this.store.getAt(rowindex).get('filename');
-									imv.setBarcode(barcode,data.data.image_id, path);
-									imv.hideInteractiveTab(interact,path,fileName);
-									imv.showInfoData(data);
-									var fId = this.store.getAt(rowindex).get('flickr_PlantID');
-									imv.hideFlickerTab(fId,data);
-									
-									panel.setTitle(fileName);
-									this.getSelectionModel().selectRow(rowindex);
+									if(Ext.isDefined(this.store.getAt(rowindex))){
+											var barcode = this.getStore().getAt(rowindex).get('barcode');
+											var path = this.getStore().getAt(rowindex).get('path');
+											imv.dwnpath = path
+											var data = this.getStore().getAt(rowindex);
+											var interact = this.store.getAt(rowindex).get('gTileProcessed');
+											var fileName = this.store.getAt(rowindex).get('filename');
+											imv.setBarcode(barcode,data.data.image_id, path);
+											imv.hideInteractiveTab(interact,path,fileName);
+											imv.showInfoData(data);
+											var fId = this.store.getAt(rowindex).get('flickr_PlantID');
+											imv.hideFlickerTab(fId,data);
+											panel.setTitle(fileName);
+											this.getSelectionModel().selectRow(rowindex);
+									}	
 								} else {
 									rowindex = 0;
 								}
@@ -816,38 +827,42 @@ Ext.extend(ImagePortal.Image, Ext.grid.GridPanel, {
 													this.doLoad(this.cursor + this.pageSize);
 													tb.on('change', function(){
 														rowindex = 0;
-														var barcode = this.store.getAt(rowindex).get('barcode');
-														var path = this.store.getAt(rowindex).get('path');
-														imv.dwnpath = path;
-														var fId = this.store.getAt(rowindex).get('flickr_PlantID');
-														var data = this.store.getAt(rowindex);
-														var interact = this.store.getAt(rowindex).get('gTileProcessed');
-														var fileName = this.store.getAt(rowindex).get('filename');
-														imv.hideFlickerTab(fId,data);
-														imv.showInfoData(data);
-														imv.setBarcode(barcode,data.data.image_id, path);
-														imv.hideInteractiveTab(interact,path,fileName);
-														panel.setTitle(fileName);
-														this.ownerCt.getSelectionModel().selectRow(rowindex);
+														if(Ext.isDefined(this.store.getAt(rowindex))){
+																var barcode = this.store.getAt(rowindex).get('barcode');
+																var path = this.store.getAt(rowindex).get('path');
+																imv.dwnpath = path;
+																var fId = this.store.getAt(rowindex).get('flickr_PlantID');
+																var data = this.store.getAt(rowindex);
+																var interact = this.store.getAt(rowindex).get('gTileProcessed');
+																var fileName = this.store.getAt(rowindex).get('filename');
+																imv.hideFlickerTab(fId,data);
+																imv.showInfoData(data);
+																imv.setBarcode(barcode,data.data.image_id, path);
+																imv.hideInteractiveTab(interact,path,fileName);
+																panel.setTitle(fileName);
+																this.ownerCt.getSelectionModel().selectRow(rowindex);
+														}	
 													}, this);
 												}
 											}, this);
 											this.getBottomToolbar().moveNext();
 										}
 									} else {
-										var barcode = this.getStore().getAt(rowindex).get('image_id');
-										var path = this.getStore().getAt(rowindex).get('path');
-										imv.dwnpath = path;
-										var fId = this.getStore().getAt(rowindex).get('flickr_PlantID');
-										var data = this.getStore().getAt(rowindex);	
-										var interact = this.store.getAt(rowindex).get('gTileProcessed');
-										var fileName = this.store.getAt(rowindex).get('filename');
-										imv.hideFlickerTab(fId,data);		
-										imv.showInfoData(data);
-										imv.setBarcode(barcode,data.data.image_id, path);
-										imv.hideInteractiveTab(interact,path,fileName);	
-										panel.setTitle(fileName);
-										this.getSelectionModel().selectRow(rowindex);
+										if(Ext.isDefined(this.store.getAt(rowindex))){
+												var barcode = this.getStore().getAt(rowindex).get('image_id');
+												var path = this.getStore().getAt(rowindex).get('path');
+												imv.dwnpath = path;
+												var fId = this.getStore().getAt(rowindex).get('flickr_PlantID');
+												var data = this.getStore().getAt(rowindex);	
+												var interact = this.store.getAt(rowindex).get('gTileProcessed');
+												var fileName = this.store.getAt(rowindex).get('filename');
+												imv.hideFlickerTab(fId,data);		
+												imv.showInfoData(data);
+												imv.setBarcode(barcode,data.data.image_id, path);
+												imv.hideInteractiveTab(interact,path,fileName);	
+												panel.setTitle(fileName);
+												this.getSelectionModel().selectRow(rowindex);
+										}	
 									}
 								} else {
 									rowindex = max - 1;
