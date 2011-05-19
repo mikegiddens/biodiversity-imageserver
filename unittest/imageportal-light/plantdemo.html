@@ -10,13 +10,16 @@
 <link rel="stylesheet" type="text/css" href="../../resources/css/explorerview.css">
 <link rel="stylesheet" type="text/css" href="../../resources/css/tpl.css">   
 <link rel="stylesheet" type="text/css" href="GridFilters.css">
-<script src="maps" type="text/javascript"></script>
+	<script type="text/javascript" src="http://www.google.com/jsapi"></script>
+	<script type="text/javascript">
+			google.load("maps", "3",{"other_params":"sensor=false"});
+	</script> 
 <script type="text/javascript" src="http://extjs.cachefly.net/ext-3.3.0/adapter/ext/ext-base.js"></script>
 <script type="text/javascript" src="http://extjs.cachefly.net/ext-3.3.0/ext-all.js"></script>
 	
 	<script type="text/javascript" src="../../resources/plugins/ext.ux.xtemplate.js"></script>
 	<script type="text/javascript" src="../../resources/js/classes/GVisualizationPanel.js"></script>
- 	<script type="text/javascript" src="../../resources/js/classes/Ext.ux.GMapPanel.js"></script>	
+ 	<script type="text/javascript" src="../../resources/js/classes/Ext.ux.GMapPanel3.js"></script>	
 	<script type="text/javascript" src="../../resources/plugins/explorerview/Ext.ux.grid.ExplorerView.js"></script>
 	<script type="text/javascript" src="../../resources/plugins/TwinComboBox.js"></script>
 	<script type="text/javascript" src="../../resources/ext/gridfilters/menu/RangeMenu.js"></script>
@@ -54,7 +57,7 @@
 
 	
 	Config = {
-			baseUrl: "http://a1.silverbiology.com/biodiversityimageserver/trt/" //"http://images.cyberfloralouisiana.com/portal/" // 
+			baseUrl: "http://images.cyberfloralouisiana.com/portal/" // "http://a1.silverbiology.com/biodiversityimageserver/trt/" //
 		,	imageStoreParams: { 
 					cmd: 'images'
 				,	filter:''

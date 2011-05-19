@@ -149,6 +149,24 @@ a:hover {
 }
 .icon-rss {
     background-image:url(../images/icons/rss.png) !important;
+}  
+.largeIconZoomIn{
+	margin-left: 195px;
+    margin-top: 255px;
+}
+.bothIconZoomIn{
+	margin-left: 57px;
+    margin-top: 82px;
+}
+.divZoom{
+	background-image: url(../images/icons/zoom_in.png);
+	background-repeat: no-repeat;
+    position: absolute;
+    width: 16px;
+}	
+.smallIconZoomIn {
+	margin-left: 58px;
+    margin-top: 80px;
 }
 /* Custom rule to make the toolbar fit within a framed panel with no margin: */
 .email-form .x-panel-mc .x-panel-tbar .x-toolbar {
