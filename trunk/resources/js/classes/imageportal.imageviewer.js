@@ -101,15 +101,15 @@ Ext.extend(ImagePortal.ImageViewer, Ext.Window, {
 		}
 			
 	,	hideFlickerTab:function(fId,data){
-					if(fId != 0 && fId > 0 ){
+				/*	if(fId != 0 && fId > 0 ){
 						Ext.getCmp('tabId').unhideTabStripItem(this.flicker);
 						this.flicker.loadFilckerImage(data);
-					}else{
+					}else{*/
 						Ext.getCmp('tabId').hideTabStripItem(this.flicker);
-						if(Ext.getCmp('tabId').getActiveTab().title == 'Flickr');{
+				/*		if(Ext.getCmp('tabId').getActiveTab().title == 'Flickr');{
 								this.hideInteractiveTab(data.data.gTileProcessed,data.data.path,data.data.filename);
 							}
-					}	
+					}	*/
 			}			
 	
 	,	dnldSmallImg:function(){
