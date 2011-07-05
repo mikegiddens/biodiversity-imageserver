@@ -373,7 +373,7 @@ Class Image {
             , mysql_escape_string($this->get('image_id'))
             );
 		} else {
-            $query = sprintf("INSERT INTO `image` SET `filename` = '%s', `timestamp_modified` = now(), `barcode` = '%s', `width` = '%s', `height` = '%s', `Family` = '%s', `Genus` = '%s', `SpecificEpithet` = '%s', `flickr_PlantID` = '%s', `flickr_modified` = '%s', `flickr_details` = '%s', `picassa_PlantID` = '%s', `picassa_modified` = '%s', `gTileProcessed` = '%s', `zoomEnabled` = '%s', `processed` = '%s', `ocr_flag` = '%s', `ocr_value` = '%s', `namefinder_flag` = '%s', `namefinder_value` = '%s', `ScientificName` = '%s', `CollectionCode` = '%s' ;"
+            $query = sprintf("INSERT IGNORE INTO `image` SET `filename` = '%s', `timestamp_modified` = now(), `barcode` = '%s', `width` = '%s', `height` = '%s', `Family` = '%s', `Genus` = '%s', `SpecificEpithet` = '%s', `flickr_PlantID` = '%s', `flickr_modified` = '%s', `flickr_details` = '%s', `picassa_PlantID` = '%s', `picassa_modified` = '%s', `gTileProcessed` = '%s', `zoomEnabled` = '%s', `processed` = '%s', `ocr_flag` = '%s', `ocr_value` = '%s', `namefinder_flag` = '%s', `namefinder_value` = '%s', `ScientificName` = '%s', `CollectionCode` = '%s' ;"
             , mysql_escape_string($this->get('filename'))
             , mysql_escape_string($this->get('barcode'))
             , mysql_escape_string($this->get('width'))
@@ -1178,18 +1178,26 @@ $strips_array[$end][] = array('startRange' => $tmp_start, 'endRange' => $tmp_end
 		$body = $response->body;
 		$ar = $body->Contents;
 		$recordCount = 0;
-	
+		$srchArray = array('_s','_m','_l','_thumb');
+
 		for($i=0;$i<count($body->Contents);$i++){
 			$ky = $body->Contents[$i];
 
 			$filePath = $ky->Key;
 			$fileDetails = @pathinfo($filePath);
 
-			$this->set('filename',$fileDetails['basename']);
-			$this->set('barcode',$fileDetails['filename']);
-			$this->set('timestamp_modified',@date('d-m-Y H:i:s',@strtotime($ky->LastModified)));
-			if($this->save()) {
-				$recordCount++;
+			$count = 0;
+			$tmpStr = $fileDetails['basename'];
+			str_replace($srchArray,'',$tmpStr,$count);
+			if($count == 0) {
+				$this->set('filename',$fileDetails['basename']);
+				$this->set('barcode',$fileDetails['filename']);
+				$this->set('timestamp_modified',@date('d-m-Y H:i:s',@strtotime($ky->LastModified)));
+				if($this->save()) {
+					if($this->db->affected_rows == 1) {
+						$recordCount++;
+					}
+				}
 			}
 		}
 		if($recordCount) {

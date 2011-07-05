@@ -462,10 +462,12 @@ print_r($records);*/
 				$data['order'] = array(array('field' => trim($_REQUEST['sort']), 'dir' => trim($_REQUEST['dir'])));
 			}
 
-// 			$f = new phpFlickr(FLKR_KEY,FLKR_SECRET);
-// 			if( $f->auth_checkToken() === false) {
-// 				$f->auth('write');
-// 			}
+/*
+			$f = new phpFlickr(FLKR_KEY,FLKR_SECRET);
+			if( $f->auth_checkToken() === false) {
+				$f->auth('write');
+			}
+*/
 
 			$data['code'] = ($_REQUEST['code'] != '') ? $_REQUEST['code'] : '';
 
