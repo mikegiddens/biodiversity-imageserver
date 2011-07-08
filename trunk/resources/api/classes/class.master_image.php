@@ -163,8 +163,10 @@ Class Image {
 
 		if(IMAGE_PROCESSING == 1) {
 			$destination =  $dtls['dirname'] . '/' . $dtls['filename'] . $postfix . $extension;
-			$tmp = sprintf("convert %s -thumbnail %sx%s %s", $tmp_path,$new_width,$new_height,$destination);
-			$res = system($tmp);
+#			$tmp = sprintf("convert %s -thumbnail %sx%s %s", $tmp_path,$new_width,$new_height,$destination);
+			$tmp = sprintf("convert -limit memory 16MiB -limit map 32MiB %s -thumbnail %sx%s %s", $tmp_path,$new_width,$new_height,$destination);
+// 			$res = system($tmp);
+			$res = exec($tmp);
 			if($display_flag) {
 				$fp = fopen($destination, 'rb');
 				header("Content-Type: $content_type");
@@ -1173,12 +1175,12 @@ $strips_array[$end][] = array('startRange' => $tmp_start, 'endRange' => $tmp_end
 		$ret = $this->db->query_all($query);
 		return $ret;
 	}
-
+/*
 	function populateS3Data($response) {
 		$body = $response->body;
 		$ar = $body->Contents;
 		$recordCount = 0;
-		$srchArray = array('_s','_m','_l','_thumb');
+		$srchArray = array('_s','_m','_l','_thumb','google_tiles','tile_');
 
 		for($i=0;$i<count($body->Contents);$i++){
 			$ky = $body->Contents[$i];
@@ -1207,6 +1209,38 @@ $strips_array[$end][] = array('startRange' => $tmp_start, 'endRange' => $tmp_end
 		}
 		return $ret;
 	}
+*/
+	function populateS3Data($response) {
+		$recordCount = 0;
+		$srchArray = array('_s','_m','_l','_thumb','google_tiles','tile_');
+
+		if(count($response) && is_array($response)) {
+			foreach($response as $filePath) {
+				$fileDetails = @pathinfo($filePath);
+				$count = 0;
+				$tmpStr = $fileDetails['basename'];
+				str_replace($srchArray,'',$tmpStr,$count);
+				if($count == 0) {
+					$this->set('filename',$fileDetails['basename']);
+					$this->set('barcode',$fileDetails['filename']);
+					$this->set('timestamp_modified',@date('d-m-Y H:i:s',@strtotime($ky->LastModified)));
+
+					if($this->save()) {
+						if($this->db->affected_rows == 1) {
+							$recordCount++;
+						}
+					}
+				}
+			}
+		}
+		if($recordCount) {
+			$ret = array('success' => true, 'recordCount' => $recordCount);
+		} else {
+			$ret = array('success' => false);
+		}
+		return $ret;
+	}
+
 
 }
 ?>
