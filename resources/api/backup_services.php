@@ -23,6 +23,7 @@ set_include_path(get_include_path() . PATH_SEPARATOR . $path);
 require_once("classes/phpFlickr/phpFlickr.php");
 require_once("classes/class.master.php");
 require_once("classes/class.picassa.php");
+require_once("classes/class.misc.php");
 
 $si = new SilverImage;
 if ( $si->load( $mysql_name ) ) {
@@ -394,6 +395,29 @@ echo '<br> Temp File Created';
 			$time_taken = microtime(true) - $time_start;
 			print json_encode(array('success' => true, 'process_time' => $time_taken, 'total' => $image_count, 'images' => $images_array));
 			break;
+
+		case 'populateEnLabels':
+			$time_start = microtime(true);
+			$start_date = $si->s2l->getLatestDate();
+			$hsUrl = 'http://eria.helpingscience.org/silverarchive_engine/silverarchive.php';
+			$paramArray = array('task' => 'getEnLabels', 'start_date' => $start_date);
+			$jsonObject = CURL(trim($hsUrl),$paramArray);
+			$jsonObject = json_decode($jsonObject,true);
+			if($jsonObject['success']) {
+				$labels = $jsonObject['results'];
+				if(is_array($labels) && count($labels)) {
+					foreach($labels as $label) {
+						$si->s2l->set('labelId',$label['label_id']);
+						$si->s2l->set('evernoteAccountId',$label['evernote_account']);
+						$si->s2l->set('barcode',$label['barcode']);
+					}
+				}
+			}
+			$time_taken = microtime(true) - $time_start;
+			print json_encode(array('success' => true, 'process_time' => $time_taken, 'labelCount' => $labelCount));
+			break;
+
+# Test Tasks
 
 		case 'flickr_test':
 			$barcode = 'NLU0062321';
