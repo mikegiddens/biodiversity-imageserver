@@ -1,8 +1,7 @@
 <?php
 error_reporting(E_ALL ^ E_NOTICE);
 ini_set('display_errors', '1');
-// ini_set('memory_limit','128M');
-ini_set('memory_limit','64M');
+ini_set('memory_limit','128M');
 set_time_limit(0);
 session_start();
 ob_start();
@@ -952,27 +951,12 @@ print_r($records);*/
 /**
  * Populates the image table with the data of images present in the s3 account
  */
-/*
+
 		case 'populateS3Data':
+
 			$prefix = 'trt/';
 			$response = $si->amazon->list_objects($config['s3']['bucket'],array('prefix' => $prefix));
 			if($response->isOK()) {
-				$ret = $si->image->populateS3Data($response);
-				if($ret['success']) {
-					print(json_encode(array('success' => true, 'recordCount' => $ret['recordCount'] ) ) );
-				} else {
-					print( json_encode( array( 'success' => false ) ) );
-				}
-			} else {
-				print( json_encode( array( 'success' => false, 'error' => array( 'message' => 's3 Error' ) ) ));
-			}
-			break;
-*/
-		case 'populateS3Data':
-			$prefix = 'trt/';
-			$response = $si->amazon->get_object_list($config['s3']['bucket'],array('prefix' => $prefix));
-
-			if(is_array($response) && count($response)) {
 				$ret = $si->image->populateS3Data($response);
 				if($ret['success']) {
 					print(json_encode(array('success' => true, 'recordCount' => $ret['recordCount'] ) ) );
@@ -1172,6 +1156,12 @@ print_r($records);*/
 			} # if count file
 			print_c ( json_encode( array( 'success' => true, 'recordCount' => count($statsArray), 'stats' => $statsArray ) ) );
 			break;
+
+		case 'searchEnLabels':
+			
+			break;
+
+# Test Tasks
 
 case 'auditTest':
 echo '<pre>';
