@@ -410,6 +410,7 @@ echo '<br> Temp File Created';
 						$si->s2l->set('labelId',$label['label_id']);
 						$si->s2l->set('evernoteAccountId',$label['evernote_account']);
 						$si->s2l->set('barcode',$label['barcode']);
+						$si->s2l->save();
 					}
 				}
 			}
