@@ -41,6 +41,18 @@ Class Image {
     }
 
     /**
+    * Returns all the values in the record
+    * @return mixed
+    */
+    public function get_all() {
+        if (isset($this->record)) {
+            return( $this->record );
+        } else {
+            return( false );
+        }
+    }
+
+    /**
     * Returns a since field value
     * @return mixed
     */

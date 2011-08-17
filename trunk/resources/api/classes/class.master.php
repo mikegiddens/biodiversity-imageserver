@@ -17,6 +17,8 @@
 // 	require_once( BASE_PATH . 'resources/api/classes/class.amazonS3.php');
 	require_once( BASE_PATH . 'resources/api/classes/sdk/sdk.class.php');
 	require_once( BASE_PATH . 'resources/api/classes/class.bis2hs.php');
+	require_once( BASE_PATH . 'resources/api/classes/class.specimen2label.php');
+	require_once( BASE_PATH . 'resources/api/classes/class.master_evernote.php');
 
 	Class SilverImage {
 	
@@ -32,6 +34,8 @@
 			$this->picassa = new PicassaWeb();
 			$this->amazon = new AmazonS3($config['s3']['accessKey'],$config['s3']['secretKey']);
 			$this->bis = new Bis2hs();
+			$this->s2l = new Specimen2label();
+			$this->en = new EvernoteAccounts();
 			
 			$this->logger->db = &$this->db;
 			$this->images->db = &$this->db;
@@ -39,7 +43,8 @@
 			$this->collection->db = &$this->db;
 			$this->pqueue->db = &$this->db;
 			$this->bis->db = &$this->db;
-			
+			$this->s2l->db = &$this->db;
+			$this->en->db = &$this->db;
 		}
 
 		function load($project) {
@@ -78,6 +83,8 @@
 				, 115 => 'Database Not Loaded'
 				, 116 => 'Image Id does not exist.'
 				, 117 => 'Error in deleting from the database.'
+				, 118 => 'Value should be provided.'
+				, 119 => 'Evernote Account Id should be provided.'
 			);
 			return $ar[$error_code];
 		}
