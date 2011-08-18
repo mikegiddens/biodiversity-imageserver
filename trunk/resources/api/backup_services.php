@@ -399,11 +399,16 @@ echo '<br> Temp File Created';
 		case 'populateEnLabels':
 			$time_start = microtime(true);
 			$start_date = $si->s2l->getLatestDate();
-			$hsUrl = 'http://eria.helpingscience.org/silverarchive_engine/silverarchive.php';
-			$paramArray = array('task' => 'getEnLabels', 'start_date' => $start_date);
-			$jsonObject = CURL(trim($hsUrl),$paramArray);
+#			$hsUrl = 'http://eria.helpingscience.org/silverarchive_engine/silverarchive.php';
+/*			$paramArray = array('task' => 'getEnLabels', 'start_date' => $start_date);
+			$jsonObject = CURL(trim($hsUrl),$paramArray);*/
+
+			$url = $config['hsUrl'] . '?task=getEnLabels&start_date=' . $start_date;
+			$jsonObject = @stripslashes(@file_get_contents($url));
+
 			$jsonObject = json_decode($jsonObject,true);
 			if($jsonObject['success']) {
+				$labelCount =  $jsonObject['recordCount'];
 				$labels = $jsonObject['results'];
 				if(is_array($labels) && count($labels)) {
 					foreach($labels as $label) {

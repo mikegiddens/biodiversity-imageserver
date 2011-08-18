@@ -1158,8 +1158,61 @@ print_r($records);*/
 			break;
 
 		case 'searchEnLabels':
-			
+			$time_start = microtime(true);
+			$searchWord = urldecode(trim($_REQUEST['value']));
+			$enAccountId = trim($_REQUEST['enAccountId']);
+			if($searchWord == '') {
+				$valid = false;
+				$code = 118;
+			}
+			if($valid) {
+				$start = (trim($_REQUEST['start']) == '') ? 0 : trim($_REQUEST['start']);
+				$limit = (trim($_REQUEST['limit']) == '') ? 25 : trim($_REQUEST['limit']);
+				$data = array();
+				$accounts = $si->en->getAccounts();
+				if(is_array($accounts) && count($accounts)) {
+				foreach($accounts as $account) {
+				$evernote_details_json = json_encode($account);
+
+				$url = $config['evernoteUrl'] . '?cmd=findNotes&auth=' . $evernote_details_json . '&start=' . $start . '&limit=' . $limit . '&searchWord=' . $searchWord;
+				$rr = json_decode(@file_get_contents($url),true);
+				if($rr['success']) {
+					$labels = $rr['data'];
+					if(is_array($labels) && count($labels)) {
+						foreach($labels as $label) {
+							if(!array_key_exists($label,$data)) {
+								$ar = array();
+								$si->s2l->load_by_labelId($label);
+
+								$si->image->setdata(array('field' => 'barcode', 'value' =>$si->s2l->get('barcode') ));
+								$ar = $si->image->listImages();
+								$ar = $ar[0];
+								if($config['mode'] == 's3') {
+									$ar->path = $config['s3']['url'] . $si->image->barcode_path($si->s2l->get('barcode'));
+								} else {
+									$ar->path =  str_replace(DOC_ROOT,BASE_URL . '/', PATH_IMAGES . $si->image->barcode_path($si->s2l->get('barcode')));
+								}
+								$data[$label] = $ar;
+							}
+						}
+					}
+				} # if rr[success]
+				} # for
+				} # if labels
+				$data = @array_values($data);
+				$time = microtime(true) - $time_start;
+				print_c( json_encode( array( 'success' => true, 'processTime' => $time, 'totalCount' => $rr['totalNotes'], 'data' => $data ) ) );
+			} else {
+				print_c( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ) );
+			}
+
 			break;
+/*
+		case 'getEvernoteAccounts':
+			$accounts = $si->en->getAccounts();
+			print_c( json_encode( array( 'success' => true, 'totalCount' => @count($accounts), 'data' => $accounts ) ) );
+			break;
+*/
 
 # Test Tasks
 
