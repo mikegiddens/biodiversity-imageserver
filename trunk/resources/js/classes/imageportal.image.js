@@ -140,16 +140,6 @@ ImagePortal.Image = function(config) {
 		,	autoLoad: false
 	});	
 	
-	this.searchEvernoteStore = new Ext.data.JsonStore({
-			fields: ["enAccountId", "accountName", "username", "dateAdded"] 
-		,	proxy: this.proxy
-		,	baseParams: {
-				cmd: 'getEvernoteAccounts'
-			}
-		,	root: 'data'
-		,	autoLoad: false
-	});	
-
 	this.search_value = new Ext.ux.TwinComboBox({
 			fieldLabel: 'Collections'
 		, 	name: 'Collections'
@@ -174,29 +164,36 @@ ImagePortal.Image = function(config) {
 			}
 	});
 	
-	this.search_evernote = new Ext.ux.TwinComboBox({
-			fieldLabel: 'Evernote'
-		,	store: this.searchEvernoteStore
-		,	displayField: 'accountName'
-		,	typeAhead: false
-		,	valueField: 'enAccountId'
-		,	hideTrigger2: false
-		,	hideTrigger1: true
-		,	value: ''
-		,	width: 250
-		, 	listeners: {
-					select: function(combo, record) {
-						Ext.getCmp('imageGrid').store.baseParams.cmd = 'searchEnLabels';
-						Ext.getCmp('imageGrid').store.baseParams.value = combo.getRawValue();
-						Ext.getCmp('imageGrid').store.baseParams.enAccountId = record.data.enAccountId;
-						Ext.getCmp('imageGrid').store.load({params:{start:0, limit:100}});
+	this.search_evernote = new Ext.ux.form.SearchField({
+                store: this.store
+			,	width: 250
+			,	paramName: 'value'
+			,	onTrigger1Click : function(){
+					if(this.hasSearch){
+						this.el.dom.value = '';
+						var o = {start:0, limit:100};
+						this.store.baseParams = this.store.baseParams || {};
+						this.store.baseParams.cmd = 'images';
+						this.store.baseParams[this.paramName] = '';
+						this.store.reload({params:o});
+						this.triggers[0].hide();
+						this.hasSearch = false;
 					}
-				,	clear: function() {
-						Ext.getCmp('imageGrid').store.baseParams.cmd = 'images';
-						Ext.getCmp('imageGrid').store.baseParams.enAccountId = '';
-						Ext.getCmp('imageGrid').store.load({params:{start:0, limit:100}});
+				}
+			,	onTrigger2Click : function(){
+					var v = this.getRawValue();
+					if(v.length < 1){
+						this.onTrigger1Click();
+						return;
 					}
-			}
+					var o = {start:0, limit:100};
+					this.store.baseParams = this.store.baseParams || {};
+					this.store.baseParams.cmd = 'searchEnLabels';
+					this.store.baseParams[this.paramName] = v;
+					this.store.reload({params:o});
+					this.hasSearch = true;
+					this.triggers[0].show();
+				}
 	});
 	
 	this.both = new Ext.ux.XTemplate(
@@ -285,8 +282,8 @@ ImagePortal.Image = function(config) {
 		,	tbar: [ 
 					'Collection: '
 				, ' ', this.search_value
-				, ' ', 'Evernote: '
-				, this.search_evernote
+				, ' ', 'Search: '
+				, ' ', this.search_evernote
 				, ' ',	this.views
 				,'->' , {
 						iconCls: 'icon-rss'

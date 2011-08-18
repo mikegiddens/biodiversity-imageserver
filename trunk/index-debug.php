@@ -73,6 +73,7 @@ if (!(isset($_SESSION['user']) && isset($_SESSION['pw']))) {
 	-->
 	<script type="text/javascript" src="resources/plugins/explorerview/Ext.ux.grid.ExplorerView.js"></script>
 	<script type="text/javascript" src="resources/plugins/TwinComboBox.js"></script>
+	<script type="text/javascript" src="resources/plugins/SearchField.js"></script>
 
 	<!-- page specific -->
 	<script type="text/javascript" src="resources/js/classes/imageportal.notice.js"></script>
