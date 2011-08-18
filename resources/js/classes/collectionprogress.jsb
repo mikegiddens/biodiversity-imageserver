@@ -40,6 +40,7 @@
     <include name="GVisualizationPanel.js" />
     <include name="..\..\plugins\explorerview\Ext.ux.grid.ExplorerView.js" />
     <include name="..\..\plugins\TwinComboBox.js" />
+    <include name="..\..\plugins\SearchField.js" />
     <include name="..\..\ext\gridfilters\menu\RangeMenu.js" />
     <include name="..\..\ext\gridfilters\menu\ListMenu.js" />
     <include name="..\..\ext\gridfilters\GridFilters.js" />
@@ -114,6 +115,7 @@
     <include name="..\..\ext\gridfilters\filter\NumericFilter.js" />
     <include name="..\..\plugins\explorerview\Ext.ux.grid.ExplorerView.js" />
     <include name="..\..\plugins\ext.ux.xtemplate.js" />
+    <include name="..\..\plugins\SearchField.js" />
     <include name="..\..\plugins\TwinComboBox.js" />
     <include name="imageportal.notice.js" />
     <include name="imageportal.help.js" />
