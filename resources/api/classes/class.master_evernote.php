@@ -78,8 +78,19 @@ Class EvernoteAccounts {
 	}
 
 	public function getAccounts() {
-		$query = 'SELECT `enAccountId`,`accountName`,`username`,`dateAdded` FROM `evenote_accounts`;';
-		return $this->db->query_all($query);
+		$accounts = array();
+		$query = 'SELECT * FROM `evenote_accounts`;';
+		$acnts = $this->db->query_all($query);
+		if(is_array($acnts) && count($acnts)) {
+			foreach($acnts as $acnt) {
+				$accounts[] = array('username' => $acnt->username
+						, 'password' => $acnt->password
+						, 'consumerKey' => $acnt->consumerKey
+						, 'consumerSecret' => $acnt->consumerSecret
+						);
+			}
+		}
+		return $accounts;
 	}
 }	
 ?>
