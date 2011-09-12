@@ -1,0 +1,10 @@
+.imagezoom-tiles{
+	width: 256px;
+	height: 256px;
+	border: thin solid rgb(153, 153, 153);
+	text-align: center;
+	float: left;
+}
+.tile{
+	float: left
+}

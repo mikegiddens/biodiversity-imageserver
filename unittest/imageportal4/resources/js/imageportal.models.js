@@ -20,3 +20,7 @@ Ext.define('ImagesModel', {
 			,	'farm'
 		]
 });
+Ext.define('CollectionsModel', {
+		extend: 'Ext.data.Model'
+	,	fields: ['collection_id', 'name','code']
+});
