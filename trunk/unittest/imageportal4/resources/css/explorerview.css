@@ -1,0 +1,56 @@
+.x-grid-group-body-floatcontainer:after {
+	content: ".";
+	display: block;
+	height: 0;
+	font-size: 0;
+	clear: both;
+	visibility: hidden;
+}
+.x-grid-group-body-floatcontainer { display: inline-block; }
+/* Hides from IE Mac \*/
+* html .x-grid-group-body-floatcontainer { height: 1%; }
+.x-grid-group-body-floatcontainer { display: block; }
+/* End Hack */ 
+
+.ux-explorerview-item {
+	float: left; display: block; border: none;
+}
+
+
+body .x-panel {
+/*	margin-bottom:20px;*/
+}
+.icon-grid {
+	background-image:url(../shared/icons/fam/grid.png) !important;
+}
+
+
+/* Large Icons */
+.ux-explorerview-large-item { width: 100px; height: 100px; margin: 5px 0 0 5px; -moz-user-select: none; }
+.ux-explorerview-large-item .ux-explorerview-icon { width: 100px; height: 80px; }
+.ux-explorerview-large-item .ux-explorerview-icon td { padding-top: 8px; }
+.ux-explorerview-large-item .ux-explorerview-text { text-align: center; padding: 0 5px; white-space: nowrap; overflow: hidden; }
+
+/* Medium Icons */
+.ux-explorerview-medium-item { width: 80px; height: 80px; margin: 5px 0 0 5px; -moz-user-select: none; }
+.ux-explorerview-medium-item .ux-explorerview-icon { width: 80px; height: 60px; }
+.ux-explorerview-medium-item .ux-explorerview-icon td { padding-top: 8px; }
+.ux-explorerview-medium-item .ux-explorerview-text { text-align: center; padding: 0 5px; white-space: nowrap; overflow: hidden; }
+
+/* Small Icons */
+.x-grid3-row-selected .ux-explorerview-small-item { background-color: #666 !important; }
+.ux-explorerview-small-item { width: 85px; height: 100px; margin: 3px 0 0 5px; -moz-user-select: none; padding: 2px; background-color: #EFEFEF }
+.ux-explorerview-small-item .ux-explorerview-icon { float: left; width: 85px; height: 100px; }
+.ux-explorerview-small-item .ux-explorerview-text { float: left; width: 150px; padding-top: 2px; white-space: nowrap; overflow: hidden; }
+
+/* Mixed Icons */
+.ux-explorerview-mixed-item { height: 108px; margin: 0 0 0 0; -moz-user-select: none; }
+.ux-explorerview-mixed-item .ux-explorerview-icon { float: left; width: 100px; height: 100px; padding: 3px; }
+.ux-explorerview-mixed-item .ux-explorerview-text { float: left; width: 150px; margin-left: 10px; padding-top: 10px; white-space: nowrap; overflow: hidden; }
+.ux-explorerview-mixed-item .ux-explorerview-text span { color: #777; }
+
+/* Tiles */
+.ux-explorerview-tiles-item { width: 273px; height: 330px; margin: 0 0 0 0; -moz-user-select: none; text-align: center; }
+.ux-explorerview-tiles-item .ux-explorerview-icon { float: left; width: 273px; height: 275px; border-bottom: solid thin #9f9f9f; }
+.ux-explorerview-tiles-item .ux-explorerview-text { float: left; width: 120px; padding: 8px 0 0 5px; white-space: nowrap; overflow: hidden; }
+.ux-explorerview-tiles-item .ux-explorerview-text span { color: #777; }

@@ -8,14 +8,16 @@ Ext.onReady(function(){
 		e.preventDefault();
 	});
 	
-	var imagesgird = Ext.create('ImagePortal.ImagesGird', {});
+	
+	var images = Ext.create('ImagePortal.Images', {});
+	
 	var imagepanel = Ext.create('Ext.panel.Panel', {
 			height: 500
 		,	width: 800
 		,	title: 'Images'
 		, 	renderTo: 'imagepanel'
 		,	layout: 'fit'
-		,	items: [imagesgird]
+		,	items: [images]
 	});
 
 });

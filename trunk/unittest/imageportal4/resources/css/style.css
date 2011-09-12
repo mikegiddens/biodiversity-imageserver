@@ -1,0 +1,44 @@
+.icon_cycleImages {
+    background-image: url(../images/icons/images.png) !important;
+}
+.icon_image {
+    background-image: url(../images/icons/image.png) !important;
+}
+.icon-rss {
+    background-image: url(../images/icons/rss.png) !important;
+}
+.divZoom {
+    background-image: url(../images/icons/zoom_in.png);
+    background-repeat: no-repeat;
+    position: absolute;
+    width: 16px;
+}
+.smallIconZoomIn {
+    margin-left: 58px;
+    margin-top: 80px;
+}
+.largeIconZoomIn {
+    margin-left: 195px;
+    margin-top: 255px;
+}
+.bothIconZoomIn {
+    margin-left: 57px;
+    margin-top: 82px;
+}
+#imagesview  .x-row {
+    border: 1px solid;
+    cursor: default;
+    width: 100%;
+	border-color: #FFFFFF #EDEDED #EDEDED;
+}
+#imagesview .x-item-over {
+    background-color: #EFEFEF;
+    background-image: url(../images/default/grid/row-over.gif);
+    border-color: #DDDDDD;
+}
+#imagesview  .x-item-selected {
+    background-color: #DFE8F6 !important;
+    background-image: none;
+    border-color: #A3BAE9;
+}
+

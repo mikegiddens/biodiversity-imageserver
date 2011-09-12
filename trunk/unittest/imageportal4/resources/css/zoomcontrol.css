@@ -1,0 +1,45 @@
+.imagezoom-opencursor{
+	cursor: url(../images/icons/openhand_8_8.cur) ,pointer;
+}
+.imagezoom-closecursor{
+	cursor: url(../images/icons/closedhand_8_8.cur) ,pointer;
+}
+.imagezoom-copyright{
+	bottom: 7px;
+    color: grey;
+    font-size: 12px;
+    position: absolute;
+    right: 8px;
+    z-index: 10000;
+}
+.imagezoom-rototecontrol {
+	bottom: 4px;
+    left: 40%;
+    position: absolute;
+    z-index: 10000;
+}
+.imagezoom-pancontrol{
+	cursor: pointer;
+    left: 5px;
+    position: absolute;
+    top: 8%;
+    z-index: 10000;
+}
+.imagezoom-scaleBar {
+    -moz-user-select: none;
+    bottom: 4px;
+    color: grey;
+    font-family: Arial,sans-serif;
+    font-size: 11px;
+    height: 26px;
+    left: 15px;
+    position: absolute;
+    width: 114px;
+	z-index: 10000;
+}
+.imagezoom-zoomcontrol{
+	left: 24px;
+    position: absolute;
+    top: 30%;
+    z-index: 10000;
+}
