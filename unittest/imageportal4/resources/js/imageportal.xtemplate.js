@@ -32,6 +32,10 @@ Ext.define('ImagePortal.XTemplate', {
 			return v.view;
 		}
 		
+	,	setDefaultView: function(view){
+			this.view = view;
+		}	
+		
 	,	setMirror: function(value){
 			if(value != null){
 				if(!Ext.isEmpty(value)){
