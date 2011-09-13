@@ -10,6 +10,7 @@ Ext.define('ImagePortal.ImagesView', {
 	,	overItemCls: 'x-item-over'
     ,	singleSelect: true
     ,	cls: 'x-image-view'
+	,	currentView: 'small'
 	,	deferEmptyText: false
 	,	initComponent: function(){
 				this.emptyText =  '<div style="padding:10px;">No images available.</div>';
@@ -53,6 +54,7 @@ Ext.define('ImagePortal.ImagesView', {
 					,	  '</tpl>'
 					,	'</tpl>'
 				);
+				this.imageTpl.setDefaultView(this.currentView);
 				this.imageTpl.setMirror(Config.mirrors || [] );
 				this.tpl = this.imageTpl;
 				this.callParent();	

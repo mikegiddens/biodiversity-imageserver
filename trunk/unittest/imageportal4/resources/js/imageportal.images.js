@@ -5,7 +5,8 @@ Ext.define('ImagePortal.Images', {
 	,	id: 'images'
 	,	autoScroll: true
 	,	layout: 'card'
-	,	activeItem: 0
+	,	activeItem: 1
+	,	currentView: 'small'
 	,	scriptTag: false
 	,	initComponent: function() {
 			if (Config.mode != 'local') {
@@ -145,21 +146,21 @@ Ext.define('ImagePortal.Images', {
 				,	scope: this
 				,	menu: {
 						items: [{
-								text: 'Details'
-							,	value: 'details'
+								text: 'Small'
+							,	value: 'small'
 							,	checked: true
 							,	iconCls: 'icon_cycleImages'
 						},{
-								text: 'Small'
-							,	value: 'small'
+								text: 'Large'
+							,	value: 'large'
 							,	iconCls: 'icon_cycleImages'
 						},{
 								text: 'Both'
 							,	value: 'both'
 							,	iconCls: 'icon_cycleImages'
 						},{
-								text: 'Large'
-							,	value: 'large'
+								text: 'Details'
+							,	value: 'details'
 							,	iconCls: 'icon_cycleImages'
 						}]
 					}
@@ -183,7 +184,8 @@ Ext.define('ImagePortal.Images', {
 			
 			this.imagesview = Ext.create('ImagePortal.ImagesView', {
 					store: this.store
-				,	scope: this	
+				,	scope: this
+				,	currentView: this.currentView
 			});
 			
 			this.imagesgird.on({
@@ -212,7 +214,6 @@ Ext.define('ImagePortal.Images', {
 	
 	,	showContextMenu: function(view, record, item, index, e, opt){
 			var items = [];
-			console.log(record, item, index, "Index")
 			items.push({
 					text: 'View Image'
 				,	iconCls: 'icon_image'
@@ -233,16 +234,79 @@ Ext.define('ImagePortal.Images', {
 		}
 		
 	,	showWindow: function(data){
-			var imageviewer = Ext.create('ImagePortal.ImageViewer', {
-					imagePath: data.path
-				,	imageBarcode: data.barcode
-				,	imageId: data.image_id
-			});
+			var imageviewer = Ext.create('ImagePortal.ImageViewer', {});
 			imageviewer.show();
-			var url = "http://a1.silverbiology.com/silvermeasure/unittests/imagezoom/sample/{2}/sample_{3}.jpg"
-			imageviewer.loadImage(url);
-		}	
-	
+			imageviewer.on('onPrevious', this.previousClick, this)
+			imageviewer.on('onNext', this.nextClick, this)
+			imageviewer.loadTabs(data);
+		}
+		
+	,	nextClick: function(imageviewer){
+			var currentActive = this.getLayout().getActiveItem().currentActive;
+				var pageLimit = this.store.pageSize-1;
+				if(currentActive == 'imageView'){
+					var selected = this.imagesview.getSelectionModel().getSelection();
+					if(!Ext.isEmpty(selected)){
+						var currentIndex = this.store.indexOf(selected[0]);
+						if(currentIndex == pageLimit){
+							Ext.Msg.alert('Notice', 'This last record');
+						}else {
+							++currentIndex;
+							var rec = this.store.getAt(currentIndex);
+							this.imagesview.getSelectionModel().doSelect(currentIndex);
+							imageviewer.loadTabs(rec.data);
+						}
+					}
+				}
+				if(currentActive == 'imageGrid'){
+					var selected = this.imagesgird.getSelectionModel().getSelection();
+					if(!Ext.isEmpty(selected)){
+						var currentIndex = this.store.indexOf(selected[0]);
+						if(currentIndex == pageLimit){
+							Ext.Msg.alert('Notice', 'This first record');
+						}else {
+							++currentIndex;
+							var rec = this.store.getAt(currentIndex);
+							this.imagesgird.getSelectionModel().doSelect(currentIndex);
+							imageviewer.loadTabs(rec.data);
+						}
+					}
+				}
+		}
+			
+	,	previousClick: function(imageviewer){
+				var currentActive = this.getLayout().getActiveItem().currentActive;
+				var pageStart = 0;
+				if(currentActive == 'imageView'){
+					var selected = this.imagesview.getSelectionModel().getSelection();
+					if(!Ext.isEmpty(selected)){
+						var currentIndex = this.store.indexOf(selected[0]);
+						if(currentIndex == pageStart){
+							Ext.Msg.alert('Notice', 'This first record');
+						}else {
+							--currentIndex;
+							var rec = this.store.getAt(currentIndex);
+							this.imagesview.getSelectionModel().doSelect(currentIndex);
+							imageviewer.loadTabs(rec.data);
+						}
+					}
+				}
+				if(currentActive == 'imageGrid'){
+					var selected = this.imagesgird.getSelectionModel().getSelection();
+					if(!Ext.isEmpty(selected)){
+						var currentIndex = this.store.indexOf(selected[0]);
+						if(currentIndex == pageStart){
+							Ext.Msg.alert('Notice', 'This first record');
+						}else {
+							--currentIndex;
+							var rec = this.store.getAt(currentIndex);
+							this.imagesgird.getSelectionModel().doSelect(currentIndex);
+							imageviewer.loadTabs(rec.data);
+						}
+					}
+				}
+		}
+		
 	,	changeView: function(cycleButton, activeItem) {
 			var currentActive = this.getLayout().getActiveItem().currentActive;
 			switch ( activeItem.value ) {
