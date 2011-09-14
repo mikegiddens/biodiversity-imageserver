@@ -100,7 +100,7 @@ Ext.define('ImagePortal.Images', {
 					}
 			});
 			
-			this.collectionCombo = Ext.create('Ext.form.field.ComboBox', {
+			this.collectionCombo = Ext.create('ImagePortal.TwinComboBox', {
 					store: collectionStore
 				,	width: 200
 				,   mode: 'local'
