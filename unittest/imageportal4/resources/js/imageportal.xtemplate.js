@@ -2,17 +2,13 @@ Ext.define('ImagePortal.XTemplate', {
 		extend: 'Ext.XTemplate'
 	,	staticIndex:0
 	
-	,	convDate: function(val){
-		/*	var value = val;
+	,	convDate: function(value){
 			if (value == '0000-00-00 00:00:00') 
 				return '';
 			else {
-				var dt = Date.parseDate(value, "Y-m-d H:i:s", true);
-				var dt1 = new Date(dt);
-				var dt2= dt1.format('d-M-Y');
-				return dt2;
-			}*/
-			return val;
+				var d = new Date(value.split(' ')[0]);
+				return Ext.util.Format.date(d, 'd-M-Y');
+			}
 		}
 	
 	,	getMirror: function(value){
