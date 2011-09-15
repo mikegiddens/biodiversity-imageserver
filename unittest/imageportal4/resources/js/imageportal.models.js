@@ -4,7 +4,7 @@ Ext.define('ImagesModel', {
 				'image_id'
 			,	'filename'
 			,	'timestamp_modified'
-			,	'barcode'								
+			,	'barcode'
 			,	'Family'
 			,	'Genus'
 			,	'SpecificEpithet'
