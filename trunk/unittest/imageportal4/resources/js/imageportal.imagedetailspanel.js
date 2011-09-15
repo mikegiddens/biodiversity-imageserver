@@ -3,11 +3,12 @@ Ext.define('ImagePortal.ImageDetailsPanel', {
 	,	alias: 'widget.imagedetailspanel'
 	,	border: false
 	,	title: 'Image Info'
+	,	layout: 'fit'
 	,	autoScroll: true
 	,	initComponent: function() {
 			this.filedTpl = new Ext.XTemplate(
 					'<div style="visibility: visible; height: 100%; position: relative; width: 100%;" class="dataview" id="dataview3">'
-				,		'<div style="padding: 1px; height: 22px;border-top:1px solid #AAAAAA;" class="detailrow1">'
+				//,		'<div style="padding: 1px; height: 22px;border-top:1px solid #AAAAAA;" class="detailrow1">'
 				,		'<div style="margin-left: 24px; margin-top: 5px;"></div>'
 				,		'<tpl if="image_id != 0">'
 				,			'<div class="detailrow1"><div class="detaillabel">Image Id at</div><div class="detailtext">{image_id}</div></div>'
@@ -30,42 +31,42 @@ Ext.define('ImagePortal.ImageDetailsPanel', {
 				,		'<tpl if="SpecificEpithet!= 0">'
 				,			'<div class="detailrow1"><div class="detaillabel">Specific Epithet</div><div class="detailtext">{SpecificEpithet}</div></div>'
 				,		'</tpl>'
-			//	,		'<tpl if="flickr_PlantID!= 0">'
+				,		'<tpl if="flickr_PlantID!= 0">'
 				,			'<div class="detailrow1"><div class="detaillabel">Flickr PlantID</div><div class="detailtext">{flickr_PlantID}</div></div>'
-			//	,		'</tpl>'
+				,		'</tpl>'
 			//	,		'<tpl if="flickr_PlantID== 0">'
 			//	,			'<div class="detailrow1"><div class="detaillabel">Flickr PlantID</div><div class="detailtext">&nbsp;</div></div>'
 			//	,		'</tpl>'
-			//	,		'<tpl if="picassa_PlantID!= 0">'
+				,		'<tpl if="picassa_PlantID!= 0">'
 				,			'<div class="detailrow1"><div class="detaillabel">Picassa PlantID</div><div class="detailtext">{picassa_PlantID}</div></div>'
-			//	,		'</tpl>'
+				,		'</tpl>'
 			//	,		'<tpl if="picassa_PlantID== 0">'
 			//	,			'<div class="detailrow1"><div class="detaillabel">Picassa PlantID</div><div class="detailtext">&nbsp;</div></div>'
 			//	,		'</tpl>'
 				,		'<tpl if="picassa_modified!= 0">'
 				,			'<div class="detailrow1"><div class="detaillabel">Picassa Modified</div><div class="detailtext">{picassa_modified}</div></div>'
 				,		'</tpl>'
-				,		'<tpl if="picassa_modified== 0">'
-				,			'<div class="detailrow1"><div class="detaillabel">Picassa Modified</div><div class="detailtext">&nbsp;</div></div>'
-				,		'</tpl>'
+			//	,		'<tpl if="picassa_modified== 0">'
+			//	,			'<div class="detailrow1"><div class="detaillabel">Picassa Modified</div><div class="detailtext">&nbsp;</div></div>'
+			//	,		'</tpl>'
 				,		'<tpl if="gTileProcessed!= 0">'
 				,			'<div class="detailrow1"><div class="detaillabel">Tiled Processed</div><div class="detailtext">{gTileProcessed}</div></div>'
 				,		'</tpl>'
-				,		'<tpl if="gTileProcessed== 0">'
-				,			'<div class="detailrow1"><div class="detaillabel">Tiled Processed</div><div class="detailtext">&nbsp;</div></div>'
-				,		'</tpl>'
-			//	,		'<tpl if="zoomEnabled!= 0">'
-				,			'<div class="detailrow1"><div class="detaillabel">Zoom Enabled</div><div class="detailtext">{zoomEnabled}</div></div>'
+			//	,		'<tpl if="gTileProcessed== 0">'
+			//	,			'<div class="detailrow1"><div class="detaillabel">Tiled Processed</div><div class="detailtext">&nbsp;</div></div>'
 			//	,		'</tpl>'
+				,		'<tpl if="zoomEnabled!= 0">'
+				,			'<div class="detailrow1"><div class="detaillabel">Zoom Enabled</div><div class="detailtext">{zoomEnabled}</div></div>'
+				,		'</tpl>'
 			//	,		'<tpl if="zoomEnabled== 0">'
 			//	,			'<div class="detailrow1"><div class="detaillabel">Zoom Enabled</div><div class="detailtext">&nbsp;</div></div>'
 			//	,		'</tpl>'
 				,		'<tpl if="processed!= 0">'
 				,			'<div class="detailrow1"><div class="detaillabel">Processed</div><div class="detailtext">{processed}</div></div>'
 				,		'</tpl>'
-				,		'<tpl if="processed == 0">'
-				,			'<div class="detailrow1"><div class="detaillabel">Processed</div><div class="detailtext">&nbsp;</div></div>'
-				,		'</tpl>'
+			//	,		'<tpl if="processed == 0">'
+			//	,			'<div class="detailrow1"><div class="detaillabel">Processed</div><div class="detailtext">&nbsp;</div></div>'
+			//	,		'</tpl>'
 				,		'</div>'
 				,	'</div>'
 			);
@@ -73,5 +74,8 @@ Ext.define('ImagePortal.ImageDetailsPanel', {
 		}
 	,	loadInfo:function(data){
 			this.filedTpl.overwrite( this.body, data );
-		}	
+		}
+	,	resetInfo: function(){
+			this.loadInfo({});
+		}		
 });

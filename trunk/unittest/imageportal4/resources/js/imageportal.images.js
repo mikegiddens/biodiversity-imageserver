@@ -1,16 +1,42 @@
+Ext.override(Ext.toolbar.Paging, {
+	 updateInfo : function(){
+        var me = this,
+            displayItem = me.child('#displayItem'),
+            store = me.store,
+            pageData = me.getPageData(),
+            count, msg;
+			pageData.fromRecord = Ext.util.Format.number(pageData.fromRecord, '0,0');
+			pageData.toRecord = Ext.util.Format.number(pageData.toRecord, '0,0');
+			pageData.total = Ext.util.Format.number(pageData.total, '0,0');
+        if (displayItem) {
+            count = store.getCount();
+            if (count === 0) {
+                msg = me.emptyMsg;
+            } else {
+                msg = Ext.String.format(
+                    me.displayMsg,
+                    pageData.fromRecord,
+                    pageData.toRecord,
+                    pageData.total
+                );
+            }
+            displayItem.setText(msg);
+            me.doComponentLayout();
+        }
+    }
+});
 Ext.define('ImagePortal.Images', {
 		extend: 'Ext.panel.Panel'	
 	,	alias: 'widget.images'
 	,	border: false
 	,	id: 'images'
-	,	autoScroll: true
 	,	layout: 'card'
 	,	activeItem: 1
 	,	currentView: 'small'
-	,	scriptTag: false
+	,	requestType: 'ajax'
 	,	initComponent: function() {
 			if (Config.mode != 'local') {
-				this.scriptTag = true;
+				this.requestType = 'jsonp';
 			}
 		
 			this.store = Ext.create('Ext.data.Store', {
@@ -19,14 +45,13 @@ Ext.define('ImagePortal.Images', {
 				,	remoteSort: true
 				,	model: 'ImagesModel'
 				,	proxy: {
-							type: 'ajax'
+							type: this.requestType
 						,	url : Config.baseUrl + 'resources/api/api.php'
 						,	reader: {
 									type: 'json'
 								,	root: 'data'
 								,	totalProperty: 'totalCount'
 							}
-						,	scriptTag: this.scriptTag
 						,	extraParams: {
 									cmd: 'images'
 								,	filters: ''
@@ -202,9 +227,17 @@ Ext.define('ImagePortal.Images', {
 			
 			this.imagesviewPanel = Ext.create('Ext.panel.Panel', {
 					currentActive: 'imageView'
-				,	layout: 'fit'
 				,	border: false
-				,	items: [this.imagesview]	
+				,	layout: 'fit'
+				,	scope: this
+				,	items: [this.imagesview]
+				,	bbar: Ext.create('Ext.toolbar.Paging', {
+							store: this.store
+						,	scope: this	
+						,	displayInfo: true
+						,	displayMsg: 'Displaying Specimen Images {0} - {1} of {2}'
+						,	emptyMsg: 'No images available.'
+					})
 			});
 			
 			this.items = [this.imagesgird, this.imagesviewPanel];

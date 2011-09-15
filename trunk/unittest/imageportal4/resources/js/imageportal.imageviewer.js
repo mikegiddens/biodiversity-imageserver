@@ -6,8 +6,8 @@ Ext.define('ImagePortal.ImageViewer', {
 	,	width: 800
 	,	height: 500
 	,	modal: true
-	,	autoScroll: true
 	,	layout: 'fit'
+	,	autoScroll: true
 	,	maximizable: true
 	,	imagePath: ''
 	,	imageId: ''
@@ -20,13 +20,16 @@ Ext.define('ImagePortal.ImageViewer', {
 				,	scaleControl: false
 				,	title: 'Specimen Image'
 			});
-			this.largeimagepanel = Ext.create('ImagePortal.ImageDetailsPanel', {
+		/*	this.largeimagepanel = Ext.create('ImagePortal.ImageDetailsPanel', {
 					title: 'Specimen Image'
-			});
+			});*/
 			this.imageTabs = Ext.create('Ext.tab.Panel', {
-					border: false
-				,	activeTab: 0	
-				,	items: [this.imagezoompanel, this.largeimagepanel, this.imageinfopanel]	
+					defaults: {
+						border: false
+					}
+				,	activeTab: 0
+		//		,	items: [this.imagezoompanel, this.largeimagepanel, this.imageinfopanel]	
+				,	items: [this.imagezoompanel, this.imageinfopanel]	
 			});
 			this.tools = [{
 					type: 'left'
@@ -78,11 +81,12 @@ Ext.define('ImagePortal.ImageViewer', {
 		
 	,	loadTabs: function(data){
 			if(data.gTileProcessed == 1){
-				this.hideTab(1);
-				this.showTab(0);
-				this.imageTabs.setActiveTab(0);
+			//	this.hideTab(1);
+			//	this.showTab(0);
+			//	this.imageTabs.setActiveTab(0);
 				var myMask = new Ext.LoadMask(this.imagezoompanel.body, {msg:"Please wait..."});
 				myMask.show();
+				this.imageinfopanel.resetInfo();
 				this.imagezoompanel.resetImage();
 				Ext.Ajax.request({
 						url : 'http://images.cyberfloralouisiana.com/viewer/resources/api/api.php'
@@ -90,13 +94,14 @@ Ext.define('ImagePortal.ImageViewer', {
 								cmd: 'loadImage'
 							,	filename: data.filename
 						}
-					,	method: 'GET'
 					,	scope: this
 					,	success: function (response) {
 							var o = Ext.decode(response.responseText);
 							if(o.success){
 								var imageName = "{2}/tile_{3}.jpg"
 								this.imagezoompanel.loadImage(o.url + imageName);
+								this.imagezoompanel.updateCopyright(o.copyright);
+								this.imageinfopanel.loadInfo(data);
 								myMask.hide();
 							} else {
 								Ext.Msg.alert('Error', 'Error in loading image.');
@@ -109,16 +114,16 @@ Ext.define('ImagePortal.ImageViewer', {
 						}
 				});
 			}else {
-				this.hideTab(0);
-				this.showTab(1);
-				this.imageTabs.setActiveTab(1);
+			//	this.hideTab(0);
+			//	this.showTab(1);
+			//	this.imageTabs.setActiveTab(1);
 			}
-			this.imageinfopanel.loadInfo(data);
 			this.imagePath = data.path;
 			this.imageBarcode = data.barcode;
 			this.imageId = data.image_id;
+			this.doComponentLayout();
 		}
-	
+	/*
 	,	hideTab: function(tabId){
 			var tab = this.imageTabs.tabBar.items.items[tabId];
 			if(Ext.isDefined(tab)){
@@ -126,6 +131,7 @@ Ext.define('ImagePortal.ImageViewer', {
 					tab.hide();
 				}
 			}
+			this.doComponentLayout();
 		}
 		
 	,	showTab: function(tabId){
@@ -135,7 +141,8 @@ Ext.define('ImagePortal.ImageViewer', {
 					tab.show();
 				}
 			}
-		}	
+			this.doComponentLayout();
+		}	*/
 	
 	,	dnldSmallImg:function(){
 			window.open(this.imagePath + this.imageBarcode +'_s.jpg','_blank');

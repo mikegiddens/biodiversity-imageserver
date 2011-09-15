@@ -2,7 +2,6 @@ Ext.define('ImagePortal.ImagesView', {
 		extend: 'Ext.view.View'
 	,	alias: 'widget.imagesview'
 	,	id: 'imagesview'
-	,	layout: 'fit'
 	,	border: false
 	,	autoScroll: true
 	,	itemSelector: 'div.thumb-wrap'
