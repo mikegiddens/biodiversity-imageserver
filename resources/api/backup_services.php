@@ -408,14 +408,17 @@ echo '<br> Temp File Created';
 
 			$jsonObject = json_decode($jsonObject,true);
 			if($jsonObject['success']) {
-				$labelCount =  $jsonObject['recordCount'];
+// 				$labelCount =  $jsonObject['recordCount'];
 				$labels = $jsonObject['results'];
 				if(is_array($labels) && count($labels)) {
 					foreach($labels as $label) {
 						$si->s2l->set('labelId',$label['label_id']);
 						$si->s2l->set('evernoteAccountId',$label['evernote_account']);
 						$si->s2l->set('barcode',$label['barcode']);
-						$si->s2l->save();
+						$si->s2l->set('dateAdded',$label['date_added']);
+						if($si->s2l->save()) {
+							$labelCount++;
+						}
 					}
 				}
 			}
