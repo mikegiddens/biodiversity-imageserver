@@ -1170,13 +1170,16 @@ print_r($records);*/
 				$limit = (trim($_REQUEST['limit']) == '') ? 25 : trim($_REQUEST['limit']);
 				$data = array();
 				$accounts = $si->en->getAccounts();
+				$totalNotes = 0;
 				if(is_array($accounts) && count($accounts)) {
+				$limit = ceil($limit/(count($accounts)));
 				foreach($accounts as $account) {
 				$evernote_details_json = json_encode($account);
 
-				$url = $config['evernoteUrl'] . '?cmd=findNotes&auth=' . $evernote_details_json . '&start=' . $start . '&limit=' . $limit . '&searchWord=' . $searchWord;
+				$url = $config['evernoteUrl'] . '?cmd=findNotes&auth=' . $evernote_details_json . '&start=' . $start . '&limit=' . $limit . '&searchWord=' . urlencode($searchWord);
 				$rr = json_decode(@file_get_contents($url),true);
 				if($rr['success']) {
+					$totalNotes += $rr['totalNotes'];
 					$labels = $rr['data'];
 					if(is_array($labels) && count($labels)) {
 						foreach($labels as $label) {
@@ -1201,7 +1204,7 @@ print_r($records);*/
 				} # if labels
 				$data = @array_values($data);
 				$time = microtime(true) - $time_start;
-				print_c( json_encode( array( 'success' => true, 'processTime' => $time, 'totalCount' => $rr['totalNotes'], 'data' => $data ) ) );
+				print_c( json_encode( array( 'success' => true, 'processTime' => $time, 'totalCount' => $totalNotes, 'data' => $data ) ) );
 			} else {
 				print_c( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ) );
 			}

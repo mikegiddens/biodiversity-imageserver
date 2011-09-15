@@ -67,10 +67,11 @@ Class Specimen2label {
 	}
 
 	public function save() {
-		$query = sprintf("INSERT IGNORE INTO `specimen2label` SET `labelId` = '%s', `evernoteAccountId` = '%s', `barcode` = '%s', `dateAdded` = NOW();"
+		$query = sprintf("INSERT IGNORE INTO `specimen2label` SET `labelId` = '%s', `evernoteAccountId` = '%s', `barcode` = '%s', `dateAdded` = '%s';"
 		, mysql_escape_string($this->get('labelId'))
 		, mysql_escape_string($this->get('evernoteAccountId'))
 		, mysql_escape_string($this->get('barcode'))
+		, mysql_escape_string($this->get('dateAdded'))
 		);
 		if( $this->db->query($query) ) {
 			return( true );
