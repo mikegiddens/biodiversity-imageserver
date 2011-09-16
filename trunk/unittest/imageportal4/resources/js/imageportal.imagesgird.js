@@ -26,7 +26,7 @@ Ext.define('ImagePortal.ImagesGird', {
 				,	filters: [{
 							type: 'date'
 						,	dataIndex: 'timestamp_modified'
-					},]
+					}]
 			}
 			
 			this.features =  [filters];
