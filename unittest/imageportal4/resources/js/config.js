@@ -7,6 +7,7 @@ Config = {
 					,	"images4.cyberfloralouisiana.com"
 				]
 		}]
-	,	mode: 'local'	
+	,	mode: 'local'
+	,	hideRss: true
 	,	baseUrl: 'http://images.cyberfloralouisiana.com/portal/'
 }

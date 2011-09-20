@@ -7,6 +7,7 @@ Ext.define('ImagePortal.ImagesView', {
 	,	itemSelector: 'div.thumb-wrap'
     ,	multiSelect:false
 	,	overItemCls: 'x-item-over'
+	,	trackOver: true
     ,	singleSelect: true
     ,	cls: 'x-image-view'
 	,	currentView: 'small'
