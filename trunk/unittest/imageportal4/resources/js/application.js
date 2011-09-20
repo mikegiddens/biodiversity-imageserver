@@ -9,7 +9,7 @@ Ext.onReady(function(){
 	});
 	
 	
-	var images = Ext.create('ImagePortal.Images', {});
+	var images = Ext.create('ImagePortal.ImagePanelRemote', {});
 	
 	var imagepanel = Ext.create('Ext.panel.Panel', {
 			height: 500

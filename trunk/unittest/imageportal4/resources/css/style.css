@@ -63,13 +63,14 @@
 }
 #imagesview .x-item-over {
     background-color: #EFEFEF;
-    background-image: url(../images/default/grid/row-over.gif);
     border-color: #DDDDDD;
 }
 #imagesview  .x-item-selected {
-    background-color: #DFE8F6 !important;
+    background-color: #CCCCCC !important;
     background-image: none;
-    border-color: #A3BAE9;
+    border-color: #ACACAC;
+}
+.thumb-wrap{
 }
 .dataview {
     background-color: #FDFFF2;

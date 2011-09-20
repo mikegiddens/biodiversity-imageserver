@@ -1,30 +1,3 @@
-Ext.override(Ext.toolbar.Paging, {
-	 updateInfo : function(){
-        var me = this,
-            displayItem = me.child('#displayItem'),
-            store = me.store,
-            pageData = me.getPageData(),
-            count, msg;
-			pageData.fromRecord = Ext.util.Format.number(pageData.fromRecord, '0,0');
-			pageData.toRecord = Ext.util.Format.number(pageData.toRecord, '0,0');
-			pageData.total = Ext.util.Format.number(pageData.total, '0,0');
-        if (displayItem) {
-            count = store.getCount();
-            if (count === 0) {
-                msg = me.emptyMsg;
-            } else {
-                msg = Ext.String.format(
-                    me.displayMsg,
-                    pageData.fromRecord,
-                    pageData.toRecord,
-                    pageData.total
-                );
-            }
-            displayItem.setText(msg);
-            me.doComponentLayout();
-        }
-    }
-});
 Ext.define('ImagePortal.Images', {
 		extend: 'Ext.panel.Panel'	
 	,	alias: 'widget.images'
@@ -38,7 +11,6 @@ Ext.define('ImagePortal.Images', {
 			if (Config.mode != 'local') {
 				this.requestType = 'jsonp';
 			}
-		
 			this.store = Ext.create('Ext.data.Store', {
 					pageSize: 100
 				,	autoLoad: true
@@ -56,10 +28,36 @@ Ext.define('ImagePortal.Images', {
 									cmd: 'images'
 								,	filters: ''
 								,	code: ''
-							}	
+							}
+						,	simpleSortMode: true	
 					}	
 			});
-			
+			this.views =  Ext.create('Ext.button.Cycle', {
+					showText: true
+				,	prependText: 'View as '
+				,	scope: this
+				,	menu: {
+						items: [{
+								text: 'Small'
+							,	value: 'small'
+							,	checked: true
+							,	iconCls: 'icon_cycleImages'
+						},{
+								text: 'Large'
+							,	value: 'large'
+							,	iconCls: 'icon_cycleImages'
+						},{
+								text: 'Both'
+							,	value: 'both'
+							,	iconCls: 'icon_cycleImages'
+						},{
+								text: 'Details'
+							,	value: 'details'
+							,	iconCls: 'icon_cycleImages'
+						}]
+					}
+				,	changeHandler: this.changeView
+			});
 			var collectionStore = Ext.create('Ext.data.Store', {
 					proxy: {
 							type: 'ajax'
@@ -165,41 +163,26 @@ Ext.define('ImagePortal.Images', {
 						}
 			});
 			
-			this.views =  Ext.create('Ext.button.Cycle', {
-					showText: true
-				,	prependText: 'View as '
-				,	scope: this
-				,	menu: {
-						items: [{
-								text: 'Small'
-							,	value: 'small'
-							,	checked: true
-							,	iconCls: 'icon_cycleImages'
-						},{
-								text: 'Large'
-							,	value: 'large'
-							,	iconCls: 'icon_cycleImages'
-						},{
-								text: 'Both'
-							,	value: 'both'
-							,	iconCls: 'icon_cycleImages'
-						},{
-								text: 'Details'
-							,	value: 'details'
-							,	iconCls: 'icon_cycleImages'
-						}]
-					}
-				,	changeHandler: this.changeView
-			});
 			
-			this.tbar = ['Collection: ', this.collectionCombo, 'Search: ', this.search_evernote, this.viewImage
+			
+			this.tbar = ['Collection: ', this.collectionCombo, 'Search: ', this.search_evernote
 				, this.views
 				,'->' , {
 						iconCls: 'icon-rss'
+					,	hidden: Config.hideRss
+					,	scope: this	
 					,	handler: function(){ 
 							window.open(Config.baseUrl + 'resources/api/api.php?cmd=images&code=&dir=ASC&filters=&output=rss', '_blank');
 						}
-				}];
+			}];
+			this.bbar = Ext.create('Ext.toolbar.Paging', {
+					store: this.store
+				,	scope: this	
+				,	displayInfo: true
+				,	displayMsg: 'Displaying Specimen Images {0} - {1} of {2}'
+				,	emptyMsg: 'No images available.'
+				,	items: [this.viewImage]
+            });
 			
 			this.imagesgird = Ext.create('ImagePortal.ImagesGird', {
 					currentActive: 'imageGrid'
@@ -231,13 +214,6 @@ Ext.define('ImagePortal.Images', {
 				,	layout: 'fit'
 				,	scope: this
 				,	items: [this.imagesview]
-				,	bbar: Ext.create('Ext.toolbar.Paging', {
-							store: this.store
-						,	scope: this	
-						,	displayInfo: true
-						,	displayMsg: 'Displaying Specimen Images {0} - {1} of {2}'
-						,	emptyMsg: 'No images available.'
-					})
 			});
 			
 			this.items = [this.imagesgird, this.imagesviewPanel];

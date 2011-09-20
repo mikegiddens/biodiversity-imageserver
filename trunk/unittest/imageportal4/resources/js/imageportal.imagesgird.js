@@ -7,18 +7,12 @@ Ext.define('ImagePortal.ImagesGird', {
 	,	columnLines: true
 	,	enableQuickMode: false
 	,	enableColumnHide: false
+	,	forceFit: true
 	,	viewConfig: {
 				stripeRows: false
 			,	emptyText: '<div style="padding:10px;">No images available.</div>'
 		}
-	,	initComponent: function() {			
-			this.bbar = Ext.create('Ext.toolbar.Paging', {
-					store: this.store
-				,	scope: this	
-				,	displayInfo: true
-				,	displayMsg: 'Displaying Specimen Images {0} - {1} of {2}'
-				,	emptyMsg: 'No images available.'
-            });
+	,	initComponent: function() {
 			var encode = false;
 			var filters = {
 					ftype: 'filters'
