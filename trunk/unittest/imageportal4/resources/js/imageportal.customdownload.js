@@ -67,7 +67,7 @@ Ext.define('ImagePortal.CustomDownload', {
 			if(Ext.isEmpty(values.flwidth) && Ext.isEmpty(values.flheight)){
 				Ext.Msg.alert("Notice", "At least one dimension is required.")
 			}else{
-				var url = Config.baseUrl + "resources/api/api.php?cmd=get_image&width="+values.flwidth+"&height="+values.flheight+"&image_id="+this.imageId+"&type="+values.fltype  	
+				var url = Config.portalUrl + "resources/api/api.php?cmd=get_image&width="+values.flwidth+"&height="+values.flheight+"&image_id="+this.imageId+"&type="+values.fltype  	
 				window.open(url,'_blank');	
 				this.close();
 			}

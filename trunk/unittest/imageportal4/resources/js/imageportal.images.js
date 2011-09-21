@@ -18,7 +18,7 @@ Ext.define('ImagePortal.Images', {
 				,	model: 'ImagesModel'
 				,	proxy: {
 							type: this.requestType
-						,	url : Config.baseUrl + 'resources/api/api.php'
+						,	url : (typeof Config != 'undefined' && Ext.isDefined(Config.portalUrl)) ? Config.portalUrl + 'resources/api/api.php' : 'resources/api/api.php'
 						,	reader: {
 									type: 'json'
 								,	root: 'data'
@@ -60,9 +60,9 @@ Ext.define('ImagePortal.Images', {
 			});
 			var collectionStore = Ext.create('Ext.data.Store', {
 					proxy: {
-							type: 'ajax'
+							type: this.requestType
 						,	model: 'CollectionsModel'
-						,	url : Config.baseUrl + 'resources/api/api.php'
+						,	url : (typeof Config != 'undefined' && Ext.isDefined(Config.portalUrl)) ? Config.portalUrl + 'resources/api/api.php' : 'resources/api/api.php'
 						,	reader: {
 									type: 'json'
 								,	root: 'records'
@@ -171,8 +171,9 @@ Ext.define('ImagePortal.Images', {
 						iconCls: 'icon-rss'
 					,	hidden: Config.hideRss
 					,	scope: this	
-					,	handler: function(){ 
-							window.open(Config.baseUrl + 'resources/api/api.php?cmd=images&code=&dir=ASC&filters=&output=rss', '_blank');
+					,	handler: function(){
+							var rssUrl = (typeof Config != 'undefined' && Ext.isDefined(Config.portalUrl)) ? Config.portalUrl + 'resources/api/api.php' : 'resources/api/api.php'
+							window.open(rssUrl + '?cmd=images&code=&dir=ASC&filters=&output=rss', '_blank');
 						}
 			}];
 			this.bbar = Ext.create('Ext.toolbar.Paging', {

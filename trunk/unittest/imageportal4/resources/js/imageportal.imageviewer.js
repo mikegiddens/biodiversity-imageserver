@@ -7,11 +7,11 @@ Ext.define('ImagePortal.ImageViewer', {
 	,	height: 500
 	,	modal: true
 	,	layout: 'fit'
-	,	autoScroll: true
 	,	maximizable: true
 	,	imagePath: ''
 	,	imageId: ''
 	,	imageBarcode: ''
+	,	currentData: new Object()
 	,	initComponent: function() {
 			this.imageinfopanel = Ext.create('ImagePortal.ImageDetailsPanel', {});
 			this.imagezoompanel = Ext.create('SilverMeasure.ImageZoomPanel', {
@@ -19,16 +19,22 @@ Ext.define('ImagePortal.ImageViewer', {
 				,	rototeControl: false
 				,	scaleControl: false
 				,	title: 'Specimen Image'
+				,	listeners: {
+							scope: this
+						,	beforeImageLoad: function(zoompanel){
+								this.imageinfopanel.resetInfo();
+							}
+						,	afterImageLoad: function(zoompanel){
+								this.imageinfopanel.loadInfo(this.currentData);
+							}	
+					}
 			});
-		/*	this.largeimagepanel = Ext.create('ImagePortal.ImageDetailsPanel', {
-					title: 'Specimen Image'
-			});*/
-			this.imageTabs = Ext.create('Ext.tab.Panel', {
+		
+		this.imageTabs = Ext.create('Ext.tab.Panel', {
 					defaults: {
 						border: false
 					}
 				,	activeTab: 0
-		//		,	items: [this.imagezoompanel, this.largeimagepanel, this.imageinfopanel]	
 				,	items: [this.imagezoompanel, this.imageinfopanel]	
 			});
 			this.tools = [{
@@ -80,70 +86,14 @@ Ext.define('ImagePortal.ImageViewer', {
 		}
 		
 	,	loadTabs: function(data){
-			if(data.gTileProcessed == 1){
-			//	this.hideTab(1);
-			//	this.showTab(0);
-			//	this.imageTabs.setActiveTab(0);
-				var myMask = new Ext.LoadMask(this.imagezoompanel.body, {msg:"Please wait..."});
-				myMask.show();
-				this.imageinfopanel.resetInfo();
-				this.imagezoompanel.resetImage();
-				Ext.Ajax.request({
-						url : 'http://images.cyberfloralouisiana.com/viewer/resources/api/api.php'
-					,	params: {
-								cmd: 'loadImage'
-							,	filename: data.filename
-						}
-					,	scope: this
-					,	success: function (response) {
-							var o = Ext.decode(response.responseText);
-							if(o.success){
-								var imageName = "{2}/tile_{3}.jpg"
-								this.imagezoompanel.loadImage(o.url + imageName);
-								this.imagezoompanel.updateCopyright(o.copyright);
-								this.imageinfopanel.loadInfo(data);
-								myMask.hide();
-							} else {
-								Ext.Msg.alert('Error', 'Error in loading image.');
-								myMask.hide();
-							}
-						}
-					,	failure: function () {
-							Ext.Msg.alert('Error', 'Error in connection.');
-							myMask.hide();
-						}
-				});
-			}else {
-			//	this.hideTab(0);
-			//	this.showTab(1);
-			//	this.imageTabs.setActiveTab(1);
-			}
+			this.currentData = data;
+			this.imagezoompanel.loadImage(data.filename);
 			this.imagePath = data.path;
 			this.imageBarcode = data.barcode;
 			this.imageId = data.image_id;
 			this.doComponentLayout();
 		}
-	/*
-	,	hideTab: function(tabId){
-			var tab = this.imageTabs.tabBar.items.items[tabId];
-			if(Ext.isDefined(tab)){
-				if(!tab.hidden){
-					tab.hide();
-				}
-			}
-			this.doComponentLayout();
-		}
 		
-	,	showTab: function(tabId){
-			var tab = this.imageTabs.tabBar.items.items[tabId];
-			if(Ext.isDefined(tab)){
-				if(!tab.hidden){
-					tab.show();
-				}
-			}
-			this.doComponentLayout();
-		}	*/
-	
 	,	dnldSmallImg:function(){
 			window.open(this.imagePath + this.imageBarcode +'_s.jpg','_blank');
 		}
