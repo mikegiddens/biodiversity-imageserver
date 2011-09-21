@@ -9,5 +9,7 @@ Config = {
 		}]
 	,	mode: 'local'
 	,	hideRss: true
-	,	baseUrl: 'http://images.cyberfloralouisiana.com/portal/'
+	,	portalUrl: 'http://images.cyberfloralouisiana.com/portal/'
+	,	viewerUrl: 'http://images.cyberfloralouisiana.com/viewer/'
+	,	imageMode: 'local' // 'remote'
 }
