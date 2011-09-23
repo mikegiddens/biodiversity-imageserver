@@ -13,18 +13,24 @@ Ext.define('ImagePortal.ImageViewer', {
 	,	imageBarcode: ''
 	,	currentData: new Object()
 	,	initComponent: function() {
-			this.imageinfopanel = Ext.create('ImagePortal.ImageDetailsPanel', {});
+			this.imageinfopanel = Ext.create('ImagePortal.ImageDetailsPanel', {
+					currentActive: 'imageInfo'
+			});
 			this.imagezoompanel = Ext.create('SilverMeasure.ImageZoomPanel', {
 					border: false
+				,	currentActive: 'imageZoom'
 				,	rototeControl: false
 				,	scaleControl: false
 				,	title: 'Specimen Image'
 				,	listeners: {
 							scope: this
 						,	beforeImageLoad: function(zoompanel){
+								this.myMask = new Ext.LoadMask(this.el.dom, {msg:"Please wait..."});
+								this.myMask.show();
 								this.imageinfopanel.resetInfo();
 							}
 						,	afterImageLoad: function(zoompanel){
+								this.myMask.hide();
 								this.imageinfopanel.loadInfo(this.currentData);
 							}	
 					}
@@ -35,9 +41,17 @@ Ext.define('ImagePortal.ImageViewer', {
 						border: false
 					}
 				,	activeTab: 0
-				,	items: [this.imagezoompanel, this.imageinfopanel]	
-			});
-			this.tools = [{
+				,	items: [this.imagezoompanel, this.imageinfopanel]
+				,	listeners: {
+						 	tabchange: function(tabpanel, newCard, oldCard, e){
+								if(oldCard.currentActive == 'imageInfo')
+									this.imagezoompanel.loadImage(this.currentData.filename);
+							}	
+						,	scope: this	
+					}
+		});
+		
+		this.tools = [{
 					type: 'left'
 				,	scope: this
 				,	handler: function(){
