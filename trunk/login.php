@@ -64,14 +64,14 @@ body,td,th {
 <br><br>
 <form name="login" action="<?php print $_SERVER['PHP_SELF']; ?>" method="POST">
 <div style="width: 400px;  margin-left: auto; margin-right: auto;" align="center">
-<label style="font-weight:bold;"><img src="images/biodiversity-image-server-logo.jpg" width="318" height="108" alt="Biodiveristy Image Server"><br />
+<label style="font-weight:bold;"><img src="resources/images/biodiversity-image-server-logo.jpg" width="318" height="108" alt="Biodiveristy Image Server"><br />
 </label>
 <hr size="1" noshade="noshade"><br>
 <div>
 	<table width="400" border="0" cellspacing="5" cellpadding="0">
 		<tr>
-		<td width="75">&nbsp;</td>
-		<td width="80">User Name</td>
+		<td width="44">&nbsp;</td>
+		<td width="111">User Name</td>
 		<td width="225"><input type="text" name="user" class="ibox" id="user" /></td>
 	</tr>
 	<tr>
