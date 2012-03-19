@@ -7,7 +7,7 @@
 /**
  * Setting library include path
  */
-$oldPath = set_include_path(get_include_path() . PATH_SEPARATOR . PICASSA_LIB_PATH);
+$oldPath = set_include_path(get_include_path() . PATH_SEPARATOR . $config['picassa']['lib_path']);
 
 /**
  * Including Loader

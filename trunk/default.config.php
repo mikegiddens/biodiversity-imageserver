@@ -1,48 +1,55 @@
 <?php
 
-	$mysql_host = "localhost";
-	$mysql_name = "";
-	$mysql_user = "";
-	$mysql_pass = "";
+	$config['mysql']['host'] = 'localhost';
+	$config['mysql']['name'] = '';
+	$config['mysql']['user'] = '';
+	$config['mysql']['pass'] = '';
 	
-	# For user module
-	define("DB_SERVER", "localhost");
-	define("DB_NAME", "");
-	define ("DB_USER", "");
-	define ("DB_PASSWORD", "");
-	
-	# Flicker constants
-	
-	define('FLKR_KEY', '');
-	define('FLKR_SECRET', '');
-	define('FLKR_EMAIL', '');
+	# Flicker values
+	$config['flkr']['key'] = '';
+	$config['flkr']['secret'] = '';
+	$config['flkr']['email'] = '';
 
-	# Picassa constants
+	# Picassa values
+	$config['picassa']['lib_path'] = '/var/www/api/classes/ZendGdata/library';
+	$config['picassa']['email'] = '';
+	$config['picassa']['pass'] = '';
+	$config['picassa']['album'] = '';
 
-	define('PICASSA_LIB_PATH', '/var/www/api/classes/ZendGdata/library');
-	define('PICASSA_EMAIL', '');
-	define('PICASSA_PASS', '');
-	define('PICASSA_ALBUM', '');
+	# Site values
+	$config['base_url'] = 'http://{yourdomainname for image server}.com';
+	$config['path']['base'] = '{server/path/to/website}';
+	$config['path']['incoming'] = '/www/incoming/';
+	$config['path']['images'] = '/var/www/images/specimensheets/';
+	$config['path']['files'] = '/var/www/logs/';
+	$config['path']['processed_files'] = '/var/www/logs_processed/';
+	$config['path']['error'] = '';
 
-	# Site Constants
-	define('BASE_URL', 'http://{yourdomainname for image server}.com');
-	define('BASE_PATH', '{server/path/to/website}');
-	define("PATH_INCOMING", "/www/incoming/");
-	define("PATH_IMAGES", "/var/www/images/specimensheets/");
-	define("PATH_FILES", "/var/www/logs/");
-	define("PROCESSED_FILES", "/var/www/logs_processed/");
+	$config['image_sequence_cache'] = '/var/www/gui/api/imageSequenceCache.txt';
 
-	define('IMAGE_SEQUENCE_CACHE', '/var/www/gui/api/imageSequenceCache.txt');
-	
-	define("DISK_SIZE",10000000000); // total size on disk in bytes
-	define("IMAGE_SIZE",100000); // total size on disk
-	define("ALLOWED_STORAGE",10); // Percentage of allowed storage capacity in the images folder
+	$config['disk_size'] = 10000000000; // total size on disk in bytes
+	$config['image_size'] = 100000; // total size on disk
+	$config['allowed_storage'] = 10; // Percentage of allowed storage capacity in the images folder
 
-// 	define('DOC_ROOT', $_SERVER[DOCUMENT_ROOT] . '/');
-	define('DOC_ROOT', '/var/www/');
+	$config['image_processing'] = 1; # 1: ImageMagik, 2: GD
+	$config['image_mode'] = 'ftp'; # images existing in s3 or ftp
 
-// 	define("BASE_PATH", $_SERVER[DOCUMENT_ROOT] . "/");
-	$path = BASE_PATH . 'resources/api/classes/';
+	$config['doc_root'] = '/var/www/';
+
+	$config['google_key'] = '';
+	$config['title'] = '';
+	$config['mode'] = 'local'; # local or s3
+	$config['email']['to'] = '';
+
+	$config['s3']['accessKey'] = '';
+	$config['s3']['secretKey'] = '';
+	$config['s3']['bucket'] = '';
+	$config['s3']['url'] = '';
+
+	$config['hsUrl'] = 'http://eria.helpingscience.org/silverarchive_engine/silverarchive.php';
+	$config['evernoteUrl'] = 'http://eria.helpingscience.org/evernote_engine/evernote.php';
+
+	$path = $config['path']['base'] . 'resources/api/classes/';
 	set_include_path(get_include_path() . PATH_SEPARATOR . $path);
 
 ?>

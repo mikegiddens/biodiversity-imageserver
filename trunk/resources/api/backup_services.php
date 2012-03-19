@@ -16,9 +16,54 @@ ini_set('display_errors', '1');
 	foreach ($expected as $formvar)
 		$$formvar = (isset(${"_$_SERVER[REQUEST_METHOD]"}[$formvar])) ? ${"_$_SERVER[REQUEST_METHOD]"}[$formvar]:NULL;
 
+	if (PHP_SAPI === 'cli') {
+	
+		function parseArgs($argv){
+			array_shift($argv);
+			$out = array();
+			foreach ($argv as $arg){
+				if (substr($arg,0,2) == '--'){
+				$eqPos = strpos($arg,'=');
+				if ($eqPos === false){
+					$key = substr($arg,2);
+					$out[$key] = isset($out[$key]) ? $out[$key] : true;
+				} else {
+					$key = substr($arg,2,$eqPos-2);
+					$out[$key] = substr($arg,$eqPos+1);
+				}
+				} else if (substr($arg,0,1) == '-'){
+				if (substr($arg,2,1) == '='){
+					$key = substr($arg,1,1);
+					$out[$key] = substr($arg,3);
+				} else {
+					$chars = str_split(substr($arg,1));
+					foreach ($chars as $char){
+					$key = $char;
+					$out[$key] = isset($out[$key]) ? $out[$key] : true;
+					}
+				}
+				} else {
+				$out[] = $arg;
+				}
+			}
+			return $out;
+		}
+		
+		$args = (parseArgs($argv));
+		if ($args) {
+			foreach($args as $key => $value) {
+				$$key = $value;
+			}
+		}
+		
+		include_once( dirname($_SERVER['PHP_SELF']) . '/../../config.php');
+	} else {
+		include_once('../../config-local.php');
+	}
 
-require_once("../../config.php");
-$path = BASE_PATH . "resources/api/classes/";
+
+
+$path = $config['path']['base'] . "resources/api/classes/";
 set_include_path(get_include_path() . PATH_SEPARATOR . $path);
 require_once("classes/phpFlickr/phpFlickr.php");
 require_once("classes/class.master.php");
@@ -33,7 +78,7 @@ if ( $si->load( $mysql_name ) ) {
 			$time_start = microtime(true);
 			$count = 0;
 			$filter['start'] = 0;
-			$filter['limit'] = $_REQUEST['limit'];
+			$filter['limit'] = $limit;
 
 			$ret = $si->image->getNameFinderRecords($filter);
 			$countFlag = true;
@@ -55,7 +100,7 @@ if ( $si->load( $mysql_name ) ) {
 			$time_start = microtime(true);
 			$count = 0;
 			$filter['start'] = 0;
-			$filter['limit'] = $_REQUEST['limit'];
+			$filter['limit'] = $limit;
 			$ret = $si->image->getOcrRecords($filter);
 			$countFlag = true;
 			while(($record = $ret->fetch_object()) && ($countFlag)) {
@@ -73,7 +118,7 @@ if ( $si->load( $mysql_name ) ) {
 			print json_encode(array('success' => true, 'process_time' => $time, 'total_records_added' => $count));
 			break;
 		case 'populateFlickrProcessQueue':
-// populate the queue for uploading to flickr
+		# populate the queue for uploading to flickr
 			$time_start = microtime(true);
 			$count = 0;
 
@@ -94,7 +139,7 @@ if ( $si->load( $mysql_name ) ) {
 			print json_encode(array('success' => true, 'process_time' => $time, 'total_records_added' => $count));
 			break;
 		case 'populatePicassaProcessQueue':
-// populate the queue for uploading to picassa
+		# populate the queue for uploading to picassa
 			$time_start = microtime(true);
 			$count = 0;
 			$ret = $si->image->getPicassaRecords();
@@ -114,7 +159,7 @@ if ( $si->load( $mysql_name ) ) {
 			print json_encode(array('success' => true, 'process_time' => $time, 'total records added' => $count));
 			break;
 		case 'populateGTileProcessQueue':
-// populate the queue for creating Google Map Tiles
+		# populate the queue for creating Google Map Tiles
 			$time_start = microtime(true);
 			$count = 0;
 
@@ -138,7 +183,7 @@ if ( $si->load( $mysql_name ) ) {
 			print json_encode(array('success' => true, 'process_time' => $time, 'total_records_added' => $count));
 			break;
 		case 'populateZoomifyProcessQueue':
-// populate the queue for Zoomify process
+		# populate the queue for Zoomify process
 			$time_start = microtime(true);
 			$count = 0;
 
@@ -159,11 +204,11 @@ if ( $si->load( $mysql_name ) ) {
 			print json_encode(array('success' => true, 'process_time' => $time, 'total_records_added' => $count));
 			break;
 		case 'populateProcessQueue':
-// populate the queue with non-processed images
+		# populate the queue with non-processed images
 			$time_start = microtime(true);
 			$count = 0;
 			$filter['start'] = 0;
-			$filter['limit'] = $_REQUEST['limit'];
+			$filter['limit'] = $limit;
 			$ret = $si->image->getNonProcessedRecords($filter);
 			$countFlag = true;
 			while(($record = $ret->fetch_object()) && $countFlag) {
@@ -201,29 +246,20 @@ if ( $si->load( $mysql_name ) ) {
 						$key = $si->image->barcode_path($record->image_id) . $record->image_id . '.jpg';
 
 						$si->amazon->get_object($config['s3']['bucket'], $key, array('fileDownload' => $tmpFile));
-/*
-if(file_exists($tmpFile)) {
-echo '<br> Temp File Created';
-}
-*/
 					} else {
-// echo '<br> In local Path';
-						$tmpFilePath = PATH_IMAGES . $si->image->barcode_path($record->image_id) . $record->image_id;
+						$tmpFilePath = $config['path']['images'] . $si->image->barcode_path($record->image_id) . $record->image_id;
 						$tmpFile = $tmpFilePath . '.jpg';
 					}
 					$tmpImage = $tmpFilePath . '_tmp.jpg';
 					$cd = "convert " . $tmpFile . " -colorspace Gray  -contrast-stretch 15% " . $tmpImage;
-// echo '<br> Command : ' . $cd;
 					exec($cd);
 
 					$command = sprintf("/usr/local/bin/tesseract %s %s", $tmpImage, $tmpFilePath);
-// echo '<br> Tesseract Command : ' . $command;
 					exec($command);
 
 					exec(sprintf("rm %s",$tmpImage));
 
 					if(@file_exists($tmpFilePath . '.txt')){
-// echo '<br> Text File Exists';
 						$value = file_get_contents($tmpFilePath . '.txt');
 						$si->image->load_by_barcode($record->image_id);
 						$images_array[] = array('image_id' => $si->image->get('image_id'), 'barcode' => $si->image->get('barcode'));
@@ -285,7 +321,7 @@ echo '<br> Temp File Created';
 			$time_start = microtime(true);
 			$tStart = time();
 			$loop_flag = true;
-			$f = new phpFlickr(FLKR_KEY,FLKR_SECRET);
+			$f = new phpFlickr($config['flkr']['key'],$config['flkr']['secret']);
 			if( $f->auth_checkToken() === false) {
 				$f->auth('write');
 			}
@@ -307,7 +343,7 @@ echo '<br> Temp File Created';
 						$key = $si->image->barcode_path($record->image_id) . $record->image_id . '.jpg';
 						$si->amazon->get_object($config['s3']['bucket'], $key, array('fileDownload' => $image));
 					} else {
-						$image = PATH_IMAGES . $si->image->barcode_path($record->image_id) . $record->image_id . '.jpg';
+						$image = $config['path']['images'] . $si->image->barcode_path($record->image_id) . $record->image_id . '.jpg';
 					}
 					# change setting photo to private while uploading
 					$res = $f->sync_upload( $image, $record->image_id, '', '', 0 );
@@ -346,10 +382,10 @@ echo '<br> Temp File Created';
 
 			$picassa = new PicassaWeb;
 			
-			$picassa->set('picassa_path',PICASSA_LIB_PATH);
-			$picassa->set('picassa_user',PICASSA_EMAIL);
-			$picassa->set('picassa_pass',PICASSA_PASS);
-			$picassa->set('picassa_album',PICASSA_ALBUM);
+			$picassa->set('picassa_path',$config['picassa']['lib_path']);
+			$picassa->set('picassa_user',$config['picassa']['email']);
+			$picassa->set('picassa_pass',$config['picassa']['pass']);
+			$picassa->set('picassa_album',$config['picassa']['album']);
 			
 			$picassa->clientLogin();
 
@@ -369,7 +405,7 @@ echo '<br> Temp File Created';
 						$si->amazon->get_object($config['s3']['bucket'], $key, array('fileDownload' => $tmpFile));
 						$image['tmp_name'] = $tmpFile;
 					} else {
-						$image['tmp_name'] = PATH_IMAGES . $si->image->barcode_path($record->image_id) . $record->image_id . '.jpg';
+						$image['tmp_name'] = $config['path']['images'] . $si->image->barcode_path($record->image_id) . $record->image_id . '.jpg';
 					}
 					$image['name'] = $record->image_id;
 					$image['type'] = 'image/jpeg';
@@ -399,9 +435,6 @@ echo '<br> Temp File Created';
 		case 'populateEnLabels':
 			$time_start = microtime(true);
 			$start_date = $si->s2l->getLatestDate();
-#			$hsUrl = 'http://eria.helpingscience.org/silverarchive_engine/silverarchive.php';
-/*			$paramArray = array('task' => 'getEnLabels', 'start_date' => $start_date);
-			$jsonObject = CURL(trim($hsUrl),$paramArray);*/
 
 			$url = $config['hsUrl'] . '?task=getEnLabels&start_date=' . $start_date;
 			$jsonObject = @stripslashes(@file_get_contents($url));
@@ -428,87 +461,6 @@ echo '<br> Temp File Created';
 
 # Test Tasks
 
-		case 'flickr_test':
-			$barcode = 'NLU0062321';
-			if($si->image->load_by_barcode($barcode)) {
-				$f = new phpFlickr(FLKR_KEY,FLKR_SECRET);
-// print '<pre>';
-// var_dump($f);
-				if( $f->auth_checkToken() === false) {
-	// 				print '<br> In Oauth Loop';
-					$f->auth('write');
-				}
-
-				$image = PATH_IMAGES . $si->image->barcode_path($barcode) . $barcode . '.jpg';
-// print '<br>' . $image;
-// 				$res = $f->sync_upload( $image, $barcode );
-# change setting photo to private while uploading
-				$res = $f->sync_upload( $image, $barcode,'','', 0 );
-
-// 				$res = $f->photos_getInfo($si->image->get('flickr_PlantID'));
-				var_dump($res);
-			} else {
-				print 'image Not Loaded';
-			}
-
-/*			$photo_id = '3566869992';
-			$f = new phpFlickr(FLKR_KEY,FLKR_SECRET);
-			if( $f->auth_checkToken() === false) {
-				$f->auth('write');
-			}
-			$f->photos_addTags($res,'ulm00000003 copyright:(CyberFlora-Louisiana)');*/
-			break;
-
-		case 'picassa_test':
-// print '<pre>';
-// 
-// $picassa = new PicassaWeb;
-// $picassa->set('picassa_path',PICASSA_LIB_PATH);
-// $picassa->set('picassa_user',PICASSA_EMAIL);
-// $picassa->set('picassa_pass',PICASSA_PASS);
-// $picassa->set('picassa_album',PICASSA_ALBUM);
-// $picassa->clientLogin();
-// 
-// // list photos
-// // $picassa->listPhotos();
-// 
-// // list tags
-// $tag_array = $picassa->listTags(5344875490023456322);
-// print '<br> Tags List : ';
-// print_r($tag_array);
-// 
-// // get photo details
-// $photo_details = $picassa->getPhotodetails(5344875490023456322);
-// print '<br> Photo Details : ';
-// print_r($photo_details);
-// 
-// // update photo
-// $picassa->set('photo_title','');
-// $picassa->set('photo_summary','');
-// $picassa->set('photo_tags','');
-// $photo_details = $picassa->updatePhoto(5344875490023456322);
-// $photo_details = $picassa->getPhotodetails(5344875490023456322);
-// print '<br> Photo Details : ';
-// print_r($photo_details);
-
-// add tags
-// print '<br> Adding Tag : ';
-// $tag = $picassa->addTag(5344875490023456322,'test tag1');
-// var_dump($tag);
-// $tag = $picassa->addTag(5344875490023456322,'test tag2');
-// 
-// $tag_array = $picassa->listTags(5344875490023456322);
-// print '<br> Tags List : ';
-// print_r($tag_array);
-
-// delete tags
-// $picassa->deleteTag(5344875490023456322,'test tag1');
-// $photo_details = $picassa->getPhotodetails(5344875490023456322);
-// print '<br> Photo Details : ';
-// print_r($photo_details);
-
-			break;
-
 			default:
 				print json_encode(array('success' => false, 'message' => 'No Task Provided'));
 				break;
@@ -519,12 +471,12 @@ echo '<br> Temp File Created';
 	}
 
 function getNames ($barcode) {
-	global $si;
+	global $si,$config;
 	if($barcode == '') {
 		return array('success' => false);
 	}
 	
-	$url = BASE_URL . '/images/specimensheets/';
+	$url = $config['base_url'] . '/images/specimensheets/';
 	$sourceUrl = 'http://namefinding.ubio.org/find?';
 	$sourceUrl2 = 'http://tools.gbif.org/ws/taxonfinder?';
 	

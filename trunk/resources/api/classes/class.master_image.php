@@ -23,7 +23,7 @@ Class Image {
 
     public function getName( $field = 'name' ) {
         if ($field == 'name' || $field == 'ext') {
-            $ext = split('\.', $this->get('filename'));
+            $ext = explode('\.', $this->get('filename'));
             return ($field == 'name') ? $ext[0] : $ext[1];
         } else {
             return ($this->$field);
@@ -102,12 +102,13 @@ Class Image {
 	}
 
     public function moveToImages() {
+	global $config;
         $barcode = $this->getName();
-        $tmpPath = PATH_IMAGES . $this->barcode_path( $barcode );
+        $tmpPath = $config['path']['images'] . $this->barcode_path( $barcode );
         $this->mkdir_recursive( $tmpPath );
 	$flsz = filesize($this->get('path') . $this->get('filename'));
 	if(!$flsz) {
-		@rename( $this->get('path') . $this->get('filename'), PATH_ERROR . $this->get('filename') );
+		@rename( $this->get('path') . $this->get('filename'), $config['path']['error'] . $this->get('filename') );
 		return false;
 	}
         if(@rename( $this->get('path') . $this->get('filename'), $tmpPath . $this->get('filename') )) {
@@ -170,10 +171,11 @@ Class Image {
 	}
 
 	function createThumb( $tmp_path, $new_width, $new_height, $postfix = '', $display_flag=false ) {
+		global $config;
 		$dtls = @pathinfo($tmp_path);
 		$extension = '.' . $dtls['extension'];
 
-		if(IMAGE_PROCESSING == 1) {
+		if($config['image_processing'] == 1) {
 			$destination =  $dtls['dirname'] . '/' . $dtls['filename'] . $postfix . $extension;
 #			$tmp = sprintf("convert %s -thumbnail %sx%s %s", $tmp_path,$new_width,$new_height,$destination);
 			$tmp = sprintf("convert -limit memory 16MiB -limit map 32MiB %s -thumbnail %sx%s %s", $tmp_path,$new_width,$new_height,$destination);
@@ -288,12 +290,13 @@ Class Image {
  */
 
     public function getImage() {
+	global $config;
 	$this->load_by_id($this->data['image_id']);
 	$ext = @strtolower($this->getName('ext'));
 	$extension = '.' . $ext;
 	$func1 = 'image' . ($ext == 'jpg' ? 'jpeg' : $ext);
 	$content_type = 'image/' . ($ext == 'jpg' ? 'jpeg' : $ext);
-        $path = PATH_IMAGES . $this->barcode_path($this->get('barcode'));
+        $path = $config['path']['images'] . $this->barcode_path($this->get('barcode'));
         $size = @strtolower($this->data['size']);
         $image =  $path . $this->get('barcode') . $extension;
 
@@ -485,6 +488,7 @@ Class Image {
 	 * @param string barcode
 	 */
 	public function processGTile($barcode) {
+		global $config;
 		if($this->load_by_barcode($barcode)) {
 
 		$ext = @strtolower($this->getName('ext'));
@@ -492,8 +496,8 @@ Class Image {
 		$func1 = 'image' . ($ext == 'jpg' ? 'jpeg' : $ext);
 
 
-			$outputPath = PATH_IMAGES . $this->barcode_path( $barcode ) . 'google_tiles/';
-			$image = PATH_IMAGES . $this->barcode_path( $barcode ) . $this->get('filename');
+			$outputPath = $config['path']['images'] . $this->barcode_path( $barcode ) . 'google_tiles/';
+			$image = $config['path']['images'] . $this->barcode_path( $barcode ) . $this->get('filename');
 
 // 			$src = imagecreatefromjpeg( $image );
 			$src = $func( $image );
@@ -555,13 +559,14 @@ Class Image {
 	 * @param mixed s3 details and object
 	 */
 	public function processGTileIM($barcode) {
+		global $config;
 		if($this->load_by_barcode($barcode)) {
-			$tilepath = PATH_IMAGES . $this->barcode_path( $barcode ) . 'google_tiles/';
-			$filename = PATH_IMAGES . $this->barcode_path( $barcode ) . $this->get('filename');
+			$tilepath = $config['path']['images'] . $this->barcode_path( $barcode ) . 'google_tiles/';
+			$filename = $config['path']['images'] . $this->barcode_path( $barcode ) . $this->get('filename');
 			$this->mkdir_recursive($tilepath);
 			# creating tiles using Image Magik
 			$gTileRes = $this->createGTileIM($filename, $tilepath);
-			return true;			
+			return true;
 		}
 		return false;
 	}
@@ -579,22 +584,13 @@ Class Image {
 				@mkdir($tmpPath,0775);
 			}
 			$tilepath = $tmpPath;
-/*
-			if(file_exists($tmpPath)) {
-				echo '<br> Tiles Temp folder created';
-			}
-*/
+
 			# getting the image from s3
 			$filename = sys_get_temp_dir() . '/' . $this->get('filename');
 
 			$bucket = $arr['s3']['bucket'];
 			$key = $this->barcode_path($barcode) . $this->get('filename');
 			$arr['obj']->get_object($bucket, $key, array('fileDownload' => $filename));
-/*
-			if(file_exists($filename)) {
-				echo '<br> File downloaded';
-			}
-*/
 
 			# creating tiles using Image Magik
 
@@ -633,68 +629,6 @@ $response = $arr['obj']->create_object ( $bucket, $tmpS3Path, array('fileUpload'
 		}
 		return false;
 	}
-
-/*
-	public function processGTileIM_S3($barcode, $arr) {
-		if($this->load_by_barcode($barcode)) {
-
-			$tmpPath = sys_get_temp_dir() . '/tiles/';
-			if(!@file_exists($tmpPath)) {
-				@mkdir($tmpPath,0775);
-			}
-			$tilepath = $tmpPath;
-
-
-			if(!@file_exists(PATH_TMP)) {
-				@mkdir(PATH_TMP,0775);
-			}
-			if(!@file_exists(PATH_TMP . 'tiles/')) {
-				@mkdir(PATH_TMP . 'tiles/',0775);
-			}
-			$tilepath = PATH_TMP . 'tiles/';
-
-
-
-			# getting the image from s3
-			$filename = PATH_TMP . $this->get('filename');
-			$bucket = $arr['s3']['bucket'];
-			$key = $this->barcode_path($barcode) . $this->get('filename');
-			$arr['obj']->getBucketFile($key, $bucket, $filename);
-
-
-			# creating tiles using Image Magik
-			$gTileRes = $this->createGTileIM($filename,$tilepath);
-
-			# uploading to s3 and deleting the files
-			$tiles3path = $this->barcode_path($barcode) . 'google_tiles/';
-			
-			if ($handle = @opendir($tilepath)) {
-				while (false !== ($file = @readdir($handle))) {
-					if ($file != '.' && $file != '..') {
-						$file = $tilepath . $file;
-						if(is_dir($file)) {
-			
-							if ($tempHandle = @opendir($file)) {
-								while (false !== ($tile = @readdir($tempHandle))) {
-									if ($tile != '.' && $tile != '..') {
-$arr['obj']->putObjectFile($tilepath . @basename($file) . '/' . @basename($tile), $bucket, $tiles3path . @basename($file) . '/' . @basename($tile), S3::ACL_PUBLIC_READ);
-@unlink($tilepath . @basename($file) . '/' . @basename($tile));
-									} # not . or ..
-								} # while tile
-								@closedir($tempHandle);
-							} # temp handle
-							rmdir($file);
-						} # is dir
-					} # not . or ..
-				} # while file
-				@closedir($handle);
-			} # handle
-			@unlink($filename);
-			return true;
-		}
-		return false;
-	}
-*/
 
 
 /**
@@ -780,11 +714,12 @@ function createGTileIM($filename, $outputPath) {
 	 * Zoomify the image
 	 */
 	public function zoomifyImage($barcode) {
+		global $config;
 		if($this->load_by_barcode($barcode)) {
-			$outputPath = PATH_IMAGES . $this->barcode_path( $barcode ) . 'zoomify/';
+			$outputPath = $config['path']['images'] . $this->barcode_path( $barcode ) . 'zoomify/';
 			$this->mkdir_recursive( $outputPath );
-			$image = PATH_IMAGES . $this->barcode_path( $barcode ) . $this->get('filename');
-			$script_path =  BASE_PATH . 'api/classes/zoomify/ZoomifyFileProcessor.py ';
+			$image = $config['path']['images'] . $this->barcode_path( $barcode ) . $this->get('filename');
+			$script_path =  $config['path']['base'] . 'api/classes/zoomify/ZoomifyFileProcessor.py ';
 			passthru('python ' . $script_path . $image);
 
 // 			passthru('/usr/bin/python ' . $script_path . $image);
@@ -940,7 +875,7 @@ $strips_array[$end][] = array('startRange' => $tmp_start, 'endRange' => $tmp_end
 
 		$barcode = $this->get('barcode');
 
-		$imagePath = PATH_IMAGES . $this->barcode_path( $barcode );
+		$imagePath = $config['path']['images'] . $this->barcode_path( $barcode );
 		$imageFile = $imagePath . $this->get('filename');
 		if(in_array($image['degree'],array(90,180,270))){
 			#rotating the image
@@ -1009,7 +944,7 @@ $strips_array[$end][] = array('startRange' => $tmp_start, 'endRange' => $tmp_end
 		if($imageId != '' && $this->field_exists($imageId)) {
 			$this->load_by_id($imageId);
 			$barcode = $this->get('barcode');
-			$imagePath = PATH_IMAGES . $this->barcode_path( $barcode );
+			$imagePath = $config['path']['images'] . $this->barcode_path( $barcode );
 			# deleting related images
 			if(is_dir($imagePath)) {
 				$handle = opendir($imagePath);
@@ -1187,41 +1122,7 @@ $strips_array[$end][] = array('startRange' => $tmp_start, 'endRange' => $tmp_end
 		$ret = $this->db->query_all($query);
 		return $ret;
 	}
-/*
-	function populateS3Data($response) {
-		$body = $response->body;
-		$ar = $body->Contents;
-		$recordCount = 0;
-		$srchArray = array('_s','_m','_l','_thumb','google_tiles','tile_');
 
-		for($i=0;$i<count($body->Contents);$i++){
-			$ky = $body->Contents[$i];
-
-			$filePath = $ky->Key;
-			$fileDetails = @pathinfo($filePath);
-
-			$count = 0;
-			$tmpStr = $fileDetails['basename'];
-			str_replace($srchArray,'',$tmpStr,$count);
-			if($count == 0) {
-				$this->set('filename',$fileDetails['basename']);
-				$this->set('barcode',$fileDetails['filename']);
-				$this->set('timestamp_modified',@date('d-m-Y H:i:s',@strtotime($ky->LastModified)));
-				if($this->save()) {
-					if($this->db->affected_rows == 1) {
-						$recordCount++;
-					}
-				}
-			}
-		}
-		if($recordCount) {
-			$ret = array('success' => true, 'recordCount' => $recordCount);
-		} else {
-			$ret = array('success' => false);
-		}
-		return $ret;
-	}
-*/
 	function populateS3Data($response) {
 		$recordCount = 0;
 		$srchArray = array('_s','_m','_l','_thumb','google_tiles','tile_');

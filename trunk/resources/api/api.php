@@ -15,49 +15,142 @@ ob_start();
 //	ini_set('memory_limit','200M');
 	set_time_limit(0);
 	
-	$expected=array(
-			'cmd'
-		,	'stop'
-		,	'api'
-		,	'limit'
-		,	'output'
+	$expected = array (
+		'cmd'
+		,'stop'
+		,'api'
+		,'output'
+		,'callback'
+		,'start'
+		,'limit'
+		,'order'
+		,'dir'
+		,'sort'
+		,'filter'
+		,'nodeApi'
+		,'nodeValue'
+		,'sc'
+		,'sc_id'
+		,'collection_id'
+		,'id'
+		,'station_id'
+		,'user_id'
+		,'image_id'
+		,'enAccountId'
+		,'barcode'
+		,'imageId'
+		,'date'
+		,'date'
+		,'week'
+		,'month'
+		,'year'
+		,'width'
+		,'height'
+		,'size'
+		,'photo_title'
+		,'photo_summary'
+		,'photo_tags'
+		,'picassa_PlantID'
+		,'collectionCode'
+		,'tag'
+		,'report_type'
+		,'station'
+		,'users'
+		,'stage'
+		,'type'
+		,'field'
+		,'value'
+		,'code'
+		,'exist'
+		,'degree'
+		,'filenames'
+		,'autoProcess'
+		,'types'
 	);
+
 	// Initialize allowed variables
 	foreach ($expected as $formvar)
 		$$formvar = (isset(${"_$_SERVER[REQUEST_METHOD]"}[$formvar])) ? ${"_$_SERVER[REQUEST_METHOD]"}[$formvar]:NULL;
+
+	# Closing the session for writing
+	session_write_close();
+
 
 	/*
 	*	Function print_c (Print Callback)
 	*	This is a wrapper function for print that will place the callback around the output statement
 	*/
 
-	function print_c( $str ) {
+	function print_c( $str, $callback = '' ) {
 		header('Content-type: application/json');
-		if ( isset( $_REQUEST['callback'] ) ) {
-			$cb = $_REQUEST['callback'] . '(' . $str . ')';
+		if ( isset( $callback ) && $callback != '' ) {
+			$cb = $callback . '(' . $str . ')';
 		} else {
 			$cb = $str;
 		}
 		print $cb;
 	}
 
-	require_once("../../config.php");
+	if (PHP_SAPI === 'cli') {
+	
+		function parseArgs($argv){
+			array_shift($argv);
+			$out = array();
+			foreach ($argv as $arg){
+				if (substr($arg,0,2) == '--'){
+				$eqPos = strpos($arg,'=');
+				if ($eqPos === false){
+					$key = substr($arg,2);
+					$out[$key] = isset($out[$key]) ? $out[$key] : true;
+				} else {
+					$key = substr($arg,2,$eqPos-2);
+					$out[$key] = substr($arg,$eqPos+1);
+				}
+				} else if (substr($arg,0,1) == '-'){
+				if (substr($arg,2,1) == '='){
+					$key = substr($arg,1,1);
+					$out[$key] = substr($arg,3);
+				} else {
+					$chars = str_split(substr($arg,1));
+					foreach ($chars as $char){
+					$key = $char;
+					$out[$key] = isset($out[$key]) ? $out[$key] : true;
+					}
+				}
+				} else {
+				$out[] = $arg;
+				}
+			}
+			return $out;
+		}
+		
+		$args = (parseArgs($argv));
+		if ($args) {
+			foreach($args as $key => $value) {
+				$$key = $value;
+			}
+		}
+		
+		include_once( dirname($_SERVER['PHP_SELF']) . '/../../config.php');
+	} else {
+		include_once('../../config-local.php');
+	}
 
-	$path = BASE_PATH . "resources/api/classes/";
+	$path = $config['path']['base'] . "resources/api/classes/";
 	set_include_path(get_include_path() . PATH_SEPARATOR . $path);
 
-	require_once("./classes/class.master.php");
+	require_once("classes/class.master.php");
 	require_once("classes/phpFlickr/phpFlickr.php");
 	require_once( "classes/access_user/access_user_class.php");
 	
 	$si = new SilverImage;
-	$user_access = new Access_user($mysql_host, $mysql_user, $mysql_pass, $mysql_name);
+	$user_access = new Access_user($config['mysql']['host'], $config['mysql']['user'], $config['mysql']['pass'], $config['mysql']['name']);
 	
 	// setting picassa constants
-	$si->picassa->set('picassa_path',PICASSA_LIB_PATH);
-	$si->picassa->set('picassa_user',PICASSA_EMAIL);
-	$si->picassa->set('picassa_pass',PICASSA_PASS);
-	$si->picassa->set('picassa_album',PICASSA_ALBUM);
+	$si->picassa->set('picassa_path',$config['picassa']['lib_path']);
+	$si->picassa->set('picassa_user',$config['picassa']['email']);
+	$si->picassa->set('picassa_pass',$config['picassa']['pass']);
+	$si->picassa->set('picassa_album',$config['picassa']['album']);
 	
 	// This is the output type that the program needs to return
 	if(!isset($api)) {
@@ -66,7 +159,7 @@ ob_start();
 
 	// This will control the imcoming processes that need to be preformed.
 	$valid = true;
-	if ( $si->load( $mysql_name ) ) {
+	if ( $si->load( $config['mysql']['name'] ) ) {
 	$user_access->db = &$si->db;
 
 	switch( $cmd ) {
@@ -82,8 +175,8 @@ ob_start();
 				$si->logger->setData($data);
 				$ret = $si->logger->loadS3Logs();
 			} else {
-				$data['path_files'] = PATH_FILES;
-				$data['processed_files'] = PROCESSED_FILES;
+				$data['path_files'] = $config['path']['files'];
+				$data['processed_files'] = $config['path']['processed_files'];
 				$data['time_start'] = microtime(true);
 				$si->logger->setData($data);
 				$ret = $si->logger->loadLogs();
@@ -98,7 +191,7 @@ ob_start();
 			break;
 
 		case 'get_id':
-			$data['sc_id'] = trim($_REQUEST['sc_id']);
+			$data['sc_id'] = trim($sc_id);
 			if($data['sc_id'] == "") {
 				$code = 101;
 				$valid = false;
@@ -119,13 +212,13 @@ ob_start();
 
 		case 'browse':
 			$data['time_start'] = microtime(true);
-			$data['filter'] = stripslashes(trim($_REQUEST['filter']));
-			$data['nodeApi'] = trim($_REQUEST['nodeApi']);
+			$data['filter'] = stripslashes(trim($filter));
+			$data['nodeApi'] = trim($nodeApi);
 			if(!in_array($data['nodeApi'],array('alpha', 'Family', 'Genus', 'SpecificEpithet'))) {
 				$code = 114;
 				$valid = false;
 			}
-			$data['nodeValue'] = trim($_REQUEST['nodeValue']);
+			$data['nodeValue'] = trim($nodeValue);
 			header('Content-type: application/json');
 			if($valid) {
 				$si->image->setData($data);
@@ -139,17 +232,17 @@ ob_start();
 			break;
 
 		case 'collection_report':
-			$data['date'] = trim($_REQUEST['date']);
-			$data['date2'] = trim($_REQUEST['date2']);
+			$data['date'] = trim($date);
+			$data['date2'] = trim($date2);
 
-			$data['report_type'] = (trim($_REQUEST['report_type']) == '') ? 'year' : trim($_REQUEST['report_type']);
-			$data['month'] = trim($_REQUEST['month']);
-			$data['year'] = (trim($_REQUEST['year']) == '') ? ($data['report_type'] == 'year' ? date('Y'):'') : trim($_REQUEST['year']);
-			$data['station'] = trim($_REQUEST['station']);
-			$data['sc'] = trim($_REQUEST['sc']);
-			$data['collection_id'] = trim($_REQUEST['collection_id']);
+			$data['report_type'] = (trim($report_type) == '') ? 'year' : trim($report_type);
+			$data['month'] = trim($month);
+			$data['year'] = (trim($year) == '') ? ($data['report_type'] == 'year' ? date('Y'):'') : trim($year);
+			$data['station'] = trim($station);
+			$data['sc'] = trim($sc);
+			$data['collection_id'] = trim($collection_id);
 
-			$data['users'] = json_decode(stripslashes(trim($_REQUEST['users'])),true);
+			$data['users'] = json_decode(stripslashes(trim($users)),true);
 
 			header('Content-type: application/json');
 			if($valid) {
@@ -163,22 +256,22 @@ ob_start();
 			break;
 
 		case 'report_by_date_range':
-			$data['date'] = trim($_REQUEST['date']);
+			$data['date'] = trim($date);
 /*			if($data['date'] == '') {
 				$valid = false;
 				$code = 103;
 			}*/
-			$data['date2'] = trim($_REQUEST['date2']);
+			$data['date2'] = trim($date2);
 /*			if($data['date2'] == '') {
 				$valid = false;
 				$code = 104;
 			}*/
-			$data['year'] = trim($_REQUEST['year']);
-			$data['users'] = json_decode(stripslashes(trim($_REQUEST['users'])),true);
-			$data['stage'] = trim($_REQUEST['stage']);
-			$data['station'] = trim($_REQUEST['station']);
-			$data['sc'] = trim($_REQUEST['sc']);
-			$data['user_id'] = trim($_REQUEST['user_id']);
+			$data['year'] = trim($year);
+			$data['users'] = json_decode(stripslashes(trim($users)),true);
+			$data['stage'] = trim($stage);
+			$data['station'] = trim($station);
+			$data['sc'] = trim($sc);
+			$data['user_id'] = trim($user_id);
 
 			header('Content-type: application/json');
 			if($valid) {
@@ -194,15 +287,15 @@ ob_start();
 
 		case 'report_by_date':
 
-			$data['date'] = trim($_REQUEST['date']);
+			$data['date'] = trim($date);
 			if($data['date'] == '') {
 				$valid = false;
 				$code = 103;
 			}
-			$data['users'] = trim($_REQUEST['users']);
-			$data['stage'] = trim($_REQUEST['stage']);
-			$data['station'] = trim($_REQUEST['station']);
-			$data['sc'] = trim($_REQUEST['sc']);
+			$data['users'] = trim($users);
+			$data['stage'] = trim($stage);
+			$data['station'] = trim($station);
+			$data['sc'] = trim($sc);
 
 			header('Content-type: application/json');
 			if($valid) {
@@ -218,26 +311,26 @@ ob_start();
 
 		case 'graph_report_user':
 
-			$data['date'] = trim($_REQUEST['date']);
+			$data['date'] = trim($date);
 /*			if($data['date'] == '') {
 				$valid = false;
 				$code = 103;
 			}*/
-			$data['date2'] = trim($_REQUEST['date2']);
+			$data['date2'] = trim($date2);
 // 			if($data['date2'] == '') {
 // 				$valid = false;
 // 				$code = 104;
 // 			}
 
-			$data['report_type'] = (trim($_REQUEST['report_type']) == '') ? 'year' : trim($_REQUEST['report_type']);
-			$data['week'] = trim($_REQUEST['week']);
-			$data['month'] = trim($_REQUEST['month']);
-			$data['year'] = (trim($_REQUEST['year']) == '') ? ($data['report_type'] == 'year' ? date('Y'):'') : trim($_REQUEST['year']);
-			$data['station'] = trim($_REQUEST['station']);
-			$data['sc'] = trim($_REQUEST['sc']);
-			$data['user_id'] = trim($_REQUEST['user_id']);
+			$data['report_type'] = (trim($report_type) == '') ? 'year' : trim($report_type);
+			$data['week'] = trim($week);
+			$data['month'] = trim($month);
+			$data['year'] = (trim($year) == '') ? ($data['report_type'] == 'year' ? date('Y'):'') : trim($year);
+			$data['station'] = trim($station);
+			$data['sc'] = trim($sc);
+			$data['user_id'] = trim($user_id);
 
-			$data['users'] = json_decode(stripslashes(trim($_REQUEST['users'])),true);
+			$data['users'] = json_decode(stripslashes(trim($users)),true);
 
 			header('Content-type: application/json');
 			if($valid) {
@@ -255,17 +348,17 @@ print_r($records);*/
 
 		case 'graph_report_station':
 
-			$data['date'] = trim($_REQUEST['date']);
+			$data['date'] = trim($date);
 			if($data['date'] == '') {
 				$valid = false;
 				$code = 103;
 			}
-			$data['date2'] = trim($_REQUEST['date2']);
+			$data['date2'] = trim($date2);
 			if($data['date2'] == '') {
 				$valid = false;
 				$code = 104;
 			}
-			$data['station'] = trim($_REQUEST['station']);
+			$data['station'] = trim($station);
 
 			header('Content-type: application/json');
 			if($valid) {
@@ -280,17 +373,17 @@ print_r($records);*/
 
 		case 'graph_report_sc':
 
-			$data['date'] = trim($_REQUEST['date']);
+			$data['date'] = trim($date);
 			if($data['date'] == '') {
 				$valid = false;
 				$code = 103;
 			}
-			$data['date2'] = trim($_REQUEST['date2']);
+			$data['date2'] = trim($date2);
 			if($data['date2'] == '') {
 				$valid = false;
 				$code = 104;
 			}
-			$data['sc'] = trim($_REQUEST['sc']);
+			$data['sc'] = trim($sc);
 
 			header('Content-type: application/json');
 			if($valid) {
@@ -318,7 +411,7 @@ print_r($records);*/
 		case 'check-new-images':
 			$time_start = microtime(true);
 			$si->images->clear_files();
-			$rr = $si->images->load_from_folder(PATH_INCOMING);
+			$rr = $si->images->load_from_folder($config['path']['incoming']);
 			$images = $si->images->get_files();
 			$count = 0;
 			if(count($images) && is_array($images)) {
@@ -372,9 +465,9 @@ print_r($records);*/
 
 		case 'storage_info':
 			$data = array();
-			$data[] = array('text'=>'Size Used','value'=> getdirsize(PATH_IMAGES));
-			$data[] = array('text'=>'Free Disk Space','value'=> decodeSize(disk_free_space(PATH_IMAGES)));
-			$data[] = array('text'=>'Total Disk Space','value'=> decodeSize(disk_total_space(PATH_IMAGES)));
+			$data[] = array('text'=>'Size Used','value'=> getdirsize($config['path']['images']));
+			$data[] = array('text'=>'Free Disk Space','value'=> decodeSize(disk_free_space($config['path']['images'])));
+			$data[] = array('text'=>'Total Disk Space','value'=> decodeSize(disk_total_space($config['path']['images'])));
 
 			header('Content-type: application/json');
 			print( json_encode( array( 'success' => true,  'data' => $data ) ) );
@@ -397,15 +490,15 @@ print_r($records);*/
 
 		case 'get_image':
 
-			$data['image_id'] = trim($_REQUEST['image_id']);
+			$data['image_id'] = trim($image_id);
 			if($data['image_id'] == "") {
 				$valid = false;
 				$code = 107;
 			}
-			$data['width'] = trim($_REQUEST['width']);
-			$data['height'] = trim($_REQUEST['height']);
-			$data['size'] = trim($_REQUEST['size']);
-			$data['type'] = trim($_REQUEST['type']);
+			$data['width'] = trim($width);
+			$data['height'] = trim($height);
+			$data['size'] = trim($size);
+			$data['type'] = trim($type);
 			if($valid) {
 				$si->image->setData($data);
 				$si->image->getImage();
@@ -419,17 +512,17 @@ print_r($records);*/
 
 		case 'list_process_queue':
 
-			$data['start'] = ($_REQUEST['start'] != '') ? $_REQUEST['start'] : 0;
-			$data['limit'] = ($_REQUEST['limit'] != '') ? $_REQUEST['limit'] : 100;
-			if(is_array($_REQUEST['filter'])) {
-				$data['filter'] = $_REQUEST['filter'];
+			$data['start'] = ($start != '') ? $start : 0;
+			$data['limit'] = ($limit != '') ? $limit : 100;
+			if(is_array($filter)) {
+				$data['filter'] = $filter;
 			} else {
-				$data['filter'] = json_decode(stripslashes($_REQUEST['filter']),true);
+				$data['filter'] = json_decode(stripslashes($filter),true);
 			}
-			$order = json_decode(stripslashes($_REQUEST['order']),true);
-			$dir = (in_array(strtolower(trim($_REQUEST['dir'])),array('asc','desc'))) ? trim($_REQUEST['dir']) : 'ASC';
-			if(trim($_REQUEST['sort']) != '') {
-				$order[] = array('field' => trim($_REQUEST['sort']), 'dir' => $dir);
+			$order = json_decode(stripslashes($order),true);
+			$dir = (in_array(strtolower(trim($dir)),array('asc','desc'))) ? trim($dir) : 'ASC';
+			if(trim($sort) != '') {
+				$order[] = array('field' => trim($sort), 'dir' => $dir);
 			}
 			$data['order'] = $order;
 
@@ -446,20 +539,20 @@ print_r($records);*/
 
 		case 'images':
 			$time = microtime(true);
-			$data['start'] = ($_REQUEST['start'] != '') ? $_REQUEST['start'] : 0;
-			$data['limit'] = ($_REQUEST['limit'] != '') ? $_REQUEST['limit'] : 100;
-			$data['order'] = json_decode(stripslashes(trim($_REQUEST['order'])),true);
-			if(is_array($_REQUEST['filter'])) {
-				$data['filter'] = $_REQUEST['filter'];
+			$data['start'] = ($start != '') ? $start : 0;
+			$data['limit'] = ($limit != '') ? $limit : 100;
+			$data['order'] = json_decode(stripslashes(trim($order)),true);
+			if(is_array($filter)) {
+				$data['filter'] = $filter;
 			} else {
-				$data['filter'] = json_decode(stripslashes(trim($_REQUEST['filter'])),true);
+				$data['filter'] = json_decode(stripslashes(trim($filter)),true);
 			}
 // print_r($data['filter']);
-			$data['image_id'] = trim($_REQUEST['image_id']);
-			$data['field'] = trim($_REQUEST['field']);
-			$data['value'] = trim($_REQUEST['value']);
-			if(trim($_REQUEST['sort']) != '') {
-				$data['order'] = array(array('field' => trim($_REQUEST['sort']), 'dir' => trim($_REQUEST['dir'])));
+			$data['image_id'] = trim($image_id);
+			$data['field'] = trim($field);
+			$data['value'] = trim($value);
+			if(trim($sort) != '') {
+				$data['order'] = array(array('field' => trim($sort), 'dir' => trim($dir)));
 			}
 
 /*
@@ -469,7 +562,7 @@ print_r($records);*/
 			}
 */
 
-			$data['code'] = ($_REQUEST['code'] != '') ? $_REQUEST['code'] : '';
+			$data['code'] = ($code != '') ? $code : '';
 
 			
 			if($valid) {
@@ -481,7 +574,7 @@ print_r($records);*/
 						if($config['mode'] == 's3') {
 	$dt->path = $config['s3']['url'] . $si->image->barcode_path($dt->barcode);
 						} else {
-	$dt->path =  str_replace(DOC_ROOT,BASE_URL . '/', PATH_IMAGES . $si->image->barcode_path($dt->barcode));
+	$dt->path =  str_replace($config['doc_root'],$config['base_url'] . '/', $config['path']['images'] . $si->image->barcode_path($dt->barcode));
 						}
 
 /*
@@ -531,38 +624,38 @@ print_r($records);*/
 				} else{
 					header('Content-type: application/json');
 					$total = $si->image->db->query_total();
-					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time, 'totalCount' => $total, 'data' => $data ) ) );
+					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time, 'totalCount' => $total, 'data' => $data ) ), $callback );
 				}
 			}else {
 				
-				print_c( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ) );
+				print_c( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ), $callback );
 			}
 
 			break;
 
 		case 'collections':
 
-			$data['start'] = (trim($_REQUEST['start']) != '') ? trim($_REQUEST['start']) : 0;
-			$data['limit'] = (trim($_REQUEST['limit']) != '') ? trim($_REQUEST['limit']) : 100;
+			$data['start'] = (trim($start) != '') ? trim($start) : 0;
+			$data['limit'] = (trim($limit) != '') ? trim($limit) : 100;
 
-			$order = stripslashes(trim($_REQUEST['order']));
-			if(trim($_REQUEST['sort']) != '') {
-				$data['order'] = array(array('field' => trim($_REQUEST['sort']), 'dir' => $_REQUEST['dir']));
+			$order = stripslashes(trim($order));
+			if(trim($sort) != '') {
+				$data['order'] = array(array('field' => trim($sort), 'dir' => $dir));
 			} else {
 				if($order == '') { $order = '[{"field":"code","dir":"ASC"}]'; }
 				$data['order'] = json_decode($order,true);
 			}
 
-			$data['filter'] = json_decode(stripslashes(trim($_REQUEST['filter'])),true);
+			$data['filter'] = json_decode(stripslashes(trim($filter)),true);
 
 			header('Content-type: application/json');
 			if($valid) {
 				$si->collection->setData($data);
 				$data = $si->collection->listCollection();
 				$total = $si->collection->db->query_total();
-				print_c( json_encode( array( 'success' => true, 'totalCount' => $total, 'records' => $data ) ) );
+				print_c( json_encode( array( 'success' => true, 'totalCount' => $total, 'records' => $data ) ), $callback );
 			}else {
-				print_c( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ) );
+				print_c( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ), $callback );
 			}
 
 			break;
@@ -571,19 +664,19 @@ print_r($records);*/
 
 			header('Content-type: application/json');
 
-			$filter['code'] = trim($_REQUEST['code']);
-			$filter['exist'] = trim($_REQUEST['exist']);
+			$filter['code'] = trim($code);
+			$filter['exist'] = trim($exist);
 			if($valid) {
 
-				$pathUrl = IMAGE_SEQUENCE_CACHE;
-				$pathUrl = @str_replace(BASE_PATH, BASE_URL . 'biodiversityimageserver/trt/', IMAGE_SEQUENCE_CACHE);
+				$pathUrl = $config['image_sequence_cache'];
+				$pathUrl = @str_replace($config['path']['base'], $config['base_url'] . 'biodiversityimageserver/trt/', $config['image_sequence_cache']);
 
 
 				$si->image->setData($filter);
 				$data = $si->image->imageSequenceCache();
 				$datalist = json_encode($data);
 
-				$fp = fopen(IMAGE_SEQUENCE_CACHE, 'w');
+				$fp = fopen($config['image_sequence_cache'], 'w');
 				fwrite($fp, $datalist);
 				fclose($fp);
 
@@ -596,9 +689,9 @@ print_r($records);*/
 			break;
 
 		case 'details':
-			$id = trim($_REQUEST['id']);
-			$data['start'] = (trim($_REQUEST['start']) != '') ? trim($_REQUEST['start']) : 0;
-			$data['limit'] = (trim($_REQUEST['limit']) != '') ? trim($_REQUEST['limit']) : 100;
+			$id = trim($id);
+			$data['start'] = (trim($start) != '') ? trim($start) : 0;
+			$data['limit'] = (trim($limit) != '') ? trim($limit) : 100;
 // 			if($id == '') {
 // 				$valid = false;
 // 				$code = 109;
@@ -622,23 +715,23 @@ print_r($records);*/
 		case 'sizeOfCollection':
 			$time = microtime(true);
 
-			$id = trim($_REQUEST['id']);
-			$data['start'] = (trim($_REQUEST['start']) != '') ? trim($_REQUEST['start']) : 0;
-			$data['limit'] = (trim($_REQUEST['limit']) != '') ? trim($_REQUEST['limit']) : 100;
+			$id = trim($id);
+			$data['start'] = (trim($start) != '') ? trim($start) : 0;
+			$data['limit'] = (trim($limit) != '') ? trim($limit) : 100;
 			header('Content-type: application/json');
 			if($valid) {
 				$si->collection->setData($data);
 				$data = $si->collection->getSizeOfCollection();
-				print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time, 'data' => $data ) ) );
+				print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time, 'data' => $data ) ), $callback );
 			} else {
-				print_c( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ) );
+				print_c( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ), $callback );
 			}
 			break;
 
 		case 'getStationUsers':
 			$data = array();
-			if(trim($_REQUEST['station_id']) != '') {
-				$data['station_id'] = $_REQUEST['station_id'];
+			if(trim($station_id) != '') {
+				$data['station_id'] = $station_id;
 			}
 			header('Content-type: application/json');
 			if($valid) {
@@ -655,7 +748,7 @@ print_r($records);*/
 /*
 		case 'rotate-images':
 
-			$images = json_decode(stripslashes(trim($_REQUEST['images'])),true);
+			$images = json_decode(stripslashes(trim($images)),true);
 			$imageRotateCount = 0;
 
 			header('Content-type: application/json');
@@ -677,14 +770,14 @@ print_r($records);*/
 
 		case 'rotate-images':
 			$image = array();
-			$image['image_id'] = trim($_REQUEST['image_id']);
-			$image['degree'] = trim($_REQUEST['degree']);
+			$image['image_id'] = trim($image_id);
+			$image['degree'] = trim($degree);
 
-			if(trim($_REQUEST['image_id']) == '') {
+			if(trim($image_id) == '') {
 				$code = 107;
 				$valid = false;
 			}
-			if(trim($_REQUEST['degree']) == '') {
+			if(trim($degree) == '') {
 				$code = 111;
 				$valid = false;
 			}
@@ -709,8 +802,8 @@ print_r($records);*/
 
 
 		case 'delete-image':
-			if(trim($_REQUEST['image_id']) != '') {
-				$data['image_id'] = trim($_REQUEST['image_id']);
+			if(trim($image_id) != '') {
+				$data['image_id'] = trim($image_id);
 			} else {
 				$valid = false;
 				$code = 107;
@@ -736,7 +829,7 @@ print_r($records);*/
 			break;
 
 		case 'generateMissingImages':
-			$collectionCodes = json_decode(stripslashes(trim($_REQUEST['collectionCode'])),true);
+			$collectionCodes = json_decode(stripslashes(trim($collectionCode)),true);
 			$barcodes = array();
 			$ct = 0;
 			if(is_array($collectionCodes) && count($collectionCodes)) {
@@ -747,7 +840,7 @@ print_r($records);*/
 					if(!is_null($ret)) {
 						while ($row = $ret->fetch_object()) {
 							$ct++;
-							$path = PATH_IMAGES . $si->image->barcode_path( $row->barcode ) . $row->filename;
+							$path = $config['path']['images'] . $si->image->barcode_path( $row->barcode ) . $row->filename;
 							clearstatcache();
 							if(!file_exists($path)) {
 								$barcodes[] = $row->barcode;
@@ -776,7 +869,7 @@ print_r($records);*/
 			$sourceUrl = "http://ecat-dev.gbif.org/ws/usage/?rkey=1&q=%s&sort=alpha&pagesize=1&rank=g";
 			$sourceUrl2 = "http://ecat-dev.gbif.org/ws/usage/%s";
 			$sourceUrl3 = "http://ecat-dev.gbif.org/ws/usage/?rkey=1&q=%s&sort=alpha&pagesize=1&rank=";
-			$filter['limit'] = $_REQUEST['limit'];
+			$filter['limit'] = $limit;
 			$ret = $si->image->getGeneraList($filter);
 			$records = 0;
 			if(!is_null($ret)) {
@@ -824,12 +917,12 @@ print_r($records);*/
 
 		case 'getCollectionSpecimenCount':
 			header('Content-type: application/json');
-			$data['nodeValue'] = trim($_REQUEST['nodeValue']);
+			$data['nodeValue'] = trim($nodeValue);
 			if($data['nodeValue'] == '') {
 				$valid = false;
 				$code = 115;
 			}
-			$data['nodeApi'] = trim($_REQUEST['nodeApi']);
+			$data['nodeApi'] = trim($nodeApi);
 			if(!in_array($data['nodeApi'],array('Family','Genus','SpecificEpithet'))) {
 				$valid = false;
 				$code = 114;
@@ -858,7 +951,7 @@ print_r($records);*/
 		 * Lists the details of a particular photo
 		 */
 		case 'picassa_image_details':
-			$image_id = trim($_REQUEST['image_id']);
+			$image_id = trim($image_id);
 			if($image_id == "") {
 				$valid = false;
 				$code = 107;
@@ -880,7 +973,7 @@ print_r($records);*/
 		 * Updates the details of a particular photo
 		 */
 		case 'picassa_update_image':
-			$image_id = trim($_REQUEST['image_id']);
+			$image_id = trim($image_id);
 			if($image_id == "") {
 				$valid = false;
 				$code = 107;
@@ -890,9 +983,9 @@ print_r($records);*/
 			if($valid) {
 				if($si->image->load_by_id($image_id)) {
 					$si->picassa->clientLogin();
-					$si->picassa->set('photo_title',@trim($_REQUEST['photo_title']));
-					$si->picassa->set('photo_summary',@trim($_REQUEST['photo_summary']));
-					$si->picassa->set('photo_tags',@trim($_REQUEST['photo_tags']));
+					$si->picassa->set('photo_title',@trim($photo_title));
+					$si->picassa->set('photo_summary',@trim($photo_summary));
+					$si->picassa->set('photo_tags',@trim($photo_tags));
 					$photos = $si->picassa->updatePhoto($si->image->get('picassa_PlantID'));
 					print( json_encode( array( 'success' => true ) ) );
 				}
@@ -905,8 +998,8 @@ print_r($records);*/
 		 * add a tag to a particular image
 		 */
 		case 'picassa_add_tag':
-			$image_id = trim($_REQUEST['image_id']);
-			$tag = trim($_REQUEST['tag']);
+			$image_id = trim($image_id);
+			$tag = trim($tag);
 			if($image_id == "") {
 				$valid = false;
 				$code = 107;
@@ -929,8 +1022,8 @@ print_r($records);*/
 		 * deletes a specific tag of a particular image
 		 */
 		case 'picassa_delete_tag':
-			$image_id = trim($_REQUEST['image_id']);
-			$tag = trim($_REQUEST['tag']);
+			$image_id = trim($image_id);
+			$tag = trim($tag);
 			if($image_id == "") {
 				$valid = false;
 				$code = 107;
@@ -971,17 +1064,17 @@ print_r($records);*/
 			break;
 
 		case 'listHSQueue':
-			$data['start'] = ($_REQUEST['start'] != '') ? $_REQUEST['start'] : 0;
-			$data['limit'] = ($_REQUEST['limit'] != '') ? $_REQUEST['limit'] : 100;
-			if(is_array($_REQUEST['filter'])) {
-				$data['filter'] = $_REQUEST['filter'];
+			$data['start'] = ($start != '') ? $start : 0;
+			$data['limit'] = ($limit != '') ? $limit : 100;
+			if(is_array($filter)) {
+				$data['filter'] = $filter;
 			} else {
-				$data['filter'] = json_decode(stripslashes($_REQUEST['filter']),true);
+				$data['filter'] = json_decode(stripslashes($filter),true);
 			}
-			$order = json_decode(stripslashes($_REQUEST['order']),true);
-			$dir = (in_array(strtolower(trim($_REQUEST['dir'])),array('asc','desc'))) ? trim($_REQUEST['dir']) : 'ASC';
-			if(trim($_REQUEST['sort']) != '') {
-				$order[] = array('field' => trim($_REQUEST['sort']), 'dir' => $dir);
+			$order = json_decode(stripslashes($order),true);
+			$dir = (in_array(strtolower(trim($dir)),array('asc','desc'))) ? trim($dir) : 'ASC';
+			if(trim($sort) != '') {
+				$order[] = array('field' => trim($sort), 'dir' => $dir);
 			}
 			$data['order'] = $order;
 
@@ -1010,8 +1103,8 @@ print_r($records);*/
 			$linkArray = array('small' => '_s','medium' => '_m','large'=>'_l','google_tile' => 'tile_');
 
 			$files = array();
-			$files = @json_decode(@stripslashes(trim($_REQUEST['filenames'])),true);
-			$autoProcess = @json_decode(@stripslashes(trim($_REQUEST['autoProcess'])),true);
+			$files = @json_decode(@stripslashes(trim($filenames)),true);
+			$autoProcess = @json_decode(@stripslashes(trim($autoProcess)),true);
 
 			if(!(is_array($autoProcess) && count($autoProcess))) {
 				$autoProcess = $autoProcessTemplate;
@@ -1023,8 +1116,8 @@ print_r($records);*/
 				}
 			}
 			if(!(is_array($files) && count($files))) {
-				$data['start'] = (trim($_REQUEST['limit']) != '') ? trim($_REQUEST['limit']) : 0;
-				$data['limit'] = trim($_REQUEST['limit']);
+				$data['start'] = (trim($limit) != '') ? trim($limit) : 0;
+				$data['limit'] = trim($limit);
 				$ret = $si->image->getNonProcessedRecords($data);
 				if(is_object($ret) && !is_null($ret)) {
 					while ($row = $ret->fetch_object())
@@ -1098,7 +1191,7 @@ print_r($records);*/
 					} else {
 					# config mode local
 	
-						$imagePath = PATH_IMAGES . $si->image->barcode_path( $barcode );
+						$imagePath = $config['path']['images'] . $si->image->barcode_path( $barcode );
 						clearstatcache();
 						if(@file_exists($imagePath)) {
 							$ar = array_fill_keys($tplArray,false);
@@ -1154,20 +1247,20 @@ print_r($records);*/
 
 				} # foreach file
 			} # if count file
-			print_c ( json_encode( array( 'success' => true, 'recordCount' => count($statsArray), 'stats' => $statsArray ) ) );
+			print_c ( json_encode( array( 'success' => true, 'recordCount' => count($statsArray), 'stats' => $statsArray ) ), $callback );
 			break;
 
 		case 'searchEnLabels':
 			$time_start = microtime(true);
-			$searchWord = urldecode(trim($_REQUEST['value']));
-			$enAccountId = trim($_REQUEST['enAccountId']);
+			$searchWord = urldecode(trim($value));
+			$enAccountId = trim($enAccountId);
 			if($searchWord == '') {
 				$valid = false;
 				$code = 118;
 			}
 			if($valid) {
-				$start = (trim($_REQUEST['start']) == '') ? 0 : trim($_REQUEST['start']);
-				$limit = (trim($_REQUEST['limit']) == '') ? 25 : trim($_REQUEST['limit']);
+				$start = (trim($start) == '') ? 0 : trim($start);
+				$limit = (trim($limit) == '') ? 25 : trim($limit);
 				$data = array();
 				$accounts = $si->en->getAccounts();
 				$totalNotes = 0;
@@ -1193,7 +1286,7 @@ print_r($records);*/
 								if($config['mode'] == 's3') {
 									$ar->path = $config['s3']['url'] . $si->image->barcode_path($si->s2l->get('barcode'));
 								} else {
-									$ar->path =  str_replace(DOC_ROOT,BASE_URL . '/', PATH_IMAGES . $si->image->barcode_path($si->s2l->get('barcode')));
+									$ar->path =  str_replace($config['doc_root'],$config['base_url'] . '/', $config['path']['images'] . $si->image->barcode_path($si->s2l->get('barcode')));
 								}
 								$data[$label] = $ar;
 							}
@@ -1204,16 +1297,16 @@ print_r($records);*/
 				} # if labels
 				$data = @array_values($data);
 				$time = microtime(true) - $time_start;
-				print_c( json_encode( array( 'success' => true, 'processTime' => $time, 'totalCount' => $totalNotes, 'data' => $data ) ) );
+				print_c( json_encode( array( 'success' => true, 'processTime' => $time, 'totalCount' => $totalNotes, 'data' => $data ) ), $callback );
 			} else {
-				print_c( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ) );
+				print_c( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ), $callback );
 			}
 
 			break;
 /*
 		case 'getEvernoteAccounts':
 			$accounts = $si->en->getAccounts();
-			print_c( json_encode( array( 'success' => true, 'totalCount' => @count($accounts), 'data' => $accounts ) ) );
+			print_c( json_encode( array( 'success' => true, 'totalCount' => @count($accounts), 'data' => $accounts ) ) , $callback);
 			break;
 */
 
@@ -1221,8 +1314,8 @@ print_r($records);*/
 
 case 'auditTest':
 echo '<pre>';
-$barcode = trim($_REQUEST['barcode']);
-// $limit = $_REQUEST['limit'] = 10000;
+$barcode = trim($barcode);
+// $limit = $limit = 10000;
 
 $accessKey = 'AKIAJO3DSVOINCBELMZQ';
 $secretKey = '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';
@@ -1330,8 +1423,8 @@ echo 'Not Ok';
 break;
 
 		case 'clearProcessQueue':
-			$types = @json_decode(@stripslashes(trim($_REQUEST['types'])));
-			$imageIds = @json_decode(@stripslashes(trim($_REQUEST['imageId'])));
+			$types = @json_decode(@stripslashes(trim($types)));
+			$imageIds = @json_decode(@stripslashes(trim($imageId)));
 			if(is_array($types) && count($types)) {
 				$data['processType'] = $types;
 			}
@@ -1342,13 +1435,13 @@ break;
 			$si->pqueue->setData($data);
 			$allowedTypes = array('flickr_add','picassa_add','zoomify','google_tile','ocr_add','name_add','all');
 			$ret = $si->pqueue->clearQueue();
-			print_c(json_encode(array('success' => true, 'recordCount' => $ret['recordCount'])));
+			print_c(json_encode(array('success' => true, 'recordCount' => $ret['recordCount'])), $callback);
 
 			break;
 
 
 		case 'zoomify_test':
-			$barcode = trim($_REQUEST['barcode']);
+			$barcode = trim($barcode);
 			if ( $si->image->zoomifyImage($barcode) ) {
 				print( json_encode( array( 'success' => true ) ) );
 			} else {
