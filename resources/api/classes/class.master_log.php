@@ -36,7 +36,6 @@ Class Logger {
 	}
 
 	private function setFieldFromCsv ($data) {
-// 		$field_array = array ('sc_id', 'log_id', 'image_id', 'before', 'after', 'task', 'timestamp_modified', 'user', 'station_id', 'barcode');
 		$field_array = array ('sc_id', 'log_id', 'before', 'after', 'task', 'timestamp_modified', 'user', 'station_id', 'image_id', 'barcode');
 		$counter = 0;
 		foreach($field_array as $field) {
@@ -101,10 +100,10 @@ Class Logger {
 
 	public function loadS3Logs() {
 
-		if(!@file_exists(PATH_TMP . 'logs/')) {
-			@mkdir(PATH_TMP . 'logs/',0775);
+		if(!@file_exists(sys_get_temp_dir . '/' . 'logs/')) {
+			@mkdir(sys_get_temp_dir . '/' . 'logs/',0775);
 		}
-		$filename = PATH_TMP . 'logs/' . 'log.csv';
+		$filename = sys_get_temp_dir . '/' . 'logs/' . 'log.csv';
 		$ret = array();
 
 		# taking log files from the s3 logs folder
@@ -203,8 +202,6 @@ Class Logger {
 
 		$query .= " GROUP BY  $group_term ";
 
-// 		print $query;
-
 		$records = $this->db->query_all($query);
 
 		$op = array();
@@ -253,14 +250,6 @@ Class Logger {
 		if($this->data['sc'] != '') {
 			$query .= sprintf(" AND `sc_id` = '%s' ", mysql_escape_string($this->data['sc']));
 		}
-
-// 		if($this->data['sc'] != '') {
-// 			$this->data['sc'] = json_decode( $this->data['sc'] );
-// 			if(count($this->data['sc'])) {
-// 				$sc_list = @implode(',', $this->data['sc']);
-// 				$query .= sprintf(" AND `sc_id` IN (%s) ", mysql_escape_string($user_list));
-// 			}
-// 		}
 
 		$query .= " GROUP BY  date(`timestamp_modified`) ";
 
@@ -316,7 +305,6 @@ Class Logger {
 		}
 
 		$query .= " GROUP BY  HOUR (`timestamp_modified`) ";
-// echo $query;
 		$records = $this->db->query_all($query);
 
 		$op = array();
@@ -345,47 +333,6 @@ Class Logger {
 		$this->records = $op;
 		return true;
 	}
-
-/*
-	public function loadGraphReportUsers () {
-		$query = sprintf( "SELECT count(*) ct, date(`timestamp_modified`) as dt, user FROM `master_log` WHERE `task` = 'IMAGE_PHOTOGRAPHED' AND ( date( `timestamp_modified` ) BETWEEN '%s' AND '%s' ) AND user != 0 ", mysql_escape_string($this->data['date']), mysql_escape_string($this->data['date2']) );
-
-		if($this->data['users'] != '') {
-			$this->data['users'] = json_decode( $this->data['users'] );
-			if(count($this->data['users'])) {
-				$user_list = @implode(',', $this->data['users']);
-				$query .= sprintf(" AND `user` IN (%s) ", mysql_escape_string($user_list));
-			}
-		}
-
-		$query .= " GROUP BY  date(`timestamp_modified`), user ";
-
-		$records = $this->db->query_all($query);
-
-		$op = array();
-
-		if(count($records)) {
-
-			$temp = '';
-			$arr = array();
-			foreach($records as $record) {
-				if($temp != $record->dt) {
-					if(count($arr)) {
-						$op[] = $arr;
-						$arr = array();
-					}
-					$arr['name'] = $record->dt;
-					$temp = $record->dt;
-				}
-				$arr[$record->user] = $record->ct;
-			}
-			$op[] = $arr;
-		}
-
-		$this->records = $op;
-		return true;
-	}
-*/
 
 	public function loadGraphReportUsers () {
 		$op = array();
@@ -431,7 +378,7 @@ Class Logger {
 		}
 
 		$query .= " GROUP BY  $group_term ";
-// print $query;
+
 		$records = $this->db->query_all($query);
 
 		$op = array();
@@ -556,9 +503,9 @@ Class Logger {
 	}
 
 	public function getImageStorageStats() {
-
+		global $config;
 		$total_size = 0;
-		$dir_iterator = new RecursiveDirectoryIterator(PATH_IMAGES);
+		$dir_iterator = new RecursiveDirectoryIterator($config['path']['images']);
 		$images_array = new RecursiveIteratorIterator($dir_iterator, RecursiveIteratorIterator::SELF_FIRST);
 		$data['total'] = count($images_array);
 		if( $data['total'] ) {
@@ -566,7 +513,7 @@ Class Logger {
 				$total_size += @filesize($image);
 			}
 		}
-		$allowed_images = round((DISK_SIZE - $total_size) / IMAGE_SIZE);
+		$allowed_images = round(($config['disk_size'] - $total_size) / $config['image_size']);
 		$data['allowed_images'] = $allowed_images;
 		return $data;
 

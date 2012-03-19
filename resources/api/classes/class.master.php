@@ -6,19 +6,19 @@
 	 * @website http://www.silverbiology.com
 	*/
 
-	require_once( BASE_PATH . 'resources/api/classes/class.mysqli_database.php');
-	require_once( BASE_PATH . 'resources/api/classes/class.master_log.php');
-	require_once( BASE_PATH . 'resources/api/classes/class.master_images.php');
-	require_once( BASE_PATH . 'resources/api/classes/class.master_image.php');
-	require_once( BASE_PATH . 'resources/api/classes/class.master_collection.php');
-	require_once( BASE_PATH . 'resources/api/classes/class.process_queue.php');
-	require_once( BASE_PATH . 'resources/api/classes/class.misc.php');
-	require_once( BASE_PATH . 'resources/api/classes/class.picassa.php');
-// 	require_once( BASE_PATH . 'resources/api/classes/class.amazonS3.php');
-	require_once( BASE_PATH . 'resources/api/classes/sdk/sdk.class.php');
-	require_once( BASE_PATH . 'resources/api/classes/class.bis2hs.php');
-	require_once( BASE_PATH . 'resources/api/classes/class.specimen2label.php');
-	require_once( BASE_PATH . 'resources/api/classes/class.master_evernote.php');
+	require_once( $config['path']['base'] . 'resources/api/classes/class.mysqli_database.php');
+	require_once( $config['path']['base'] . 'resources/api/classes/class.master_log.php');
+	require_once( $config['path']['base'] . 'resources/api/classes/class.master_images.php');
+	require_once( $config['path']['base'] . 'resources/api/classes/class.master_image.php');
+	require_once( $config['path']['base'] . 'resources/api/classes/class.master_collection.php');
+	require_once( $config['path']['base'] . 'resources/api/classes/class.process_queue.php');
+	require_once( $config['path']['base'] . 'resources/api/classes/class.misc.php');
+	require_once( $config['path']['base'] . 'resources/api/classes/class.picassa.php');
+// 	require_once( $config['path']['base'] . 'resources/api/classes/class.amazonS3.php');
+	require_once( $config['path']['base'] . 'resources/api/classes/sdk/sdk.class.php');
+	require_once( $config['path']['base'] . 'resources/api/classes/class.bis2hs.php');
+	require_once( $config['path']['base'] . 'resources/api/classes/class.specimen2label.php');
+	require_once( $config['path']['base'] . 'resources/api/classes/class.master_evernote.php');
 
 	Class SilverImage {
 	
@@ -32,7 +32,11 @@
 			$this->collection = new Collection();
 			$this->pqueue = new ProcessQueue();
 			$this->picassa = new PicassaWeb();
-			$this->amazon = new AmazonS3($config['s3']['accessKey'],$config['s3']['secretKey']);
+			if($config['mode'] == 's3') {
+				$this->amazon = new AmazonS3(array('key' => $config['s3']['accessKey'],'secret' => $config['s3']['secretKey']));
+			} else {
+				$this->amazon = NULL;
+			}
 			$this->bis = new Bis2hs();
 			$this->s2l = new Specimen2label();
 			$this->en = new EvernoteAccounts();
@@ -48,9 +52,8 @@
 		}
 
 		function load($project) {
-
-			Global $mysql_host, $mysql_pass, $mysql_user,$record;
-			$connection_string="server=$mysql_host; database=$project; username=$mysql_user; password=$mysql_pass;";
+			global $config;
+			$connection_string="server={$config['mysql']['host']}; database=$project; username={$config['mysql']['user']}; password={$config['mysql']['pass']};";
 			$this->db = new MysqliDatabase($connection_string);
 
 			$this->logger->db = &$this->db;
