@@ -133,7 +133,7 @@ ob_start();
 		
 		include_once( dirname($_SERVER['PHP_SELF']) . '/../../config.php');
 	} else {
-		include_once('../../config-local.php');
+		include_once('../../config.php');
 	}
 
 	$path = $config['path']['base'] . "resources/api/classes/";

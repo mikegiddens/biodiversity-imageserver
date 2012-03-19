@@ -58,7 +58,7 @@ ini_set('display_errors', '1');
 		
 		include_once( dirname($_SERVER['PHP_SELF']) . '/../../config.php');
 	} else {
-		include_once('../../config-local.php');
+		include_once('../../config.php');
 	}
 
 
