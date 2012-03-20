@@ -100,10 +100,10 @@ Class Logger {
 
 	public function loadS3Logs() {
 
-		if(!@file_exists(sys_get_temp_dir . '/' . 'logs/')) {
-			@mkdir(sys_get_temp_dir . '/' . 'logs/',0775);
+		if(!@file_exists(sys_get_temp_dir() . '/' . 'logs/')) {
+			@mkdir(sys_get_temp_dir() . '/' . 'logs/',0775);
 		}
-		$filename = sys_get_temp_dir . '/' . 'logs/' . 'log.csv';
+		$filename = sys_get_temp_dir() . '/' . 'logs/' . 'log.csv';
 		$ret = array();
 
 		# taking log files from the s3 logs folder

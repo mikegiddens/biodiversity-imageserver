@@ -4,12 +4,12 @@ ini_set('display_errors', '1');
 
 ob_start();
 session_start();
-require_once("config.php");
+require_once("config-local.php");
 require_once("resources/api/classes/access_user/access_user_class.php");
 
 if(isset($_POST['go'])) {
 
-	$user_access = new Access_user( $mysql_host, $mysql_user, $mysql_pass, $mysql_name );
+	$user_access = new Access_user( $config['mysql']['host'], $config['mysql']['user'], $config['mysql']['pass'], $config['mysql']['name'] );
 	if (!$user_access->connected) {
 		$message = 'Not a valid db connection.';
 	} else {

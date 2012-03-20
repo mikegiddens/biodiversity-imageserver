@@ -165,8 +165,6 @@ ob_start();
 	switch( $cmd ) {
 
 		case 'load_logs':
-			# needs s3 addition
-
 			if($config['mode'] == 's3') {
 				$data['mode'] = $config['mode'];
 				$data['s3'] = $config['s3'];
@@ -427,7 +425,7 @@ print_r($records);*/
 						$CollectionCode = $parts[0];
 						unset($parts);
 
-						$path = PATH_IMAGES . $image->barcode_path( $barcode ) . $filename;
+						$path = $config['path']['images'] . $image->barcode_path( $barcode ) . $filename;
 						$ar = @getimagesize($path);
 
 # if barcode exits already, the image is replaced and the db record is reset and queue populated
@@ -574,7 +572,7 @@ print_r($records);*/
 						if($config['mode'] == 's3') {
 	$dt->path = $config['s3']['url'] . $si->image->barcode_path($dt->barcode);
 						} else {
-	$dt->path =  str_replace($config['doc_root'],$config['base_url'] . '/', $config['path']['images'] . $si->image->barcode_path($dt->barcode));
+	$dt->path =  str_replace($config['doc_root'],rtrim($config['base_url'],'/') . '/', $config['path']['images'] . $si->image->barcode_path($dt->barcode));
 						}
 
 /*
@@ -744,29 +742,6 @@ print_r($records);*/
 				print( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ) );
 			}
 			break;
-
-/*
-		case 'rotate-images':
-
-			$images = json_decode(stripslashes(trim($images)),true);
-			$imageRotateCount = 0;
-
-			header('Content-type: application/json');
-			if($valid) {
-				if(is_array($images) && count($images)) {
-					foreach($images as $image) {
-						$ret = $si->image->rotateImage($image);
-						if($ret['success']) {
-							$imageRotateCount++;
-						}
-					}
-				}
-				print( json_encode( array( 'success' => true,  'message' => $imageRotateCount . ' Images Rotated and Added to Queue !.' ) ) );
-			} else {
-				print( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ) );
-			}
-			break;
-*/
 
 		case 'rotate-images':
 			$image = array();
