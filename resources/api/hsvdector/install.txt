@@ -1,0 +1,31 @@
+#
+# HSV Dector for color squares found on Kodak Color Separation Guide - Small Q-13
+# ./boxdetect {filename} {color}
+# color is optional and defaults to red if no color is provided
+# returns JSON format { success: BOOL, data: {x: INT, y: INT, width: INT, height: INT} }
+# if not found you will get x: -1, y: -1, width: 0, height: 0
+# Colors you can pass: red, blue, cyan, green, yellow, pink
+# Also accepts hex values as well ie. FF0000
+#
+
+sudo yum -y install gcc gcc-c++ cmake make
+export CXX=/usr/bin/g++
+export CC=/usr/bin/gcc
+export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
+
+
+#Download current version of opencv
+#http://opencv.willowgarage.com/wiki/InstallGuide?highlight=%28%28InstallGuide_Linux%29%29
+cd /tmp/
+wget http://downloads.sourceforge.net/project/opencvlibrary/opencv-unix/2.3.1/OpenCV-2.3.1a.tar.bz2?r=&ts=1332223330&use_mirror=superb-dca2
+tar -xvf OpenCV-2.3.1a.tar.bz2
+cd OpenCV-2.3.1a
+mkdir release
+cd release
+cmake -D CMAKE_BUILD_TYPE=RELEASE /tmp/OpenCV-2.3.1a
+make # ~30-1hr
+sudo make install
+
+
+# Compiling Software from source
+g++ -o boxdetect hsvColor.cpp -lopencv_core -lopencv_imgproc -lopencv_calib3d -lopencv_video -lopencv_features2d -lopencv_ml -lopencv_highgui -lopencv_objdetect -lopencv_contrib -lopencv_legacy
