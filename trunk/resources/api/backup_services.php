@@ -226,7 +226,12 @@ if ( $si->load( $mysql_name ) ) {
 			header('Content-type: application/json');
 			print json_encode(array('success' => true, 'process_time' => $time, 'total_records_added' => $count));
 			break;
-		case 'processOcr':
+		case 'processOCR':
+			if(!$config['tesseractEnabled']) {
+				header('Content-type: application/json');
+				print json_encode(array('success' => false, 'message' => 'Tesseract Not Enabled.'));
+				exit;
+			}
 			$time_start = microtime(true);
 			$tStart = time();
 			$loop_flag = true;

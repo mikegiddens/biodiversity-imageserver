@@ -52,4 +52,6 @@
 	$path = $config['path']['base'] . 'resources/api/classes/';
 	set_include_path(get_include_path() . PATH_SEPARATOR . $path);
 
+	$config['ratioDetect'] = false;
+	$config['tesseractEnabled'] = false;
 ?>
