@@ -133,7 +133,7 @@ ob_start();
 		
 		include_once( dirname($_SERVER['PHP_SELF']) . '/../../config.php');
 	} else {
-		include_once('../../config.php');
+		include_once('../../config-local.php');
 	}
 
 	$path = $config['path']['base'] . "resources/api/classes/";
@@ -502,6 +502,24 @@ print_r($records);*/
 				$si->image->getImage();
 				header('Content-type: application/json');
 				print( json_encode( array( 'success' => true) ) );
+			}else {
+				header('Content-type: application/json');
+				print( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ) );
+			}
+			break;
+
+		case 'get_image_tiles':
+			$image_id = trim($image_id);
+			if($image_id == "") {
+				$valid = false;
+				$code = 107;
+			}
+			if($valid) {
+				$si->image->load_by_id($image_id);
+				$url = $config['tileGenerator'] . '?cmd=loadImage&filename=' . $si->image->get('filename');
+				$res = json_decode(trim(file_get_contents($config['tileGenerator'])));
+				header('Content-type: application/json');
+				print( json_encode( array( 'success' => true, 'url' => $res->url) ) );
 			}else {
 				header('Content-type: application/json');
 				print( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ) );

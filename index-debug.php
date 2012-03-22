@@ -3,7 +3,7 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE);
 ini_set('display_errors', '1');
 
 session_start();
-include_once("config.php");
+include_once("config-local.php");
 if (!(isset($_SESSION['user']) && isset($_SESSION['pw']))) {
 		header('Location: login.php');
 		exit();
@@ -48,7 +48,7 @@ if (!(isset($_SESSION['user']) && isset($_SESSION['pw']))) {
  	<script type="text/javascript" src="resources/js/classes/GVisualizationPanel.js"></script>
     <script type="text/javascript" src="resources/js/classes/Ext.ux.GMapPanel3.js"></script>	
 	
- 	<script type="text/javascript" src="config.js"></script> 	
+ 	<script type="text/javascript" src="config-local.js"></script> 	
  	<script type="text/javascript" src="resources/ext/treecombo.js"></script> 	
 	<script type="text/javascript" src="resources/ext/RandomInt.js"></script>  	
 	<script type="text/javascript" src="resources/ext/GroupTabPanel.js"></script>
