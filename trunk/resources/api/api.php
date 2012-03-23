@@ -517,7 +517,7 @@ print_r($records);*/
 			if($valid) {
 				$si->image->load_by_id($image_id);
 				$url = $config['tileGenerator'] . '?cmd=loadImage&filename=' . $si->image->get('filename');
-				$res = json_decode(trim(file_get_contents($config['tileGenerator'])));
+				$res = json_decode(trim(file_get_contents($url)));
 				header('Content-type: application/json');
 				print( json_encode( array( 'success' => true, 'url' => $res->url) ) );
 			}else {
