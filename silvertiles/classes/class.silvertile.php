@@ -1,5 +1,5 @@
 <?php
-require_once('./config-local.php');
+require_once('./config.php');
 class SilverTile {
 
 	function __construct($path = "", $image = "", $sharpenFlag = false, $tileSize = 256) {
@@ -94,7 +94,7 @@ class SilverTile {
 			$x = pow($i,2);
 			$width = $height = $this->get("tileSize") * $x;
 			$tmpCachePath = $this->getTileLocation() . $i . '/';
-			if(!file_exists($tmpCachePath)) @mkdir($tmpCachePath, 0777);
+			if(!file_exists($tmpCachePath)) @mkdir($tmpCachePath, 0775);
 
 			if($this->tempFileExist()) {
 				$source = $this->getTempFileLocation();
