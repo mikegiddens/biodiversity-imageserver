@@ -108,10 +108,10 @@ Class Image {
         $this->mkdir_recursive( $tmpPath );
 	$flsz = filesize($this->get('path') . $this->get('filename'));
 	if(!$flsz) {
-		@rename( $this->get('path') . $this->get('filename'), $config['path']['error'] . $this->get('filename') );
+		rename( $this->get('path') . $this->get('filename'), $config['path']['error'] . $this->get('filename') );
 		return false;
 	}
-        if(@rename( $this->get('path') . $this->get('filename'), $tmpPath . $this->get('filename') )) {
+        if(rename( $this->get('path') . $this->get('filename'), $tmpPath . $this->get('filename') )) {
         	$this->set('path',$tmpPath);
 		return true;
 	} else {

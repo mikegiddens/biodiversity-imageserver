@@ -133,7 +133,7 @@ ob_start();
 		
 		include_once( dirname($_SERVER['PHP_SELF']) . '/../../config.php');
 	} else {
-		include_once('../../config-local.php');
+		include_once('../../config.php');
 	}
 
 	$path = $config['path']['base'] . "resources/api/classes/";
@@ -409,13 +409,16 @@ print_r($records);*/
 		case 'check-new-images':
 			$time_start = microtime(true);
 			$si->images->clear_files();
+
 			$rr = $si->images->load_from_folder($config['path']['incoming']);
 			$images = $si->images->get_files();
+
 			$count = 0;
 			if(count($images) && is_array($images)) {
 				foreach($images as $image) {
 					$image->db = &$si->db;
 					$successFlag = $image->moveToImages();
+// echo '<br>';var_dump($successFlag);exit;
 					if($successFlag) {
 						$barcode = $image->getName();
 						$filename = $image->get('filename');
