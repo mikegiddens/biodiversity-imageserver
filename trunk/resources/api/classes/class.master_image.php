@@ -179,7 +179,6 @@ Class Image {
 			$destination =  $dtls['dirname'] . '/' . $dtls['filename'] . $postfix . $extension;
 #			$tmp = sprintf("convert %s -thumbnail %sx%s %s", $tmp_path,$new_width,$new_height,$destination);
 			$tmp = sprintf("convert -limit memory 16MiB -limit map 32MiB %s -thumbnail %sx%s %s", $tmp_path,$new_width,$new_height,$destination);
-// 			$res = system($tmp);
 			$res = exec($tmp);
 			if($display_flag) {
 				$fp = fopen($destination, 'rb');
@@ -862,7 +861,7 @@ $strips_array[$end][] = array('startRange' => $tmp_start, 'endRange' => $tmp_end
 		return $output;
 
 	}
-
+/*
 	public function rotateImage($image = array()) {
 		global $config;
 		if($image['image_id'] == '' || !$this->field_exists($image['image_id'])) {
@@ -910,6 +909,92 @@ $strips_array[$end][] = array('startRange' => $tmp_start, 'endRange' => $tmp_end
 		$ret['success'] = true;
 		return $ret;
 	}
+*/
+
+	public function rotateImage($image = array()) {
+		global $config;
+		if($image['image_id'] == '' || !$this->field_exists($image['image_id'])) {
+			$ret['success'] = false;
+			return $ret;
+		}
+		$pqueue = new ProcessQueue();
+		$pqueue->db = &$this->db;
+		$this->load_by_id($image['image_id']);
+		$barcode = $this->get('barcode');
+
+		if($config['mode'] == 's3') {
+			$imagePath = sys_get_temp_dir() . '/';
+			$tmpPath = $imagePath . $this->get('filename');
+
+			# getting the image from s3
+			$key = $this->barcode_path($barcode) . $this->get('filename');
+			$image['obj']->get_object($config['s3']['bucket'], $key, array('fileDownload' => $tmpPath));
+// echo '<br> Tmp Path : ' . $tmpPath;
+// var_dump(filesize($tmpPath));
+
+		} else {
+			$imagePath = $config['path']['images'] . $this->barcode_path( $barcode );
+		}
+		$imageFile = $imagePath . $this->get('filename');
+// 		$imageFile1 = $imagePath . $barcode . '1.jpg';
+		if(in_array($image['degree'],array(90,180,270))){
+			#rotating the image
+// 			$cmd = sprintf("convert %s -rotate %s %s", $imageFile, $image['degree'], $imageFile);
+// 			$cmd = sprintf("convert -limit memory 4MiB -limit map 10MiB %s -rotate %s %s", $imageFile, $image['degree'], $imageFile1);
+
+			$cmd = sprintf("convert -limit memory 16MiB -limit map 32MiB %s -rotate %s %s", $imageFile, $image['degree'], $imageFile);
+
+// echo '<br>' . $cmd;
+			system($cmd);
+
+			if($config['mode'] == 's3') {
+				# putting the image to s3
+				$key = $this->barcode_path($barcode) . $this->get('filename');
+				$response = $image['obj']->create_object ( $config['s3']['bucket'], $key, array('fileUpload' => $tmpPath,'acl' => AmazonS3::ACL_PUBLIC,'storage' => AmazonS3::STORAGE_REDUCED) );
+				@unlink($tmpPath);
+/*echo '<br>';
+var_dump($response);*/
+			}
+		}
+
+		# deleting related images
+
+		if($config['mode'] == 's3') {
+			foreach(array('_s','_m','_l') as $postfix) {
+				$response = $image['obj']->delete_object($config['s3']['bucket'], $this->barcode_path($barcode) . $barcode . $postfix . '.jpg');
+
+/*echo '<br>';
+var_dump($response);
+exit;*/
+			}
+		} else {
+			if(is_dir($imagePath)) {
+				$handle = opendir($imagePath);
+				while (false !== ($file = readdir($handle))) {
+					if( $file == '.' || $file == '..' || $file == $this->get('filename') ) continue;
+					if (is_dir($imagePath.$file)) {
+						$this->rrmdir($imagePath.$file);
+					} else if(is_file($imagePath.$file)) {
+						@unlink($imagePath.$file);
+					}
+				}
+			}
+		}
+
+		$this->set('flickr_PlantID',0);
+		$this->set('picassa_PlantID',0);
+		$this->set('gTileProcessed',0);
+		$this->set('zoomEnabled',0);
+		$this->set('processed',0);
+		$this->save();
+
+		$pqueue->set('image_id',$barcode);
+		$pqueue->set('process_type','all');
+		$pqueue->save();
+
+		$ret['success'] = true;
+		return $ret;
+	}
 
 	public function deleteImage() {
 		global $config;
@@ -917,16 +1002,22 @@ $strips_array[$end][] = array('startRange' => $tmp_start, 'endRange' => $tmp_end
 		if($imageId != '' && $this->field_exists($imageId)) {
 			$this->load_by_id($imageId);
 			$barcode = $this->get('barcode');
-			$imagePath = $config['path']['images'] . $this->barcode_path( $barcode );
-			# deleting related images
-			if(is_dir($imagePath)) {
-				$handle = opendir($imagePath);
-				while (false !== ($file = readdir($handle))) {
-					if( $file == '.' || $file == '..' /* || $file == $this->get('filename') */ ) continue;
-					if (is_dir($imagePath.$file)) {
-						$this->rrmdir($imagePath.$file);
-					} else if(is_file($imagePath.$file)) {
-						@unlink($imagePath.$file);
+			if($config['mode'] == 's3') {
+				foreach(array('_s','_m','_l','') as $postfix) {
+					$response = $image['obj']->delete_object($config['s3']['bucket'], $this->barcode_path($barcode) . $barcode . $postfix . '.jpg');
+				}
+			} else {
+				$imagePath = $config['path']['images'] . $this->barcode_path( $barcode );
+				# deleting related images
+				if(is_dir($imagePath)) {
+					$handle = opendir($imagePath);
+					while (false !== ($file = readdir($handle))) {
+						if( $file == '.' || $file == '..' /* || $file == $this->get('filename') */ ) continue;
+						if (is_dir($imagePath.$file)) {
+							$this->rrmdir($imagePath.$file);
+						} else if(is_file($imagePath.$file)) {
+							@unlink($imagePath.$file);
+						}
 					}
 				}
 			}

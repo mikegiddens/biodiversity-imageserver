@@ -40,6 +40,7 @@
 	$config['title'] = '';
 	$config['mode'] = 'local'; # local or s3
 	$config['email']['to'] = '';
+	$config['reportsavail'] = true;
 
 	$config['s3']['accessKey'] = '';
 	$config['s3']['secretKey'] = '';
