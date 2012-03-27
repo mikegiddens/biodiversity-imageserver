@@ -30,13 +30,13 @@ if(@file_exists('../../hs-config.php')) {
 	print '<br> HS Config File Does Not Exist ';
 	exit;
 }
-$path = BASE_PATH . "resources/api/classes/";
+$path = $config['path']['base'] . "resources/api/classes/";
 set_include_path(get_include_path() . PATH_SEPARATOR . $path);
 require_once('classes/class.master.php');
 
 $si = new SilverImage;
 
-$image_mode = ($image_mode != '') ? $image_mode : IMAGE_MODE;
+$image_mode = ($image_mode != '') ? $image_mode : $config['image_mode'];
 $mode = ($mode != '') ? $mode : 'dev';
 $limit = ($limit != '') ? $limit : 100;
 
@@ -57,14 +57,6 @@ if ( $si->load( $mysql_name ) ) {
 		@array_walk($barcodes,'escapeFn');
 		$where .= sprintf(" AND `barcode` IN ('%s') ",@implode("','",$barcodes));
 	}
-/*
-	$image_id = $si->bis->getId();
-	if($image_id !== false) {
-		$where .= sprintf(" WHERE 1=1 AND `image_id` > '%s' ", mysql_escape_string($image_id));
-	}
-	$query =  sprintf(" SELECT `image_id`, `barcode`, `filename` FROM `image` %s LIMIT %d ",$where, mysql_escape_string($limit));
-*/
-
 	$query = ' SELECT `image_id`, `barcode`, `filename` FROM `image` WHERE `image_id` NOT IN ( SELECT `image_id` FROM `bis2hs`) ' . $where . ' ORDER BY `timestamp_modified` DESC ' . sprintf(" LIMIT %d ", $limit);
 
 	$Ret = $si->db->query($query);
@@ -79,7 +71,7 @@ if ( $si->load( $mysql_name ) ) {
 			if($image_mode == 's3') {
 				$path = $config['s3']['url'] . $si->image->barcode_path($barcode) . $Row->filename;
 			} else {
-				$path = PATH_IMAGES . $si->image->barcode_path($barcode) . $Row->filename;
+				$path = $config['path']['images'] . $si->image->barcode_path($barcode) . $Row->filename;
 			}
 			$ar = getimagesize($path);
 

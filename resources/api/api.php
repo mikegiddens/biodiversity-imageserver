@@ -255,15 +255,7 @@ ob_start();
 
 		case 'report_by_date_range':
 			$data['date'] = trim($date);
-/*			if($data['date'] == '') {
-				$valid = false;
-				$code = 103;
-			}*/
 			$data['date2'] = trim($date2);
-/*			if($data['date2'] == '') {
-				$valid = false;
-				$code = 104;
-			}*/
 			$data['year'] = trim($year);
 			$data['users'] = json_decode(stripslashes(trim($users)),true);
 			$data['stage'] = trim($stage);
@@ -310,15 +302,7 @@ ob_start();
 		case 'graph_report_user':
 
 			$data['date'] = trim($date);
-/*			if($data['date'] == '') {
-				$valid = false;
-				$code = 103;
-			}*/
 			$data['date2'] = trim($date2);
-// 			if($data['date2'] == '') {
-// 				$valid = false;
-// 				$code = 104;
-// 			}
 
 			$data['report_type'] = (trim($report_type) == '') ? 'year' : trim($report_type);
 			$data['week'] = trim($week);
@@ -335,8 +319,6 @@ ob_start();
 				$si->logger->setData($data);
 				$si->logger->loadGraphReportUsers();
 				$records = $si->logger->getRecords();
-/*print '<pre>';
-print_r($records);*/
 				print( json_encode( array( 'success' => true,  'data' => $records ) ) );
 			} else {
 				print( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ) );
@@ -418,7 +400,6 @@ print_r($records);*/
 				foreach($images as $image) {
 					$image->db = &$si->db;
 					$successFlag = $image->moveToImages();
-// echo '<br>';var_dump($successFlag);exit;
 					if($successFlag) {
 						$barcode = $image->getName();
 						$filename = $image->get('filename');
@@ -566,20 +547,12 @@ print_r($records);*/
 			} else {
 				$data['filter'] = json_decode(stripslashes(trim($filter)),true);
 			}
-// print_r($data['filter']);
 			$data['image_id'] = trim($image_id);
 			$data['field'] = trim($field);
 			$data['value'] = trim($value);
 			if(trim($sort) != '') {
 				$data['order'] = array(array('field' => trim($sort), 'dir' => trim($dir)));
 			}
-
-/*
-			$f = new phpFlickr(FLKR_KEY,FLKR_SECRET);
-			if( $f->auth_checkToken() === false) {
-				$f->auth('write');
-			}
-*/
 
 			$data['code'] = ($code != '') ? $code : '';
 
@@ -595,18 +568,6 @@ print_r($records);*/
 						} else {
 	$dt->path =  str_replace($config['doc_root'],rtrim($config['base_url'],'/') . '/', $config['path']['images'] . $si->image->barcode_path($dt->barcode));
 						}
-
-/*
-						if($dt->flickr_PlantID !=0 ) {
-
-// 							$flkrData = json_decode($dt->flickr_details,true);
-
-							$flkrData = $f->photos_getInfo($dt->flickr_PlantID);
-							$dt->server = $flkrData['server'];
-							$dt->farm = $flkrData['farm'];
-							$dt->secret = $flkrData['secret'];
-						}
-*/
 
 					}
 				}
@@ -711,11 +672,6 @@ print_r($records);*/
 			$id = trim($id);
 			$data['start'] = (trim($start) != '') ? trim($start) : 0;
 			$data['limit'] = (trim($limit) != '') ? trim($limit) : 100;
-// 			if($id == '') {
-// 				$valid = false;
-// 				$code = 109;
-// 			}
-
 			header('Content-type: application/json');
 			if($valid) {
 				if($id != '') {
@@ -768,6 +724,7 @@ print_r($records);*/
 			$image = array();
 			$image['image_id'] = trim($image_id);
 			$image['degree'] = trim($degree);
+			$image['obj'] = $si->amazon;
 
 			if(trim($image_id) == '') {
 				$code = 107;
@@ -809,6 +766,9 @@ print_r($records);*/
 				$code = 113;
 				$valid = false;
 			}
+
+			$data['obj'] = $si->amazon;
+
 			header('Content-type: application/json');
 			if($valid) {
 				$si->image->setData($data);
@@ -1445,36 +1405,6 @@ break;
 				print( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ) );
 			}
 			break;
-
-		case 'amazon_test':
-
-print '<pre>';
-echo 'in command';
-
-var_dump($si->amazon);
-
-$response = $si->amazon->list_objects($config['s3']['bucket'], array('prefix' => 'trt/'));
- 
-// Success?
-var_dump($response->isOK());
-var_dump(count($response->body->Contents));
-exit;
-
-			break;
-
-		case 'flickr_test':
-			
-			$f = new phpFlickr(FLKR_KEY,FLKR_SECRET);
-/*			if( $f->auth_checkToken() === false) {
-				$f->auth('write');
-			}*/
-// 			$rr = $f->photos_getInfo(FLKR_KEY,4682069626,FLKR_SECRET);
-			$rr = $f->photos_getInfo(4682069626,FLKR_SECRET);
-			echo '<pre>';
-			var_dump($rr);
-
-			break;
-
 		default:
 			$code = 100;
 
