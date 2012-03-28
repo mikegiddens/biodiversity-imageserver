@@ -1,5 +1,8 @@
 <?php
 
+	$config['version'] = '1.0.0';
+
+	# DB details
 	$config['mysql']['host'] = 'localhost';
 	$config['mysql']['name'] = '';
 	$config['mysql']['user'] = '';

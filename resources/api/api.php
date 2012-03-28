@@ -12,7 +12,6 @@ ob_start();
 	 * @website http://www.silverbiology.com
 	*/
 
-//	ini_set('memory_limit','200M');
 	set_time_limit(0);
 	
 	$expected = array (
@@ -76,10 +75,10 @@ ob_start();
 	session_write_close();
 
 
-	/*
-	*	Function print_c (Print Callback)
-	*	This is a wrapper function for print that will place the callback around the output statement
-	*/
+	/**
+	 * Function print_c (Print Callback)
+	 * This is a wrapper function for print that will place the callback around the output statement
+	 */
 
 	function print_c( $str, $callback = '' ) {
 		header('Content-type: application/json');
@@ -720,6 +719,48 @@ ob_start();
 			}
 			break;
 
+		case 'getVersion':
+			header('Content-type: application/json');
+			print( json_encode( array('success' => true, 'version' => $config['version'] ) ) );
+			break;
+
+		case 'rechop':
+			if(trim($image_id) == '') {
+				$valid = false;
+				$code = 107;
+			}
+			header('Content-type: application/json');
+			if($valid) {
+				$ar = array();
+				if(is_numeric($image_id)) {
+					$imageIds = array($image_id);
+				} else {
+					$imageIds = json_decode($image_id,true);
+				}
+				if(is_array($imageIds) && count($imageIds)) {
+					foreach($imageIds as $imageId) {
+						if($si->image->load_by_id($imageId)) {
+							$si->image->set('flickr_PlantID',0);
+							$si->image->set('picassa_PlantID',0);
+							$si->image->set('gTileProcessed',0);
+							$si->image->set('zoomEnabled',0);
+							$si->image->set('processed',0);
+							$si->image->save();
+					
+							$si->pqueue->set('image_id',$si->image->get('barcode'));
+							$si->pqueue->set('process_type','all');
+							$si->pqueue->save();
+
+							$ar[] = $imageId;
+						}
+					}
+				}
+				print( json_encode( array('success' => true, 'records' => $ar ) ) );
+			} else {
+				print( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ) );
+			}
+			break;
+
 		case 'rotate-images':
 			$image = array();
 			$image['image_id'] = trim($image_id);
@@ -894,14 +935,6 @@ ob_start();
 			break;
 
 		# picassa commands
-
-		/**
-		 * Lists the photos in the album
-		 */
-// 		case 'picassa_list_images':
-// 			$si->picassa->clientLogin();
-// 			$photos = $si->picassa->listPhotos();
-// 			break;
 
 		/**
 		 * Lists the details of a particular photo
@@ -1259,124 +1292,8 @@ ob_start();
 			}
 
 			break;
-/*
-		case 'getEvernoteAccounts':
-			$accounts = $si->en->getAccounts();
-			print_c( json_encode( array( 'success' => true, 'totalCount' => @count($accounts), 'data' => $accounts ) ) , $callback);
-			break;
-*/
 
 # Test Tasks
-
-case 'auditTest':
-echo '<pre>';
-$barcode = trim($barcode);
-// $limit = $limit = 10000;
-
-$accessKey = 'AKIAJO3DSVOINCBELMZQ';
-$secretKey = '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';
-$bucket = 'silverbiology-imagingtour2010';
-
-$amazon = new AmazonS3($accessKey,$secretKey);
-
-$statsArray = array();
-
-$prefix = $si->image->barcode_path($barcode);
-$prefix = "test/";
-
-$response = $amazon->list_objects($bucket,array('prefix' => $prefix,'max-keys' => 1200));
-
-if($response->isOK()) {
-	$body = $response->body;
-	$barcode = '';
-	$skipGtileChk = false;
-	$lastFlag = false;
-
-$tplArray = array('small','medium','large','thumb','google_tile');
-$linkArray = array('small' => '_s','medium' => '_m','large'=>'_l','thumb'=>'_thumb','google_tile' => 'tile_');
-
-$ar = array_fill_keys($tplArray,false);
-$opArray = array('small','medium','large','thumb','google_tile');
-$autoProcess = array('small' => true, 'medium' => true, 'large' => true, 'google_tile' => true);
-
-echo '<br> Count : ' . count($body->Contents);
-
-// print_r($body);
-
-
-	for($i=0;$i<count($body->Contents);$i++){
-// if($i >= $limit) break;
-		$ky = $body->Contents[$i];
-		$filePath = $ky->Key;
-		if(stripos($filePath,'labels') !== false || stripos($filePath,'fields') !== false) continue;
-		if(stripos($filePath,'google_tiles') !== false) {$ar['google_tile'] = true;continue;}
-		$fileDetails = @pathinfo($filePath);
-		if(stripos($fileDetails['extension'],'json') !== false) continue;
-
-		# checking for each pic
-
-		if(strpos($fileDetails['filename'],'_s') !== false) {$ar['small'] = true;}
-		if(strpos($fileDetails['filename'],'_m') !== false) {$ar['medium'] = true;}
-		if(strpos($fileDetails['filename'],'_l') !== false) {$ar['large'] = true;}
-		if(strpos($fileDetails['filename'],'_thumb') !== false) {$ar['thumb'] = true;}
-
-		$bcode = str_replace(array('_l','_m','_s','_thumb'),'',$fileDetails['filename']);
-		if($bcode != $barcode) {
-			if($barcode != '') {
-/*
-if( is_array($autoProcess) && count($autoProcess) ) {
-	foreach($autoProcess as $key => $value ) {
-		if($value == true) {
-			if(@in_array($key,$tplArray) && $ar[$key] == false) {
-				if(!$si->pqueue->field_exists($barcode,$key)) {
-					$si->pqueue->set('image_id', $barcode);
-					$si->pqueue->set('process_type', $key);
-					$si->pqueue->save();
-				}
-			}
-		}
-	} # foreach auto-process
-} # if autoprocess
-*/
-echo '<br> Barcode : ' . $barcode;
-echo '<br>';
-print_r($ar);
-
-
-			} # barcode != ''
-			$barcode = $bcode;
-			$skipGtileChk = false;
-			$ar = array_fill_keys($tplArray,false);
-			$lastFlag = true;
-		}
-
-
-	} # for contents
-
-/*
-	if($lastFlag) {
-		if( is_array($autoProcess) && count($autoProcess) ) {
-			foreach($autoProcess as $key => $value ) {
-				if($value == true) {
-					if(@in_array($key,$tplArray) && $ar[$key] == false) {
-						if(!$si->pqueue->field_exists($barcode,$key)) {
-							$si->pqueue->set('image_id', $barcode);
-							$si->pqueue->set('process_type', $key);
-							$si->pqueue->save();
-						}
-					}
-				}
-			} # foreach auto-process
-		} # if autoprocess
-	} # last flag
-*/
-
-} else {
-echo 'Not Ok';
-} # response ok
-// $statsArray[] = array('file' => $fl['basename'], 'barcode' => $fl['filename'], 'details' => $ar);
-
-break;
 
 		case 'clearProcessQueue':
 			$types = @json_decode(@stripslashes(trim($types)));
@@ -1395,16 +1312,6 @@ break;
 
 			break;
 
-
-		case 'zoomify_test':
-			$barcode = trim($barcode);
-			if ( $si->image->zoomifyImage($barcode) ) {
-				print( json_encode( array( 'success' => true ) ) );
-			} else {
-				$code = 108;
-				print( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ) );
-			}
-			break;
 		default:
 			$code = 100;
 
