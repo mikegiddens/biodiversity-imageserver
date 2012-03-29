@@ -10,6 +10,11 @@ class SilverTile {
 		is_int($tileSize) ? $this->set("tileSize", $tileSize) : 256;
 	}
 
+	function mkdir_recursive($pathname) {
+		is_dir(dirname($pathname)) || $this->mkdir_recursive(dirname($pathname));
+		return is_dir($pathname) || @mkdir($pathname, 0775);
+	}
+
 	function getOriginalDimensions() {
 		if($this->sourceExist()) {
 			@list($dimensions['width'], $dimensions['height']) = @getimagesize($this->get("sourcePath") . $this->get("image"));
@@ -45,6 +50,7 @@ class SilverTile {
 	}
 	
 	function getTileLocation() {
+		$this->mkdir_recursive(PATH_CACHE);
 		$file_parts = pathinfo($this->get("image"));
 		return(PATH_CACHE . strtolower($file_parts["filename"]) . "/");
 	}
