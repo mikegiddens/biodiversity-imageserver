@@ -146,19 +146,38 @@ Class ProcessQueue {
 		$this->image->db = &$this->db;
 		$count = 0;
 
-		while($loop_flag) {
-			if( ($stop != "") && (mktime() > $stop) ) $loop_flag = false;
-			if ($this->data['limit'] != '' && $count >= $limit) $loop_flag = false;
-			
-			$record = $this->popQueue();
-			if($record === false) {
-				$loop_flag = false;
-			} else {
-				$this->processType($record);
-				$count++;
+		$imageIds = $this->data['imageIds'];
+		if(is_array($imageIds) && count($imageIds)) {
+			$query = sprintf(" SELECT q.* FROM `process_queue` q, image i WHERE i.`barcode` = q.`image_id` AND q.`process_type` NOT IN ('picassa_add','flickr_add') AND i.`image_id` IN (%s) ORDER BY `date_added` ", @implode(',',$imageIds));
+			$rets = $this->db->query_all($query);
+			if(is_array($rets) && count($rets)) {
+				foreach($rets as $record) {
+					$this->processType($record);
+					$count++;
+					$delquery = sprintf("DELETE FROM `process_queue` WHERE `image_id` = '%s' AND `process_type` = '%s' ", mysql_escape_string($record->image_id), mysql_escape_string($record->process_type));
+					$this->db->query($delquery);
+				}
+			}
+
+		} else {
+			while($loop_flag) {
+				if( ($stop != "") && (mktime() > $stop) ) $loop_flag = false;
+				if($limit != '') {
+					if($limit == 0) break;
+				}
+				if ($this->data['limit'] != '' && $count >= ($limit-1)) $loop_flag = false;
+
+				$record = $this->popQueue();
+				if($record === false) {
+					$loop_flag = false;
+				} else {
+					$this->processType($record);
+					$count++;
+				}
 			}
 		}
 
+/*
 		$subject = 'Cyberflora Image Server - Processed';
 		$message = "Processed\r\n----------------";
 		$message .= "\r\nSmall : " . $this->process_stats['small'];
@@ -168,6 +187,7 @@ Class ProcessQueue {
 		$message .= "\r\nZoomify : " . $this->process_stats['zoomify'];
 		$message .= "\r\nCache : " . $this->process_stats['cache'];
 		$to = $config['email']['to'];
+*/
 
 		$ret['success'] = true;
 		$ret['time'] = microtime(true) - $this->data['time_start'];

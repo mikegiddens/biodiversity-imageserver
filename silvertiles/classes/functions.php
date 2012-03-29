@@ -1,5 +1,4 @@
 <?php
-
 function barcode_path( $barcode ) {
 	$id = $barcode;
 	if ((strlen($id))>8){
@@ -24,5 +23,4 @@ function barcode_path( $barcode ) {
 	$destPath .= (int) ( $id % 100 ) . "/";
 	return( $destPath );
 }
-
 ?>

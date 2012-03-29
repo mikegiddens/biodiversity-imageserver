@@ -461,6 +461,7 @@ ob_start();
 			$data['mode'] = $config['mode'];
 			$data['s3'] = $config['s3'];
 			$data['obj'] = $si->amazon;
+			$data['imageIds'] = @json_decode($image_id,true);
 			$si->pqueue->setData($data);
 			$result = $si->pqueue->process_queue();
 			if($result['success']) {
@@ -499,10 +500,25 @@ ob_start();
 			}
 			if($valid) {
 				$si->image->load_by_id($image_id);
-				$url = $config['tileGenerator'] . '?cmd=loadImage&filename=' . $si->image->get('filename');
+				$barcode = $si->image->getName();
+				$filename = $si->image->get('filename');
+				$url = $config['tileGenerator'] . '?cmd=loadImage&filename=' . $filename;
+				if($config['mode'] == 's3') {
+					$tmpPath = sys_get_temp_dir() . '/' . $filename;
+					$fp = fopen($tmpPath, "w+b");
+					# getting the image from s3
+					$bucket = $config['s3']['bucket'];
+					$key = $si->image->barcode_path($barcode) . $filename;
+					$si->amazon->get_object($bucket, $key, array('fileDownload' => $tmpPath));
+					$url .= '&absolutePath=' . sys_get_temp_dir() . '/';
+				}
 				$res = json_decode(trim(file_get_contents($url)));
+				if($config['mode'] == 's3') {
+					@unlink($tmpPath);
+				}
+
 				header('Content-type: application/json');
-				print( json_encode( array( 'success' => true, 'url' => $res->url) ) );
+				print( json_encode( array( 'success' => true, 'processTime' => $res->processTime, 'url' => $config['tileUrl'] . strtolower($barcode)) ) );
 			}else {
 				header('Content-type: application/json');
 				print( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ) );
