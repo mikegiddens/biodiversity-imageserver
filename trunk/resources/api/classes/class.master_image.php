@@ -149,6 +149,19 @@ Class Image {
         return is_dir($pathname) || @mkdir($pathname, 0775);
     }
 
+	function rmdir_recursive($dir) {
+		if (is_dir($dir)) {
+			$objects = scandir($dir);
+			foreach ($objects as $object) {
+				if ($object != "." && $object != "..") {
+					if (filetype($dir."/".$object) == "dir") $this->rmdir_recursive($dir."/".$object); else unlink($dir."/".$object);
+				}
+			}
+			reset($objects);
+			rmdir($dir);
+		}
+	}
+
     function createThumbnail( $tmp_path, $new_width, $new_height, $postfix = '', $display_flag=false ) {
 	$extension = '.' . $this->getName('ext');
 	$func = 'imagecreatefrom' . (@strtolower($this->getName('ext')) == 'jpg' ? 'jpeg' : @strtolower($this->getName('ext')));

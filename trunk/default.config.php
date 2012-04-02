@@ -27,6 +27,8 @@
 	$config['path']['files'] = '/var/www/logs/';
 	$config['path']['processed_files'] = '/var/www/logs_processed/';
 	$config['path']['error'] = '';
+	$config['path']['imgTiles'] = '{server/path/to/website}/imgTiles/';
+	$config['path']['tiles'] = '{server/path/to/website}/tiles/';
 
 	$config['image_sequence_cache'] = '/var/www/gui/api/imageSequenceCache.txt';
 

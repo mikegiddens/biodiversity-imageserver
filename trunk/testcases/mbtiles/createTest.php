@@ -1,6 +1,6 @@
 <?php
 
-include_once("class.MBTiles.php");
+include_once("class.imgTiles.php");
 
 echo '<pre>';
 
@@ -12,7 +12,7 @@ while (false !== ($file_name = readdir($handle))) {
 	if( $file_name == '.' || $file_name == '..') continue;
 
 	if(is_dir($tilePath . $file_name)) {
-		$mb = new MBTiles($mbTilesPath . $file_name . '.db');
+		$mb = new imgTiles($mbTilesPath . $file_name . '.sqlite');
 		$handle1 = opendir($tilePath . $file_name);
 		while (false !== ($zoom = readdir($handle1))) {
 			if( $zoom == '.' || $zoom == '..') continue;

@@ -65,6 +65,10 @@ ob_start();
 		,'filenames'
 		,'autoProcess'
 		,'types'
+		,'tiles'
+		,'filename'
+		,'zoom'
+		,'index'
 	);
 
 	// Initialize allowed variables
@@ -492,7 +496,19 @@ ob_start();
 			}
 			break;
 
+		case 'loadTile';
+			$index = @str_replace('tile_','',@basename($index,'.jpg'));
+			$it = new imgTiles($config['path']['imgTiles'] . $filename . '.sqlite');
+			$cmd = sprintf(" SELECT tile_data FROM tiles WHERE zoom_level = %d AND cell = %d ", $zoom, $index);
+			$result = $it->querySingle($cmd);
+			
+			$type = 'image/jpeg';
+			header('Content-Type:'.$type);
+			print $result;
+			break;
+
 		case 'get_image_tiles':
+			$time_start = microtime(true);
 			$image_id = trim($image_id);
 			if($image_id == "") {
 				$valid = false;
@@ -502,6 +518,7 @@ ob_start();
 				$si->image->load_by_id($image_id);
 				$barcode = $si->image->getName();
 				$filename = $si->image->get('filename');
+
 				$url = $config['tileGenerator'] . '?cmd=loadImage&filename=' . $filename;
 				if($config['mode'] == 's3') {
 					$tmpPath = sys_get_temp_dir() . '/' . $filename;
@@ -512,13 +529,32 @@ ob_start();
 					$si->amazon->get_object($bucket, $key, array('fileDownload' => $tmpPath));
 					$url .= '&absolutePath=' . sys_get_temp_dir() . '/';
 				}
-				$res = json_decode(trim(file_get_contents($url)));
+				$res = json_decode(trim(@file_get_contents($url)));
 				if($config['mode'] == 's3') {
 					@unlink($tmpPath);
 				}
 
+				if(in_array(@strtolower($tiles),array('create','createclear'))) {
+					$si->image->mkdir_recursive( $config['path']['imgTiles'] );
+					$tileFolder = strtolower($barcode);
+					$it = new imgTiles($config['path']['imgTiles'] . $tileFolder . '.sqlite');
+
+					$handle = opendir($config['path']['tiles'] . $tileFolder);
+					while (false !== ($zoom = readdir($handle))) {
+						if( $zoom == '.' || $zoom == '..') continue;
+						$handle1 = opendir($config['path']['tiles'] . $tileFolder . '/' . $zoom);
+						while (false !== ($tile = readdir($handle1))) {
+							if( $tile == '.' || $tile == '..') continue;
+							$it->recordTile($zoom, $config['path']['tiles'] . $tileFolder . '/' . $zoom . '/' . $tile);
+						}
+					}
+					if(@strtolower($tiles) == 'createclear') {
+						$si->image->rmdir_recursive($config['path']['tiles'] . $tileFolder);
+					}
+				}
+				$processTime = microtime(true) - $time_start;
 				header('Content-type: application/json');
-				print( json_encode( array( 'success' => true, 'processTime' => $res->processTime, 'url' => $config['tileUrl'] . strtolower($barcode)) ) );
+				print( json_encode( array( 'success' => true, 'processTime' => $processTime, 'url' => $config['tileUrl'] . strtolower($barcode)) ) );
 			}else {
 				header('Content-type: application/json');
 				print( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ) );
@@ -728,7 +764,6 @@ ob_start();
 				$si->logger->setData($data);
 				$si->logger->clearRecords();
 				$records = $si->logger->getStationUsers();
-// 				print( json_encode( array( 'success' => true,  'data' => $records ) ) );
 				print( json_encode( $records ) );
 			} else {
 				print( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ) );
