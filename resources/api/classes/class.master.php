@@ -19,9 +19,10 @@
 	require_once( $config['path']['base'] . 'resources/api/classes/class.bis2hs.php');
 	require_once( $config['path']['base'] . 'resources/api/classes/class.specimen2label.php');
 	require_once( $config['path']['base'] . 'resources/api/classes/class.master_evernote.php');
+	require_once( $config['path']['base'] . 'resources/api/classes/class.imgTiles.php');
 
 	Class SilverImage {
-	
+
 		public  $logger;
 
 		function __construct() {
