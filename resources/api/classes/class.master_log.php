@@ -36,7 +36,7 @@ Class Logger {
 	}
 
 	private function setFieldFromCsv ($data) {
-		$field_array = array ('sc_id', 'log_id', 'before', 'after', 'task', 'timestamp_modified', 'user', 'station_id', 'image_id', 'barcode');
+		$field_array = array ('sc_id', 'log_id', 'image_id', 'before', 'after', 'task', 'timestamp_modified', 'user', 'station_id','dummy_field', 'barcode');
 		$counter = 0;
 		foreach($field_array as $field) {
 			$this->set($field,$data[$counter]);

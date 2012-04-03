@@ -27,11 +27,23 @@ class imgTiles extends SQLite3
 	public function recordTile($zoom,$path) {
 		$tile = basename($path,'.jpg');
 		$index = array_pop(explode('_',$tile));
-		$sql = sprintf("INSERT INTO tiles (zoom_level, tile_column, tile_row, tile_data, cell) VALUES (%d,0,0,'%s',%d);"
-				, $zoom
-				, $this->escapeString(@file_get_contents($path))
-				,$index);
-		$this->exec($sql);
+
+		$stmt = $this->prepare("INSERT INTO tiles (zoom_level, tile_column, tile_row, tile_data, cell) VALUES (:zoomLevel, :tileColumn, :tileRow, :tileData, :tileCell)");
+		$stmt->bindValue(':zoomLevel', $zoom, SQLITE3_INTEGER);
+		$stmt->bindValue(':tileColumn', 0, SQLITE3_INTEGER);
+		$stmt->bindValue(':tileRow', 0, SQLITE3_INTEGER);
+		$stmt->bindValue(':tileData', file_get_contents($path), SQLITE3_BLOB);
+		$stmt->bindValue(':tileCell', $index, SQLITE3_INTEGER);
+		$result = $stmt->execute();
+	}
+
+	public function getTileData($zoom,$index) {
+		$stmt = $this->prepare("SELECT tile_data FROM tiles WHERE zoom_level = :zoomLevel AND cell = :tileCell");
+		$stmt->bindValue(':zoomLevel', $zoom, SQLITE3_INTEGER);
+		$stmt->bindValue(':tileCell', $index, SQLITE3_INTEGER);
+		$result = $stmt->execute();
+		$ret = $result->fetchArray();
+		return $ret[0];
 	}
 
 }

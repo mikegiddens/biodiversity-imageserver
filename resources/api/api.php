@@ -499,8 +499,7 @@ ob_start();
 		case 'loadTile';
 			$index = @str_replace('tile_','',@basename($index,'.jpg'));
 			$it = new imgTiles($config['path']['imgTiles'] . $filename . '.sqlite');
-			$cmd = sprintf(" SELECT tile_data FROM tiles WHERE zoom_level = %d AND cell = %d ", $zoom, $index);
-			$result = $it->querySingle($cmd);
+			$result = $it->getTileData($zoom, $index);
 			
 			$type = 'image/jpeg';
 			header('Content-Type:'.$type);
