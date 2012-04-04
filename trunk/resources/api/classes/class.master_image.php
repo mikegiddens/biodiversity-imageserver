@@ -377,7 +377,7 @@ Class Image {
 
 	public function save() {
 		if($this->field_exists($this->get('image_id'))) {
-            $query = sprintf("UPDATE `image` SET  `filename` = '%s', `timestamp_modified` = now(), `barcode` = '%s', `width` = '%s', `height` = '%s', `Family` = '%s', `Genus` = '%s', `SpecificEpithet` = '%s', `flickr_PlantID` = '%s', `flickr_modified` = '%s', `flickr_details` = '%s', `picassa_PlantID` = '%s', `picassa_modified` = '%s', `gTileProcessed` = '%s', `zoomEnabled` = '%s', `processed` = '%s', `ocr_flag` = '%s', `ocr_value` = '%s', `namefinder_flag` = '%s', `namefinder_value` = '%s', `ScientificName` = '%s', `CollectionCode` = '%s'  WHERE image_id = '%s' ;"
+            $query = sprintf("UPDATE `image` SET  `filename` = '%s', `timestamp_modified` = now(), `barcode` = '%s', `width` = '%s', `height` = '%s', `Family` = '%s', `Genus` = '%s', `SpecificEpithet` = '%s', `rank` = %s, `author` = '%s', `title` = '%s', `description` = '%s', `GlobalUniqueIdentifier` = '%s', `creative_commons` = '%s', `characters` = '%s', `flickr_PlantID` = '%s', `flickr_modified` = '%s', `flickr_details` = '%s', `picassa_PlantID` = '%s', `picassa_modified` = '%s', `gTileProcessed` = '%s', `zoomEnabled` = '%s', `processed` = '%s', `ocr_flag` = '%s', `ocr_value` = '%s', `namefinder_flag` = '%s', `namefinder_value` = '%s', `ScientificName` = '%s', `CollectionCode` = '%s'  WHERE image_id = '%s' ;"
             , mysql_escape_string($this->get('filename'))
             , mysql_escape_string($this->get('barcode'))
             , mysql_escape_string($this->get('width'))
@@ -385,6 +385,13 @@ Class Image {
             , mysql_escape_string($this->get('Family'))
             , mysql_escape_string($this->get('Genus'))
             , mysql_escape_string($this->get('SpecificEpithet'))
+            , mysql_escape_string($this->get('rank'))
+	    , mysql_escape_string($this->get('author'))
+	    , mysql_escape_string($this->get('title'))
+	    , mysql_escape_string($this->get('description'))
+	    , mysql_escape_string($this->get('GlobalUniqueIdentifier'))
+	    , mysql_escape_string($this->get('creative_commons'))
+	    , mysql_escape_string($this->get('characters'))
             , mysql_escape_string($this->get('flickr_PlantID'))
             , mysql_escape_string($this->get('flickr_modified'))
             , mysql_escape_string($this->get('flickr_details'))
@@ -402,7 +409,7 @@ Class Image {
             , mysql_escape_string($this->get('image_id'))
             );
 		} else {
-            $query = sprintf("INSERT IGNORE INTO `image` SET `filename` = '%s', `timestamp_modified` = now(), `barcode` = '%s', `width` = '%s', `height` = '%s', `Family` = '%s', `Genus` = '%s', `SpecificEpithet` = '%s', `flickr_PlantID` = '%s', `flickr_modified` = '%s', `flickr_details` = '%s', `picassa_PlantID` = '%s', `picassa_modified` = '%s', `gTileProcessed` = '%s', `zoomEnabled` = '%s', `processed` = '%s', `ocr_flag` = '%s', `ocr_value` = '%s', `namefinder_flag` = '%s', `namefinder_value` = '%s', `ScientificName` = '%s', `CollectionCode` = '%s' ;"
+            $query = sprintf("INSERT IGNORE INTO `image` SET `filename` = '%s', `timestamp_modified` = now(), `barcode` = '%s', `width` = '%s', `height` = '%s', `Family` = '%s', `Genus` = '%s', `SpecificEpithet` = '%s', `rank` = %s, `author` = '%s', `title` = '%s', `description` = '%s', `GlobalUniqueIdentifier` = '%s', `creative_commons` = '%s', `characters` = '%s', `flickr_PlantID` = '%s', `flickr_modified` = '%s', `flickr_details` = '%s', `picassa_PlantID` = '%s', `picassa_modified` = '%s', `gTileProcessed` = '%s', `zoomEnabled` = '%s', `processed` = '%s', `ocr_flag` = '%s', `ocr_value` = '%s', `namefinder_flag` = '%s', `namefinder_value` = '%s', `ScientificName` = '%s', `CollectionCode` = '%s' ;"
             , mysql_escape_string($this->get('filename'))
             , mysql_escape_string($this->get('barcode'))
             , mysql_escape_string($this->get('width'))
@@ -410,6 +417,13 @@ Class Image {
             , mysql_escape_string($this->get('Family'))
             , mysql_escape_string($this->get('Genus'))
             , mysql_escape_string($this->get('SpecificEpithet'))
+            , mysql_escape_string($this->get('rank'))
+	    , mysql_escape_string($this->get('author'))
+	    , mysql_escape_string($this->get('title'))
+	    , mysql_escape_string($this->get('description'))
+	    , mysql_escape_string($this->get('GlobalUniqueIdentifier'))
+	    , mysql_escape_string($this->get('creative_commons'))
+	    , mysql_escape_string($this->get('characters'))
             , mysql_escape_string($this->get('flickr_PlantID'))
             , mysql_escape_string($this->get('flickr_modified'))
             , mysql_escape_string($this->get('flickr_details'))
@@ -745,7 +759,7 @@ function createGTileIM($filename, $outputPath) {
 		return false;
 	}
 
-	public function listImages($queryFlag = true) {
+	public function listImages1($queryFlag = true) {
 		$where = buildWhere($this->data['filter']);
 		if ($where != '') {
 			$where = " WHERE " . $where;
@@ -775,7 +789,6 @@ function createGTileIM($filename, $outputPath) {
 
 		$query = "SELECT SQL_CALC_FOUND_ROWS  image_id,filename,timestamp_modified,barcode,width,height,Family,Genus,SpecificEpithet,flickr_PlantID, flickr_modified,flickr_details,picassa_PlantID,picassa_modified, gTileProcessed,zoomEnabled,processed,ocr_flag,namefinder_flag,namefinder_value,ScientificName, CollectionCode FROM `image` " . $where;
 
-// print $query;
 		if($queryFlag) {
 			$ret = $this->db->query_all( $query );
 			return is_null($ret) ? array() : $ret;
@@ -784,6 +797,61 @@ function createGTileIM($filename, $outputPath) {
 			return $ret;
 		}
 	}
+
+	public function listImages($queryFlag = true) {
+
+		$characters = $this->data['characters'];
+		$browse = $this->getData['browse'];
+
+		$this->query = "SELECT SQL_CALC_FOUND_ROWS  I.image_id,I.filename,I.timestamp_modified, I.barcode, I.width,I.height,I.Family,I.Genus,I.SpecificEpithet,I.flickr_PlantID, I.flickr_modified,I.flickr_details,I.picassa_PlantID,I.picassa_modified, I.gTileProcessed,I.zoomEnabled,I.processed,I.ocr_flag,I.namefinder_flag,I.namefinder_value,I.ScientificName, I.CollectionCode, I.GlobalUniqueIdentifier FROM `image` I ";
+
+		if (($characters != '') && ($characters != '[]')) {
+			$this->query .= ", image_attrib ia ";
+		}
+
+		$this->query .= " WHERE 1=1 AND (";
+		$this->setBrowseFilter();
+		$this->query .= " AND I.barcode != '' ";
+		$this->setCharacterFilter();
+
+		if ($this->data['search_value'] != '') {
+			$this->query .= sprintf(" AND %s LIKE '%s%%' ", $this->data['search_type'], $this->data['search_value']);
+		}
+
+		$where = buildWhere($this->data['filter']);
+		if ($where != '') {
+			$where = " AND " . $where;
+		}
+		if($this->data['code'] != '') {
+			$where .= sprintf(" AND I.`barcode` LIKE '%s%%' ", mysql_escape_string($this->data['code']));
+		}
+
+		if($this->data['image_id'] != '') {
+			$where .= sprintf(" AND I.`image_id` = '%s' ", mysql_escape_string($this->data['image_id']));
+		}
+
+		if($this->data['field'] != '' && $this->data['value'] != '') {
+			$where .= sprintf(" AND `%s` = '%s' ", mysql_escape_string($this->data['field']), mysql_escape_string($this->data['value']));
+		}
+
+		$thsi->query .= $where;
+
+		$this->setGroupFilter();
+		$this->setOrderFilter();
+		$this->setLimitFilter();
+
+// die($this->query);
+
+		$this->total = $this->db->query_total();
+		if($queryFlag) {
+			$ret = $this->db->query_all($this->query);
+			return is_null($ret) ? array() : $ret;
+		} else {
+			$ret = $this->db->query( $query );
+			return $ret;
+		}
+	}
+
 
 	public function imageSequenceCache() {
 
@@ -1214,6 +1282,246 @@ $strips_array[$end][] = array('startRange' => $tmp_start, 'endRange' => $tmp_end
 			$ret = array('success' => false);
 		}
 		return $ret;
+	}
+
+#
+
+	private function setBrowseFilter() {
+		$browse = $this->data['browse'];
+		if ($browse != '' && $browse != '[]') {
+			foreach(@json_decode($browse) as $character) {
+				$this->char_list .= $character->node_value . ",";
+				if ($character->node_type == 'species') {
+					$this->query .= " (I." . $character->node_type . " = '" . $character->node_value . "' AND I.genus='" . $character->genus . "') OR";
+				} else {
+					$this->query .= " (I." . $character->node_type . " = '" . $character->node_value . "') OR";
+				}
+			}
+			$this->query = substr($this->query, 0, -2) . ")";
+		} else {
+			$this->query = substr($this->query, 0, -6);
+		}
+
+	}
+
+	private function setCharacterFilter() {
+		$characters = $this->data['characters'];
+		if (($characters != '') && ($characters != '[]')) {
+			$this->char_list = '';
+			foreach($json->decode($characters) as $character) {
+				$this->char_list .= $character->node_value . ",";
+			}
+			$this->char_list = substr($this->char_list, 0, -1);
+
+			$this->query .= " AND ia.imageID = I.image_id AND ia.valueID IN (".$this->char_list.") ";
+		}
+	}
+
+	private function setGroupFilter() {
+		$characters = $this->data['characters'];
+		if (($characters != '') && ($characters != '[]')) {
+	 		$this->query .= " GROUP BY I.`image_id` ";
+		}
+	}
+
+	private function setOrderFilter($mode = 'view_images') {
+		if($mode == 'view_images') {
+			$this->query .= " ORDER BY I.`Family`, I.`Genus`, I.`SpecificEpithet` ";
+		} else {
+			$this->query .= sprintf(" ORDER BY I.%s %s", mysql_escape_string($this->data['sort']),  $this->data['dir']);
+		}
+	}
+
+	private function setLimitFilter() {
+		$this->query .= sprintf("  LIMIT %s, %s", mysql_escape_string($this->data['start']),  $this->data['limit']);
+	}
+
+	# Image Functions
+
+	public function loadImageCharacters() {
+
+		$nodes = array();
+		if ($this->data['attributes'] == "") {
+			return array('success' => false, 'recordCount' => 0);
+		} else {
+
+			$query = sprintf("SELECT SQL_CALC_FOUND_ROWS ia.imageID, iat.typeID, iav.valueID, iat.title, iav.name FROM image_attrib_type iat, image_attrib_value iav, image_attrib ia WHERE ia.typeID=iat.typeID AND ia.valueID=iav.valueID AND ia.imageID IN (%s) ORDER BY iat.title, name", mysql_escape_string($this->data['attributes']));
+			$records = $this->db->query_all($query);
+			$this->total = $this->db->query_total();
+
+			if(!is_null($records)) {
+				if(count($records)) {
+					foreach($records as $record) {
+						$collected = @mktime(0,0,0,$record->tmonth,$record->tday,$record->tyear);
+						$nodes[] = array('imageID'=>$record->imageID, 'typeID'=>$record->typeID, 'valueID'=>$record->valueID, 'title'=>$record->title, 'name'=>$record->name);
+					}
+				}
+			}
+			return array('success' => true, 'recordCount' => $this->total);
+		}
+	}
+
+	public function addImageAttribute() {
+		$imageIDs = split(',', $this->data['imageID']);
+		$categoryID = $this->data['categoryID'];
+		$valueID = $this->data['valueID'];
+		if(count($imageIDs)) {
+			foreach($imageIDs as $id) {
+				$query = sprintf("INSERT INTO image_attrib(imageID, typeID, valueID) VALUES(%s, %s, %s);"
+				, mysql_escape_string($id)
+				, mysql_escape_string($categoryID)
+				, mysql_escape_string($valueID)
+				);
+				$this->db->query($query);
+
+				$query = sprintf("INSERT INTO `image_log` (action, image_id, after_desc, query, date_created) VALUES (10, '%s', 'Cat ID: $categoryID, Attrib ID: %s', '%s', NOW());"
+				, mysql_escape_string($id)
+				, mysql_escape_string($categoryID)
+				, mysql_escape_string($valueID)
+				, mysql_escape_string($query)
+				);
+				$this->db->query($query);
+			}
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+/**
+ *
+ */
+	public function deleteImageAttribute() {
+		$imageIDs = split(',', $this->data['imageID']);
+		$valueID = $this->data['valueID'];
+		if(count($imageIDs)) {
+			foreach($imageIDs as $id) {
+				$query = sprintf("DELETE FROM `image_attrib` WHERE imageID = %s AND valueID IN (%s)"
+				, mysql_escape_string($id)
+				, mysql_escape_string($valueID)
+				);
+				$this->db->query($query);
+
+				$query = sprintf("INSERT INTO `image_log` (action, image_id, after_desc, query, date_created) VALUES (11, '%s', 'Attrib ID: %s', '%s', NOW())"
+				, mysql_escape_string($id)
+				, mysql_escape_string($valueID)
+				, mysql_escape_string($query)
+				);
+				$this->db->query($query);
+			}
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	public function addCategory() {
+		$id = 0;
+		$value = $this->data['value'];
+		$query = sprintf("INSERT INTO image_attrib_type(title) VALUES('%s')", mysql_escape_string($value));
+		$this->db->query($query);
+		$id = $this->db->insert_id;
+
+		$query = sprintf("INSERT INTO `image_log` (action, after_desc, query, date_created) VALUES (4, 'ID: %s, Value: %s', '%s', NOW())"
+		, mysql_escape_string($id)
+		, mysql_escape_string($value)
+		, mysql_escape_string($query)
+		);
+		$this->db->query($query);
+		return( $id );
+	}
+
+/**
+ *
+ */
+	public function renameCategory() {
+		$value = $this->data['value'];
+		$valueID = $this->data['valueID'];
+		$query = sprintf("UPDATE image_attrib_type set title = '%s' WHERE typeID = %s "
+			, mysql_escape_string($value)
+			, mysql_escape_string($valueID)
+			);
+		$this->db->query($query);
+
+		$query = sprintf("INSERT INTO `image_log` (action, after_desc, query, date_created) VALUES (5, 'ID: %s, Value: %s', '%s', NOW())"
+		, mysql_escape_string($valueID)
+		, mysql_escape_string($value)
+		, mysql_escape_string($query)
+		);
+		$this->db->query($query);
+		return true;
+	}
+
+/**
+ *
+ */
+	public function deleteCategory() {
+		$categoryID = $this->data['categoryID'];
+		$query = sprintf("DELETE FROM `image_attrib` WHERE typeID = %s", mysql_escape_string($categoryID));
+		$this->db->query($query);
+		$query = sprintf("DELETE FROM `image_attrib_value` WHERE typeID = %s", mysql_escape_string($categoryID));
+		$this->db->query($query);
+		$query = sprintf("DELETE FROM `image_attrib_type` WHERE typeID = %s", mysql_escape_string($categoryID));
+		$this->db->query($query);
+		
+		$query = sprintf("INSERT INTO `image_log` (action, after_desc, query, date_created) VALUES (6, 'Category ID: %s', '%s', NOW())", mysql_escape_string($categoryID), mysql_escape_string($query));
+		$this->db->query($query);
+		return true;
+	}
+
+	public function addAttribute() {
+		$id = 0;
+		$query = sprintf("INSERT INTO image_attrib_value(name, typeID) VALUES('%s',%s);"
+			, mysql_escape_string($this->data['value'])
+			, mysql_escape_string($this->data['categoryID'])
+		);
+		
+		$this->db->query($query);
+		$id = $this->db->insert_id;
+		$query = sprintf("INSERT INTO `image_log` (action, after_desc, query, date_created) VALUES (7, 'ID: %s, Value: %s, Category ID: %s', '%s', NOW())"
+		, mysql_escape_string($id)
+		, mysql_escape_string($this->data['value'])
+		, mysql_escape_string($this->data['categoryID'])
+		, mysql_escape_string($query)
+		);
+		$this->db->query($query);
+		return( $id );
+	}
+
+/**
+ *
+ */
+	public function renameAttribute() {
+		$value = $this->data['value'];
+		$valueID = $this->data['valueID'];
+		$query = sprintf("UPDATE image_attrib_value set name = '%s' WHERE valueID = %s"
+			, mysql_escape_string($value)
+			, mysql_escape_string($valueID)
+			);
+		$this->db->query($query);
+
+		$query = sprintf("INSERT INTO `image_log` (action, after_desc, query, date_created) VALUES (8, 'ID: %s, Value: %s', '%s', NOW())"
+		, mysql_escape_string($valueID)
+		, mysql_escape_string($value)
+		, mysql_escape_string($query)
+		);
+		$this->db->query($query);
+		return true;
+	}
+
+/**
+ *
+ */
+	public function deleteAttribute() {
+		$valueID = $this->data['valueID'];
+		$query = sprintf("DELETE FROM `image_attrib` WHERE valueID = %s", mysql_escape_string($valueID));
+		$this->db->query($query);
+		$query = sprintf("DELETE FROM `image_attrib_value` WHERE valueID = %s", mysql_escape_string($valueID));
+		$this->db->query($query);
+		
+		$query = sprintf("INSERT INTO `image_log` (action, after_desc, query, date_created) VALUES (9, 'Attrib ID: %s', '%s', NOW())", mysql_escape_string($valueID), mysql_escape_string($query));
+		$this->db->query();
+		return true;
 	}
 
 

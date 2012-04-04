@@ -69,6 +69,13 @@ ob_start();
 		,'filename'
 		,'zoom'
 		,'index'
+		,'attributes'
+
+		,'search_type'
+		,'search_value'
+		,'valueID'
+		,'categoryID'
+		,'value'
 	);
 
 	// Initialize allowed variables
@@ -603,10 +610,14 @@ ob_start();
 			if(trim($sort) != '') {
 				$data['order'] = array(array('field' => trim($sort), 'dir' => trim($dir)));
 			}
-
 			$data['code'] = ($code != '') ? $code : '';
 
-			
+			$data['characters'] = $characters;
+			$data['browse'] = $browse;
+			$data['search_value'] = $search_value;
+			$data['search_type'] = $search_type;
+
+
 			if($valid) {
 				$si->image->setData($data);
 				$data = $si->image->listImages();
@@ -1342,6 +1353,197 @@ ob_start();
 			}
 
 			break;
+
+# New Image Tasks
+
+		case 'image_characters':
+			$time_start = microtime(true);
+			$start = ($start != '') ? $start : 0;
+			$limit = ($limit != '') ? $limit : 25;
+			$data['attributes'] = $attributes;
+			$si->image->setData($data);
+			$ret = $si->image->loadImageCharacters();
+			$processTime = microtime(true) - $time_start;
+			if($ret['success']) {
+				print_c( json_encode( array( 'success' => true, 'processTime' => $time, 'totalCount' => $totalNotes, 'data' => $data ) ), $callback );
+			} else {
+				print_c( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ), $callback );
+			}
+			break;
+
+		case 'add_image_attribute':
+			$time_start = microtime(true);
+			$data['image_id'] = $image_id;
+			if($data['image_id'] == "") {
+				$valid = false;
+				$code = 107;
+			}
+			$data['valueID'] = $valueID;
+			if($data['valueID'] == "") {
+				$valid = false;
+				$code = 120;
+			}
+			$data['categoryID'] = $categoryID;
+			if($valid) {
+				$si->image->setData($data);
+				if($si->image->addImageAttribute()) {
+					$processTime = microtime(true) - $time_start;
+					print_c( json_encode( array( 'success' => true, 'processTime' => $processTime ) ) );
+				} else {
+					print_c( json_encode( array( 'success' => false, 'error' => array ( 'code' => 121, 'msg' => $si->error(121) ) ) ) );
+				}
+			} else {
+				print_c( json_encode( array( 'success' => false, 'error' => array ( 'code' => $code, 'msg' => $si->getError($code) ) ) ) );
+			}
+			break;
+
+		case 'delete_image_attribute':
+			$time_start = microtime(true);
+			$data['image_id'] = $image_id;
+			if($data['image_id'] == "") {
+				$valid = false;
+				$code = 107;
+			}
+			$data['valueID'] = $valueID;
+			if($data['valueID'] == "") {
+				$valid = false;
+				$code = 120;
+			}
+			if($valid) {
+				$si->image->setData($data);
+				if($si->image->deleteImageAttribute()) {
+					$processTime = microtime(true) - $time_start;
+					print_c( json_encode( array( 'success' => true, 'processTime' => $processTime ) ) );
+				} else {
+					print_c( json_encode( array( 'success' => false, 'error' => array ( 'code' => 122, 'msg' => $sa->error(122) ) ) ) );
+				}
+			} else {
+				print_c( json_encode( array( 'success' => false, 'error' => array ( 'code' => $code, 'msg' => $si->getError($code) ) ) ) );
+			}
+			break;
+
+			case 'add_category':
+				$time_start = microtime(true);
+				$data['value'] = $value;
+				if($data['value'] == "") {
+					$valid = false;
+					$code = 123;
+				}
+				if($valid) {
+					$si->image->setData($data);
+					$id = $si->image->addCategory();
+					if($id) {
+						print_c( json_encode( array( 'success' => true, 'new_id' => $id ) ) );
+					} else {
+						print_c( json_encode( array( 'success' => false, 'error' => array ( 'code' => 124, 'msg' => $sa->error(124) ) ) ) );
+					}
+				} else {
+					print_c( json_encode( array( 'success' => false, 'error' => array ( 'code' => $code, 'msg' => $si->getError($code) ) ) ) );
+				}
+				break;
+
+			case 'rename_category':
+				$time_start = microtime(true);
+				$data['value'] = $value;
+				if($data['value'] == "") {
+					$valid = false;
+					$code = 123;
+				}
+				$data['valueID'] = $valueID;
+				if($data['valueID'] == "") {
+					$valid = false;
+					$code = 120;
+				}
+				if($valid) {
+					$si->image->setData($data);
+					if($si->image->renameCategory()) {
+						print_c( json_encode( array( 'success' => true ) ) );
+					} else {
+						print_c( json_encode( array( 'success' => false, 'error' => array ( 'code' => 125, 'msg' => $sa->error(125) ) ) ) );
+					}
+				} else {
+					print_c( json_encode( array( 'success' => false, 'error' => array ( 'code' => $code, 'msg' => $si->getError($code) ) ) ) );
+				}
+				break;
+
+			case 'delete_category':
+				$time_start = microtime(true);
+				$data['categoryID'] = $categoryID;
+				if($data['categoryID'] == "") {
+					$valid = false;
+					$code = 126;
+				}
+				if($valid) {
+					$si->image->setData($data);
+					if($si->image->deleteCategory()) {
+						print_c( json_encode( array( 'success' => true ) ) );
+					}
+				} else {
+					print_c( json_encode( array( 'success' => false, 'error' => array ( 'code' => $code, 'msg' => $si->getError($code) ) ) ) );
+				}
+				break;
+
+			case 'add_attribute':
+				$time_start = microtime(true);
+				$data['categoryID'] = $categoryID;
+				if($data['categoryID'] == "") {
+					$valid = false;
+					$code = 126;
+				}
+				$data['value'] = $value;
+				if($data['value'] == "") {
+					$valid = false;
+					$code = 123;
+				}
+				if($valid) {
+					$si->image->setData($data);
+					$id = $si->image->addAttribute();
+					if($id) {
+						print_c( json_encode( array( 'success' => true, 'new_id' => $id ) ) );
+					}
+				} else {
+					print_c( json_encode( array( 'success' => false, 'error' => array ( 'code' => $code, 'msg' => $si->getError($code) ) ) ) );
+				}
+				break;
+
+			case 'rename_attribute':
+				$time_start = microtime(true);
+				$data['value'] = $value;
+				if($data['value'] == "") {
+					$valid = false;
+					$code = 123;
+				}
+				$data['valueID'] = $valueID;
+				if($data['valueID'] == "") {
+					$valid = false;
+					$code = 120;
+				}
+				if($valid) {
+					$si->image->setData($data);
+					if($si->image->renameAttribute()) {
+						print_c( json_encode( array( 'success' => true ) ) );
+					}
+				} else {
+					print_c( json_encode( array( 'success' => false, 'error' => array ( 'code' => $code, 'msg' => $si->getError($code) ) ) ) );
+				}
+				break;
+
+			case 'delete_attribute':
+				$time_start = microtime(true);
+				$data['valueID'] = $valueID;
+				if($data['valueID'] == "") {
+					$valid = false;
+					$code = 120;
+				}
+				if($valid) {
+					$si->image->setData($data);
+					if($si->image->deleteAttribute()) {
+						print_c( json_encode( array( 'success' => true ) ) );
+					}
+				} else {
+					print_c( json_encode( array( 'success' => false, 'error' => array ( 'code' => $code, 'msg' => $si->getError($code) ) ) ) );
+				}
+				break;
 
 # Test Tasks
 
