@@ -89,6 +89,13 @@
 				, 117 => 'Error in deleting from the database.'
 				, 118 => 'Value should be provided.'
 				, 119 => 'Evernote Account Id should be provided.'
+				, 120 => 'valueID should be provided.'
+				, 121 => 'Image Attribute Not Added'
+				, 122 => 'Image Attribute Not Deleted'
+				, 123 => 'value should be given'
+				, 124 => 'Category Not Added'
+				, 125 => 'Category Not Renamed'
+				, 126 => 'categoryID should be given'
 			);
 			return $ar[$error_code];
 		}
