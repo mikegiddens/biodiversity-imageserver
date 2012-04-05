@@ -71,11 +71,21 @@ ob_start();
 		,'index'
 		,'attributes'
 
+		,'characters'
+		,'browse'
 		,'search_type'
 		,'search_value'
 		,'valueID'
 		,'categoryID'
 		,'value'
+		,'imageID'
+
+		,'nodeApi'
+		,'nodeValue'
+		,'family'
+		,'genus'
+		,'imagesType'
+		,'tpl'
 	);
 
 	// Initialize allowed variables
@@ -143,7 +153,7 @@ ob_start();
 		
 		include_once( dirname($_SERVER['PHP_SELF']) . '/../../config.php');
 	} else {
-		include_once('../../config.php');
+		include_once('../../config-local.php');
 	}
 
 	$path = $config['path']['base'] . "resources/api/classes/";
@@ -167,8 +177,10 @@ ob_start();
 		$api = "json";
 	}
 
-	// This will control the imcoming processes that need to be preformed.
+	// This will control the incoming processes that need to be preformed.
 	$valid = true;
+	$code = 0;
+	$time_start = microtime(true);
 	if ( $si->load( $config['mysql']['name'] ) ) {
 	$user_access->db = &$si->db;
 
@@ -1354,18 +1366,18 @@ ob_start();
 
 			break;
 
-# New Image Tasks
+# New Image Admin Tasks
 
 		case 'image_characters':
 			$time_start = microtime(true);
 			$start = ($start != '') ? $start : 0;
 			$limit = ($limit != '') ? $limit : 25;
-			$data['attributes'] = $attributes;
+			$data['attributes'] = implode(',',json_encode($attributes,true));
 			$si->image->setData($data);
 			$ret = $si->image->loadImageCharacters();
 			$processTime = microtime(true) - $time_start;
 			if($ret['success']) {
-				print_c( json_encode( array( 'success' => true, 'processTime' => $time, 'totalCount' => $totalNotes, 'data' => $data ) ), $callback );
+				print_c( json_encode( array( 'success' => true, 'processTime' => $time, 'totalCount' => $ret['recordCount'], 'data' => $ret['data'] ) ), $callback );
 			} else {
 				print_c( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ), $callback );
 			}
@@ -1373,8 +1385,8 @@ ob_start();
 
 		case 'add_image_attribute':
 			$time_start = microtime(true);
-			$data['image_id'] = $image_id;
-			if($data['image_id'] == "") {
+			$data['imageID'] = $imageID;
+			if($data['imageID'] == "") {
 				$valid = false;
 				$code = 107;
 			}
@@ -1399,8 +1411,8 @@ ob_start();
 
 		case 'delete_image_attribute':
 			$time_start = microtime(true);
-			$data['image_id'] = $image_id;
-			if($data['image_id'] == "") {
+			$data['imageID'] = $imageID;
+			if($data['imageID'] == "") {
 				$valid = false;
 				$code = 107;
 			}
@@ -1544,6 +1556,106 @@ ob_start();
 					print_c( json_encode( array( 'success' => false, 'error' => array ( 'code' => $code, 'msg' => $si->getError($code) ) ) ) );
 				}
 				break;
+
+# Image Tasks
+
+			case 'image-nodes-characters':
+				$nodeApi = ($nodeApi != '') ? @strtolower($nodeApi) : 'root';
+				if(!in_array($nodeApi, array('root'))) {
+					$code = 128;
+					$valid = false;
+				}
+				$data['nodeValue'] = $nodeValue;
+				$data['family'] = $family;
+				$data['genus'] = $genus;
+
+				if($valid) {
+					$si->image->setData($data);
+					if(false !== ($nodes = $si->image->loadImageNodesCharacters())) {
+						$processTime = microtime(true) - $time_start;
+						print_c( json_encode( array( 'success' => true, 'processTime' => $processTime, 'recordCount' => count($nodes), 'results' => $nodes)));
+					} else {
+						print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $sc->error(127) , 'code' => 127 ) ) ) );
+					}
+				} else {
+					print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $sc->error($code) , 'code' => $code ) ) ) );
+				}
+				break;
+
+			case 'image-nodes':
+				$nodeApi = ($nodeApi != '') ? @strtolower($nodeApi) : 'root';
+				if(!in_array($nodeApi, array('root', 'alpha', 'families', 'family', 'genera', 'genus', 'scientificname') )) {
+					$code = 128;
+					$valid = false;
+				}
+				$data['nodeValue'] = $nodeValue;
+				$data['family'] = $family;
+				$data['genus'] = $genus;
+
+				if($valid) {
+					$si->image->setData($data);
+					if(false !== ($nodes = $si->image->loadImageNodesImages())) {
+						$processTime = microtime(true) - $time_start;
+						print_c( json_encode( array( 'success' => true, 'processTime' => $processTime, 'recordCount' => count($nodes), 'results' => $nodes)));
+					} else {
+						print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $sc->error(127) , 'code' => 127 ) ) ) );
+					}
+	
+				} else {
+					print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $sc->error($code) , 'code' => $code ) ) ) );
+				}
+		
+				break;
+
+			case 'image-characters':
+				$data['start'] = ($start == '') ? 0 : $start;
+				$data['limit'] = ($limit == '') ? 100 : $limit;
+				$data['browse'] = $browse;
+				$data['characters'] = $characters;
+				$data['search_value'] = $search_value;
+				$data['search_type'] = $search_type;
+		
+				if($valid) {
+					$si->image->setData($data);
+					if(false !== ($nodes = $si->image->loadCharacterList())) {
+						$processTime = microtime(true) - $time_start;
+						print_c( json_encode( array( 'success' => true, 'processTime' => $processTime, 'recordCount' => count($nodes), 'results' => $nodes)));
+					} else {
+						print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $sc->error(127) , 'code' => 127 ) ) ) );
+					}
+	
+				} else {
+					print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $sc->error($code) , 'code' => $code ) ) ) );
+				}
+				break;
+
+			case 'image-list':
+				$data['start'] = ($start == '') ? 0 : $start;
+				$data['limit'] = ($limit == '') ? 100 : $limit;
+				$data['imagesType'] = (in_array($imagesType, array(1,2,3))) ? $imagesType : 2;
+				$data['tpl'] = ($tpl == '') ? 'defaultImageTemplate.tpl' : $tpl;
+
+				$data['browse'] = $browse;
+				$data['characters'] = $characters;
+				$data['search_value'] = $search_value;
+				$data['search_type'] = $search_type;
+				$data['filter'] = $filter;
+				$data['sort'] = $sort;
+				$data['dir'] = $dir;
+	
+				if($valid) {
+					$si->image->setData($data);
+					if(false !== ($nodes = $si->image->loadImageList())) {
+						$processTime = microtime(true) - $time_start;
+						print_c( json_encode( array( 'success' => true, 'processTime' => $processTime, 'recordCount' => $si->image->total, 'results' => $nodes)));
+					} else {
+						print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $sc->error(129) , 'code' => 129 ) ) ) );
+					}
+	
+				} else {
+					print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $sc->error($code) , 'code' => $code ) ) ) );
+				}
+			break;
 
 # Test Tasks
 
