@@ -812,7 +812,7 @@ function createGTileIM($filename, $outputPath) {
 		$this->query .= " WHERE 1=1 AND (";
 		$this->setBrowseFilter();
 		$this->query .= " AND I.barcode != '' ";
-		$this->setCharacterFilter();
+		$this->setAdminCharacterFilter();
 
 		if ($this->data['search_value'] != '') {
 			$this->query .= sprintf(" AND %s LIKE '%s%%' ", $this->data['search_type'], $this->data['search_value']);
@@ -1286,6 +1286,83 @@ $strips_array[$end][] = array('startRange' => $tmp_start, 'endRange' => $tmp_end
 
 #
 
+	private function setFilters() {
+		$this->setCharacterFilter();
+		$this->setSearchFilter();
+		$this->setFilter();
+	}
+
+	private function setCharacterFilter() {
+	
+		if (($this->getData('characters') != '') && ($this->getData('characters') != '[]')) {
+			$this->query .= ", count(*) as sz";
+		}
+
+		$tstr = ' FROM image I ';
+		
+		if (($this->getData('characters') != '') && ($this->getData('characters') != '[]')) {
+			$tstr .= ', image_attrib ia ';
+		}
+
+		$tstr .= ' WHERE 1=1 AND (';
+
+		$this->query = $this->query . $tstr;
+		$this->queryCount .= $tstr;
+
+		$this->setBrowseFilter();
+
+		switch($this->getData('imagesType')) {
+			case 1:
+				$tstr = " AND I.barcode != '' ";
+				$this->query .= $tstr;
+				$this->queryCount .= $tstr;
+				break;
+			case 2:
+			default:
+				$this->query .= '';
+				break;
+			case 3:
+				$tstr = " AND I.barcode = '' ";
+				$this->query .= $tstr;
+				$this->queryCount .= $tstr;
+				break;
+		}
+		if (($this->getData('characters') != '') && ($this->getData('characters') != '[]')) {
+			$this->char_list = '';
+			$this->char_count = 0;
+			foreach(json_decode($this->getData('characters')) as $character) {
+				$this->char_list .= $character->node_value . ",";
+				$this->char_count++;
+			}
+			$this->char_list = substr($this->char_list, 0, -1);
+			$tstr = " AND ia.imageID = I.image_id AND ia.valueID IN ( " . $this->char_list . " ) ";
+			$this->query .= $tstr;
+			$this->queryCount .= $tstr;
+		}
+	}
+
+	private function setSearchFilter() {
+		if($this->getData('search_value') != '') {
+			$tstr = " AND ". $this->getData('search_type') ." LIKE '" .$this->getData('search_value') ."%' ";
+			$this->query .= $tstr;
+			$this->queryCount .= $tstr;
+		}
+	}
+
+	private function setFilter() {
+		if($this->getData('filter') != '') {
+			$filter = json_decode($this->data['filter'],true);
+			if(is_array($filter) && count($filter)) {
+				$tstr = '';
+				foreach($filter as $field => $value) {
+					$tstr .= sprintf(" AND %s = '%s' ", $field, mysql_escape_string($value));
+				}
+				$this->query .= $tstr;
+				$this->queryCount .= $tstr;
+			}
+		}
+	}
+
 	private function setBrowseFilter() {
 		$browse = $this->data['browse'];
 		if ($browse != '' && $browse != '[]') {
@@ -1304,7 +1381,7 @@ $strips_array[$end][] = array('startRange' => $tmp_start, 'endRange' => $tmp_end
 
 	}
 
-	private function setCharacterFilter() {
+	private function setAdminCharacterFilter() {
 		$characters = $this->data['characters'];
 		if (($characters != '') && ($characters != '[]')) {
 			$this->char_list = '';
@@ -1357,12 +1434,12 @@ $strips_array[$end][] = array('startRange' => $tmp_start, 'endRange' => $tmp_end
 					}
 				}
 			}
-			return array('success' => true, 'recordCount' => $this->total);
+			return array('success' => true, 'recordCount' => $this->total, 'data' => $nodes);
 		}
 	}
 
 	public function addImageAttribute() {
-		$imageIDs = split(',', $this->data['imageID']);
+		$imageIDs = @explode(',', $this->data['imageID']);
 		$categoryID = $this->data['categoryID'];
 		$valueID = $this->data['valueID'];
 		if(count($imageIDs)) {
@@ -1372,9 +1449,10 @@ $strips_array[$end][] = array('startRange' => $tmp_start, 'endRange' => $tmp_end
 				, mysql_escape_string($categoryID)
 				, mysql_escape_string($valueID)
 				);
+
 				$this->db->query($query);
 
-				$query = sprintf("INSERT INTO `image_log` (action, image_id, after_desc, query, date_created) VALUES (10, '%s', 'Cat ID: $categoryID, Attrib ID: %s', '%s', NOW());"
+				$query = sprintf("INSERT INTO `image_log` (action, image_id, after_desc, query, date_created) VALUES (10, '%s', 'Cat ID: %s, Attrib ID: %s', '%s', NOW());"
 				, mysql_escape_string($id)
 				, mysql_escape_string($categoryID)
 				, mysql_escape_string($valueID)
@@ -1388,11 +1466,8 @@ $strips_array[$end][] = array('startRange' => $tmp_start, 'endRange' => $tmp_end
 		}
 	}
 
-/**
- *
- */
 	public function deleteImageAttribute() {
-		$imageIDs = split(',', $this->data['imageID']);
+		$imageIDs = @explode(',', $this->data['imageID']);
 		$valueID = $this->data['valueID'];
 		if(count($imageIDs)) {
 			foreach($imageIDs as $id) {
@@ -1431,9 +1506,6 @@ $strips_array[$end][] = array('startRange' => $tmp_start, 'endRange' => $tmp_end
 		return( $id );
 	}
 
-/**
- *
- */
 	public function renameCategory() {
 		$value = $this->data['value'];
 		$valueID = $this->data['valueID'];
@@ -1452,9 +1524,6 @@ $strips_array[$end][] = array('startRange' => $tmp_start, 'endRange' => $tmp_end
 		return true;
 	}
 
-/**
- *
- */
 	public function deleteCategory() {
 		$categoryID = $this->data['categoryID'];
 		$query = sprintf("DELETE FROM `image_attrib` WHERE typeID = %s", mysql_escape_string($categoryID));
@@ -1488,9 +1557,6 @@ $strips_array[$end][] = array('startRange' => $tmp_start, 'endRange' => $tmp_end
 		return( $id );
 	}
 
-/**
- *
- */
 	public function renameAttribute() {
 		$value = $this->data['value'];
 		$valueID = $this->data['valueID'];
@@ -1509,9 +1575,6 @@ $strips_array[$end][] = array('startRange' => $tmp_start, 'endRange' => $tmp_end
 		return true;
 	}
 
-/**
- *
- */
 	public function deleteAttribute() {
 		$valueID = $this->data['valueID'];
 		$query = sprintf("DELETE FROM `image_attrib` WHERE valueID = %s", mysql_escape_string($valueID));
@@ -1520,10 +1583,269 @@ $strips_array[$end][] = array('startRange' => $tmp_start, 'endRange' => $tmp_end
 		$this->db->query($query);
 		
 		$query = sprintf("INSERT INTO `image_log` (action, after_desc, query, date_created) VALUES (9, 'Attrib ID: %s', '%s', NOW())", mysql_escape_string($valueID), mysql_escape_string($query));
-		$this->db->query();
+		$this->db->query($query);
 		return true;
 	}
 
+	
 
+	public function loadImageNodesCharacters() {
+		unset($this->records);
+		$this->nodes = array();
+		$this->query = '';
+		$this->cache = false;
+	
+		if(isset($this->data['nodeApi'])) {
+			switch(@strtolower($this->data['nodeApi'])) {
+			case "root":
+				$parent = '';
+	
+				$this->query = "SELECT DISTINCT  it.typeID, it.title, iv.valueID, iv.name FROM image_attrib_type it, image_attrib_value iv, image_attrib ia WHERE it.typeID = iv.typeID AND ia.valueID = iv.valueID ORDER BY it.title, iv.name;";
+				$records = $this->db->query_all($this->query);
+				if(count($records)) {
+					foreach($records as $record) {
+						if ($parent != $record->title && $parent != '') {
+						$this->nodes[] = array('text'=>$old_title, 'nodeApi'=>'cateogry', 'iconCls'=>'icon_folder_picture', 'cls'=>'tree_panel', 'nodeValue'=>$record->typeID, 'children'=>$children);
+						$children = '';
+						}
+						$children[] = array('id'=>'char_' . $record->valueID, 'id'=>'char_' . $record->valueID, 'text'=>$record->name, 'nodeApi'=>'character', 'checked'=>false, 'leaf'=>true, 'nodeValue'=>$record->valueID);
+						
+						if ($parent != $record->title) {
+							$parent = $record->title;
+						}
+						
+						$old_title = $record->title;
+					}
+				}
+				$this->nodes[] = array('text'=>$old_title, 'nodeApi'=>'cateogry', 'iconCls'=>'icon_folder_picture', 'cls'=>'tree_panel', 'nodeValue'=>$record->typeID, 'children'=>$children);
+		
+				break;
+			}
+			return $this->nodes;
+		} else {
+			return false;
+		}
+	}
+
+public function loadImageNodesImages() {
+	unset($this->records);
+	$this->nodes = array();
+	$this->query = '';
+	if(isset($this->data['nodeApi'])) {
+	switch(@strtolower($this->data['nodeApi'])) {
+
+	case "root":
+		$children='';
+		for ($i=65;$i<91;$i++) {
+			$tmp = chr($i);
+			$children[] = array('text'=>$tmp, 'iconCls'=>'icon_folder_picture', 'nodeApi'=>'families', 'nodeValue'=>$tmp);
+		}
+		
+		$this->nodes[] = array('text'=>"by Family", 'iconCls'=>'icon_folder_picture', 'expanded'=>false, 'nodeApi'=>'alpha', 'nodeValue'=>'alpha', 'children'=> $children);
+
+		$children='';
+		for ($i=65;$i<91;$i++) {
+			$tmp = chr($i);
+			$children[] = array('text'=>$tmp, 'iconCls'=>'icon_folder_picture', 'nodeApi'=>'genera', 'nodeValue'=>$tmp);
+		}
+
+		$this->nodes[] = array('text'=>"by Genus", 'iconCls'=>'icon_folder_picture', 'expanded'=>false, 'nodeApi'=>'alpha', 'nodeValue'=>'alpha', 'children'=> $children);
+
+		break;
+
+	case "alpha":
+		for ($i=65;$i<91;$i++) {
+			$tmp = chr($i);
+		}
+		$this->nodes[] = array('text'=>$tmp, 'iconCls'=>'icon_folder_picture', 'draggable'=>false, 'nodeApi'=>'families', 'nodeValue'=>$tmp);
+		break;
+
+	case "families":
+
+		$this->query = sprintf( "SELECT Family, count(Family) as family_size FROM image WHERE Family like '%s%%' GROUP by Family ORDER by Family", mysql_escape_string($this->data['nodeValue']) );
+
+		try {
+			$records = $this->db->query_all($this->query);
+		} catch (Exception $e) {
+			trigger_error($e->getMessage(),E_USER_ERROR);
+		}
+
+		if(count($records)) {
+			foreach($records as $record) {
+				$this->nodes[] = array('text'=>$record->Family . " (" . number_format($record->family_size) . ")", 'imageCount' => $record->family_size, 'family'=>$record->Family, 'iconCls'=>'icon_picture', 'checked'=>false, 'nodeApi'=>'family', 'nodeValue'=>$record->Family);
+
+			}
+		}
+		break;
+
+	case "family":
+			
+		if( trim($this->data['nodeValue']) == '' ) {
+			$this->query = "SELECT Genus, count(Genus) as genus_size FROM image GROUP by Genus ORDER by Genus";
+		} else {
+			$this->query = sprintf( "SELECT Genus, count(Genus) as genus_size FROM image WHERE Family = '%s' GROUP by Genus ORDER by Genus ", mysql_escape_string($this->data['nodeValue']) );
+		}
+
+		try {
+			$records = $this->db->query_all($this->query);
+		} catch (Exception $e) {
+			trigger_error($e->getMessage(),E_USER_ERROR);
+		}
+
+		if(count($records)) {
+			foreach($records as $record) {
+				$this->nodes[] = array('text'=>$record->Genus . " (" . $record->genus_size . ")", 'imageCount' => $record->genus_size, 'id'=>$record->Genus, 'family'=>$this->data['family'], 'genus'=>$record->Genus, 'iconCls'=>'icon_picture', 'checked'=>false, 'draggable'=>false, 'isTarget'=>false, 'nodeApi'=>'genus', 'nodeValue'=>$record->Genus);
+
+			}
+		}
+		break;
+
+	case "genera":
+		$this->query = sprintf( "SELECT Genus, count(Genus) as genus_size FROM image WHERE Genus like '%s%%' GROUP by Genus ORDER by Genus", mysql_escape_string($this->data['nodeValue']) );
+		try {
+			$records = $this->db->query_all($this->query);
+		} catch (Exception $e) {
+			trigger_error($e->getMessage(),E_USER_ERROR);
+		}
+
+		if(count($records)) {
+			foreach($records as $record) {
+				$this->nodes[] = array('text'=>$record->Genus . " (" . number_format($record->genus_size) . ")", 'imageCount' => $record->genus_size, 'genus'=>$record->Genus, 'iconCls'=>'icon_picture', 'checked'=>false, 'nodeApi'=>'genus', 'nodeValue'=>$record->Genus);
+
+			}
+		}
+		break;
+		
+	case "genus":
+			
+		if( trim($this->data['nodeValue']) == '' ) {
+			$this->query = "SELECT SpecificEpithet, count(SpecificEpithet) as species_size FROM image GROUP by SpecificEpithet ORDER by SpecificEpithet";
+		} else {
+			$this->query = sprintf( "SELECT SpecificEpithet, count(SpecificEpithet) as species_size FROM image WHERE Genus = '%s' GROUP by SpecificEpithet ORDER by SpecificEpithet", mysql_escape_string($this->data['nodeValue']) );
+		}
+
+		try {
+			$records = $this->db->query_all($this->query);
+		} catch (Exception $e) {
+			trigger_error($e->getMessage(),E_USER_ERROR);
+		}
+
+		if(count($records)) {
+			foreach($records as $record) {
+				$this->nodes[] = array('text'=>$record->SpecificEpithet . " (" . $record->species_size . ")", 'imageCount' => $record->species_size, 'id'=>$record->SpecificEpithet, 'family'=>$this->data['family'], 'genus'=>$this->data['genus'], 'species'=>$record->SpecificEpithet, 'iconCls'=>'icon_picture', 'checked'=>false, 'leaf'=>true, 'draggable'=>false, 'isTarget'=>false, 'nodeApi'=>'species', 'nodeValue'=>$record->SpecificEpithet, 'genus'=>$this->data['nodeValue']);
+
+			}
+		}
+		break;
+
+	case 'scientificname':
+			
+		if( trim($this->data['nodeValue']) == '' ) {
+			$this->query = "SELECT concat(Genus, ' ', SpecificEpithet) as name, count(SpecificEpithet) as sz, Family, Genus, SpecificEpithet  FROM image  GROUP by Genus, SpecificEpithet ORDER by Genus, SpecificEpithet";
+		} else {
+			$this->query = sprintf( "SELECT concat(Genus, ' ', SpecificEpithet) as name, count(SpecificEpithet) as sz, Family, Genus, SpecificEpithet  FROM image WHERE Family = '%s'  GROUP by Genus, SpecificEpithet ORDER by Genus, SpecificEpithet", mysql_escape_string($this->data['nodeValue']) );
+		}
+
+		try {
+			$records = $this->db->query_all($this->query);
+		} catch (Exception $e) {
+			trigger_error($e->getMessage(),E_USER_ERROR);
+		}
+
+		if(count($records)) {
+			foreach($records as $record) {
+				$this->nodes[] = array('text'=>$record->name . " (" . $record->sz . ")", 'imageCount' => $record->sz, 'id'=>$record->name, 'family'=>$record->Family, 'genus'=>$record->Genus, 'species'=>$record->SpecificEpithet, 'iconCls'=>'icon_picture', 'checked'=>false, 'leaf'=>true, 'draggable'=>false, 'isTarget'=>false, 'nodeApi'=>'ScientificName', 'nodeValue'=>$record->name);
+			}
+		}
+
+		break;
+
+	}
+		return $this->nodes;
+	} else {
+		return false;
+	}
+
+}
+
+	public function loadCharacterList() {
+		unset($this->records);
+
+		$this->query = "SELECT I.image_id";
+
+		$this->setFilters();
+
+		if (($this->getData('characters') != '') && ($this->getData('characters') != '[]')) {
+			$this->query .= " GROUP BY I.image_id HAVING sz >= " . ( $this->char_count - 1 );
+		}
+
+		$this->query = "SELECT valueID as id FROM image_attrib t1 INNER JOIN  (" . $this->query . ") AS t2 ON t1.imageID = t2.image_id GROUP BY t1.valueID ORDER BY t1.valueID;";
+
+		try {
+			$this->records = $this->db->query_all($this->query);
+		} catch (Exception $e) {
+			trigger_error($e->getMessage(),E_USER_ERROR);
+		}
+
+		if(!count($this->records)) {
+			$this->records = array();
+		}
+		return $this->records;
+	}
+
+	public function loadImageList() {
+		unset($this->records);
+		$this->records = array();
+		$this->query = '';
+
+		$this->query = "SELECT I.`image_id` AS imageID, I.`filename` AS filename, I.`Family`, I.`Genus`, I.`SpecificEpithet`, I.`zoomEnabled`, I.`gTileProcessed`, I.`timestamp_modified`, I.`characters`, I.`barcode`, I.`GlobalUniqueIdentifier` ";
+
+		$this->queryCount = ' SELECT count(*) AS sz ';
+
+		$this->setFilters();
+
+		if (($this->getData('characters') != '') && ($this->getData('characters') != '[]')) {
+			$tstr = " GROUP BY I.image_id HAVING sz >= " . $this->char_count;
+			$this->query .= $tstr;
+			$this->queryCount .= $tstr;
+		}
+
+		if (($this->getData('sort') != '')) {
+			$sort = $this->getData('sort');
+// 			if ($sort == "SpecificEpithet") $sort = "SpecificEpithet";
+			if ($sort == "GUID") $sort = "GlobalUniqueIdentifier";
+			$this->query .= sprintf(" ORDER BY I.%s %s", $sort, $this->getData('dir'));
+		} else {
+			$this->query .= " ORDER BY I.Family, I.Genus, I.SpecificEpithet, I.rank ";
+		}
+		
+		if ($this->data['start'] && $this->data['limit']) {
+			$this->query .= " LIMIT " . stripslashes($this->data['start']) . ", " . stripslashes($this->data['limit']);	
+		} elseif ($this->data['limit']) {
+			$this->query .= " LIMIT " . stripslashes($this->data['limit']);
+		}
+
+		try {
+			$records = $this->db->query_all($this->query);
+		} catch (Exception $e) {
+			trigger_error($e->getMessage(),E_USER_ERROR);
+		}
+
+		if (($this->getData('characters') != '') && ($this->getData('characters') != '[]')) {
+			$this->queryCount = "SELECT count(sz) as sz FROM (" . $this->queryCount . ") as x1";
+		}
+		$resCount = $this->db->query_one($this->queryCount);
+		$this->total = $resCount->sz;
+		
+		if(count($records)){
+			foreach($records as $record) {
+				$this->records[] = $record;
+//				$this->records[] = array('filename'=>$record->name,'extension'=>$record->extension, 'id'=>$record->imageID, 'family'=>$record->family, 'genus'=>$record->genus, 'species'=>$record->species, 'zoomEnabled'=>$record->zoomEnabled, 'dateCreated' => $record->dateCreated, 'characters' => $record->characters);
+			}
+		}
+		return $this->records;
+	}
+
+	
 }
 ?>

@@ -96,6 +96,9 @@
 				, 124 => 'Category Not Added'
 				, 125 => 'Category Not Renamed'
 				, 126 => 'categoryID should be given'
+				, 127 => 'Image Characters Not Loaded'
+				, 128 => 'Not an allowed value for nodeApi'
+				, 129 => 'Image List Not Loaded'
 			);
 			return $ar[$error_code];
 		}
