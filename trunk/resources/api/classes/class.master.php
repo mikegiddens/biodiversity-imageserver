@@ -14,12 +14,14 @@
 	require_once( $config['path']['base'] . 'resources/api/classes/class.process_queue.php');
 	require_once( $config['path']['base'] . 'resources/api/classes/class.misc.php');
 	require_once( $config['path']['base'] . 'resources/api/classes/class.picassa.php');
-// 	require_once( $config['path']['base'] . 'resources/api/classes/class.amazonS3.php');
 	require_once( $config['path']['base'] . 'resources/api/classes/sdk/sdk.class.php');
 	require_once( $config['path']['base'] . 'resources/api/classes/class.bis2hs.php');
 	require_once( $config['path']['base'] . 'resources/api/classes/class.specimen2label.php');
 	require_once( $config['path']['base'] . 'resources/api/classes/class.master_evernote.php');
 	require_once( $config['path']['base'] . 'resources/api/classes/class.imgTiles.php');
+	require_once( $config['path']['base'] . 'resources/api/classes/class.geography.php');
+	require_once( $config['path']['base'] . 'resources/api/classes/class.events.php');
+	require_once( $config['path']['base'] . 'resources/api/classes/class.log.php');
 
 	Class SilverImage {
 
@@ -41,7 +43,12 @@
 			$this->bis = new Bis2hs();
 			$this->s2l = new Specimen2label();
 			$this->en = new EvernoteAccounts();
-			
+			$this->geography = new Geography();
+			$this->event = new Event();
+			$this->eventType = new EventTypes();
+			$this->lg = new LogClass();
+
+/*
 			$this->logger->db = &$this->db;
 			$this->images->db = &$this->db;
 			$this->image->db = &$this->db;
@@ -50,6 +57,11 @@
 			$this->bis->db = &$this->db;
 			$this->s2l->db = &$this->db;
 			$this->en->db = &$this->db;
+			$this->geography->db = &$this->db;
+			$this->event->db = &$this->db;
+			$this->eventType->db = &$this->db;
+			$this->lg->db = &$this->db;
+*/
 		}
 
 		function load($project) {
@@ -63,6 +75,12 @@
 			$this->collection->db = &$this->db;
 			$this->pqueue->db = &$this->db;
 			$this->bis->db = &$this->db;
+			$this->s2l->db = &$this->db;
+			$this->en->db = &$this->db;
+			$this->geography->db = &$this->db;
+			$this->event->db = &$this->db;
+			$this->eventType->db = &$this->db;
+			$this->lg->db = &$this->db;
 
 			return( true );
 		}
@@ -99,6 +117,10 @@
 				, 127 => 'Image Characters Not Loaded'
 				, 128 => 'Not an allowed value for nodeApi'
 				, 129 => 'Image List Not Loaded'
+				, 130 => 'Title should be given'
+				, 131 => 'Event Type Id should be given'
+				, 132 => 'Title should be given'
+				, 133 => 'Event Id should be given'
 			);
 			return $ar[$error_code];
 		}
