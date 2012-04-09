@@ -86,6 +86,16 @@ ob_start();
 		,'genus'
 		,'imagesType'
 		,'tpl'
+
+		,'country'
+		,'country_iso'
+		,'geoId'
+
+		,'eventId'
+		,'eventTypeId'
+		,'geoId'
+		,'title'
+		,'description'
 	);
 
 	// Initialize allowed variables
@@ -1575,10 +1585,10 @@ ob_start();
 						$processTime = microtime(true) - $time_start;
 						print_c( json_encode( array( 'success' => true, 'processTime' => $processTime, 'recordCount' => count($nodes), 'results' => $nodes)));
 					} else {
-						print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $sc->error(127) , 'code' => 127 ) ) ) );
+						print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError(127) , 'code' => 127 ) ) ) );
 					}
 				} else {
-					print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $sc->error($code) , 'code' => $code ) ) ) );
+					print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($code) , 'code' => $code ) ) ) );
 				}
 				break;
 
@@ -1598,11 +1608,11 @@ ob_start();
 						$processTime = microtime(true) - $time_start;
 						print_c( json_encode( array( 'success' => true, 'processTime' => $processTime, 'recordCount' => count($nodes), 'results' => $nodes)));
 					} else {
-						print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $sc->error(127) , 'code' => 127 ) ) ) );
+						print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError(127) , 'code' => 127 ) ) ) );
 					}
 	
 				} else {
-					print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $sc->error($code) , 'code' => $code ) ) ) );
+					print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($code) , 'code' => $code ) ) ) );
 				}
 		
 				break;
@@ -1621,11 +1631,11 @@ ob_start();
 						$processTime = microtime(true) - $time_start;
 						print_c( json_encode( array( 'success' => true, 'processTime' => $processTime, 'recordCount' => count($nodes), 'results' => $nodes)));
 					} else {
-						print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $sc->error(127) , 'code' => 127 ) ) ) );
+						print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError(127) , 'code' => 127 ) ) ) );
 					}
 	
 				} else {
-					print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $sc->error($code) , 'code' => $code ) ) ) );
+					print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($code) , 'code' => $code ) ) ) );
 				}
 				break;
 
@@ -1649,13 +1659,156 @@ ob_start();
 						$processTime = microtime(true) - $time_start;
 						print_c( json_encode( array( 'success' => true, 'processTime' => $processTime, 'recordCount' => $si->image->total, 'results' => $nodes)));
 					} else {
-						print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $sc->error(129) , 'code' => 129 ) ) ) );
+						print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError(129) , 'code' => 129 ) ) ) );
 					}
 	
 				} else {
-					print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $sc->error($code) , 'code' => $code ) ) ) );
+					print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($code) , 'code' => $code ) ) ) );
 				}
 			break;
+
+		case 'listGeographyRecords':
+				$data['start'] = ($start == '') ? 0 : $start;
+				$data['limit'] = ($limit == '') ? 100 : $limit;
+				$data['country'] = $country;
+				$data['country_iso'] = $country_iso;
+				$data['field'] = $field;
+				$data['value'] = $value;
+				$data['geoId'] = $geoId;
+
+				if($valid) {
+					$si->geograghy->setData($data);
+					$ret = $si->geograghy->listRecords();
+					$processTime = microtime(true) - $time_start;
+					print_c( json_encode( array( 'success' => true, 'processTime' => $processTime, 'results' => $ret ) ) );
+				} else {
+					print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($code) , 'code' => $code ) ) ) );
+				}
+			break;
+
+			case 'addEvent':
+				if(!$si->event->load_by_id($eventId)) {
+				# new record
+					if(trim($title) == '') {
+						$valid = false;
+						$code = 130;
+					}
+					if(trim($eventTypeId) == '') {
+						$valid = false;
+						$code = 131;
+					}
+				}
+
+				if($valid) {
+					$si->event->lg->set('action', 'addEvent');
+					$si->event->lg->set('lastModifiedBy', $_SESSION['user_id']);
+
+					($geoId != '') ? $si->event->set('geoId', $geoId) : '';
+					($eventTypeId != '') ? $si->event->set('eventTypeId', $eventTypeId) : '';
+					($title != '') ? $si->event->set('title', $title) : '';
+					($description != '') ? $si->event->set('description', $description) : '';
+					$si->event->set('lastModifiedBy', $_SESSION['user_id']);
+					$si->event->save();
+
+					print_c( json_encode( array( 'success' => true, 'new_id' => $si->event->insert_id ) ) );
+				} else {
+					print_c( json_encode( array( 'success' => false, 'error' => array ( 'code' => $code, 'msg' => $si->getError($code) ) ) ) );
+				}
+				break;
+
+			case 'listEvents':
+				$data['start'] = ($start == '') ? 0 : $start;
+				$data['limit'] = ($limit == '') ? 100 : $limit;
+				$data['eventId'] = $eventId;
+				$data['eventTypeId'] = $eventTypeId;
+				$data['geoId'] = $geoId;
+				$data['field'] = $field;
+				$data['value'] = $value;
+
+				if($valid) {
+					$si->event->setData($data);
+					$ret = $si->event->listRecords();
+					$processTime = microtime(true) - $time_start;
+					print_c( json_encode( array( 'success' => true, 'processTime' => $processTime, 'results' => $ret ) ) );
+				} else {
+					print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($code) , 'code' => $code ) ) ) );
+				}
+				break;
+
+			case 'deleteEvent':
+				if($eventId == '') {
+					$valid = false;
+					$code = 133;
+				}
+				if($valid) {
+					$si->event->lg->set('action', 'deleteEvent');
+					$si->event->lg->set('lastModifiedBy', $_SESSION['user_id']);
+
+					$si->event->delete($eventId);
+					print_c( json_encode( array( 'success' => true ) ) );
+				} else {
+					print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($code) , 'code' => $code ) ) ) );
+				}
+				break;
+
+			case 'addEventType':
+				if(!$si->eventType->load_by_id($eventTypeId)) {
+				# new record
+					if(trim($title) == '') {
+						$valid = false;
+						$code = 130;
+					}
+				}
+
+				if($valid) {
+					$si->eventType->lg->set('action', 'addEventType');
+					$si->eventType->lg->set('lastModifiedBy', $_SESSION['user_id']);
+
+					($title != '') ? $si->eventType->set('title', $title) : '';
+					($description != '') ? $si->eventType->set('description', $description) : '';
+					$si->eventType->set('lastModifiedBy', $_SESSION['user_id']);
+					$si->eventType->save();
+
+					print_c( json_encode( array( 'success' => true, 'new_id' => $si->eventType->insert_id ) ) );
+				} else {
+					print_c( json_encode( array( 'success' => false, 'error' => array ( 'code' => $code, 'msg' => $si->getError($code) ) ) ) );
+				}
+				break;
+
+			case 'listEventTypes':
+				$data['start'] = ($start == '') ? 0 : $start;
+				$data['limit'] = ($limit == '') ? 100 : $limit;
+				$data['eventTypeId'] = $eventTypeId;
+				$data['title'] = $title;
+				$data['field'] = $field;
+				$data['value'] = $value;
+
+				if($valid) {
+					$si->eventType->setData($data);
+					$ret = $si->eventType->listRecords();
+					$processTime = microtime(true) - $time_start;
+					print_c( json_encode( array( 'success' => true, 'processTime' => $processTime, 'results' => $ret ) ) );
+				} else {
+					print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($code) , 'code' => $code ) ) ) );
+				}
+				break;
+
+			case 'deleteEventType':
+				if($eventTypeId == '') {
+					$valid = false;
+					$code = 131;
+				}
+				if($valid) {
+					$si->eventType->lg->set('action', 'deleteEventType');
+					$si->eventType->lg->set('lastModifiedBy', $_SESSION['user_id']);
+					$si->eventType->delete($eventTypeId);
+					print_c( json_encode( array( 'success' => true ) ) );
+				} else {
+					print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($code) , 'code' => $code ) ) ) );
+				}
+				break;
+
+
 
 # Test Tasks
 
