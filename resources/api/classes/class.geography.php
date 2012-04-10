@@ -3,7 +3,11 @@
 class Geography
 {
 	public $db;
-	
+
+	function __construct( $db = null ) {
+		$this->db = $db;
+	}
+
 	/**
 	* Set the value to Data
 	* @param mixed $data : input data

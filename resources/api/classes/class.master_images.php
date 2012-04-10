@@ -11,6 +11,10 @@ Class Images {
     private $files_array;
     public $db, $record;
 
+	public function __construct($db = null) {
+		$this->db = $db;
+	}
+
     public function load_from_folder( $folder_path ) {
         if(is_dir($folder_path)) {
             $handle = opendir($folder_path);

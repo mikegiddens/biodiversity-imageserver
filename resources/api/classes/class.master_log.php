@@ -9,7 +9,7 @@
 Class Logger {
 
 	public $records,$data,$files,$record;
-	
+
 	function __construct( $db = null ) {
 		$this->db = $db;
 	}

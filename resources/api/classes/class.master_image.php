@@ -9,6 +9,10 @@ Class Image {
 
     public $db, $record;
 
+	public function __construct($db = null) {
+		$this->db = $db;
+	}
+
     public function set_fullpath( $file ){
         $parts = explode('/', $file);
         if ( count($parts) == 1 ) {
