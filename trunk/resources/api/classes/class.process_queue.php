@@ -11,7 +11,8 @@ Class ProcessQueue {
 	private $processs_stats;
 	public $db, $record, $data, $image;
 
-	public function __construct() {
+	public function __construct($db = null) {
+		$this->db = $db;
 		$this->image = new Image();
 		$this->image->db = &$this->db;
 	}

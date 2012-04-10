@@ -163,7 +163,7 @@ ob_start();
 		
 		include_once( dirname($_SERVER['PHP_SELF']) . '/../../config.php');
 	} else {
-		include_once('../../config-local.php');
+		include_once('../../config.php');
 	}
 
 	$path = $config['path']['base'] . "resources/api/classes/";
@@ -173,7 +173,7 @@ ob_start();
 	require_once("classes/phpFlickr/phpFlickr.php");
 	require_once( "classes/access_user/access_user_class.php");
 	
-	$si = new SilverImage;
+	$si = new SilverImage($config['mysql']['name']);
 	$user_access = new Access_user($config['mysql']['host'], $config['mysql']['user'], $config['mysql']['pass'], $config['mysql']['name']);
 	
 	// setting picassa constants
@@ -191,7 +191,7 @@ ob_start();
 	$valid = true;
 	$code = 0;
 	$time_start = microtime(true);
-	if ( $si->load( $config['mysql']['name'] ) ) {
+
 	$user_access->db = &$si->db;
 
 	switch( $cmd ) {
@@ -1837,8 +1837,6 @@ ob_start();
 			break;
 
 	}
-} else {
-	print ("Project Not Loaded");
-}
+
 ob_end_flush();
 ?>

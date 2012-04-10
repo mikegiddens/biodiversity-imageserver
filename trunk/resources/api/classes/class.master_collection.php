@@ -10,6 +10,10 @@ Class Collection {
 
     public $db, $record;
 
+	function __construct( $db = null ) {
+		$this->db = $db;
+	}
+
     /**
      * Set the value to Data
      * @param mixed $data : input data

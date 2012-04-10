@@ -5,7 +5,7 @@ class Event
 	public $db;
 
 	public function __construct($db) {
-		$this->db = &$db;
+		$this->db = $db;
 		$this->lg = new LogClass($db);
 	}
 	
@@ -41,7 +41,7 @@ class Event
 	}
 	
 	public function load_by_id( $eventId ) {
-		if($geoId == '') return false;
+		if($eventId == '') return false;
 		$query = sprintf("SELECT * FROM `events` WHERE `eventId` = %s ", mysql_escape_string($eventId) );
 		$ret = $this->db->query_one( $query );
 		if ($ret != NULL) {
@@ -117,10 +117,10 @@ class Event
 			);
 		}
 		if($this->db->query($query)) {
+			$this->insert_id = ($this->db->insert_id == 0) ? $this->get('eventId') : $this->db->insert_id;
 			$this->lg->set('table', 'events');
 			$this->lg->set('query', $query);
 			$this->lg->save();
-			$this->insert_id = $this->db->insert_id;
 			return(true);
 		}
 		return (false);
@@ -183,7 +183,7 @@ class EventTypes
 	}
 	
 	public function load_by_id( $eventTypeId ) {
-		if($geoId == '') return false;
+		if($eventTypeId == '') return false;
 		$query = sprintf("SELECT * FROM `event_types` WHERE `eventTypeId` = %s ", mysql_escape_string($eventTypeId) );
 		$ret = $this->db->query_one( $query );
 		if ($ret != NULL) {
@@ -214,7 +214,7 @@ class EventTypes
 		$where .= build_order( $this->data['order']);
 		$where .= build_limit($this->data['start'], $this->data['limit']);
 
-		$query = "SELECT SQL_CALC_FOUND_ROWS `eventTypeId`, `title`, `description` FROM `event_types` " . $where;
+		$query = "SELECT SQL_CALC_FOUND_ROWS `eventTypeId`, `title`, `description`, `lastModifiedBy`, `modifiedTime` FROM `event_types` " . $where;
 
 		if($queryFlag) {
 			$ret = $this->db->query_all( $query );
@@ -227,7 +227,7 @@ class EventTypes
 
 	public function recordExists ($eventTypeId){
 		if($eventTypeId == '' || is_null($eventTypeId)) return false;
-		$query = sprintf("SELECT `eventId` FROM `event_types` WHERE `eventTypeId` = %s;", mysql_escape_string($eventTypeId) );
+		$query = sprintf("SELECT `eventTypeId` FROM `event_types` WHERE `eventTypeId` = %s;", mysql_escape_string($eventTypeId) );
 		$ret = $this->db->query_one( $query );
 		if ($ret == NULL) {
 			return false;
@@ -238,24 +238,24 @@ class EventTypes
 
 	public function save() {
 		if($this->recordExists($this->get('eventTypeId'))) {
-			$query = sprintf("UPDATE `event_types` SET  `title` = '%s', `description` = '%s', `lastModifiedBy` = '%s' WHERE `eventTypeId` = '%s' ;"
+			$query = sprintf("UPDATE `event_types` SET  `title` = '%s', `description` = '%s', `lastModifiedBy` = '%s', `modifiedTime` = NOW() WHERE `eventTypeId` = '%s' ;"
 			, mysql_escape_string($this->get('title'))
 			, mysql_escape_string($this->get('description'))
 			, mysql_escape_string($this->get('lastModifiedBy'))
 			, mysql_escape_string($this->get('eventTypeId'))
 			);
 		} else {
-			$query = sprintf("INSERT IGNORE INTO `event_types` SET `title` = '%s', `description` = '%s', `lastModifiedBy` = '%s' ;"
+			$query = sprintf("INSERT IGNORE INTO `event_types` SET `title` = '%s', `description` = '%s', `lastModifiedBy` = '%s', `modifiedTime` = NOW() ;"
 			, mysql_escape_string($this->get('title'))
 			, mysql_escape_string($this->get('description'))
 			, mysql_escape_string($this->get('lastModifiedBy'))
 			);
 		}
 		if($this->db->query($query)) {
+			$this->insert_id = ($this->db->insert_id == 0) ? $this->get('eventTypeId') : $this->db->insert_id;
 			$this->lg->set('table', 'event_types');
 			$this->lg->set('query', $query);
 			$this->lg->save();
-			$this->insert_id = $this->db->insert_id;
 			return(true);
 		}
 		return (false);

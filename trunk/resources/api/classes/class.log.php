@@ -4,8 +4,8 @@ class LogClass
 {
 	public $db;
 
-	public function __construct($db) {
-		$this->db = &$db;
+	public function __construct($db = null) {
+		$this->db = $db;
 	}
 
 	/**

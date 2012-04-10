@@ -27,60 +27,35 @@
 
 		public  $logger;
 
-		function __construct() {
+		function __construct($project) {
 			global $config;
-			$this->logger = new Logger();
-			$this->images = new Images();
-			$this->image = new Image();
-			$this->collection = new Collection();
-			$this->pqueue = new ProcessQueue();
+
+			$this->load($project);
+
+			$this->logger = new Logger($this->db);
+			$this->images = new Images($this->db);
+			$this->image = new Image($this->db);
+			$this->collection = new Collection($this->db);
+			$this->pqueue = new ProcessQueue($this->db);
 			$this->picassa = new PicassaWeb();
 			if($config['mode'] == 's3') {
 				$this->amazon = new AmazonS3(array('key' => $config['s3']['accessKey'],'secret' => $config['s3']['secretKey']));
 			} else {
 				$this->amazon = NULL;
 			}
-			$this->bis = new Bis2hs();
-			$this->s2l = new Specimen2label();
-			$this->en = new EvernoteAccounts();
-			$this->geography = new Geography();
-			$this->event = new Event();
-			$this->eventType = new EventTypes();
-			$this->lg = new LogClass();
-
-/*
-			$this->logger->db = &$this->db;
-			$this->images->db = &$this->db;
-			$this->image->db = &$this->db;
-			$this->collection->db = &$this->db;
-			$this->pqueue->db = &$this->db;
-			$this->bis->db = &$this->db;
-			$this->s2l->db = &$this->db;
-			$this->en->db = &$this->db;
-			$this->geography->db = &$this->db;
-			$this->event->db = &$this->db;
-			$this->eventType->db = &$this->db;
-			$this->lg->db = &$this->db;
-*/
+			$this->bis = new Bis2hs($this->db);
+			$this->s2l = new Specimen2label($this->db);
+			$this->en = new EvernoteAccounts($this->db);
+			$this->geography = new Geography($this->db);
+			$this->event = new Event($this->db);
+			$this->eventType = new EventTypes($this->db);
+			$this->lg = new LogClass($this->db);
 		}
 
 		function load($project) {
 			global $config;
 			$connection_string="server={$config['mysql']['host']}; database=$project; username={$config['mysql']['user']}; password={$config['mysql']['pass']};";
 			$this->db = new MysqliDatabase($connection_string);
-
-			$this->logger->db = &$this->db;
-			$this->images->db = &$this->db;
-			$this->image->db = &$this->db;
-			$this->collection->db = &$this->db;
-			$this->pqueue->db = &$this->db;
-			$this->bis->db = &$this->db;
-			$this->s2l->db = &$this->db;
-			$this->en->db = &$this->db;
-			$this->geography->db = &$this->db;
-			$this->event->db = &$this->db;
-			$this->eventType->db = &$this->db;
-			$this->lg->db = &$this->db;
 
 			return( true );
 		}
