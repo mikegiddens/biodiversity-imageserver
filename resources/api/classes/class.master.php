@@ -22,6 +22,7 @@
 	require_once( $config['path']['base'] . 'resources/api/classes/class.geography.php');
 	require_once( $config['path']['base'] . 'resources/api/classes/class.events.php');
 	require_once( $config['path']['base'] . 'resources/api/classes/class.log.php');
+	require_once( $config['path']['base'] . 'resources/api/classes/class.user_permissions.php');
 
 	Class SilverImage {
 
@@ -50,6 +51,7 @@
 			$this->event = new Event($this->db);
 			$this->eventType = new EventTypes($this->db);
 			$this->lg = new LogClass($this->db);
+			$this->userPerm = new UserPermissions($this->db);
 		}
 
 		function load($project) {

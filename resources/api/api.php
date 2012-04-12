@@ -102,9 +102,9 @@ ob_start();
 	foreach ($expected as $formvar)
 		$$formvar = (isset(${"_$_SERVER[REQUEST_METHOD]"}[$formvar])) ? ${"_$_SERVER[REQUEST_METHOD]"}[$formvar]:NULL;
 
-	# Closing the session for writing
+	# Getting session in variable and closing the session for writing
+	$_tSESSION = $_SESSION;
 	session_write_close();
-
 
 	/**
 	 * Function print_c (Print Callback)
@@ -1379,6 +1379,10 @@ ob_start();
 # New Image Admin Tasks
 
 		case 'image_characters':
+			if(!$user_access->is_logged_in()){
+				print json_encode( array( 'success' => false, 'error' => array('message' => $sa->getError(113), 'code' => 113 )) );
+				exit;
+			}
 			$time_start = microtime(true);
 			$start = ($start != '') ? $start : 0;
 			$limit = ($limit != '') ? $limit : 25;
@@ -1394,6 +1398,10 @@ ob_start();
 			break;
 
 		case 'add_image_attribute':
+			if(!$user_access->is_logged_in()){
+				print json_encode( array( 'success' => false, 'error' => array('message' => $sa->getError(113), 'code' => 113 )) );
+				exit;
+			}
 			$time_start = microtime(true);
 			$data['imageID'] = $imageID;
 			if($data['imageID'] == "") {
@@ -1420,6 +1428,10 @@ ob_start();
 			break;
 
 		case 'delete_image_attribute':
+				if(!$user_access->is_logged_in()){
+					print json_encode( array( 'success' => false, 'error' => array('message' => $sa->getError(113), 'code' => 113 )) );
+					exit;
+				}
 			$time_start = microtime(true);
 			$data['imageID'] = $imageID;
 			if($data['imageID'] == "") {
@@ -1445,6 +1457,10 @@ ob_start();
 			break;
 
 			case 'add_category':
+				if(!$user_access->is_logged_in()){
+					print json_encode( array( 'success' => false, 'error' => array('message' => $sa->getError(113), 'code' => 113 )) );
+					exit;
+				}
 				$time_start = microtime(true);
 				$data['value'] = $value;
 				if($data['value'] == "") {
@@ -1465,6 +1481,10 @@ ob_start();
 				break;
 
 			case 'rename_category':
+				if(!$user_access->is_logged_in()){
+					print json_encode( array( 'success' => false, 'error' => array('message' => $sa->getError(113), 'code' => 113 )) );
+					exit;
+				}
 				$time_start = microtime(true);
 				$data['value'] = $value;
 				if($data['value'] == "") {
@@ -1489,6 +1509,10 @@ ob_start();
 				break;
 
 			case 'delete_category':
+				if(!$user_access->is_logged_in()){
+					print json_encode( array( 'success' => false, 'error' => array('message' => $sa->getError(113), 'code' => 113 )) );
+					exit;
+				}
 				$time_start = microtime(true);
 				$data['categoryID'] = $categoryID;
 				if($data['categoryID'] == "") {
@@ -1506,6 +1530,10 @@ ob_start();
 				break;
 
 			case 'add_attribute':
+				if(!$user_access->is_logged_in()){
+					print json_encode( array( 'success' => false, 'error' => array('message' => $sa->getError(113), 'code' => 113 )) );
+					exit;
+				}
 				$time_start = microtime(true);
 				$data['categoryID'] = $categoryID;
 				if($data['categoryID'] == "") {
@@ -1529,6 +1557,10 @@ ob_start();
 				break;
 
 			case 'rename_attribute':
+				if(!$user_access->is_logged_in()){
+					print json_encode( array( 'success' => false, 'error' => array('message' => $sa->getError(113), 'code' => 113 )) );
+					exit;
+				}
 				$time_start = microtime(true);
 				$data['value'] = $value;
 				if($data['value'] == "") {
@@ -1551,6 +1583,10 @@ ob_start();
 				break;
 
 			case 'delete_attribute':
+				if(!$user_access->is_logged_in()){
+					print json_encode( array( 'success' => false, 'error' => array('message' => $sa->getError(113), 'code' => 113 )) );
+					exit;
+				}
 				$time_start = microtime(true);
 				$data['valueID'] = $valueID;
 				if($data['valueID'] == "") {
@@ -1687,6 +1723,11 @@ ob_start();
 			break;
 
 			case 'addEvent':
+				if(!$user_access->is_logged_in()){
+					print json_encode( array( 'success' => false, 'error' => array('message' => $sa->getError(113), 'code' => 113 )) );
+					exit;
+				}
+
 				if(!$si->event->load_by_id($eventId)) {
 				# new record
 					if(trim($title) == '') {
@@ -1736,6 +1777,11 @@ ob_start();
 				break;
 
 			case 'deleteEvent':
+				if(!$user_access->is_logged_in()){
+					print json_encode( array( 'success' => false, 'error' => array('message' => $sa->getError(113), 'code' => 113 )) );
+					exit;
+				}
+
 				if($eventId == '') {
 					$valid = false;
 					$code = 133;
@@ -1752,6 +1798,10 @@ ob_start();
 				break;
 
 			case 'addEventType':
+				if(!$user_access->is_logged_in()){
+					print json_encode( array( 'success' => false, 'error' => array('message' => $sa->getError(113), 'code' => 113 )) );
+					exit;
+				}
 				if(!$si->eventType->load_by_id($eventTypeId)) {
 				# new record
 					if(trim($title) == '') {
@@ -1794,6 +1844,10 @@ ob_start();
 				break;
 
 			case 'deleteEventType':
+				if(!$user_access->is_logged_in()){
+					print json_encode( array( 'success' => false, 'error' => array('message' => $sa->getError(113), 'code' => 113 )) );
+					exit;
+				}
 				if($eventTypeId == '') {
 					$valid = false;
 					$code = 131;
@@ -1811,6 +1865,13 @@ ob_start();
 
 
 # Test Tasks
+
+		case 'permissionTest':
+			echo '<pre>';
+			echo '<br>';
+// 			var_dump($si->userPerm);
+			print_r($_SESSION);
+			break;
 
 		case 'clearProcessQueue':
 			$types = @json_decode(@stripslashes(trim($types)));
