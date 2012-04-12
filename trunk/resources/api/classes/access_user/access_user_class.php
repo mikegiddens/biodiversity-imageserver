@@ -25,6 +25,7 @@ http://olederer.users.phpclasses.org/discuss/package/1906/
 // session_start();
 // error_reporting (E_ALL); // I use this only for testing
 require("db_config.php"); // this path works for me...
+require_once( "../class.mysqli_database.php");
 
 class Access_user {
 	
@@ -123,16 +124,23 @@ class Access_user {
 		} else {
 			$next_page = $this->main_page;
 		}
-// 		header("Location: ".$next_page);
+
+		$this->setUserPermissions();
+
 		return true;
 	}
 
 	function connect_db() {
-		$conn_str = @mysql_connect( $this->mysql_host, $this->mysql_user, $this->mysql_pass );
-		if ($conn_str == false) return(false);
-		mysql_select_db( $this->mysql_name ); // if there are problems with the tablenames inside the config file use this row 
-#		mysql_select_db( DB_NAME ); // if there are problems with the tablenames inside the config file use this row 
-		return(true);
+// 		$conn_str = @mysql_connect( $this->mysql_host, $this->mysql_user, $this->mysql_pass );
+// 		if ($conn_str == false) return(false);
+// 		mysql_select_db( $this->mysql_name ); // if there are problems with the tablenames inside the config file use this row 
+
+		$connection_string="server={$this->mysql_host}; database={$this->mysql_name}; username={$this->mysql_user}; password={$this->mysql_pass};";
+		$this->db = new MysqliDatabase($connection_string);
+
+		return( true );
+
+
 	}
 
 	function login_user($user, $password) {
@@ -184,7 +192,7 @@ class Access_user {
 		unset($_SESSION['user']);
 		unset($_SESSION['pw']);
 		unset($_SESSION['user_id']);
-// 		header("Location: ".$this->login_page);
+		unset($_SESSION['user_permissions']);
 	}
 	function access_page($refer = "", $qs = "", $level = DEFAULT_ACCESS_LEVEL) {
 		$refer_qs = $refer;
@@ -485,28 +493,28 @@ class Access_user {
 			$msg[12] = "Leider existiert bereits ein Benutzer mit diesem Login und/oder E-mailadresse.";
 			$msg[13] = "Weitere Anweisungen wurden per E-mail versandt, folgen Sie nun den Instruktionen.";
 			$msg[14] = "Es is ein Fehler entstanden probieren Sie es erneut.";
-			$msg[15] = "Es is ein Fehler entstanden probieren Sie es später nochmal.";
-			$msg[16] = "Die eingegebene E-mailadresse ist nicht gültig.";
+			$msg[15] = "Es is ein Fehler entstanden probieren Sie es spï¿½ter nochmal.";
+			$msg[16] = "Die eingegebene E-mailadresse ist nicht gï¿½ltig.";
 			$msg[17] = "Das Feld login (min. ".LOGIN_LENGTH." Zeichen) muss eingegeben sein.";
-			$msg[18] = "Ihr Benutzerkonto ist aktiv. Sie können sich nun anmelden.";
-			$msg[19] = "Ihr Aktivierungs ist nicht gültig.";
+			$msg[18] = "Ihr Benutzerkonto ist aktiv. Sie kï¿½nnen sich nun anmelden.";
+			$msg[19] = "Ihr Aktivierungs ist nicht gï¿½ltig.";
 			$msg[20] = "Da ist kein Konto zu aktivieren.";
-			$msg[21] = "Der benutzte Aktivierung-Code is nicht gültig!";
-			$msg[22] = "Keine Konto gefunden dass mit der eingegeben E-mailadresse übereinkommt.";
+			$msg[21] = "Der benutzte Aktivierung-Code is nicht gï¿½ltig!";
+			$msg[22] = "Keine Konto gefunden dass mit der eingegeben E-mailadresse ï¿½bereinkommt.";
 			$msg[23] = "Kontrollieren Sie Ihre E-Mail um Ihr neues Passwort zu erhalten.";
 			$msg[25] = "Kann Ihr Passwort nicht aktivieren.";
 			$msg[26] = "";
-			$msg[27] = "Kontrollieren Sie Ihre E-Mailbox und bestätigen Sie Ihre Änderung(en).";
-			$msg[28] = "Ihre Anfrage bestätigen...";
+			$msg[27] = "Kontrollieren Sie Ihre E-Mailbox und bestï¿½tigen Sie Ihre ï¿½nderung(en).";
+			$msg[28] = "Ihre Anfrage bestï¿½tigen...";
 			$msg[29] = "Hallo,\r\n\r\num Ihre Anfrage zu aktivieren klicken Sie bitte auf den folgenden Link:\r\n".$host.$this->login_page."?ident=".$this->id."&activate=".md5($this->user_pw)."&language=".$this->language;
-			$msg[30] = "Ihre Änderung ist durchgeführt.";
-			$msg[31] = "Diese E-mailadresse wird bereits genutzt, bitte wählen Sie eine andere.";
+			$msg[30] = "Ihre ï¿½nderung ist durchgefï¿½hrt.";
+			$msg[31] = "Diese E-mailadresse wird bereits genutzt, bitte wï¿½hlen Sie eine andere.";
 			$msg[32] = "Das Feld Passwort (min. ".PW_LENGTH." Zeichen) muss eingegeben sein.";
-			$msg[33] = "Hallo,\r\n\r\nIhre neue E-mailadresse muss noch überprüft werden, bitte klicken Sie auf den folgenden Link:\r\n".$host.$this->login_page."?id=".$this->id."&validate=".md5($this->user_pw)."&language=".$this->language;
-			$msg[34] = "Da ist keine E-mailadresse zu überprüfen.";
+			$msg[33] = "Hallo,\r\n\r\nIhre neue E-mailadresse muss noch ï¿½berprï¿½ft werden, bitte klicken Sie auf den folgenden Link:\r\n".$host.$this->login_page."?id=".$this->id."&validate=".md5($this->user_pw)."&language=".$this->language;
+			$msg[34] = "Da ist keine E-mailadresse zu ï¿½berprï¿½fen.";
 			$msg[35] = "Hallo,\r\n\r\nIhr neues Passwort kann nun eingegeben werden, bitte klicken Sie auf den folgenden Link:\r\n".$host.$this->password_page."?id=".$this->id."&activate=".$this->user_pw."&language=".$this->language;
 			$msg[36] = "Ihr Antrag ist verarbeitet und wird nun durch den Administrator kontrolliert. \r\nSie erhalten eine Nachricht wenn dies geschehen ist.";
-			$msg[37] = "Hallo ".$this->user.",\r\n\r\nIhr Konto ist nun eigerichtet und Sie können sich anmelden.\r\n\r\nKlicken Sie hierfür auf den folgenden Link:\r\n".$host.$this->login_page."\r\n\r\nmit freundlichen Grüssen\r\n".$this->admin_name;
+			$msg[37] = "Hallo ".$this->user.",\r\n\r\nIhr Konto ist nun eigerichtet und Sie kï¿½nnen sich anmelden.\r\n\r\nKlicken Sie hierfï¿½r auf den folgenden Link:\r\n".$host.$this->login_page."\r\n\r\nmit freundlichen Grï¿½ssen\r\n".$this->admin_name;
 			$msg[38] = "Das best&auml;tigte Passwort hat keine &Uuml;bereinstimmung mit dem ersten Passwort, bitte probieren Sie es erneut.";
 			break;
 			case "nl":
@@ -542,32 +550,32 @@ class Access_user {
 			case "fr":
 			$msg[10] = "Le login et/ou mot de passe ne correspondent pas.";
 			$msg[11] = "Le login et/ou mot de passe est vide !";
-			$msg[12] = "Désolé, un utilisateur avec le même email et/ou login existe déjà.";
-			$msg[13] = "Vérifiez votre email et suivez les instructions.";
-			$msg[14] = "Désolé, une erreur s'est produite. Veuillez réessayer.";
-			$msg[15] = "Désolé, une erreur s'est produite. Veuillez réessayer plus tard.";
+			$msg[12] = "Dï¿½solï¿½, un utilisateur avec le mï¿½me email et/ou login existe dï¿½jï¿½.";
+			$msg[13] = "Vï¿½rifiez votre email et suivez les instructions.";
+			$msg[14] = "Dï¿½solï¿½, une erreur s'est produite. Veuillez rï¿½essayer.";
+			$msg[15] = "Dï¿½solï¿½, une erreur s'est produite. Veuillez rï¿½essayer plus tard.";
 			$msg[16] = "L'adresse email n'est pas valide.";
-			$msg[17] = "Le champ \"Nom d'usager\" doit être composé d'au moins ".LOGIN_LENGTH." caratères.";
-			$msg[18] = "Votre requete est complète. Enregistrez vous pour continuer.";
-			$msg[19] = "Désolé, nous ne pouvons pas activer votre account.";
-			$msg[20] = "Désolé, il n'y à pas d'account à activer.";
-			$msg[21] = "Désolé, votre clef d'authorisation n'est pas valide";
-			$msg[22] = "Désolé, il n'y à pas d'account actif avec cette adresse email.";
+			$msg[17] = "Le champ \"Nom d'usager\" doit ï¿½tre composï¿½ d'au moins ".LOGIN_LENGTH." caratï¿½res.";
+			$msg[18] = "Votre requete est complï¿½te. Enregistrez vous pour continuer.";
+			$msg[19] = "Dï¿½solï¿½, nous ne pouvons pas activer votre account.";
+			$msg[20] = "Dï¿½solï¿½, il n'y ï¿½ pas d'account ï¿½ activer.";
+			$msg[21] = "Dï¿½solï¿½, votre clef d'authorisation n'est pas valide";
+			$msg[22] = "Dï¿½solï¿½, il n'y ï¿½ pas d'account actif avec cette adresse email.";
 			$msg[23] = "Veuillez consulter votre email pour recevoir votre nouveau mot de passe.";
-			$msg[25] = "Désolé, nous ne pouvons pas activer votre mot de passe.";
+			$msg[25] = "Dï¿½solï¿½, nous ne pouvons pas activer votre mot de passe.";
 			$msg[26] = "";
 			$msg[27] = "Veuillez consulter votre email pour activer les modifications.";
-			$msg[28] = "Votre requete doit etre exécuter...";
+			$msg[28] = "Votre requete doit etre exï¿½cuter...";
 			$msg[29] = "Bonjour,\r\n\r\npour activer votre account clickez sur le lien suivant:\r\n".$host.$this->login_page."?ident=".$this->id."&activate=".md5($this->user_pw)."&language=".$this->language;
-			$msg[30] = "Votre account à été modifié.";
-			$msg[31] = "Désolé, cette adresse email existe déjà, veuillez en utiliser une autre.";
+			$msg[30] = "Votre account ï¿½ ï¿½tï¿½ modifiï¿½.";
+			$msg[31] = "Dï¿½solï¿½, cette adresse email existe dï¿½jï¿½, veuillez en utiliser une autre.";
 			$msg[32] = "Le champ password (min. ".PW_LENGTH." char) est requis.";
-			$msg[33] = "Bonjour,\r\n\r\nvotre nouvelle adresse email doit être validée, clickez sur le liens suivant:\r\n".$host.$this->login_page."?id=".$this->id."&validate=".md5($this->user_pw)."&language=".$this->language;
-			$msg[34] = "Il n'y à pas d'email à valider.";
+			$msg[33] = "Bonjour,\r\n\r\nvotre nouvelle adresse email doit ï¿½tre validï¿½e, clickez sur le liens suivant:\r\n".$host.$this->login_page."?id=".$this->id."&validate=".md5($this->user_pw)."&language=".$this->language;
+			$msg[34] = "Il n'y ï¿½ pas d'email ï¿½ valider.";
 			$msg[35] = "Bonjour,\r\n\r\nPour entrer votre nouveaux mot de passe, clickez sur le lien suivant:\r\n".$host.$this->password_page."?id=".$this->id."&activate=".$this->user_pw."&language=".$this->language;
-			$msg[36] = "Votre demande a été bien traitée et d'ici peu l'administrateur va l 'activer. Nous vous informerons quand ceci est arrivé.";
-			$msg[37] = "Bonjour ".$this->user.",\r\n\r\nVotre compte est maintenant actif et il est possible d'y avoir accès.\r\n\r\nCliquez sur le lien suivant afin de rejoindre la page d'accès:\r\n".$host.$this->login_page."\r\n\r\nCordialement\r\n".$this->admin_name;
-			$msg[38] = "Le mot de passe de confirmation de concorde pas avec votre mot de passe. Veuillez réessayer";
+			$msg[36] = "Votre demande a ï¿½tï¿½ bien traitï¿½e et d'ici peu l'administrateur va l 'activer. Nous vous informerons quand ceci est arrivï¿½.";
+			$msg[37] = "Bonjour ".$this->user.",\r\n\r\nVotre compte est maintenant actif et il est possible d'y avoir accï¿½s.\r\n\r\nCliquez sur le lien suivant afin de rejoindre la page d'accï¿½s:\r\n".$host.$this->login_page."\r\n\r\nCordialement\r\n".$this->admin_name;
+			$msg[38] = "Le mot de passe de confirmation de concorde pas avec votre mot de passe. Veuillez rï¿½essayer";
 			break;
 			default:
 			$msg[10] = "Login and/or password did not match to the database.";
@@ -605,9 +613,25 @@ class Access_user {
 		return $msg[$num];
 	}
 
-	function is_logged_in(){
-		return (isset($_SESSION['user']) && isset($_SESSION['pw'])) ? true : false;
+// 	function is_logged_in(){
+// 		return (isset($_SESSION['user']) && isset($_SESSION['pw'])) ? true : false;
+// 	}
+
+	function is_logged_in($_tSESSION = ''){
+		if($_tSESSION != '') {
+			return (isset($_tSESSION['user']) && isset($_tSESSION['pw'])) ? true : false;
+		} else {
+			return (isset($_SESSION['user']) && isset($_SESSION['pw'])) ? true : false;
+		}
 	}
+
+	public function setUserPermissions() {
+		$query = sprintf(" SELECT * FROM `user_permissions` WHERE `user_id` = %s", mysql_escape_string($this->id));
+		$ret = $this->db->query_all($query);
+		$_SESSION['user_permissions'] = $ret;
+		return true;
+	}
+
 
 }
 ?>
