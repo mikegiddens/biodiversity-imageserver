@@ -244,7 +244,7 @@ ob_start();
 			$data['time_start'] = microtime(true);
 			$data['filter'] = stripslashes(trim($filter));
 			$data['nodeApi'] = trim($nodeApi);
-			if(!in_array($data['nodeApi'],array('alpha', 'Family', 'Genus', 'SpecificEpithet'))) {
+			if(!in_array($data['nodeApi'],array('alpha', 'Family', 'Genus', 'SpecificEpithet','root'))) {
 				$code = 114;
 				$valid = false;
 			}
@@ -1634,6 +1634,7 @@ ob_start();
 					$code = 128;
 					$valid = false;
 				}
+				$data['nodeApi'] = $nodeApi;
 				$data['nodeValue'] = $nodeValue;
 				$data['family'] = $family;
 				$data['genus'] = $genus;
@@ -1688,7 +1689,7 @@ ob_start();
 				$data['filter'] = $filter;
 				$data['sort'] = $sort;
 				$data['dir'] = $dir;
-	
+
 				if($valid) {
 					$si->image->setData($data);
 					if(false !== ($nodes = $si->image->loadImageList())) {
@@ -1701,6 +1702,28 @@ ob_start();
 				} else {
 					print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($code) , 'code' => $code ) ) ) );
 				}
+			break;
+
+		case 'image-details':
+			$data['image_id'] = $image_id;
+			if ($data['image_id'] == '') {
+				$code = 107;
+				$valid = false;
+			}
+			if($valid) {
+				$si->image->setData($data);
+				$ar = $si->image->loadImageDetails();
+
+				if($ar['status']) {
+					$processTime = microtime(true) - $time_start;
+					print_c( json_encode( array( 'success' => true, 'processTime' => $processTime, 'results' => $ar['record'] ) ) );
+				} else {
+					print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $sc->error($ar['error']) , 'code' => $ar['error'] ) ) ) );
+				}
+
+			} else {
+				print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($code) , 'code' => $code ) ) ) );
+			}
 			break;
 
 		case 'listGeographyRecords':
