@@ -25,7 +25,8 @@ http://olederer.users.phpclasses.org/discuss/package/1906/
 // session_start();
 // error_reporting (E_ALL); // I use this only for testing
 require("db_config.php"); // this path works for me...
-require_once( "../class.mysqli_database.php");
+
+require_once( $config['path']['base'] . "resources/api/classes/class.mysqli_database.php");
 
 class Access_user {
 	
@@ -115,7 +116,7 @@ class Access_user {
 	}
 	function set_user() {
 		$_SESSION['user'] = $this->user;
-		$_SESSION['pw'] = $this->user_pw;
+#		$_SESSION['pw'] = $this->user_pw;
 		$this->get_user_info();
 		$_SESSION['user_id'] = $this->id;
 		if (isset($_SESSION['referer']) && $_SESSION['referer'] != "") {
@@ -131,9 +132,9 @@ class Access_user {
 	}
 
 	function connect_db() {
-// 		$conn_str = @mysql_connect( $this->mysql_host, $this->mysql_user, $this->mysql_pass );
-// 		if ($conn_str == false) return(false);
-// 		mysql_select_db( $this->mysql_name ); // if there are problems with the tablenames inside the config file use this row 
+		$conn_str = @mysql_connect( $this->mysql_host, $this->mysql_user, $this->mysql_pass );
+		if ($conn_str == false) return(false);
+		mysql_select_db( $this->mysql_name ); # if there are problems with the tablenames inside the config file use this row 
 
 		$connection_string="server={$this->mysql_host}; database={$this->mysql_name}; username={$this->mysql_user}; password={$this->mysql_pass};";
 		$this->db = new MysqliDatabase($connection_string);
@@ -190,16 +191,16 @@ class Access_user {
 	}
 	function log_out() {
 		unset($_SESSION['user']);
-		unset($_SESSION['pw']);
+		# unset($_SESSION['pw']);
 		unset($_SESSION['user_id']);
 		unset($_SESSION['user_permissions']);
 	}
 	function access_page($refer = "", $qs = "", $level = DEFAULT_ACCESS_LEVEL) {
 		$refer_qs = $refer;
 		$refer_qs .= ($qs != "") ? "?".$qs : "";
-		if (isset($_SESSION['user']) && isset($_SESSION['pw'])) {
+		if (isset($_SESSION['user'])/* && isset($_SESSION['pw'])*/) {
 			$this->user = $_SESSION['user'];
-			$this->user_pw = $_SESSION['pw'];
+			# $this->user_pw = $_SESSION['pw'];
 			$this->get_access_level();
 			if (!$this->check_user()) {
 				$_SESSION['referer'] = $refer_qs;
@@ -265,7 +266,7 @@ class Access_user {
 		$upd_res = mysql_query($upd_sql);
 		if ($upd_res) {
 			if ($update_pw) {
-				$_SESSION['pw'] = $this->user_pw = $ins_password;
+				# $_SESSION['pw'] = $this->user_pw = $ins_password;
 				if (isset($_COOKIE[$this->cookie_name])) {
 					$this->save_login = "yes";
 					$this->login_saver();
@@ -619,14 +620,14 @@ class Access_user {
 
 	function is_logged_in($_tSESSION = ''){
 		if($_tSESSION != '') {
-			return (isset($_tSESSION['user']) && isset($_tSESSION['pw'])) ? true : false;
+			return (isset($_tSESSION['user'])) ? true : false;
 		} else {
-			return (isset($_SESSION['user']) && isset($_SESSION['pw'])) ? true : false;
+			return (isset($_SESSION['user'])) ? true : false;
 		}
 	}
 
 	public function setUserPermissions() {
-		$query = sprintf(" SELECT * FROM `user_permissions` WHERE `user_id` = %s", mysql_escape_string($this->id));
+		$query = sprintf(" SELECT * FROM `user_permissions` WHERE `userId` = %s", mysql_escape_string($this->id));
 		$ret = $this->db->query_all($query);
 		$_SESSION['user_permissions'] = $ret;
 		return true;

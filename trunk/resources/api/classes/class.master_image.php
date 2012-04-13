@@ -805,7 +805,7 @@ function createGTileIM($filename, $outputPath) {
 	public function listImages($queryFlag = true) {
 
 		$characters = $this->data['characters'];
-		$browse = $this->getData['browse'];
+		$browse = $this->data['browse'];
 
 		$this->query = "SELECT SQL_CALC_FOUND_ROWS  I.image_id,I.filename,I.timestamp_modified, I.barcode, I.width,I.height,I.Family,I.Genus,I.SpecificEpithet,I.flickr_PlantID, I.flickr_modified,I.flickr_details,I.picassa_PlantID,I.picassa_modified, I.gTileProcessed,I.zoomEnabled,I.processed,I.ocr_flag,I.namefinder_flag,I.namefinder_value,I.ScientificName, I.CollectionCode, I.GlobalUniqueIdentifier FROM `image` I ";
 
@@ -1298,13 +1298,13 @@ $strips_array[$end][] = array('startRange' => $tmp_start, 'endRange' => $tmp_end
 
 	private function setCharacterFilter() {
 	
-		if (($this->getData('characters') != '') && ($this->getData('characters') != '[]')) {
+		if (($this->data['characters'] != '') && ($this->data['characters'] != '[]')) {
 			$this->query .= ", count(*) as sz";
 		}
 
 		$tstr = ' FROM image I ';
 		
-		if (($this->getData('characters') != '') && ($this->getData('characters') != '[]')) {
+		if (($this->data['characters'] != '') && ($this->data['characters'] != '[]')) {
 			$tstr .= ', image_attrib ia ';
 		}
 
@@ -1315,7 +1315,7 @@ $strips_array[$end][] = array('startRange' => $tmp_start, 'endRange' => $tmp_end
 
 		$this->setBrowseFilter();
 
-		switch($this->getData('imagesType')) {
+		switch($this->data['imagesType']) {
 			case 1:
 				$tstr = " AND I.barcode != '' ";
 				$this->query .= $tstr;
@@ -1331,10 +1331,10 @@ $strips_array[$end][] = array('startRange' => $tmp_start, 'endRange' => $tmp_end
 				$this->queryCount .= $tstr;
 				break;
 		}
-		if (($this->getData('characters') != '') && ($this->getData('characters') != '[]')) {
+		if (($this->data['characters'] != '') && ($this->data['characters'] != '[]')) {
 			$this->char_list = '';
 			$this->char_count = 0;
-			foreach(json_decode($this->getData('characters')) as $character) {
+			foreach(json_decode($this->data['characters']) as $character) {
 				$this->char_list .= $character->node_value . ",";
 				$this->char_count++;
 			}
@@ -1346,15 +1346,15 @@ $strips_array[$end][] = array('startRange' => $tmp_start, 'endRange' => $tmp_end
 	}
 
 	private function setSearchFilter() {
-		if($this->getData('search_value') != '') {
-			$tstr = " AND ". $this->getData('search_type') ." LIKE '" .$this->getData('search_value') ."%' ";
+		if($this->data['search_value'] != '') {
+			$tstr = " AND ". $this->data['search_type'] ." LIKE '" .$this->data['search_value'] ."%' ";
 			$this->query .= $tstr;
 			$this->queryCount .= $tstr;
 		}
 	}
 
 	private function setFilter() {
-		if($this->getData('filter') != '') {
+		if($this->data['filter'] != '') {
 			$filter = json_decode($this->data['filter'],true);
 			if(is_array($filter) && count($filter)) {
 				$tstr = '';
@@ -1368,19 +1368,25 @@ $strips_array[$end][] = array('startRange' => $tmp_start, 'endRange' => $tmp_end
 	}
 
 	private function setBrowseFilter() {
-		$browse = $this->data['browse'];
-		if ($browse != '' && $browse != '[]') {
-			foreach(@json_decode($browse) as $character) {
+
+		if ($this->data['browse'] != '' && $this->data['browse'] != '[]') {
+			$tstr = '';
+			foreach(json_decode($this->data['browse']) as $character) {
 				$this->char_list .= $character->node_value . ",";
+				if($character->node_type == 'species') $character->node_type = 'SpecificEpithet';
 				if ($character->node_type == 'species') {
-					$this->query .= " (I." . $character->node_type . " = '" . $character->node_value . "' AND I.genus='" . $character->genus . "') OR";
+					$tstr .= " (I." . $character->node_type . " = '" . $character->node_value . "' AND I.genus='" . $character->genus . "') OR";
 				} else {
-					$this->query .= " (I." . $character->node_type . " = '" . $character->node_value . "') OR";
+					$tstr .= " (I." . $character->node_type . " = '" . $character->node_value . "') OR";
 				}
 			}
+			$this->query .= $tstr;
+			$this->queryCount .= $tstr;
 			$this->query = substr($this->query, 0, -2) . ")";
+			$this->queryCount = substr($this->queryCount, 0, -2) . ")";
 		} else {
 			$this->query = substr($this->query, 0, -6);
+			$this->queryCount = substr($this->queryCount, 0, -6);
 		}
 
 	}
@@ -1632,6 +1638,7 @@ $strips_array[$end][] = array('startRange' => $tmp_start, 'endRange' => $tmp_end
 	}
 
 public function loadImageNodesImages() {
+
 	unset($this->records);
 	$this->nodes = array();
 	$this->query = '';
@@ -1779,12 +1786,12 @@ public function loadImageNodesImages() {
 
 		$this->setFilters();
 
-		if (($this->getData('characters') != '') && ($this->getData('characters') != '[]')) {
+		if (($this->data['characters'] != '') && ($this->data['characters'] != '[]')) {
 			$this->query .= " GROUP BY I.image_id HAVING sz >= " . ( $this->char_count - 1 );
 		}
 
 		$this->query = "SELECT valueID as id FROM image_attrib t1 INNER JOIN  (" . $this->query . ") AS t2 ON t1.imageID = t2.image_id GROUP BY t1.valueID ORDER BY t1.valueID;";
-
+// die($this->query);
 		try {
 			$this->records = $this->db->query_all($this->query);
 		} catch (Exception $e) {
@@ -1808,17 +1815,17 @@ public function loadImageNodesImages() {
 
 		$this->setFilters();
 
-		if (($this->getData('characters') != '') && ($this->getData('characters') != '[]')) {
+		if (($this->data['characters'] != '') && ($this->data['characters'] != '[]')) {
 			$tstr = " GROUP BY I.image_id HAVING sz >= " . $this->char_count;
 			$this->query .= $tstr;
 			$this->queryCount .= $tstr;
 		}
 
-		if (($this->getData('sort') != '')) {
-			$sort = $this->getData('sort');
+		if (($this->data['sort'] != '')) {
+			$sort = $this->data['sort'];
 // 			if ($sort == "SpecificEpithet") $sort = "SpecificEpithet";
 			if ($sort == "GUID") $sort = "GlobalUniqueIdentifier";
-			$this->query .= sprintf(" ORDER BY I.%s %s", $sort, $this->getData('dir'));
+			$this->query .= sprintf(" ORDER BY I.%s %s", $sort, $this->data['dir']);
 		} else {
 			$this->query .= " ORDER BY I.Family, I.Genus, I.SpecificEpithet, I.rank ";
 		}
@@ -1828,16 +1835,16 @@ public function loadImageNodesImages() {
 		} elseif ($this->data['limit']) {
 			$this->query .= " LIMIT " . stripslashes($this->data['limit']);
 		}
-
 		try {
 			$records = $this->db->query_all($this->query);
 		} catch (Exception $e) {
 			trigger_error($e->getMessage(),E_USER_ERROR);
 		}
 
-		if (($this->getData('characters') != '') && ($this->getData('characters') != '[]')) {
+		if (($this->data['characters'] != '') && ($this->data['characters'] != '[]')) {
 			$this->queryCount = "SELECT count(sz) as sz FROM (" . $this->queryCount . ") as x1";
 		}
+
 		$resCount = $this->db->query_one($this->queryCount);
 		$this->total = $resCount->sz;
 		
@@ -1848,6 +1855,56 @@ public function loadImageNodesImages() {
 			}
 		}
 		return $this->records;
+	}
+
+	public function loadImageDetails() {
+		global $config;
+		$ret = array();
+		unset($this->records);
+		$this->nodes = array();
+		$this->query = '';
+		if($this->field_exists($this->data['image_id'])) {
+			$query = sprintf("SELECT IAT.title as attrib, IAV.name as value FROM image_attrib IA, image_attrib_type IAT, image_attrib_value IAV WHERE IA.typeID = IAT.typeID AND IA.valueID = IAV.valueID AND IA.imageID = %s ORDER BY IAT.title, IAV.name", mysql_escape_string($this->data['image_id']));
+	
+			try {
+				$records = $this->db->query_all($query);
+			} catch (Exception $e) {
+				trigger_error($e->getMessage(),E_USER_ERROR);
+			}
+	
+			$attrib = '';
+			if(count($records)) {
+				foreach ($records as $record) {
+					if ($attrib != $record->attrib) {
+						if ($attrib != '') {
+							$attributes[] = array('attrib'=>$attrib, 'value'=> substr($values, 0,-2));
+							$values = '';
+						}
+						$attrib = $record->attrib;
+					}
+					$values .= $record->value . ", ";
+				}
+			}
+			if ($attrib != '') {
+				$attributes[] = array('attrib'=>$attrib, 'value'=> substr($values, 0,-2));
+			} else {
+				$attributes[] = array('attrib'=>'Note', 'value'=>'This image has not been tagged.');
+			}
+			unset($record);
+	
+			$this->load_by_id($this->data['image_id']);
+			$barcode = $this->getName();
+			$path = $config['path']['images'] . $this->barcode_path( $barcode ) . $this->get('filename');
+			$record = $this->record;
+			$record['attributes'] = $attributes;
+			$record['exif'] = @exif_read_data( $path );
+			$ret['status'] = true;
+			$ret['record'] = $record;
+		} else {
+			$ret['status'] = false;
+			$ret['error'] = 116;
+		}
+		return $ret;
 	}
 
 	
