@@ -31,6 +31,7 @@
 	$config['path']['tiles'] = '{server/path/to/website}/tiles/';
 
 	$config['image_sequence_cache'] = '/var/www/gui/api/imageSequenceCache.txt';
+	$config['storageCache'] = '/var/www/gui/api/space.json';
 
 	$config['disk_size'] = 10000000000; // total size on disk in bytes
 	$config['image_size'] = 100000; // total size on disk

@@ -96,6 +96,8 @@ ob_start();
 		,'geoId'
 		,'title'
 		,'description'
+
+		, 'updateFlag'
 	);
 
 	// Initialize allowed variables
@@ -478,13 +480,28 @@ ob_start();
 			break;
 
 		case 'storage_info':
-			$data = array();
-			$data[] = array('text'=>'Size Used','value'=> getdirsize($config['path']['images']));
-			$data[] = array('text'=>'Free Disk Space','value'=> decodeSize(disk_free_space($config['path']['images'])));
-			$data[] = array('text'=>'Total Disk Space','value'=> decodeSize(disk_total_space($config['path']['images'])));
-
+			$updateFlag = (trim($updateFlag) == '1') ? 1 : 0;
+			$output = array();
+			if($updateFlag) {
+				$si->image->mkdir_recursive(@dirname($config['storageCache']));
+				$data = array();
+				$data['used'] = array('text'=>'Size Used','value'=> getdirsize($config['path']['images']));
+				$data['free'] = array('text'=>'Free Disk Space','value'=> decodeSize(disk_free_space($config['path']['images'])));
+				$data['total'] = array('text'=>'Total Disk Space','value'=> decodeSize(disk_total_space($config['path']['images'])));
+				file_put_contents($config['storageCache'],json_encode($data));
+				$processTime = microtime(true) - $time_start;
+				$output = array('success' => true, 'processTime' => $processTime, 'data' => $data);
+			} else {
+				if(file_exists($config['storageCache'])) {
+					$data = json_decode(stripslashes(file_get_contents($config['storageCache'])));
+					$processTime = microtime(true) - $time_start;
+					$output = array('success' => true, 'processTime' => $processTime, 'data' => $data);
+				} else {
+					$output = array('success' => true, 'read' => -1, 'write' => -1);
+				}
+			}
 			header('Content-type: application/json');
-			print( json_encode( array( 'success' => true,  'data' => $data ) ) );
+			print(json_encode($output));
 			break;
 
 		case 'process_queue':
@@ -1888,13 +1905,6 @@ ob_start();
 
 
 # Test Tasks
-
-		case 'permissionTest':
-			echo '<pre>';
-			echo '<br>';
-// 			var_dump($si->userPerm);
-			print_r($_SESSION);
-			break;
 
 		case 'clearProcessQueue':
 			$types = @json_decode(@stripslashes(trim($types)));
