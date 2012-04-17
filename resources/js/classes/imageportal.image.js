@@ -165,7 +165,7 @@ ImagePortal.Image = function(config) {
 	});
 	
 	this.search_evernote = new Ext.ux.form.SearchField({
-                store: this.store
+				store: this.store
 			,	width: 250
 			,	paramName: 'value'
 			,	onTrigger1Click : function(){
@@ -603,6 +603,30 @@ Ext.extend(ImagePortal.Image, Ext.grid.GridPanel, {
 						});
 					}
 			}, {
+					text: "Reprocess Thumbnails"
+				,	scope: this
+				,	handler: function() {
+						var imageId = [];
+						for(i=0; i<record.length; i++){
+							imageId.push(record[i].data.image_id);
+						}
+						Ext.Ajax.request({
+								scope: this
+							,	url: 'resources/api/api.php'
+							,	params: {
+										cmd: 'rechop'
+									,	image_id: Ext.encode(imageId)
+								}
+							,	success: function(response){
+									var response = Ext.decode(response.responseText);
+									ImagePortal.Notice.msg('Success', 'Images have been sent to process again.');
+								}
+							,	failure: function(result){
+									ImagePortal.Notice.msg('Error', result);
+								}
+						});
+					}
+			}, {
 					text: "Process Tiles"
 				,	scope: this
 				,	handler: function() {
@@ -635,7 +659,7 @@ Ext.extend(ImagePortal.Image, Ext.grid.GridPanel, {
 							barcodeList.push(record[i].data.barcode);
 						}
 						if(Ext.isEmpty(barcodeList)){
-							ImagePortal.Notice.msg('Notice','Please select barcode.');
+							ImagePortal.Notice.msg('Notice', 'Please select barcode.');
 						} else {	
 							this.sendHSQueue(barcodeList);
 						}
