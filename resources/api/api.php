@@ -531,6 +531,10 @@ ob_start();
 			$data['height'] = trim($height);
 			$data['size'] = trim($size);
 			$data['type'] = trim($type);
+			$data['mode'] = $config['mode'];
+			$data['s3'] = $config['s3'];
+			$data['obj'] = $si->amazon;
+
 			if($valid) {
 				$si->image->setData($data);
 				$si->image->getImage();
@@ -542,6 +546,7 @@ ob_start();
 			}
 			break;
 
+		# example : cmd=loadTile&filename=USMS000018155&zoom=2&index=tile_16.jpg
 		case 'loadTile';
 			$index = @str_replace('tile_','',@basename($index,'.jpg'));
 			$it = new imgTiles($config['path']['imgTiles'] . $filename . '.sqlite');
@@ -1905,6 +1910,35 @@ ob_start();
 
 
 # Test Tasks
+
+		case 's3Test':
+			$barcode = 'USMS000018156';
+			$tmpPath = sys_get_temp_dir() . '/tmpFile.jpg';
+
+			$fp = fopen($tmpPath, "w+b");
+			# getting the image from s3
+			$bucket = $config['s3']['bucket'];
+			$key = $si->image->barcode_path($barcode) . 'USMS000018156_k.jpg';
+			$ret = $si->amazon->if_object_exists($bucket,$key);
+
+			echo '<pre>';
+			echo '<br>';
+			var_dump($ret);
+
+/*
+			$si->amazon->get_object($bucket, $key, array('fileDownload' => $tmpPath));
+			fclose($fp);
+
+			$fp = fopen($tmpPath, 'rb');
+			header("Content-Type: image/jpeg");
+			header("Content-Length: " . filesize($tmpPath));
+			fpassthru($fp);
+			fclose($fp);
+			unlink($tmpPath);
+			exit;
+*/
+
+			break;
 
 		case 'clearProcessQueue':
 			$types = @json_decode(@stripslashes(trim($types)));
