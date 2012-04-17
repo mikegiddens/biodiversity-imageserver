@@ -191,6 +191,7 @@ Class Image {
 		global $config;
 		$dtls = @pathinfo($tmp_path);
 		$extension = '.' . $dtls['extension'];
+		$content_type = 'image/' . ($dtls['extension'] == 'jpg' ? 'jpeg' : $dtls['extension']);
 
 		if($config['image_processing'] == 1) {
 			$destination =  $dtls['dirname'] . '/' . $dtls['filename'] . $postfix . $extension;
@@ -243,7 +244,7 @@ Class Image {
 
 			# uploading thumb to s3
 			$response = $arr['obj']->create_object ( $bucket, $thumbName, array('fileUpload' => $tmpThumbPath,'acl' => AmazonS3::ACL_PUBLIC,'storage' => AmazonS3::STORAGE_REDUCED) );
-			
+
 			@unlink($tmpThumbPath);
 			if($deleteFlag) {
 				@unlink($tmpPath);
@@ -301,10 +302,108 @@ Class Image {
         ImageDestroy($newImage);
     }
 
+
+	public function getImage() {
+		global $config;
+		$this->load_by_id($this->data['image_id']);
+		$ext = @strtolower($this->getName('ext'));
+		$extension = '.' . $ext;
+		$func1 = 'image' . ($ext == 'jpg' ? 'jpeg' : $ext);
+		$content_type = 'image/' . ($ext == 'jpg' ? 'jpeg' : $ext);
+        	$size = @strtolower($this->data['size']);
+		$path = $config['path']['images'] . $this->barcode_path($this->get('barcode'));
+		$image =  $path . $this->get('barcode') . $extension;
+		$existsFlag = false;
+		$bucket = $config['s3']['bucket'];
+		$tmpPath = sys_get_temp_dir() . '/' . $this->get('filename');
+
+		# checking if exists
+		if(in_array(strtolower($size),array('s','m','l'))) {
+			if($config['mode'] == 's3') {
+				$key = $this->barcode_path($this->get('barcode')) . $this->get('barcode') . '_' . $size . $extension;
+				$existsFlag = $this->data['obj']->if_object_exists($bucket,$key);
+			} else {
+				$existsFlag = @file_exists($path . $this->get('barcode') . '_' . $size . $extension);
+			}
+		}
+
+		# if exists
+		if($existsFlag) {
+			if($config['mode'] == 's3') {
+				$fp = fopen($tmpPath, "w+b");
+				$this->data['obj']->get_object($bucket, $key, array('fileDownload' => $tmpPath));
+				fclose($fp);
+			} else {
+				$tmpPath = $path . $this->get('barcode') . '_' . $size . $extension;
+			}
+
+			$fp = fopen($tmpPath, 'rb');
+			header("Content-Type: image/jpeg");
+			header("Content-Length: " . filesize($tmpPath));
+			fpassthru($fp);
+			fclose($fp);
+			if($config['mode'] == 's3') {
+				@unlink($tmpPath);
+			}
+			exit;
+		}
+
+		# not exists
+
+		if($config['mode'] == 's3') {
+			# downloading original image
+			$key = $this->barcode_path($this->get('barcode')) . $this->get('barcode') . $extension;
+			$fp = fopen($tmpPath, "w+b");
+			$this->data['obj']->get_object($bucket, $key, array('fileDownload' => $tmpPath));
+			fclose($fp);
+		} else {
+			$tmpPath =  $image;
+		}
+		if(in_array(strtolower($size),array('s','m','l'))){
+			$dtls = @pathinfo($tmpPath);
+			$extension = '.' . $dtls['extension'];
+			$file_name =  $dtls['dirname'] . '/' . $dtls['filename'] . '_' . $size . $extension;
+			switch($size) {
+				case 's':
+					$this->createThumb( $tmpPath, 100, 100, '_s');
+					break;
+				case 'm':
+					$this->createThumb( $tmpPath, 275, 275, "_m");
+					break;
+				case 'l':
+					$this->createThumb( $tmpPath, 800, 800, "_l");
+					break;
+			}
+			if($config['mode'] == 's3') {
+				# putting the image to s3
+				$key = $this->barcode_path($this->get('barcode')) . $this->get('barcode') . '_' . $size . $extension;
+				$response = $this->data['obj']->create_object ( $bucket, $key, array('fileUpload' => $file_name,'acl' => AmazonS3::ACL_PUBLIC,'storage' => AmazonS3::STORAGE_REDUCED) );
+			}
+
+			$fp = fopen($file_name, 'rb');
+			header("Content-Type: $content_type");
+			header("Content-Length: " . filesize($file_name));
+			fpassthru($fp);
+			if($config['mode'] == 's3') {
+				@unlink($file_name);
+				@unlink($tmpPath);
+			}
+			exit;
+		} else if($this->data['width'] != '' || $this->data['height'] != "") {
+			# custom dimensions
+			$width = ($this->data['width']!='')?$this->data['width']:$this->data['height'];
+			$height = ($this->data['height']!='')?$this->data['height']:$this->data['width'];
+			$this->createThumb( $tmpPath, $width, $height, 'tmp', true);
+		} else {
+			return false;
+		}
+
+	}
+
 /**
  * Gets the requested dimension image
  */
-
+/*
     public function getImage() {
 	global $config;
 	$this->load_by_id($this->data['image_id']);
@@ -321,17 +420,16 @@ Class Image {
 		if(!file_exists ($file_name)) {
 			switch($size) {
 			case 's':
-				$this->createThumbnail( $image, 100, 100, "_s");
+				$this->createThumb( $image, 100, 100, '_s');
 				break;
 			case 'm':
-				$this->createThumbnail( $image, 275, 275, "_m");
+				$this->createThumb( $image, 275, 275, "_m");
 				break;
 			case 'l':
-				$this->createThumbnail( $image, 800, 800, "_l");
+				$this->createThumb( $image, 800, 800, "_l");
 				break;
 			}
 		}
-
 		$fp = fopen($file_name, 'rb');
 		header("Content-Type: $content_type");
 		header("Content-Length: " . filesize($file_name));
@@ -346,7 +444,7 @@ Class Image {
 		return false;
 	}
     }
-
+*/
 
     /**
      * checks whether field exists in image table
@@ -946,55 +1044,6 @@ $strips_array[$end][] = array('startRange' => $tmp_start, 'endRange' => $tmp_end
 		return $output;
 
 	}
-/*
-	public function rotateImage($image = array()) {
-		global $config;
-		if($image['image_id'] == '' || !$this->field_exists($image['image_id'])) {
-			$ret['success'] = false;
-			return $ret;
-		}
-		$pqueue = new ProcessQueue();
-		$pqueue->db = &$this->db;
-
-		$this->load_by_id($image['image_id']);
-
-		$barcode = $this->get('barcode');
-
-		$imagePath = $config['path']['images'] . $this->barcode_path( $barcode );
-		$imageFile = $imagePath . $this->get('filename');
-		if(in_array($image['degree'],array(90,180,270))){
-			#rotating the image
-			$cmd = sprintf("convert %s -rotate %s %s", $imageFile, $image['degree'], $imageFile);
-			system($cmd);
-		}
-		# deleting related images
-	        if(is_dir($imagePath)) {
-			$handle = opendir($imagePath);
-			while (false !== ($file = readdir($handle))) {
-				if( $file == '.' || $file == '..' || $file == $this->get('filename') ) continue;
-				if (is_dir($imagePath.$file)) {
-					$this->rrmdir($imagePath.$file);
-				} else if(is_file($imagePath.$file)) {
-					@unlink($imagePath.$file);
-				}
-			}
-        	}
-
-		$this->set('flickr_PlantID',0);
-		$this->set('picassa_PlantID',0);
-		$this->set('gTileProcessed',0);
-		$this->set('zoomEnabled',0);
-		$this->set('processed',0);
-		$this->save();
-
-		$pqueue->set('image_id',$barcode);
-		$pqueue->set('process_type','all');
-		$pqueue->save();
-
-		$ret['success'] = true;
-		return $ret;
-	}
-*/
 
 	public function rotateImage($image = array()) {
 		global $config;
