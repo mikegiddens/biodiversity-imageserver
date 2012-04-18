@@ -98,6 +98,7 @@ ob_start();
 		,'description'
 
 		, 'updateFlag'
+		, 'code'
 	);
 
 	// Initialize allowed variables
@@ -1402,7 +1403,7 @@ ob_start();
 
 		case 'image_characters':
 			if(!$user_access->is_logged_in()){
-				print json_encode( array( 'success' => false, 'error' => array('message' => $sa->getError(113), 'code' => 113 )) );
+				print_c ( json_encode( array( 'success' => false, 'error' => array('message' => $sa->getError(113), 'code' => 113 )) ));
 				exit;
 			}
 			$time_start = microtime(true);
@@ -1421,7 +1422,7 @@ ob_start();
 
 		case 'add_image_attribute':
 			if(!$user_access->is_logged_in()){
-				print json_encode( array( 'success' => false, 'error' => array('message' => $sa->getError(113), 'code' => 113 )) );
+				print_c (json_encode( array( 'success' => false, 'error' => array('message' => $sa->getError(113), 'code' => 113 )) ));
 				exit;
 			}
 			$time_start = microtime(true);
@@ -1451,7 +1452,7 @@ ob_start();
 
 		case 'delete_image_attribute':
 				if(!$user_access->is_logged_in()){
-					print json_encode( array( 'success' => false, 'error' => array('message' => $sa->getError(113), 'code' => 113 )) );
+					print_c ( json_encode( array( 'success' => false, 'error' => array('message' => $sa->getError(113), 'code' => 113 )) ));
 					exit;
 				}
 			$time_start = microtime(true);
@@ -1480,7 +1481,7 @@ ob_start();
 
 			case 'add_category':
 				if(!$user_access->is_logged_in()){
-					print json_encode( array( 'success' => false, 'error' => array('message' => $sa->getError(113), 'code' => 113 )) );
+					print_c ( json_encode( array( 'success' => false, 'error' => array('message' => $sa->getError(113), 'code' => 113 )) ));
 					exit;
 				}
 				$time_start = microtime(true);
@@ -1504,7 +1505,7 @@ ob_start();
 
 			case 'rename_category':
 				if(!$user_access->is_logged_in()){
-					print json_encode( array( 'success' => false, 'error' => array('message' => $sa->getError(113), 'code' => 113 )) );
+					print_c (json_encode( array( 'success' => false, 'error' => array('message' => $sa->getError(113), 'code' => 113 )) ));
 					exit;
 				}
 				$time_start = microtime(true);
@@ -1532,7 +1533,7 @@ ob_start();
 
 			case 'delete_category':
 				if(!$user_access->is_logged_in()){
-					print json_encode( array( 'success' => false, 'error' => array('message' => $sa->getError(113), 'code' => 113 )) );
+					print_c (json_encode( array( 'success' => false, 'error' => array('message' => $sa->getError(113), 'code' => 113 )) ));
 					exit;
 				}
 				$time_start = microtime(true);
@@ -1553,7 +1554,7 @@ ob_start();
 
 			case 'add_attribute':
 				if(!$user_access->is_logged_in()){
-					print json_encode( array( 'success' => false, 'error' => array('message' => $sa->getError(113), 'code' => 113 )) );
+					print_c (json_encode( array( 'success' => false, 'error' => array('message' => $sa->getError(113), 'code' => 113 )) ));
 					exit;
 				}
 				$time_start = microtime(true);
@@ -1580,7 +1581,7 @@ ob_start();
 
 			case 'rename_attribute':
 				if(!$user_access->is_logged_in()){
-					print json_encode( array( 'success' => false, 'error' => array('message' => $sa->getError(113), 'code' => 113 )) );
+					print_c ( json_encode( array( 'success' => false, 'error' => array('message' => $sa->getError(113), 'code' => 113 )) ));
 					exit;
 				}
 				$time_start = microtime(true);
@@ -1606,7 +1607,7 @@ ob_start();
 
 			case 'delete_attribute':
 				if(!$user_access->is_logged_in()){
-					print json_encode( array( 'success' => false, 'error' => array('message' => $sa->getError(113), 'code' => 113 )) );
+					print_c ( json_encode( array( 'success' => false, 'error' => array('message' => $sa->getError(113), 'code' => 113 )) ));
 					exit;
 				}
 				$time_start = microtime(true);
@@ -1769,7 +1770,7 @@ ob_start();
 
 			case 'addEvent':
 				if(!$user_access->is_logged_in()){
-					print json_encode( array( 'success' => false, 'error' => array('message' => $sa->getError(113), 'code' => 113 )) );
+					print_c ( json_encode( array( 'success' => false, 'error' => array('message' => $sa->getError(113), 'code' => 113 )) ));
 					exit;
 				}
 
@@ -1823,7 +1824,7 @@ ob_start();
 
 			case 'deleteEvent':
 				if(!$user_access->is_logged_in()){
-					print json_encode( array( 'success' => false, 'error' => array('message' => $sa->getError(113), 'code' => 113 )) );
+					print_c ( json_encode( array( 'success' => false, 'error' => array('message' => $sa->getError(113), 'code' => 113 )) ));
 					exit;
 				}
 
@@ -1844,7 +1845,7 @@ ob_start();
 
 			case 'addEventType':
 				if(!$user_access->is_logged_in()){
-					print json_encode( array( 'success' => false, 'error' => array('message' => $sa->getError(113), 'code' => 113 )) );
+					print_c ( json_encode( array( 'success' => false, 'error' => array('message' => $sa->getError(113), 'code' => 113 )) ));
 					exit;
 				}
 				if(!$si->eventType->load_by_id($eventTypeId)) {
@@ -1890,7 +1891,7 @@ ob_start();
 
 			case 'deleteEventType':
 				if(!$user_access->is_logged_in()){
-					print json_encode( array( 'success' => false, 'error' => array('message' => $sa->getError(113), 'code' => 113 )) );
+					print_c ( json_encode( array( 'success' => false, 'error' => array('message' => $si->getError(113), 'code' => 113 )) ));
 					exit;
 				}
 				if($eventTypeId == '') {
@@ -1907,8 +1908,85 @@ ob_start();
 				}
 				break;
 
+		case 'getBoxDetect':
+			if(!$user_access->is_logged_in()){
+				print_c ( json_encode( array( 'success' => false, 'error' => array('message' => $si->getError(113), 'code' => 113 )) ));
+				exit;
+			}
+			if(trim($id) == '') {
+				$valid = false;
+				$code = 134;
+			} else {
+				$loadFlag = false;
+				if(!is_numeric($id)) {
+					$loadFlag = $si->image->load_by_barcode($id);
+				} else {
+					$loadFlag = $si->image->load_by_id($id);
+				}
+				if(!$loadFlag) {
+					$valid = false;
+					$code = 135;
+				}
+			}
+			if($valid) {
+				$existsFlag = false;
+				$key = $si->image->barcode_path($si->image->get('barcode')) . $si->image->get('barcode') . '_box.json';
+				if($config['mode'] == 's3') {
+					$existsFlag = $si->amazon->if_object_exists($config['s3']['bucket'],$key);
+				} else {
+					$existsFlag = @file_exists($config['path']['images'] . $key);
+				}
 
+				if($existsFlag) {
+					if($config['mode'] == 's3') {
+						$tmpPath = sys_get_temp_dir() . '/' . $si->image->get('barcode') . '_box.json';
+						$fp = fopen($tmpPath, "w+b");
+						$si->amazon->get_object($config['s3']['bucket'], $key, array('fileDownload' => $tmpPath));
+						fclose($fp);
+						$data = @file_get_contents($tmpPath);
+						@unlink($tmpPath);
+					} else {
+						$data = @file_get_contents($config['path']['images'] . $key);
+					}
+				} else {
+					# getting image
+					if($config['mode'] == 's3') {
+						$tmpPath = sys_get_temp_dir() . '/' . $si->image->get('filename');
+						$key = $si->image->barcode_path($si->image->get('barcode')) . $si->image->get('filename');
+						$fp = fopen($tmpPath, "w+b");
+						$si->amazon->get_object($config['s3']['bucket'], $key, array('fileDownload' => $tmpPath));
+						fclose($fp);
+						$image = $tmpPath;
+					} else {
+						$image = $config['path']['images'] . $key;
+					}
+					# processing
+					putenv("LD_LIBRARY_PATH=/usr/local/lib");
+					$data = exec(sprintf("%s %s", $config['boxDetectPath'], $image));
+					# putting the json data
+					if($config['mode'] == 's3') {
+						$tmpJson = sys_get_temp_dir() . '/' . $si->image->get('barcode') . '_box.json';
+						$key = $si->image->barcode_path($si->image->get('barcode')) . $si->image->get('barcode') . '_box.json';
+						@file_put_contents($tmpJson,$data);
+						$response = $si->amazon->create_object ($config['s3']['bucket'], $key, array('fileUpload' => $tmpJson,'acl' => AmazonS3::ACL_PUBLIC,'storage' => AmazonS3::STORAGE_REDUCED) );
+						@unlink($tmpJson);
+						@unlink($tmpPath);
+					} else {
+						@file_put_contents($config['path']['images'] . $key,$data);
+					}
+				}
+				$si->pqueue->deleteProcessQueue($si->image->get('barcode'),'box_add');
+				$si->image->set('box_flag',1);
+				$si->image->save();
 
+				$data = json_decode($data,true);
+				$data['processedTime'] = microtime(true) - $time_start;
+				print_c(json_encode($data));
+			} else {
+				print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($code) , 'code' => $code ) ) ) );
+			}
+
+			break;
 # Test Tasks
 
 		case 's3Test':

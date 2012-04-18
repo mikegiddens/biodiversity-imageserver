@@ -62,6 +62,8 @@
 	$config['ratioDetect'] = false;
 	$config['tesseractEnabled'] = false;
 
+	$config['tesseractPath'] = '/usr/local/bin/tesseract';
+
 	$config['tileGenerator'] = 'http://{url-to-project}/silvertiles/api.php';
 	$config['tileUrl'] = 'http://{url-to-project}/tiles/';
 ?>

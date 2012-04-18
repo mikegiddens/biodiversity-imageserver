@@ -98,6 +98,10 @@
 				, 131 => 'Event Type Id should be given'
 				, 132 => 'Title should be given'
 				, 133 => 'Event Id should be given'
+				, 134 => 'Barcode Or Image Id should be given'
+				, 135 => 'Not a Valid Barcode Or Image Id'
+				, 136 => 'Tesseract Not Enabled'
+				, 137 => 'Box Detected Not Enabled.'
 			);
 			return $ar[$error_code];
 		}
