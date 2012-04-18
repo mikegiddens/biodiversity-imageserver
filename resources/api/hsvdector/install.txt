@@ -26,6 +26,7 @@ cmake -D CMAKE_BUILD_TYPE=RELEASE /tmp/OpenCV-2.3.1a
 make # ~30-1hr
 sudo make install
 
+-D BUILD_DOXYGEN_DOCS=OFF -D CMAKE_VERBOSE=ON -D BUILD_NEW_PYTHON_SUPPORT=OFF -D BUILD_PYTHON_SUPPORT=OFF -D BUILD_PACKAGE=ON -D BUILD_EXAMPLES=OFF -D BUILD_TESTS=OFF -D BUILD_SHARED_LIBS=ON -D ENABLE_SSE=ON -D ENABLE_SSE2=ON -D ENABLE_SSE3=ON -D OPENCV_BUILD_3RDPARTY_LIBS=ON -D USE_FAST_MATH=ON -D USE_O3=ON -D USE_OMIT_FRAME_POINTER=ON -D USE_PRECOMPILED_HEADERS=ON -D WITH_FFMPEG=ON -D WITH_PNG=OFF
 
 # Compiling Software from source
 g++ -o boxdetect hsvColor.cpp -lopencv_core -lopencv_imgproc -lopencv_calib3d -lopencv_video -lopencv_features2d -lopencv_ml -lopencv_highgui -lopencv_objdetect -lopencv_contrib -lopencv_legacy
