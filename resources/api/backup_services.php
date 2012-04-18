@@ -11,6 +11,8 @@ ini_set('display_errors', '1');
 		  'cmd'
 		, 'limit'
 		, 'stop' # stop is the number of seconds that the loop should run
+		, 'id'
+		, 'image_id'
 	);
 	// Initialize allowed variables
 	foreach ($expected as $formvar)
@@ -72,6 +74,50 @@ require_once("classes/class.misc.php");
 
 $si = new SilverImage($config['mysql']['name']);
 switch($cmd) {
+	case 'populateBoxDetect':
+		$time_start = microtime(true);
+		$count = 0;
+		$filter['start'] = 0;
+		$filter['limit'] = $limit;
+		if(trim($id) != '') {
+			$imageIds = json_decode(stripslashes($id),true);
+			if(is_array($imageIds) && count($imageIds)) {
+				foreach($imageIds as $imageId) {
+					$loadFlag = false;
+					if(!is_numeric($imageId)) {
+						$loadFlag = $si->image->load_by_barcode($imageId);
+					} else {
+						$loadFlag = $si->image->load_by_id($imageId);
+					}
+					if($loadFlag) {
+						if(!$si->pqueue->field_exists($si->image->get('barcode'),'box_add')) {
+							$si->pqueue->set('image_id', $si->image->get('barcode'));
+							$si->pqueue->set('process_type', 'box_add');
+							$si->pqueue->save();
+							$count++;
+						}
+					}
+				}
+			}
+		} else {
+			$ret = $si->image->getBoxRecords($filter);
+			$countFlag = true;
+			while(($record = $ret->fetch_object()) && ($countFlag)) {
+				if(!$si->pqueue->field_exists($record->barcode,'box_add')) {
+					$si->pqueue->set('image_id', $record->barcode);
+					$si->pqueue->set('process_type', 'box_add');
+					$si->pqueue->save();
+					$count++;
+					if($limit != '' && $count >= $limit) {
+						$countFlag = false;
+					}
+				}
+			}
+		}
+		$time = microtime(true) - $time_start;
+		print json_encode(array('success' => true, 'process_time' => $time, 'total_records_added' => $count));
+		break;
+
 	case 'populateNameFinderProcessQueue':
 		$time_start = microtime(true);
 		$count = 0;
@@ -99,16 +145,38 @@ switch($cmd) {
 		$count = 0;
 		$filter['start'] = 0;
 		$filter['limit'] = $limit;
-		$ret = $si->image->getOcrRecords($filter);
-		$countFlag = true;
-		while(($record = $ret->fetch_object()) && ($countFlag)) {
-			if(!$si->pqueue->field_exists($record->barcode,'ocr_add')) {
-				$si->pqueue->set('image_id', $record->barcode);
-				$si->pqueue->set('process_type', 'ocr_add');
-				$si->pqueue->save();
-				$count++;
-				if($limit != '' && $count >= $limit) {
-					$countFlag = false;
+		if(trim($image_id) != '') {
+			$imageIds = json_decode(stripslashes($image_id),true);
+			if(is_array($imageIds) && count($imageIds)) {
+				foreach($imageIds as $imageId) {
+					$loadFlag = false;
+					if(!is_numeric($imageId)) {
+						$loadFlag = $si->image->load_by_barcode($imageId);
+					} else {
+						$loadFlag = $si->image->load_by_id($imageId);
+					}
+					if($loadFlag) {
+						if(!$si->pqueue->field_exists($si->image->get('barcode'),'ocr_add')) {
+							$si->pqueue->set('image_id', $si->image->get('barcode'));
+							$si->pqueue->set('process_type', 'ocr_add');
+							$si->pqueue->save();
+							$count++;
+						}
+					}
+				}
+			}
+		} else {
+			$ret = $si->image->getOcrRecords($filter);
+			$countFlag = true;
+			while(($record = $ret->fetch_object()) && ($countFlag)) {
+				if(!$si->pqueue->field_exists($record->barcode,'ocr_add')) {
+					$si->pqueue->set('image_id', $record->barcode);
+					$si->pqueue->set('process_type', 'ocr_add');
+					$si->pqueue->save();
+					$count++;
+					if($limit != '' && $count >= $limit) {
+						$countFlag = false;
+					}
 				}
 			}
 		}
@@ -227,7 +295,7 @@ switch($cmd) {
 	case 'processOCR':
 		if(!$config['tesseractEnabled']) {
 			header('Content-type: application/json');
-			print json_encode(array('success' => false, 'message' => 'Tesseract Not Enabled.'));
+			print json_encode(array('success' => false, 'error' => array('code' => 137, 'message' => $si->getError(137))));
 			exit;
 		}
 		$time_start = microtime(true);
@@ -242,7 +310,6 @@ switch($cmd) {
 				if($limit == 0) break;
 			}
 			if($limit != '' && $image_count >= ($limit - 1)) $loop_flag = false;
-// 			if($limit != '' && $image_count >= $limit) $loop_flag = false;
 
 			$record = $si->pqueue->popQueue('ocr_add');
 			if($record === false) {
@@ -263,7 +330,7 @@ switch($cmd) {
 				$cd = "convert " . $tmpFile . " -colorspace Gray  -contrast-stretch 15% " . $tmpImage;
 				exec($cd);
 
-				$command = sprintf("/usr/local/bin/tesseract %s %s", $tmpImage, $tmpFilePath);
+				$command = sprintf("%s %s %s", $config['tesseractPath'], $tmpImage, $tmpFilePath);
 				exec($command);
 
 				exec(sprintf("rm %s",$tmpImage));
@@ -289,9 +356,112 @@ switch($cmd) {
 		$time_taken = microtime(true) - $time_start;
 		header('Content-type: application/json');
 		print json_encode(array('success' => true, 'process_time' => $time_taken, 'total' => $image_count, 'images' => $images_array));
-		
 		break;
+	case 'processBoxDetect':
+		header('Content-type: application/json');
+		if(!$config['ratioDetect']) {
+			print json_encode(array('success' => false, 'error' => array('code' => 137, 'message' => $si->getError(137))));
+			exit;
+		}
+		$time_start = microtime(true);
+		$tStart = time();
+		$loop_flag = true;
+		$images_array = array();$image_count = 0;
 
+		if($id != '') {
+			$loadFlag = false;
+			if(!is_numeric($id)) {
+				$loadFlag = $si->image->load_by_barcode($id);
+			} else {
+				$loadFlag = $si->image->load_by_id($id);
+			}
+			if(!$loadFlag) {
+				header('Content-type: application/json');
+				print json_encode(array('success' => false, 'error' => array('code' => 135, 'message' => $si->getError(135))));
+				exit;
+			}
+
+			# getting image
+			if($config['mode'] == 's3') {
+				$tmpPath = sys_get_temp_dir() . '/' . $si->image->get('filename');
+				$key = $si->image->barcode_path($si->image->get('barcode')) . $si->image->get('filename');
+				$si->amazon->get_object($config['s3']['bucket'], $key, array('fileDownload' => $tmpPath));
+				$image = $tmpPath;
+			} else {
+				$image = $config['path']['images'] . $key;
+			}
+			# processing
+			putenv("LD_LIBRARY_PATH=/usr/local/lib");
+			$data = exec(sprintf("%s %s", $config['boxDetectPath'], $image));
+			# putting the json data
+			if($config['mode'] == 's3') {
+				$tmpJson = sys_get_temp_dir() . '/' . $si->image->get('barcode') . '_box.json';
+				$key = $si->image->barcode_path($si->image->get('barcode')) . $si->image->get('barcode') . '_box.json';
+				@file_put_contents($tmpJson,$data);
+				$response = $si->amazon->create_object ($config['s3']['bucket'], $key, array('fileUpload' => $tmpJson,'acl' => AmazonS3::ACL_PUBLIC,'storage' => AmazonS3::STORAGE_REDUCED) );
+				@unlink($tmpJson);
+				@unlink($tmpPath);
+			} else {
+				@file_put_contents($config['path']['images'] . $key,$data);
+			}
+			$si->pqueue->deleteProcessQueue($si->image->get('barcode'),'box_add');
+			$si->image->set('box_flag',1);
+			$si->image->save();
+
+			$data = json_decode($data,true);
+			$data['processedTime'] = microtime(true) - $time_start;
+			print (json_encode($data));
+
+		} else {
+			while($loop_flag) {
+				$tDiff = time() - $tStart;
+				if( ($stop != '') && ( $tDiff > $stop) ) $loop_flag = false;
+				if($limit != '') {
+					if($limit == 0) break;
+				}
+				if($limit != '' && $image_count >= ($limit - 1)) $loop_flag = false;
+				$record = $si->pqueue->popQueue('box_add');
+				if($record === false) {
+					$loop_flag = false;
+				} else {
+					$si->image->load_by_barcode($record->image_id );
+
+					# getting image
+					if($config['mode'] == 's3') {
+						$tmpPath = sys_get_temp_dir() . '/' . $si->image->get('filename');
+						$key = $si->image->barcode_path($si->image->get('barcode')) . $si->image->get('filename');
+						$fp = fopen($tmpPath, "w+b");
+						$si->amazon->get_object($config['s3']['bucket'], $key, array('fileDownload' => $tmpPath));
+						fclose($fp);
+						$image = $tmpPath;
+					} else {
+						$image = $config['path']['images'] . $key;
+					}
+					# processing
+					putenv("LD_LIBRARY_PATH=/usr/local/lib");
+					$data = exec(sprintf("%s %s", $config['boxDetectPath'], $image));
+					# putting the json data
+					if($config['mode'] == 's3') {
+						$tmpJson = sys_get_temp_dir() . '/' . $si->image->get('barcode') . '_box.json';
+						$key = $si->image->barcode_path($si->image->get('barcode')) . $si->image->get('barcode') . '_box.json';
+						@file_put_contents($tmpJson,$data);
+						$response = $si->amazon->create_object ($config['s3']['bucket'], $key, array('fileUpload' => $tmpJson,'acl' => AmazonS3::ACL_PUBLIC,'storage' => AmazonS3::STORAGE_REDUCED) );
+						@unlink($tmpJson);
+						@unlink($tmpPath);
+					} else {
+						@file_put_contents($config['path']['images'] . $key,$data);
+					}
+					$images_array[] = array('image_id' => $si->image->get('image_id'), 'barcode' => $si->image->get('barcode'));
+					$image_count++;
+					$si->image->set('box_flag',1);
+					$si->image->save();
+				}
+			} # while
+			$time_taken = microtime(true) - $time_start;
+			header('Content-type: application/json');
+			print json_encode(array('success' => true, 'process_time' => $time_taken, 'total' => $image_count, 'images' => $images_array));
+		}
+		break;
 	case 'processNameFinder':
 		$time_start = microtime(true);
 		$tStart = time();

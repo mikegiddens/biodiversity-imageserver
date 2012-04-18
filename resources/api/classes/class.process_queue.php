@@ -214,6 +214,9 @@ Class ProcessQueue {
 			case 'ocr_add':
 				$query = "SELECT * FROM `process_queue` WHERE `process_type` = 'ocr_add' ORDER BY `date_added` LIMIT 1";
 				break;
+			case 'box_add':
+				$query = "SELECT * FROM `process_queue` WHERE `process_type` = 'box_add' ORDER BY `date_added` LIMIT 1";
+				break;
 			case 'name_add':
 				$query = "SELECT * FROM `process_queue` WHERE `process_type` = 'name_add' ORDER BY `date_added` LIMIT 1";
 				break;
@@ -221,23 +224,40 @@ Class ProcessQueue {
 				$query = "SELECT * FROM `process_queue` WHERE `process_type` = 'all' ORDER BY `date_added` LIMIT 1";
 				break;
 			default:
-				$query = "SELECT * FROM `process_queue` WHERE `process_type` NOT IN ('picassa_add','flickr_add') ORDER BY `date_added` LIMIT 1";
+				$query = "SELECT * FROM `process_queue` WHERE `process_type` NOT IN ('picassa_add','flickr_add','ocr_add','box_add') ORDER BY `date_added` LIMIT 1";
 				break;
 		}
 		$result = $this->db->query_one($query);
 		if($result == NULL) {
 			return false;
 		} else {
+			if($this->deleteProcessQueue($result->image_id, $result->process_type)) {
+				return $result;
+			} else {
+				return false;
+			}
+
+/*
 			$delquery = sprintf("DELETE FROM `process_queue` WHERE `image_id` = '%s' AND `process_type` = '%s' ", mysql_escape_string($result->image_id), mysql_escape_string($result->process_type));
 
 			if($this->db->query($delquery)) {
-					return $result;
+				return $result;
 			} else {
-					return false;
+				return false;
 			}
+*/
 
 			return $result;
 		}
+	}
+
+	public function deleteProcessQueue($image_id,$process_type) {
+		$delquery = sprintf("DELETE FROM `process_queue` WHERE `image_id` = '%s' AND `process_type` = '%s' ", mysql_escape_string($image_id), mysql_escape_string($process_type));
+		if($this->db->query($delquery)) {
+			return true;
+		}
+		return false;
+
 	}
 
 	public function processType($record) {

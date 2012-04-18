@@ -266,12 +266,12 @@ Class Image {
 		$this->createThumb($tmpPath, $arr['width'], $arr['height'],$arr['postfix']);
 		$response = $arr['obj']->create_object ( $arr['s3']['bucket'], $thumbName, array('fileUpload' => $tmpThumbPath,'acl' => AmazonS3::ACL_PUBLIC,'storage' => AmazonS3::STORAGE_REDUCED) );
 
-		@unlink($tmpPath);
+		@unlink($tmpThumbPath);
 		if($deleteFlag) {
-			@unlink($tmpThumbPath);
+			@unlink($tmpPath);
 			return true;
 		}
-		return $tmpThumbPath;
+		return $tmpPath;
 	}
 
 
@@ -479,7 +479,7 @@ Class Image {
 
 	public function save() {
 		if($this->field_exists($this->get('image_id'))) {
-            $query = sprintf("UPDATE `image` SET  `filename` = '%s', `timestamp_modified` = now(), `barcode` = '%s', `width` = '%s', `height` = '%s', `Family` = '%s', `Genus` = '%s', `SpecificEpithet` = '%s', `rank` = %s, `author` = '%s', `title` = '%s', `description` = '%s', `GlobalUniqueIdentifier` = '%s', `creative_commons` = '%s', `characters` = '%s', `flickr_PlantID` = '%s', `flickr_modified` = '%s', `flickr_details` = '%s', `picassa_PlantID` = '%s', `picassa_modified` = '%s', `gTileProcessed` = '%s', `zoomEnabled` = '%s', `processed` = '%s', `ocr_flag` = '%s', `ocr_value` = '%s', `namefinder_flag` = '%s', `namefinder_value` = '%s', `ScientificName` = '%s', `CollectionCode` = '%s'  WHERE image_id = '%s' ;"
+            $query = sprintf("UPDATE `image` SET  `filename` = '%s', `timestamp_modified` = now(), `barcode` = '%s', `width` = '%s', `height` = '%s', `Family` = '%s', `Genus` = '%s', `SpecificEpithet` = '%s', `rank` = %s, `author` = '%s', `title` = '%s', `description` = '%s', `GlobalUniqueIdentifier` = '%s', `creative_commons` = '%s', `characters` = '%s', `flickr_PlantID` = '%s', `flickr_modified` = '%s', `flickr_details` = '%s', `picassa_PlantID` = '%s', `picassa_modified` = '%s', `gTileProcessed` = '%s', `zoomEnabled` = '%s', `processed` = '%s', `box_flag` = '%s', `ocr_flag` = '%s', `ocr_value` = '%s', `namefinder_flag` = '%s', `namefinder_value` = '%s', `ScientificName` = '%s', `CollectionCode` = '%s'  WHERE image_id = '%s' ;"
             , mysql_escape_string($this->get('filename'))
             , mysql_escape_string($this->get('barcode'))
             , mysql_escape_string($this->get('width'))
@@ -502,6 +502,7 @@ Class Image {
             , mysql_escape_string($this->get('gTileProcessed'))
             , mysql_escape_string($this->get('zoomEnabled'))
             , mysql_escape_string($this->get('processed'))
+            , mysql_escape_string($this->get('box_flag'))
             , mysql_escape_string($this->get('ocr_flag'))
             , mysql_escape_string($this->get('ocr_value'))
             , mysql_escape_string($this->get('namefinder_flag'))
@@ -511,7 +512,7 @@ Class Image {
             , mysql_escape_string($this->get('image_id'))
             );
 		} else {
-            $query = sprintf("INSERT IGNORE INTO `image` SET `filename` = '%s', `timestamp_modified` = now(), `barcode` = '%s', `width` = '%s', `height` = '%s', `Family` = '%s', `Genus` = '%s', `SpecificEpithet` = '%s', `rank` = %s, `author` = '%s', `title` = '%s', `description` = '%s', `GlobalUniqueIdentifier` = '%s', `creative_commons` = '%s', `characters` = '%s', `flickr_PlantID` = '%s', `flickr_modified` = '%s', `flickr_details` = '%s', `picassa_PlantID` = '%s', `picassa_modified` = '%s', `gTileProcessed` = '%s', `zoomEnabled` = '%s', `processed` = '%s', `ocr_flag` = '%s', `ocr_value` = '%s', `namefinder_flag` = '%s', `namefinder_value` = '%s', `ScientificName` = '%s', `CollectionCode` = '%s' ;"
+            $query = sprintf("INSERT IGNORE INTO `image` SET `filename` = '%s', `timestamp_modified` = now(), `barcode` = '%s', `width` = '%s', `height` = '%s', `Family` = '%s', `Genus` = '%s', `SpecificEpithet` = '%s', `rank` = %s, `author` = '%s', `title` = '%s', `description` = '%s', `GlobalUniqueIdentifier` = '%s', `creative_commons` = '%s', `characters` = '%s', `flickr_PlantID` = '%s', `flickr_modified` = '%s', `flickr_details` = '%s', `picassa_PlantID` = '%s', `picassa_modified` = '%s', `gTileProcessed` = '%s', `zoomEnabled` = '%s', `processed` = '%s', `box_flag` = '%s', `ocr_flag` = '%s', `ocr_value` = '%s', `namefinder_flag` = '%s', `namefinder_value` = '%s', `ScientificName` = '%s', `CollectionCode` = '%s' ;"
             , mysql_escape_string($this->get('filename'))
             , mysql_escape_string($this->get('barcode'))
             , mysql_escape_string($this->get('width'))
@@ -534,6 +535,7 @@ Class Image {
             , mysql_escape_string($this->get('gTileProcessed'))
             , mysql_escape_string($this->get('zoomEnabled'))
             , mysql_escape_string($this->get('processed'))
+            , mysql_escape_string($this->get('box_flag'))
             , mysql_escape_string($this->get('ocr_flag'))
             , mysql_escape_string($this->get('ocr_value'))
             , mysql_escape_string($this->get('namefinder_flag'))
@@ -561,6 +563,14 @@ Class Image {
 	}
 	public function getOcrRecords($filter = '') {
 		$query = " SELECT * FROM `image` WHERE ( `ocr_flag` = 0 OR `ocr_flag` IS NULL ) AND `processed` = 1 ";
+		if(trim($filter['start']) != '' && trim($filter['limit']) != '') {
+			$query .= build_limit(trim($filter['start']),trim($filter['limit']));
+		}
+		$ret = $this->db->query($query);
+		return($ret);
+	}
+	public function getBoxRecords($filter = '') {
+		$query = " SELECT * FROM `image` WHERE ( `box_flag` = 0 OR `box_flag` IS NULL ) ";
 		if(trim($filter['start']) != '' && trim($filter['limit']) != '') {
 			$query .= build_limit(trim($filter['start']),trim($filter['limit']));
 		}
@@ -905,7 +915,7 @@ function createGTileIM($filename, $outputPath) {
 		$characters = $this->data['characters'];
 		$browse = $this->data['browse'];
 
-		$this->query = "SELECT SQL_CALC_FOUND_ROWS  I.image_id,I.filename,I.timestamp_modified, I.barcode, I.width,I.height,I.Family,I.Genus,I.SpecificEpithet,I.flickr_PlantID, I.flickr_modified,I.flickr_details,I.picassa_PlantID,I.picassa_modified, I.gTileProcessed,I.zoomEnabled,I.processed,I.ocr_flag,I.namefinder_flag,I.namefinder_value,I.ScientificName, I.CollectionCode, I.GlobalUniqueIdentifier FROM `image` I ";
+		$this->query = "SELECT SQL_CALC_FOUND_ROWS  I.image_id,I.filename,I.timestamp_modified, I.barcode, I.width,I.height,I.Family,I.Genus,I.SpecificEpithet,I.flickr_PlantID, I.flickr_modified,I.flickr_details,I.picassa_PlantID,I.picassa_modified, I.gTileProcessed,I.zoomEnabled,I.processed,I.box_flag,I.ocr_flag,I.namefinder_flag,I.namefinder_value,I.ScientificName, I.CollectionCode, I.GlobalUniqueIdentifier FROM `image` I ";
 
 		if (($characters != '') && ($characters != '[]')) {
 			$this->query .= ", image_attrib ia ";
