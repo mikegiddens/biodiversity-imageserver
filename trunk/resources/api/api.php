@@ -99,6 +99,7 @@ ob_start();
 
 		, 'updateFlag'
 		, 'code'
+		, 'showOCR'
 	);
 
 	// Initialize allowed variables
@@ -524,9 +525,10 @@ ob_start();
 		case 'get_image':
 
 			$data['image_id'] = trim($image_id);
-			if($data['image_id'] == "") {
+			$data['barcode'] = trim($barcode);
+			if($data['image_id'] == '' && $data['barcode'] == '') {
 				$valid = false;
-				$code = 107;
+				$code = 134;
 			}
 			$data['width'] = trim($width);
 			$data['height'] = trim($height);
@@ -538,9 +540,13 @@ ob_start();
 
 			if($valid) {
 				$si->image->setData($data);
-				$si->image->getImage();
+				$ar = $si->image->getImage();
 				header('Content-type: application/json');
-				print( json_encode( array( 'success' => true) ) );
+				if(false == $ar['success']) {
+					print( json_encode( array( 'success' => false,  'error' => array('code' => $ar['code'], 'message' => $si->getError($ar['code'])) ) ) );
+				} else {
+					print( json_encode( array( 'success' => true) ) );
+				}
 			}else {
 				header('Content-type: application/json');
 				print( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ) );
@@ -549,6 +555,7 @@ ob_start();
 
 		# example : cmd=loadTile&filename=USMS000018155&zoom=2&index=tile_16.jpg
 		case 'loadTile';
+			$filename = @strtolower($filename);
 			$index = @str_replace('tile_','',@basename($index,'.jpg'));
 			$it = new imgTiles($config['path']['imgTiles'] . $filename . '.sqlite');
 			$result = $it->getTileData($zoom, $index);
@@ -561,6 +568,9 @@ ob_start();
 		case 'get_image_tiles':
 			$time_start = microtime(true);
 			$image_id = trim($image_id);
+
+			$_TMP = ($config['path']['tmp'] != '') ? $config['path']['tmp'] : sys_get_temp_dir() . '/';
+
 			if($image_id == "") {
 				$valid = false;
 				$code = 107;
@@ -572,13 +582,13 @@ ob_start();
 
 				$url = $config['tileGenerator'] . '?cmd=loadImage&filename=' . $filename;
 				if($config['mode'] == 's3') {
-					$tmpPath = sys_get_temp_dir() . '/' . $filename;
+					$tmpPath = $_TMP . $filename;
 					$fp = fopen($tmpPath, "w+b");
 					# getting the image from s3
 					$bucket = $config['s3']['bucket'];
 					$key = $si->image->barcode_path($barcode) . $filename;
 					$si->amazon->get_object($bucket, $key, array('fileDownload' => $tmpPath));
-					$url .= '&absolutePath=' . sys_get_temp_dir() . '/';
+					$url .= '&absolutePath=' . $_TMP;
 				}
 				$res = json_decode(trim(@file_get_contents($url)));
 				if($config['mode'] == 's3') {
@@ -587,13 +597,13 @@ ob_start();
 
 				if(in_array(@strtolower($tiles),array('create','createclear'))) {
 					$si->image->mkdir_recursive( $config['path']['imgTiles'] );
-					$tileFolder = strtolower($barcode);
+					$tileFolder = @strtolower($barcode);
 					$it = new imgTiles($config['path']['imgTiles'] . $tileFolder . '.sqlite');
 
-					$handle = opendir($config['path']['tiles'] . $tileFolder);
-					while (false !== ($zoom = readdir($handle))) {
+					$handle = @opendir($config['path']['tiles'] . $tileFolder);
+					while (false !== ($zoom = @readdir($handle))) {
 						if( $zoom == '.' || $zoom == '..') continue;
-						$handle1 = opendir($config['path']['tiles'] . $tileFolder . '/' . $zoom);
+						$handle1 = @opendir($config['path']['tiles'] . $tileFolder . '/' . $zoom);
 						while (false !== ($tile = readdir($handle1))) {
 							if( $tile == '.' || $tile == '..') continue;
 							$it->recordTile($zoom, $config['path']['tiles'] . $tileFolder . '/' . $zoom . '/' . $tile);
@@ -639,11 +649,26 @@ ob_start();
 			}
 			break;
 
+		case 'getOCR':
+			$objFlag = false;
+			if(trim($image_id) != '') {
+				$objFlag = $si->image->load_by_id($image_id);
+			} else if(trim($barcode) != '') {
+				$objFlag = $si->image->load_by_barcode($barcode);
+			}
+			$ocrData = ($objFlag) ? $si->image->get('ocr_value') : '';
+			header('content-type: text/plain');
+			print $ocrData;
+			break;
+
 		case 'images':
 			$time = microtime(true);
 			$data['start'] = ($start != '') ? $start : 0;
 			$data['limit'] = ($limit != '') ? $limit : 100;
 			$data['order'] = json_decode(stripslashes(trim($order)),true);
+
+			$data['showOCR'] = (@in_array(trim($showOCR),array('1','true','TRUE'))) ? true : false;
+
 			if(is_array($filter)) {
 				$data['filter'] = $filter;
 			} else {
@@ -1909,25 +1934,18 @@ ob_start();
 				break;
 
 		case 'getBoxDetect':
-			if(!$user_access->is_logged_in()){
-				print_c ( json_encode( array( 'success' => false, 'error' => array('message' => $si->getError(113), 'code' => 113 )) ));
-				exit;
+			$_TMP = ($config['path']['tmp'] != '') ? $config['path']['tmp'] : sys_get_temp_dir() . '/';
+			$loadFlag = false;
+			if(trim($image_id) != '') {
+				$loadFlag = $si->image->load_by_id($image_id);
+			} else if(trim($barcode) != '') {
+				$loadFlag = $si->image->load_by_barcode($barcode);
 			}
-			if(trim($id) == '') {
+			if(!$loadFlag) {
 				$valid = false;
-				$code = 134;
-			} else {
-				$loadFlag = false;
-				if(!is_numeric($id)) {
-					$loadFlag = $si->image->load_by_barcode($id);
-				} else {
-					$loadFlag = $si->image->load_by_id($id);
-				}
-				if(!$loadFlag) {
-					$valid = false;
-					$code = 135;
-				}
+				$code = 135;
 			}
+
 			if($valid) {
 				$existsFlag = false;
 				$key = $si->image->barcode_path($si->image->get('barcode')) . $si->image->get('barcode') . '_box.json';
@@ -1939,7 +1957,7 @@ ob_start();
 
 				if($existsFlag) {
 					if($config['mode'] == 's3') {
-						$tmpPath = sys_get_temp_dir() . '/' . $si->image->get('barcode') . '_box.json';
+						$tmpPath = $_TMP . $si->image->get('barcode') . '_box.json';
 						$fp = fopen($tmpPath, "w+b");
 						$si->amazon->get_object($config['s3']['bucket'], $key, array('fileDownload' => $tmpPath));
 						fclose($fp);
@@ -1951,7 +1969,7 @@ ob_start();
 				} else {
 					# getting image
 					if($config['mode'] == 's3') {
-						$tmpPath = sys_get_temp_dir() . '/' . $si->image->get('filename');
+						$tmpPath = $_TMP . $si->image->get('filename');
 						$key = $si->image->barcode_path($si->image->get('barcode')) . $si->image->get('filename');
 						$fp = fopen($tmpPath, "w+b");
 						$si->amazon->get_object($config['s3']['bucket'], $key, array('fileDownload' => $tmpPath));
@@ -1965,7 +1983,7 @@ ob_start();
 					$data = exec(sprintf("%s %s", $config['boxDetectPath'], $image));
 					# putting the json data
 					if($config['mode'] == 's3') {
-						$tmpJson = sys_get_temp_dir() . '/' . $si->image->get('barcode') . '_box.json';
+						$tmpJson = $_TMP . $si->image->get('barcode') . '_box.json';
 						$key = $si->image->barcode_path($si->image->get('barcode')) . $si->image->get('barcode') . '_box.json';
 						@file_put_contents($tmpJson,$data);
 						$response = $si->amazon->create_object ($config['s3']['bucket'], $key, array('fileUpload' => $tmpJson,'acl' => AmazonS3::ACL_PUBLIC,'storage' => AmazonS3::STORAGE_REDUCED) );
@@ -1981,6 +1999,12 @@ ob_start();
 
 				$data = json_decode($data,true);
 				$data['processedTime'] = microtime(true) - $time_start;
+
+				$variable = ($data['data']['height'] > $data['data']['width']) ? $data['data']['height'] : $data['data']['width'];
+
+				$data['data']['pixelsPerCentimeter'] = @round($variable/4);
+				$data['data']['pixelsPerInch'] = @round($variable/1.57);
+
 				print_c(json_encode($data));
 			} else {
 				print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($code) , 'code' => $code ) ) ) );

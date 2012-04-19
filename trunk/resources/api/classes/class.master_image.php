@@ -227,11 +227,14 @@ Class Image {
 	 * @param mixed s3 details and object
 	 */
 	function createThumbS3($barcode,$arr,$deleteFlag = true) {
+		global $config;
+		$_TMP = ($config['path']['tmp'] != '') ? $config['path']['tmp'] : sys_get_temp_dir() . '/';
+
 		if($this->load_by_barcode($barcode)) {
 			$filName = 'Img_' . time();
-			$tmpThumbPath = sys_get_temp_dir() . '/' . $filName . $arr['postfix'] . '.jpg';
+			$tmpThumbPath = $_TMP . $filName . $arr['postfix'] . '.jpg';
 			$thumbName = $this->barcode_path($barcode) . $barcode . $arr['postfix'] . '.jpg';
-			$tmpPath = sys_get_temp_dir() . '/' . $filName . '.jpg';
+			$tmpPath = $_TMP . $filName . '.jpg';
 
 			$fp = fopen($tmpPath, "w+b");
 
@@ -305,7 +308,16 @@ Class Image {
 
 	public function getImage() {
 		global $config;
-		$this->load_by_id($this->data['image_id']);
+		$_TMP = ($config['path']['tmp'] != '') ? $config['path']['tmp'] : sys_get_temp_dir() . '/';
+		$flag = false;
+		if($this->data['image_id'] != '') {
+			$flag = $this->load_by_id($this->data['image_id']);
+		}
+		if(!$flag && $this->data['barcode'] != '') {
+			$flag = $this->load_by_barcode($this->data['barcode']);
+		}
+		if(!$flag) return array('success' => false, 'code' => 135);
+
 		$ext = @strtolower($this->getName('ext'));
 		$extension = '.' . $ext;
 		$func1 = 'image' . ($ext == 'jpg' ? 'jpeg' : $ext);
@@ -315,7 +327,7 @@ Class Image {
 		$image =  $path . $this->get('barcode') . $extension;
 		$existsFlag = false;
 		$bucket = $config['s3']['bucket'];
-		$tmpPath = sys_get_temp_dir() . '/' . $this->get('filename');
+		$tmpPath = $_TMP . $this->get('filename');
 
 		# checking if exists
 		if(in_array(strtolower($size),array('s','m','l'))) {
@@ -395,7 +407,7 @@ Class Image {
 			$height = ($this->data['height']!='')?$this->data['height']:$this->data['width'];
 			$this->createThumb( $tmpPath, $width, $height, 'tmp', true);
 		} else {
-			return false;
+			return array('success' => false, 'code' => 138);
 		}
 
 	}
@@ -715,16 +727,17 @@ Class Image {
 	 * @param mixed s3 details and object
 	 */
 	public function processGTileIM_S3($barcode, $arr) {
-		if($this->load_by_barcode($barcode)) {
+		global $config;
+		$_TMP = ($config['path']['tmp'] != '') ? $config['path']['tmp'] : sys_get_temp_dir() . '/';		if($this->load_by_barcode($barcode)) {
 
-			$tmpPath = sys_get_temp_dir() . '/tiles/';
+			$tmpPath = $_TMP . 'tiles/';
 			if(!@file_exists($tmpPath)) {
 				@mkdir($tmpPath,0775);
 			}
 			$tilepath = $tmpPath;
 
 			# getting the image from s3
-			$filename = sys_get_temp_dir() . '/' . $this->get('filename');
+			$filename = $_TMP . $this->get('filename');
 
 			$bucket = $arr['s3']['bucket'];
 			$key = $this->barcode_path($barcode) . $this->get('filename');
@@ -899,7 +912,7 @@ function createGTileIM($filename, $outputPath) {
 		$where .= build_order( $this->data['order']);
 		$where .= build_limit($this->data['start'], $this->data['limit']);
 
-		$query = "SELECT SQL_CALC_FOUND_ROWS  image_id,filename,timestamp_modified,barcode,width,height,Family,Genus,SpecificEpithet,flickr_PlantID, flickr_modified,flickr_details,picassa_PlantID,picassa_modified, gTileProcessed,zoomEnabled,processed,ocr_flag,namefinder_flag,namefinder_value,ScientificName, CollectionCode FROM `image` " . $where;
+		$query = "SELECT SQL_CALC_FOUND_ROWS  image_id,filename,timestamp_modified,barcode,width,height,Family,Genus,SpecificEpithet,flickr_PlantID, flickr_modified,flickr_details,picassa_PlantID,picassa_modified, gTileProcessed,zoomEnabled,processed,ocr_flag, ocr_value,namefinder_flag,namefinder_value,ScientificName, CollectionCode FROM `image` " . $where;
 
 		if($queryFlag) {
 			$ret = $this->db->query_all( $query );
@@ -915,7 +928,11 @@ function createGTileIM($filename, $outputPath) {
 		$characters = $this->data['characters'];
 		$browse = $this->data['browse'];
 
-		$this->query = "SELECT SQL_CALC_FOUND_ROWS  I.image_id,I.filename,I.timestamp_modified, I.barcode, I.width,I.height,I.Family,I.Genus,I.SpecificEpithet,I.flickr_PlantID, I.flickr_modified,I.flickr_details,I.picassa_PlantID,I.picassa_modified, I.gTileProcessed,I.zoomEnabled,I.processed,I.box_flag,I.ocr_flag,I.namefinder_flag,I.namefinder_value,I.ScientificName, I.CollectionCode, I.GlobalUniqueIdentifier FROM `image` I ";
+		$this->query = "SELECT SQL_CALC_FOUND_ROWS  I.image_id,I.filename,I.timestamp_modified, I.barcode, I.width,I.height,I.Family,I.Genus,I.SpecificEpithet,I.flickr_PlantID, I.flickr_modified,I.flickr_details,I.picassa_PlantID,I.picassa_modified, I.gTileProcessed,I.zoomEnabled,I.processed,I.box_flag,I.ocr_flag";
+		if($this->data['showOCR']) {
+			$this->query .= ',I.ocr_value';
+		}
+		$this->query .= ",I.namefinder_flag,I.namefinder_value,I.ScientificName, I.CollectionCode, I.GlobalUniqueIdentifier FROM `image` I ";
 
 		if (($characters != '') && ($characters != '[]')) {
 			$this->query .= ", image_attrib ia ";
@@ -1057,6 +1074,7 @@ $strips_array[$end][] = array('startRange' => $tmp_start, 'endRange' => $tmp_end
 
 	public function rotateImage($image = array()) {
 		global $config;
+		$_TMP = ($config['path']['tmp'] != '') ? $config['path']['tmp'] : sys_get_temp_dir() . '/';
 		if($image['image_id'] == '' || !$this->field_exists($image['image_id'])) {
 			$ret['success'] = false;
 			return $ret;
@@ -1067,7 +1085,7 @@ $strips_array[$end][] = array('startRange' => $tmp_start, 'endRange' => $tmp_end
 		$barcode = $this->get('barcode');
 
 		if($config['mode'] == 's3') {
-			$imagePath = sys_get_temp_dir() . '/';
+			$imagePath = $_TMP;
 
 			# getting the image from s3
 			$key = $this->barcode_path($barcode) . $this->get('filename');

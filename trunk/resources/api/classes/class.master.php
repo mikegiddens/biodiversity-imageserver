@@ -102,6 +102,7 @@
 				, 135 => 'Not a Valid Barcode Or Image Id'
 				, 136 => 'Tesseract Not Enabled'
 				, 137 => 'Box Detected Not Enabled.'
+				, 138 => 'Size or width and height should be provided.'
 			);
 			return $ar[$error_code];
 		}

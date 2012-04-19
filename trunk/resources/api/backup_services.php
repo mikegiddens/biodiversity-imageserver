@@ -13,6 +13,7 @@ ini_set('display_errors', '1');
 		, 'stop' # stop is the number of seconds that the loop should run
 		, 'id'
 		, 'image_id'
+		, 'barcode'
 	);
 	// Initialize allowed variables
 	foreach ($expected as $formvar)
@@ -75,27 +76,38 @@ require_once("classes/class.misc.php");
 $si = new SilverImage($config['mysql']['name']);
 switch($cmd) {
 	case 'populateBoxDetect':
+		header('Content-type: application/json');
+		if(!$config['ratioDetect']) {
+			print json_encode(array('success' => false, 'error' => array('code' => 137, 'message' => $si->getError(137))));
+			exit;
+		}
 		$time_start = microtime(true);
 		$count = 0;
 		$filter['start'] = 0;
 		$filter['limit'] = $limit;
-		if(trim($id) != '') {
-			$imageIds = json_decode(stripslashes($id),true);
-			if(is_array($imageIds) && count($imageIds)) {
-				foreach($imageIds as $imageId) {
-					$loadFlag = false;
-					if(!is_numeric($imageId)) {
-						$loadFlag = $si->image->load_by_barcode($imageId);
-					} else {
-						$loadFlag = $si->image->load_by_id($imageId);
-					}
-					if($loadFlag) {
-						if(!$si->pqueue->field_exists($si->image->get('barcode'),'box_add')) {
-							$si->pqueue->set('image_id', $si->image->get('barcode'));
-							$si->pqueue->set('process_type', 'box_add');
-							$si->pqueue->save();
-							$count++;
-						}
+
+		$flag = false;
+		$idArray = array();
+		$imageIds = json_decode(@stripslashes(trim($image_id)),true);
+		if(is_array($imageIds) && count($imageIds)) {
+			$flag = true;
+			$idArray = @array_fill_keys($imageIds,'id');
+		}
+		$barcodes = json_decode(@stripslashes(trim($barcode)),true);
+		if(is_array($barcodes) && count($barcodes)) {
+			$flag = true;
+			$idArray = $idArray + @array_fill_keys($barcodes,'code');
+		}
+		if($flag) {
+			if(is_array($idArray) && count($idArray)) {
+				foreach($idArray as $id => $code) {
+					$func = ($code == 'id') ? 'load_by_id' : 'load_by_barcode';
+					if(!$si->image->{$func}($id)) continue;
+					if(!$si->pqueue->field_exists($si->image->get('barcode'),'box_add')) {
+						$si->pqueue->set('image_id', $si->image->get('barcode'));
+						$si->pqueue->set('process_type', 'box_add');
+						$si->pqueue->save();
+						$count++;
 					}
 				}
 			}
@@ -298,6 +310,8 @@ switch($cmd) {
 			print json_encode(array('success' => false, 'error' => array('code' => 137, 'message' => $si->getError(137))));
 			exit;
 		}
+		$_TMP = ($config['path']['tmp'] != '') ? $config['path']['tmp'] : sys_get_temp_dir() . '/';
+
 		$time_start = microtime(true);
 		$tStart = time();
 		$loop_flag = true;
@@ -316,8 +330,8 @@ switch($cmd) {
 				$loop_flag = false;
 			} else {
 				if($config['mode'] == 's3') {
-					$tmpFileName = 'Img_' . time();
-					$tmpFilePath = sys_get_temp_dir() . '/' . $tmpFileName;
+					$tmpFileName = 'Img_' . microtime();
+					$tmpFilePath = $_TMP . $tmpFileName;
 					$tmpFile = $tmpFilePath . '.jpg';
 					$key = $si->image->barcode_path($record->image_id) . $record->image_id . '.jpg';
 
@@ -326,14 +340,18 @@ switch($cmd) {
 					$tmpFilePath = $config['path']['images'] . $si->image->barcode_path($record->image_id) . $record->image_id;
 					$tmpFile = $tmpFilePath . '.jpg';
 				}
-				$tmpImage = $tmpFilePath . '_tmp.jpg';
-				$cd = "convert " . $tmpFile . " -colorspace Gray  -contrast-stretch 15% " . $tmpImage;
-				exec($cd);
 
-				$command = sprintf("%s %s %s", $config['tesseractPath'], $tmpImage, $tmpFilePath);
-				exec($command);
-
-				exec(sprintf("rm %s",$tmpImage));
+				if($config['image_processing'] == 1) {
+					$tmpImage = $tmpFilePath . '_tmp.jpg';
+					$cd = "convert " . $tmpFile . " -colorspace Gray  -contrast-stretch 15% " . $tmpImage;
+					exec($cd);
+					$command = sprintf("%s %s %s", $config['tesseractPath'], $tmpImage, $tmpFilePath);
+					exec($command);
+					@unlink($tmpImage);
+				} else {
+					$command = sprintf("%s %s %s", $config['tesseractPath'], $tmpFile, $tmpFilePath);
+					exec($command);
+				}
 
 				if(@file_exists($tmpFilePath . '.txt')){
 					$value = file_get_contents($tmpFilePath . '.txt');
@@ -347,8 +365,8 @@ switch($cmd) {
 				}
 
 				if($config['mode'] == 's3') {
-					exec(sprintf("rm %s",$tmpFile));
-					exec(sprintf("rm %s",$tmpFilePath . '.txt'));
+					@unlink($tmpFile);
+					@unlink($tmpFilePath . '.txt');
 				}
 
 			}
@@ -363,55 +381,60 @@ switch($cmd) {
 			print json_encode(array('success' => false, 'error' => array('code' => 137, 'message' => $si->getError(137))));
 			exit;
 		}
+		$_TMP = ($config['path']['tmp'] != '') ? $config['path']['tmp'] : sys_get_temp_dir() . '/';
+
 		$time_start = microtime(true);
 		$tStart = time();
 		$loop_flag = true;
 		$images_array = array();$image_count = 0;
 
-		if($id != '') {
-			$loadFlag = false;
-			if(!is_numeric($id)) {
-				$loadFlag = $si->image->load_by_barcode($id);
-			} else {
-				$loadFlag = $si->image->load_by_id($id);
+		$flag = false;
+		$idArray = array();
+		$imageIds = json_decode(@stripslashes(trim($image_id)),true);
+		if(is_array($imageIds) && count($imageIds)) {
+			$flag = true;
+			$idArray = @array_fill_keys($imageIds,'id');
+		}
+		$barcodes = json_decode(@stripslashes(trim($barcode)),true);
+		if(is_array($barcodes) && count($barcodes)) {
+			$flag = true;
+			$idArray = $idArray + @array_fill_keys($barcodes,'code');
+		}
+		if($flag) {
+			if(is_array($idArray) && count($idArray)) {
+				foreach($idArray as $id => $code) {
+					$func = ($code == 'id') ? 'load_by_id' : 'load_by_barcode';
+					if(!$si->image->{$func}($id)) continue;
+					# getting image
+					if($config['mode'] == 's3') {
+						$tmpPath = $_TMP . $si->image->get('filename');
+						$key = $si->image->barcode_path($si->image->get('barcode')) . $si->image->get('filename');
+						$si->amazon->get_object($config['s3']['bucket'], $key, array('fileDownload' => $tmpPath));
+						$image = $tmpPath;
+					} else {
+						$image = $config['path']['images'] . $key;
+					}
+					# processing
+					putenv("LD_LIBRARY_PATH=/usr/local/lib");
+					$data = exec(sprintf("%s %s", $config['boxDetectPath'], $image));
+					# putting the json data
+					if($config['mode'] == 's3') {
+						$tmpJson = $_TMP . $si->image->get('barcode') . '_box.json';
+						$key = $si->image->barcode_path($si->image->get('barcode')) . $si->image->get('barcode') . '_box.json';
+						@file_put_contents($tmpJson,$data);
+						$response = $si->amazon->create_object ($config['s3']['bucket'], $key, array('fileUpload' => $tmpJson,'acl' => AmazonS3::ACL_PUBLIC,'storage' => AmazonS3::STORAGE_REDUCED) );
+						@unlink($tmpJson);
+						@unlink($tmpPath);
+					} else {
+						@file_put_contents($config['path']['images'] . $key,$data);
+					}
+					$images_array[] = array('image_id' => $si->image->get('image_id'), 'barcode' => $si->image->get('barcode'));
+					$image_count++;
+					$si->pqueue->deleteProcessQueue($si->image->get('barcode'),'box_add');
+					$si->image->set('box_flag',1);
+					$si->image->save();
+				}
 			}
-			if(!$loadFlag) {
-				header('Content-type: application/json');
-				print json_encode(array('success' => false, 'error' => array('code' => 135, 'message' => $si->getError(135))));
-				exit;
-			}
-
-			# getting image
-			if($config['mode'] == 's3') {
-				$tmpPath = sys_get_temp_dir() . '/' . $si->image->get('filename');
-				$key = $si->image->barcode_path($si->image->get('barcode')) . $si->image->get('filename');
-				$si->amazon->get_object($config['s3']['bucket'], $key, array('fileDownload' => $tmpPath));
-				$image = $tmpPath;
-			} else {
-				$image = $config['path']['images'] . $key;
-			}
-			# processing
-			putenv("LD_LIBRARY_PATH=/usr/local/lib");
-			$data = exec(sprintf("%s %s", $config['boxDetectPath'], $image));
-			# putting the json data
-			if($config['mode'] == 's3') {
-				$tmpJson = sys_get_temp_dir() . '/' . $si->image->get('barcode') . '_box.json';
-				$key = $si->image->barcode_path($si->image->get('barcode')) . $si->image->get('barcode') . '_box.json';
-				@file_put_contents($tmpJson,$data);
-				$response = $si->amazon->create_object ($config['s3']['bucket'], $key, array('fileUpload' => $tmpJson,'acl' => AmazonS3::ACL_PUBLIC,'storage' => AmazonS3::STORAGE_REDUCED) );
-				@unlink($tmpJson);
-				@unlink($tmpPath);
-			} else {
-				@file_put_contents($config['path']['images'] . $key,$data);
-			}
-			$si->pqueue->deleteProcessQueue($si->image->get('barcode'),'box_add');
-			$si->image->set('box_flag',1);
-			$si->image->save();
-
-			$data = json_decode($data,true);
-			$data['processedTime'] = microtime(true) - $time_start;
-			print (json_encode($data));
-
 		} else {
 			while($loop_flag) {
 				$tDiff = time() - $tStart;
@@ -428,7 +451,7 @@ switch($cmd) {
 
 					# getting image
 					if($config['mode'] == 's3') {
-						$tmpPath = sys_get_temp_dir() . '/' . $si->image->get('filename');
+						$tmpPath = $_TMP . $si->image->get('filename');
 						$key = $si->image->barcode_path($si->image->get('barcode')) . $si->image->get('filename');
 						$fp = fopen($tmpPath, "w+b");
 						$si->amazon->get_object($config['s3']['bucket'], $key, array('fileDownload' => $tmpPath));
@@ -442,7 +465,7 @@ switch($cmd) {
 					$data = exec(sprintf("%s %s", $config['boxDetectPath'], $image));
 					# putting the json data
 					if($config['mode'] == 's3') {
-						$tmpJson = sys_get_temp_dir() . '/' . $si->image->get('barcode') . '_box.json';
+						$tmpJson = $_TMP . $si->image->get('barcode') . '_box.json';
 						$key = $si->image->barcode_path($si->image->get('barcode')) . $si->image->get('barcode') . '_box.json';
 						@file_put_contents($tmpJson,$data);
 						$response = $si->amazon->create_object ($config['s3']['bucket'], $key, array('fileUpload' => $tmpJson,'acl' => AmazonS3::ACL_PUBLIC,'storage' => AmazonS3::STORAGE_REDUCED) );
@@ -457,10 +480,9 @@ switch($cmd) {
 					$si->image->save();
 				}
 			} # while
-			$time_taken = microtime(true) - $time_start;
-			header('Content-type: application/json');
-			print json_encode(array('success' => true, 'process_time' => $time_taken, 'total' => $image_count, 'images' => $images_array));
 		}
+		$time_taken = microtime(true) - $time_start;
+		print json_encode(array('success' => true, 'process_time' => $time_taken, 'total' => $image_count, 'images' => $images_array));
 		break;
 	case 'processNameFinder':
 		$time_start = microtime(true);
@@ -497,6 +519,8 @@ switch($cmd) {
 		break;
 
 	case 'uploadFlickr':
+		$_TMP = ($config['path']['tmp'] != '') ? $config['path']['tmp'] : sys_get_temp_dir() . '/';
+
 		$time_start = microtime(true);
 		$tStart = time();
 		$loop_flag = true;
@@ -517,7 +541,7 @@ switch($cmd) {
 
 				if($config['mode'] == 's3') {
 					$tmpFileName = 'Img_' . time();
-					$tmpFilePath = sys_get_temp_dir() . '/' . $tmpFileName;
+					$tmpFilePath = $_TMP . $tmpFileName;
 					$image = $tmpFilePath . '.jpg';
 					$key = $si->image->barcode_path($record->image_id) . $record->image_id . '.jpg';
 					$si->amazon->get_object($config['s3']['bucket'], $key, array('fileDownload' => $image));
@@ -545,7 +569,7 @@ switch($cmd) {
 				}
 
 				if($config['mode'] == 's3') {
-					exec(sprintf("rm %s",$image));
+					@unlink($image);
 				}
 
 			}
@@ -555,6 +579,8 @@ switch($cmd) {
 
 		break;
 	case 'uploadPicassa':
+		$_TMP = ($config['path']['tmp'] != '') ? $config['path']['tmp'] : sys_get_temp_dir() . '/';
+
 		$time_start = microtime(true);
 		$tStart = time();
 		$loop_flag = true;
@@ -579,7 +605,7 @@ switch($cmd) {
 			} else {
 				$image = array();
 				if($config['mode'] == 's3') {
-					$tmpFile = sys_get_temp_dir() . '/' . 'Img_' . time() . '.jpg';
+					$tmpFile = $_TMP . 'Img_' . time() . '.jpg';
 					$key = $si->image->barcode_path($record->image_id) . $record->image_id . '.jpg';
 					$si->amazon->get_object($config['s3']['bucket'], $key, array('fileDownload' => $tmpFile));
 					$image['tmp_name'] = $tmpFile;
@@ -604,7 +630,7 @@ switch($cmd) {
 				}
 			}
 			if($config['mode'] == 's3') {
-				exec(sprintf("rm %s",$tmpFile));
+				@unlink($tmpFile);
 			}
 		}
 		$time_taken = microtime(true) - $time_start;
@@ -645,7 +671,7 @@ switch($cmd) {
 	}
 
 
-function getNames ($barcode) {
+function getNames($barcode) {
 	global $si,$config;
 	if($barcode == '') {
 		return array('success' => false);
