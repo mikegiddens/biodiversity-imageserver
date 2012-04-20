@@ -110,16 +110,18 @@ Class Image {
         $barcode = $this->getName();
         $tmpPath = $config['path']['images'] . $this->barcode_path( $barcode );
         $this->mkdir_recursive( $tmpPath );
-	$flsz = filesize($this->get('path') . $this->get('filename'));
+	$flsz = @filesize($this->get('path') . $this->get('filename'));
 	if(!$flsz) {
-		rename( $this->get('path') . $this->get('filename'), $config['path']['error'] . $this->get('filename') );
-		return false;
+		if(!@rename( $this->get('path') . $this->get('filename'), $config['path']['error'] . $this->get('filename') )) {
+			return array('success' => false, 'code' => 140);
+		}
+		return array('success' => false);
 	}
-        if(rename( $this->get('path') . $this->get('filename'), $tmpPath . $this->get('filename') )) {
+        if(@rename( $this->get('path') . $this->get('filename'), $tmpPath . $this->get('filename') )) {
         	$this->set('path',$tmpPath);
-		return true;
+		return array('success' => true);
 	} else {
-		return false;
+		return array('success' => false, 'code' => 141);
 	}
     }
 

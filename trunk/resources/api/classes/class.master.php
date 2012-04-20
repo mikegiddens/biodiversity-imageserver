@@ -101,8 +101,11 @@
 				, 134 => 'Barcode Or Image Id should be given'
 				, 135 => 'Not a Valid Barcode Or Image Id'
 				, 136 => 'Tesseract Not Enabled'
-				, 137 => 'Box Detected Not Enabled.'
+				, 137 => 'Box Detect Not Enabled.'
 				, 138 => 'Size or width and height should be provided.'
+				, 139 => 'zBarImg Not Enabled.'
+				, 140 => 'Error Directory does not exist, or does not have write permission.'
+				, 141 => 'Images Directory does not exist, or does not have write permission.'
 			);
 			return $ar[$error_code];
 		}
