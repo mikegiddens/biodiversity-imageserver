@@ -436,7 +436,7 @@ ob_start();
 				foreach($images as $image) {
 					$image->db = &$si->db;
 					$successFlag = $image->moveToImages();
-					if($successFlag) {
+					if($successFlag['success']) {
 						$barcode = $image->getName();
 						$filename = $image->get('filename');
 
@@ -472,7 +472,11 @@ ob_start();
 						$si->pqueue->set('process_type','all');
 						$si->pqueue->save();
 						$count++;
-					} # if file moved correctly
+					} else {
+						header('Content-type: application/json');
+						print( json_encode( array( 'success' => false, 'error' => array('code' => $successFlag['code'], 'message' => $si->getError($successFlag['code'])) ) ) );
+						exit;
+					}
 				}
 			}
 			$time = microtime(true) - $time_start;
@@ -1967,10 +1971,10 @@ ob_start();
 						$data = @file_get_contents($config['path']['images'] . $key);
 					}
 				} else {
+					$key = $si->image->barcode_path($si->image->get('barcode')) . $si->image->get('filename');
 					# getting image
 					if($config['mode'] == 's3') {
 						$tmpPath = $_TMP . $si->image->get('filename');
-						$key = $si->image->barcode_path($si->image->get('barcode')) . $si->image->get('filename');
 						$fp = fopen($tmpPath, "w+b");
 						$si->amazon->get_object($config['s3']['bucket'], $key, array('fileDownload' => $tmpPath));
 						fclose($fp);
@@ -1982,9 +1986,9 @@ ob_start();
 					putenv("LD_LIBRARY_PATH=/usr/local/lib");
 					$data = exec(sprintf("%s %s", $config['boxDetectPath'], $image));
 					# putting the json data
+					$key = $si->image->barcode_path($si->image->get('barcode')) . $si->image->get('barcode') . '_box.json';
 					if($config['mode'] == 's3') {
 						$tmpJson = $_TMP . $si->image->get('barcode') . '_box.json';
-						$key = $si->image->barcode_path($si->image->get('barcode')) . $si->image->get('barcode') . '_box.json';
 						@file_put_contents($tmpJson,$data);
 						$response = $si->amazon->create_object ($config['s3']['bucket'], $key, array('fileUpload' => $tmpJson,'acl' => AmazonS3::ACL_PUBLIC,'storage' => AmazonS3::STORAGE_REDUCED) );
 						@unlink($tmpJson);
@@ -2011,6 +2015,52 @@ ob_start();
 			}
 
 			break;
+
+		case 'detectBarcode':
+			header('Content-type: application/json');
+			if(!$config['zBarImgEnabled']) {
+				print json_encode(array('success' => false, 'error' => array('code' => 139, 'message' => $si->getError(139))));
+				exit;
+			}
+
+			$_TMP = ($config['path']['tmp'] != '') ? $config['path']['tmp'] : sys_get_temp_dir() . '/';
+			$loadFlag = false;
+			if(trim($image_id) != '') {
+				$loadFlag = $si->image->load_by_id($image_id);
+			} else if(trim($barcode) != '') {
+				$loadFlag = $si->image->load_by_barcode($barcode);
+			}
+			if(!$loadFlag) {
+				$valid = false;
+				$code = 135;
+			}
+			if($valid) {
+				# getting image
+				$key = $si->image->barcode_path($si->image->get('barcode')) . $si->image->get('filename');
+				if($config['mode'] == 's3') {
+					$tmpPath = $_TMP . $si->image->get('filename');
+					$fp = @fopen($tmpPath, "w+b");
+					$si->amazon->get_object($config['s3']['bucket'], $key, array('fileDownload' => $tmpPath));
+					@fclose($fp);
+					$image = $tmpPath;
+				} else {
+					$image = $config['path']['images'] . $key;
+				}
+
+				$command = sprintf("%s %s", $config['zBarImgPath'], $image);
+				$data = exec($command);
+				if($config['mode'] == 's3') {
+					@unlink($tmpImage);
+				}
+				$processTime = microtime(true) - $time_start;
+				print_c(json_encode(array('success' => true, 'processTime' => $processTime, 'data' => $data)));
+
+			} else {
+				print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($code) , 'code' => $code ) ) ) );
+			}
+
+			break;
+
 # Test Tasks
 
 		case 's3Test':
