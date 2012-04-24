@@ -1,106 +1,92 @@
 <?php
 	error_reporting(E_ALL ^ E_NOTICE);
-	ini_set('memory_limit','128M');
+	ini_set('memory_limit', '128M');
 	set_time_limit(0);
 	session_start();
 	ob_start();
 
 	/**
-	 * @copyright SilverBiology, LLC
-	 * @author Michael Giddens
+	 * @author SilverBiology
 	 * @website http://www.silverbiology.com
 	*/
 
-	set_time_limit(0);
-	
 	$expected = array (
-		'cmd'
-		,'stop'
-		,'api'
-		,'output'
-		,'callback'
-		,'start'
-		,'limit'
-		,'order'
-		,'dir'
-		,'sort'
-		,'filter'
-		,'nodeApi'
-		,'nodeValue'
-		,'sc'
-		,'sc_id'
-		,'collection_id'
-		,'id'
-		,'station_id'
-		,'user_id'
-		,'image_id'
-		,'enAccountId'
-		,'barcode'
-		,'imageId'
-		,'date'
-		,'date'
-		,'week'
-		,'month'
-		,'year'
-		,'width'
-		,'height'
-		,'size'
-		,'photo_title'
-		,'photo_summary'
-		,'photo_tags'
-		,'picassa_PlantID'
-		,'collectionCode'
-		,'tag'
-		,'report_type'
-		,'station'
-		,'users'
-		,'stage'
-		,'type'
-		,'field'
-		,'value'
-		,'code'
-		,'exist'
-		,'degree'
-		,'filenames'
-		,'autoProcess'
-		,'types'
-		,'tiles'
-		,'filename'
-		,'zoom'
-		,'index'
-		,'attributes'
-
-		,'characters'
-		,'browse'
-		,'search_type'
-		,'search_value'
-		,'valueID'
-		,'categoryID'
-		,'value'
-		,'imageID'
-
-		,'nodeApi'
-		,'nodeValue'
-		,'family'
-		,'genus'
-		,'imagesType'
-		,'tpl'
-
-		,'country'
-		,'country_iso'
-		,'geoId'
-
-		,'eventId'
-		,'eventTypeId'
-		,'geoId'
-		,'title'
-		,'description'
-
-		, 'code'
-		, 'showOCR'
-
-		, 'force'
-		, 'ext'
+			'cmd'
+		,	'api'
+		,	'attributes'
+		,	'autoProcess'
+		,	'barcode'
+		,	'browse'
+		,	'callback'
+		,	'categoryID'
+		,	'characters'
+		,	'code'
+		,	'collectionCode'
+		,	'collection_id'
+		,	'country'
+		,	'country_iso'
+		,	'date'
+		,	'day'
+		,	'degree'
+		,	'description'
+		,	'dir'
+		,	'enAccountId'
+		,	'eventId'
+		,	'eventTypeId'
+		,	'exist'
+		,	'ext'
+		,	'family'
+		,	'field'
+		,	'filename'
+		,	'filenames'
+		,	'filter'
+		,	'force'
+		,	'genus'
+		,	'geoId'
+		,	'height'
+		,	'id'
+		,	'imageID'
+		,	'imageId'
+		,	'image_id'
+		,	'imagesType'
+		,	'index'
+		,	'limit'
+		,	'month'
+		,	'nodeApi'
+		,	'nodeValue'
+		,	'order'
+		,	'output'
+		,	'photo_summary'
+		,	'photo_tags'
+		,	'photo_title'
+		,	'picassa_PlantID'
+		,	'report_type'
+		,	'sc'
+		,	'sc_id'
+		,	'search_type'
+		,	'search_value'
+		,	'showOCR'
+		,	'size'
+		,	'sort'
+		,	'stage'
+		,	'start'
+		,	'station'
+		,	'station_id'
+		,	'stop'
+		,	'tag'
+		,	'tiles'
+		,	'title'
+		,	'tpl'
+		,	'type'
+		,	'types'
+		,	'user_id'
+		,	'users'
+		,	'value'
+		,	'valueID'
+		,	'week'
+		,	'width'
+		,	'year'
+		,	'zoom'
 	);
 
 	// Initialize allowed variables
@@ -115,8 +101,8 @@
 	 * Function print_c (Print Callback)
 	 * This is a wrapper function for print that will place the callback around the output statement
 	 */
-
-	function print_c( $str, $callback = '' ) {
+	function print_c($str) {
+		global $callback;
 		header('Content-type: application/json');
 		if ( isset( $callback ) && $callback != '' ) {
 			$cb = $callback . '(' . $str . ')';
@@ -133,27 +119,27 @@
 			$out = array();
 			foreach ($argv as $arg){
 				if (substr($arg,0,2) == '--'){
-				$eqPos = strpos($arg,'=');
-				if ($eqPos === false){
-					$key = substr($arg,2);
-					$out[$key] = isset($out[$key]) ? $out[$key] : true;
-				} else {
-					$key = substr($arg,2,$eqPos-2);
-					$out[$key] = substr($arg,$eqPos+1);
-				}
-				} else if (substr($arg,0,1) == '-'){
-				if (substr($arg,2,1) == '='){
-					$key = substr($arg,1,1);
-					$out[$key] = substr($arg,3);
-				} else {
-					$chars = str_split(substr($arg,1));
-					foreach ($chars as $char){
-					$key = $char;
-					$out[$key] = isset($out[$key]) ? $out[$key] : true;
+					$eqPos = strpos($arg,'=');
+					if ($eqPos === false){
+						$key = substr($arg,2);
+						$out[$key] = isset($out[$key]) ? $out[$key] : true;
+					} else {
+						$key = substr($arg,2,$eqPos-2);
+						$out[$key] = substr($arg,$eqPos+1);
 					}
-				}
+				} else if (substr($arg,0,1) == '-'){
+					if (substr($arg,2,1) == '='){
+						$key = substr($arg,1,1);
+						$out[$key] = substr($arg,3);
+					} else {
+						$chars = str_split(substr($arg,1));
+						foreach ($chars as $char){
+						$key = $char;
+						$out[$key] = isset($out[$key]) ? $out[$key] : true;
+						}
+					}
 				} else {
-				$out[] = $arg;
+					$out[] = $arg;
 				}
 			}
 			return $out;
@@ -175,19 +161,22 @@
 	set_include_path(get_include_path() . PATH_SEPARATOR . $path);
 
 	require_once("classes/class.master.php");
+	require_once("classes/access_user/access_user_class.php");
+	
+// TODO - If in the config the Flickr is not set to true default this to not reuiqre this lib since we do not need the extra code for the cmd.
 	require_once("classes/phpFlickr/phpFlickr.php");
-	require_once( "classes/access_user/access_user_class.php");
 	
 	$si = new SilverImage($config['mysql']['name']);
 	$user_access = new Access_user($config['mysql']['host'], $config['mysql']['user'], $config['mysql']['pass'], $config['mysql']['name']);
-	
+
+// TODO - move this and all case php functins into an api-picassa.php project so that those commands will be separated out from api.php
 	// setting picassa constants
-	$si->picassa->set('picassa_path',$config['picassa']['lib_path']);
-	$si->picassa->set('picassa_user',$config['picassa']['email']);
-	$si->picassa->set('picassa_pass',$config['picassa']['pass']);
-	$si->picassa->set('picassa_album',$config['picassa']['album']);
+	$si->picassa->set('picassa_path', $config['picassa']['lib_path']);
+	$si->picassa->set('picassa_user', $config['picassa']['email']);
+	$si->picassa->set('picassa_pass', $config['picassa']['pass']);
+	$si->picassa->set('picassa_album', $config['picassa']['album']);
 	
-	// This is the output type that the program needs to return
+	// This is the output type that the program needs to return, defaults to json
 	if(!isset($api)) {
 		$api = "json";
 	}
@@ -196,11 +185,12 @@
 	$valid = true;
 	$code = 0;
 	$time_start = microtime(true);
-
 	$user_access->db = &$si->db;
 
+	// Type of command to perform
 	switch( $cmd ) {
 
+		// Adds logs from SilverImage into BIS
 		case 'load_logs':
 			if($config['mode'] == 's3') {
 				$data['mode'] = $config['mode'];
@@ -219,12 +209,13 @@
 
 			header('Content-type: application/json');
 			if($ret['success']) {
-				print ( json_encode ( array( 'success' => true, 'process_time' => $ret['time'], 'total_files_loaded' =>  $ret['total']) ) );
+				print_c( json_encode ( array( 'success' => true, 'process_time' => $ret['time'], 'total_files_loaded' =>  $ret['total']) ) );
 			} else {
-				print( json_encode( array( 'success' => false,  'error' => array('code' => 102, 'message' => $si->getError(102)) ) ) );
+				print_c( json_encode( array( 'success' => false,  'error' => array('code' => 102, 'message' => $si->getError(102)) ) ) );
 			}
 			break;
-
+	
+		// Gets Logs from Logs based on sc_id????
 		case 'get_id':
 			$data['sc_id'] = trim($sc_id);
 			if($data['sc_id'] == "") {
@@ -238,34 +229,33 @@
 				$si->logger->clearRecords();
 				if($si->logger->getId()) {
 					$id = $si->logger->getRecords();
-					print ( json_encode ( array( 'success' => true, 'data' => $id ) ) );
+					print_c( json_encode( array('success' => true, 'data' => $id) ) );
 				}
 			} else {
-				print( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ) );
+				print_c( json_encode( array('success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ) );
 			}
 			break;
 
+		// Returns list results of images stored in BIS
 		case 'browse':
 			$data['time_start'] = microtime(true);
 			$data['filter'] = stripslashes(trim($filter));
 			$data['nodeApi'] = trim($nodeApi);
-			if(!in_array($data['nodeApi'],array('alpha', 'Family', 'Genus', 'SpecificEpithet','root'))) {
+			$data['nodeValue'] = trim($nodeValue);
+			
+			header('Content-type: application/json');
+			if(!in_array($data['nodeApi'], array('alpha', 'Family', 'Genus', 'SpecificEpithet', 'root'))) {
 				$code = 114;
 				$valid = false;
-			}
-			$data['nodeValue'] = trim($nodeValue);
-			header('Content-type: application/json');
-			if($valid) {
+				print_c( json_encode( array( 'success' => false, 'error' => array('code' => $code, 'message' => $si->getError($code)) ) ) );
+			} else {
 				$si->image->setData($data);
 				$records = $si->image->loadBrowse();
-				print( json_encode( $records ) );
-			} else {
-				print( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ) );
+				print_c( json_encode( $records ) );
 			}
-
-			
 			break;
 
+		// REPORTS		
 		case 'collection_report':
 			$data['date'] = trim($date);
 			$data['date2'] = trim($date2);
@@ -423,8 +413,10 @@
 			header('Content-type: application/json');
 			print( json_encode( array( 'success' => true,  'data' => $data ) ) );
 			break;
+		// END REPORTS
 
-		// Service  Should not normally be run as a 
+
+		// Service - Should not normally be run as a cron but can be run using the api.
 		case 'check-new-images':
 			$time_start = microtime(true);
 			$si->images->clear_files();
@@ -442,14 +434,14 @@
 						$filename = $image->get('filename');
 
 						$parts = array();
-						$parts = preg_split("/[0-9]+/",$barcode);
+						$parts = preg_split("/[0-9]+/", $barcode);
 						$CollectionCode = $parts[0];
 						unset($parts);
 
 						$path = $config['path']['images'] . $image->barcode_path( $barcode ) . $filename;
 						$ar = @getimagesize($path);
 
-# if barcode exits already, the image is replaced and the db record is reset and queue populated
+						# if barcode exits already, the image is replaced and the db record is reset and queue populated
 						if($image->barcode_exists($barcode)) {
 							$image->load_by_barcode($barcode);
 						}
@@ -460,12 +452,9 @@
 						$image->set('gTileProcessed',0);
 						$image->set('zoomEnabled',0);
 						$image->set('processed',0);
-
 						$image->set('width',$ar[0]);
 						$image->set('height',$ar[1]);
-
 						$image->set('CollectionCode',$CollectionCode);
-
 						$image->save();
 						unset($image);
 	
@@ -475,8 +464,8 @@
 						$count++;
 					} else {
 						header('Content-type: application/json');
-						print( json_encode( array( 'success' => false, 'error' => array('code' => $successFlag['code'], 'message' => $si->getError($successFlag['code'])) ) ) );
-						exit;
+						print_c( json_encode( array('success' => false, 'error' => array('code' => $successFlag['code'], 'message' => $si->getError($successFlag['code'])) ) ) );
+						exit();
 					}
 				}
 			}
@@ -486,6 +475,7 @@
 			print( json_encode( array( 'success' => true, 'process_time' => $time, 'total_images' => $count ) ) );
 			break;
 
+		// Get storage info from the images path
 		case 'storage_info':
 			$force = (trim($force) == '1') ? 1 : 0;
 			$output = array();
@@ -507,8 +497,9 @@
 					$output = array('success' => true, 'read' => -1, 'write' => -1);
 				}
 			}
+
 			header('Content-type: application/json');
-			print(json_encode($output));
+			print_c(json_encode($output));
 			break;
 
 		case 'process_queue':
@@ -518,17 +509,17 @@
 			$data['mode'] = $config['mode'];
 			$data['s3'] = $config['s3'];
 			$data['obj'] = $si->amazon;
-			$data['imageIds'] = @json_decode($image_id,true);
+			$data['imageIds'] = @json_decode($image_id, true);
 			$si->pqueue->setData($data);
 			$result = $si->pqueue->process_queue();
 			if($result['success']) {
 				header('Content-type: application/json');
-				print( json_encode( array( 'success' => true, 'process_time' => $result['time'], 'total_records' => $result['total'] ) ) );
+				print_c( json_encode( array( 'success' => true, 'process_time' => $result['time'], 'total_records' => $result['total'] ) ) );
 			}
 			break;
 
+		// Get Image returns an image stored on this server
 		case 'get_image':
-
 			$data['image_id'] = trim($image_id);
 			$data['barcode'] = trim($barcode);
 			if($data['image_id'] == '' && $data['barcode'] == '') {
@@ -543,31 +534,25 @@
 			$data['s3'] = $config['s3'];
 			$data['obj'] = $si->amazon;
 
-			$config['allowed_ext'] = array('jpg','png');
-			if(!isset($ext)) {
-				$ext = "jpg";
-			} else {
-				$ext = trim($ext);
-				$ext = strtolower($ext);
-				if(!in_array($ext,$config['allowed_ext'])) {
-					$valid = false;
-					$code = 142;
-				}
+			// Type null defaults to 'jpg'
+			$config['allowed_image_format'] = array('jpg', 'png', 'gif', 'tiff');
+			if(($type != '') && !in_array(strtolower($type), $config['allowed_image_format'])) {
+				$valid = false;
+				$code = 142;
 			}
-			$data['ext'] = $ext;
 
 			if($valid) {
 				$si->image->setData($data);
 				$ar = $si->image->getImage();
 				header('Content-type: application/json');
-				if(false == $ar['success']) {
-					print( json_encode( array( 'success' => false,  'error' => array('code' => $ar['code'], 'message' => $si->getError($ar['code'])) ) ) );
+				if($ar['success'] == false) {
+					print_c( json_encode( array('success' => false,  'error' => array('code' => $ar['code'], 'message' => $si->getError($ar['code'])) ) ) );
 				} else {
-					print( json_encode( array( 'success' => true) ) );
+					print_c( json_encode( array('success' => true) ) );
 				}
-			}else {
+			} else {
 				header('Content-type: application/json');
-				print( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ) );
+				print_c( json_encode( array('success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ) );
 			}
 			break;
 
@@ -579,7 +564,7 @@
 			$result = $it->getTileData($zoom, $index);
 			
 			$type = 'image/jpeg';
-			header('Content-Type:'.$type);
+			header('Content-Type:' . $type);
 			print $result;
 			break;
 
@@ -634,7 +619,7 @@
 				$processTime = microtime(true) - $time_start;
 				header('Content-type: application/json');
 				print( json_encode( array( 'success' => true, 'processTime' => $processTime, 'url' => $config['tileUrl'] . strtolower($barcode)) ) );
-			}else {
+			} else {
 				header('Content-type: application/json');
 				print( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ) );
 			}
@@ -661,7 +646,8 @@
 				$si->pqueue->setData($data);
 				$data = $si->pqueue->listQueue();
 				$total = $si->pqueue->db->query_total();
-				print( json_encode( array( 'success' => true, 'totalCount' => $total, 'data' => $data ) ) );
+				$processTime = microtime(true) - $time_start;				
+				print( json_encode( array( 'success' => true, 'processTime' => $processTime, 'totalCount' => $total, 'data' => $data ) ) );
 			}else {
 				print( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ) );
 			}
@@ -713,53 +699,51 @@
 				if(is_array($data) && count($data)) {
 					foreach($data as &$dt) {
 						if($config['mode'] == 's3') {
-	$dt->path = $config['s3']['url'] . $si->image->barcode_path($dt->barcode);
+							$dt->path = $config['s3']['url'] . $si->image->barcode_path($dt->barcode);
 						} else {
-	$dt->path =  str_replace($config['doc_root'],rtrim($config['base_url'],'/') . '/', $config['path']['images'] . $si->image->barcode_path($dt->barcode));
+							$dt->path = str_replace($config['doc_root'],rtrim($config['base_url'],'/') . '/', $config['path']['images'] . $si->image->barcode_path($dt->barcode));
 						}
 
 					}
 				}
-//***
+
+				//***
 				if($output=='rss'){
 					include("feedwriter.php");
-						
-						$TestFeed = new FeedWriter(RSS2);
-						$TestFeed->setTitle('Toronto Image Server');
-						$TestFeed->setLink('http://a1.silverbiology.com/biodiversityimageserver/trt/');
-						
 
-						foreach($data as $key=>$value){
-							
-							$key1=get_object_vars($value);
-							
-							$imgMed = $key1['path'].$key1['barcode'].'_m.jpg';
-							$imgLarg = $key1['path'].$key1['barcode'].'_l.jpg';
+					$RSSFeed = new FeedWriter(RSS2);
+// TODO SHould not be coded her but in the config.					
+					$RSSFeed->setTitle('Toronto Image Server');
+// TODO THIS should be the config[weburl] or something like that
+					$RSSFeed->setLink('http://{WRONG!!!!!}/trt/');
 						
-							$title = $key1['barcode'];  
-							$newItem = $TestFeed->createNewItem();
-						   
-							//Add elements to the feed item    
-							$newItem->setTitle($title);
-							$newItem->setLink($img1);
-							$newItem->setDescription("<a href='".$imgLarg."'><img style='border:1px solid #5C7FB9'src='".$imgMed."'/></a>");
-							$newItem->setEncloser($imgLarg,'7','image/jpeg');
-							//set the feed item
-							$TestFeed->addItem($newItem);
-						}
+					foreach($data as $key => $value){
+						
+						$key1 = get_object_vars($value);						
+						$imgMed = $key1['path'] . $key1['barcode'] . '_m.jpg';
+						$imgLarg = $key1['path'] . $key1['barcode'] . '_l.jpg';
+					
+						$title = $key1['barcode'];  
+						$newItem = $RSSFeed->createNewItem();
+						 
+						//Add elements to the feed item    
+						$newItem->setTitle($title);
+						$newItem->setLink($img1);
+						$newItem->setDescription("<a href='" . $imgLarg . "'><img style='border:1px solid #5C7FB9'src='" . $imgMed . "'/></a>");
+						$newItem->setEncloser($imgLarg, '7', 'image/jpeg');
+						//set the feed item
+						$RSSFeed->addItem($newItem);
+					}
 
-					  $TestFeed->genarateFeed();
-				
-				} else{
+					$RSSFeed->genarateFeed();
+				} else {
 					header('Content-type: application/json');
 					$total = $si->image->db->query_total();
-					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time, 'totalCount' => $total, 'data' => $data ) ), $callback );
+					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time, 'totalCount' => $total, 'data' => $data ) ));
 				}
-			}else {
-				
-				print_c( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ), $callback );
+			} else {				
+				print_c( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ));
 			}
-
 			break;
 
 		case 'collections':
@@ -782,11 +766,10 @@
 				$si->collection->setData($data);
 				$data = $si->collection->listCollection();
 				$total = $si->collection->db->query_total();
-				print_c( json_encode( array( 'success' => true, 'totalCount' => $total, 'records' => $data ) ), $callback );
-			}else {
-				print_c( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ), $callback );
+				print_c( json_encode( array( 'success' => true, 'totalCount' => $total, 'records' => $data ) ));
+			} else {
+				print_c( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ));
 			}
-
 			break;
 
 		case 'image_sequence_cache':
@@ -800,7 +783,6 @@
 				$pathUrl = $config['image_sequence_cache'];
 				$pathUrl = @str_replace($config['path']['base'], $config['base_url'] . 'biodiversityimageserver/trt/', $config['image_sequence_cache']);
 
-
 				$si->image->setData($filter);
 				$data = $si->image->imageSequenceCache();
 				$datalist = json_encode($data);
@@ -811,10 +793,9 @@
 
 				$total = $si->image->db->query_total();
 				print( json_encode( array( 'success' => true, 'totalCount' => $total, 'cacheFile' => $pathUrl, 'records' => $data ) ) );
-			}else {
+			} else {
 				print( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ) );
 			}
-
 			break;
 
 		case 'details':
@@ -870,7 +851,7 @@
 
 		case 'getVersion':
 			header('Content-type: application/json');
-			print( json_encode( array('success' => true, 'version' => $config['version'] ) ) );
+			print_c( json_encode( array('success' => true, 'name' => 'Biodiversity Image Server', 'version' => $config['version'] ) ) );
 			break;
 
 		case 'rechop':
@@ -878,6 +859,7 @@
 				$valid = false;
 				$code = 107;
 			}
+
 			header('Content-type: application/json');
 			if($valid) {
 				$ar = array();
@@ -1006,7 +988,6 @@
 				}
 				$str = @implode(',<br>',$br);
 			}
-
 
 			print '<br> Monitored Count : ' . $ct . ' <br> Count : ' . $count . ' <br> Barcodes : <br>' . $str;
 			break;
@@ -1228,12 +1209,11 @@
 
 			break;
 
-/**
- * Audits the images and reports and populate the pqueue with the missing ones
- * @param string filenames : json list of the filenames
- * @param string autoProcess : json list to autoProcess
- */
-
+		/**
+		 * Audits the images and reports and populate the pqueue with the missing ones
+		 * @param string filenames : json list of the filenames
+		 * @param string autoProcess : json list to autoProcess
+		 */
 		case 'audit':
 			$autoProcessTemplate = array('small' => true, 'medium' => true, 'large' => true, 'google_tile' => false, 'flickr_add' =>  false, 'picassa_add' => false);
 			$statsArray = array();
@@ -1442,8 +1422,7 @@
 
 			break;
 
-# New Image Admin Tasks
-
+		# New Image Admin Tasks
 		case 'image_characters':
 			if(!$user_access->is_logged_in()){
 				print_c ( json_encode( array( 'success' => false, 'error' => array('message' => $sa->getError(113), 'code' => 113 )) ));
@@ -1494,10 +1473,10 @@
 			break;
 
 		case 'delete_image_attribute':
-				if(!$user_access->is_logged_in()){
-					print_c ( json_encode( array( 'success' => false, 'error' => array('message' => $sa->getError(113), 'code' => 113 )) ));
-					exit;
-				}
+			if(!$user_access->is_logged_in()){
+				print_c ( json_encode( array( 'success' => false, 'error' => array('message' => $sa->getError(113), 'code' => 113 )) ));
+				exit;
+			}
 			$time_start = microtime(true);
 			$data['imageID'] = $imageID;
 			if($data['imageID'] == "") {
