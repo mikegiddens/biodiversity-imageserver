@@ -1,84 +1,83 @@
 <?php
 /**
- * @copyright SilverBiology, LLC
- * @author Michael Giddens
+ * @author SilverBiology
  * @website http://www.silverbiology.com
  */
 
 Class Image {
 
-    public $db, $record;
+	public $db, $record;
 
 	public function __construct($db = null) {
 		$this->db = $db;
 	}
 
-    public function set_fullpath( $file ){
-        $parts = explode('/', $file);
-        if ( count($parts) == 1 ) {
-        $parts = explode('\\', $file);
-        }
-        $filename = $parts[count($parts) - 1];
-        unset($parts[count($parts) - 1]);
-        $path = implode('/', $parts) . "/";
-        $this->set('filename',$filename);
-        $this->set('path',$path);
-    }
+	public function set_fullpath( $file ){
+		$parts = explode('/', $file);
+		if ( count($parts) == 1 ) {
+			$parts = explode('\\', $file);
+		}
+		$filename = $parts[count($parts) - 1];
+		unset($parts[count($parts) - 1]);
+		$path = implode('/', $parts) . "/";
+		$this->set('filename', $filename);
+		$this->set('path', $path);
+	}
 
-    public function getName( $field = 'name' ) {
-        if ($field == 'name' || $field == 'ext') {
-            $ext = explode('.', $this->get('filename'));
-            return ($field == 'name') ? $ext[0] : $ext[1];
-        } else {
-            return ($this->$field);
-        }
-    }
+	public function getName( $field = 'name' ) {
+		if ($field == 'name' || $field == 'ext') {
+			$ext = explode('.', $this->get('filename'));
+			return($field == 'name') ? $ext[0] : $ext[1];
+		} else {
+			return($this->$field);
+		}
+	}
 
-    /**
-     * Set the value to Data
-     * @param mixed $data : input data
-     * @return bool
-     */
-    public function setData($data) {
-        $this->data = $data;
-        return( true );
-    }
+	/**
+	 * Set the value to Data
+	 * @param mixed $data : input data
+	 * @return bool
+	 */
+	public function setData($data) {
+		$this->data = $data;
+		return(true);
+	}
 
-    /**
-    * Returns all the values in the record
-    * @return mixed
-    */
-    public function get_all() {
-        if (isset($this->record)) {
-            return( $this->record );
-        } else {
-            return( false );
-        }
-    }
+	/**
+	* Returns all the values in the record
+	* @return mixed
+	*/
+	public function get_all() {
+		if (isset($this->record)) {
+			return( $this->record );
+		} else {
+			return(false);
+		}
+	}
 
-    /**
-    * Returns a since field value
-    * @return mixed
-    */
-    public function get( $field ) {
-        if (isset($this->record[$field])) {
-            return( $this->record[$field] );
-        } else {
-            return( false );
-        }
-    }
+	/**
+	* Returns a since field value
+	* @return mixed
+	*/
+	public function get( $field ) {
+		if (isset($this->record[$field])) {
+			return( $this->record[$field] );
+		} else {
+			return(false);
+		}
+	}
 
-    /**
-    * Set the value to a field
-    * @return bool
-    */
-    public function set( $field, $value ) {
-        $this->record[$field] = $value;
-        return( true );
-    }
+	/**
+	* Set the value to a field
+	* @return bool
+	*/
+	public function set( $field, $value ) {
+		$this->record[$field] = $value;
+		return(true);
+	}
 
 	public function load_by_barcode( $barcode ) {
-		if($barcode == '') return false;
+		if($barcode == '') return(false);
 		$query = sprintf("SELECT * FROM `image` WHERE `barcode` = '%s'", mysql_escape_string($barcode) );
 		$ret = $this->db->query_one( $query );
 		if ($ret != NULL) {
@@ -105,55 +104,55 @@ Class Image {
 		}
 	}
 
-    public function moveToImages() {
-	global $config;
-        $barcode = $this->getName();
-        $tmpPath = $config['path']['images'] . $this->barcode_path( $barcode );
-        $this->mkdir_recursive( $tmpPath );
-	$flsz = @filesize($this->get('path') . $this->get('filename'));
-	if(!$flsz) {
-		if(!@rename( $this->get('path') . $this->get('filename'), $config['path']['error'] . $this->get('filename') )) {
-			return array('success' => false, 'code' => 140);
-		}
-		return array('success' => false);
-	}
-        if(@rename( $this->get('path') . $this->get('filename'), $tmpPath . $this->get('filename') )) {
-        	$this->set('path',$tmpPath);
-		return array('success' => true);
-	} else {
-		return array('success' => false, 'code' => 141);
-	}
-    }
-
-    public function barcode_path( $barcode ) {
-        $id = $barcode;
-        if ((strlen($id))>8){
-		$loop_flag = true;$i = 0;
-		while($loop_flag){
-			if(substr($barcode,$i) * 1) {
-				$loop_flag = false;
-			} else {
-				$i++;
+	public function moveToImages() {
+		global $config;
+		$barcode = $this->getName();
+		$tmpPath = $config['path']['images'] . $this->barcode_path( $barcode );
+		$this->mkdir_recursive( $tmpPath );
+		$flsz = @filesize($this->get('path') . $this->get('filename'));
+		if(!$flsz) {
+			if(!@rename( $this->get('path') . $this->get('filename'), $config['path']['error'] . $this->get('filename') )) {
+				return array('success' => false, 'code' => 140);
 			}
-			if($i>8) $loop_flag = false;
+			return array('success' => false);
 		}
-	        $this->prefix = strtolower(substr($id, 0, $i));
-            	$id= substr($id, $i);
-        } else {
-            $this->prefix="";
-        }
-        $destPath  = $this->prefix . "/";
-        $destPath .= (int) ($id / 1000000) . "/";
-        $destPath .= (int) ( ($id % 1000000) / 10000) . "/";
-        $destPath .= (int) ( ($id % 10000) / 100) . "/";
-        $destPath .= (int) ( $id % 100 ) . "/";
-        return( $destPath );
-    }
+		if(@rename( $this->get('path') . $this->get('filename'), $tmpPath . $this->get('filename') )) {
+			$this->set('path',$tmpPath);
+			return array('success' => true);
+		} else {
+			return array('success' => false, 'code' => 141);
+		}
+	}
 
-    public function mkdir_recursive( $pathname ) {
-        is_dir(dirname($pathname)) || $this->mkdir_recursive(dirname($pathname));
-        return is_dir($pathname) || @mkdir($pathname, 0775);
-    }
+	public function barcode_path( $barcode ) {
+		$id = $barcode;
+		if ((strlen($id))>8){
+			$loop_flag = true;$i = 0;
+			while($loop_flag){
+				if(substr($barcode,$i) * 1) {
+					$loop_flag = false;
+				} else {
+					$i++;
+				}
+				if($i>8) $loop_flag = false;
+			}
+			$this->prefix = strtolower(substr($id, 0, $i));
+			$id= substr($id, $i);
+		} else {
+			$this->prefix="";
+		}
+		$destPath  = $this->prefix . "/";
+		$destPath .= (int) ($id / 1000000) . "/";
+		$destPath .= (int) ( ($id % 1000000) / 10000) . "/";
+		$destPath .= (int) ( ($id % 10000) / 100) . "/";
+		$destPath .= (int) ( $id % 100 ) . "/";
+		return( $destPath );
+	}
+
+	public function mkdir_recursive( $pathname ) {
+		is_dir(dirname($pathname)) || $this->mkdir_recursive(dirname($pathname));
+		return is_dir($pathname) || @mkdir($pathname, 0775);
+	}
 
 	function rmdir_recursive($dir) {
 		if (is_dir($dir)) {
@@ -168,19 +167,19 @@ Class Image {
 		}
 	}
 
-    function createThumbnail( $tmp_path, $new_width, $new_height, $postfix = '', $display_flag=false ) {
-	$extension = '.' . $this->getName('ext');
-	$func = 'imagecreatefrom' . (@strtolower($this->getName('ext')) == 'jpg' ? 'jpeg' : @strtolower($this->getName('ext')));
-	$im = @$func($tmp_path);
-	if($im !== false) {
-		$image_file = $this->get("path") . $this->getName() . $postfix . $extension;
-		$width = imageSX($im);
-		$height = imageSY($im);
-		$image_file = ($display_flag)?NULL:$image_file;
-		$this->resizeImage($new_width, $new_height, $im, $image_file, $width, $height);
-		ImageDestroy($im); // Remove tmp Image Object
+	function createThumbnail( $tmp_path, $new_width, $new_height, $postfix = '', $display_flag=false ) {
+		$extension = '.' . $this->getName('ext');
+		$func = 'imagecreatefrom' . (@strtolower($this->getName('ext')) == 'jpg' ? 'jpeg' : @strtolower($this->getName('ext')));
+		$im = @$func($tmp_path);
+		if($im !== false) {
+			$image_file = $this->get("path") . $this->getName() . $postfix . $extension;
+			$width = imageSX($im);
+			$height = imageSY($im);
+			$image_file = ($display_flag)?NULL:$image_file;
+			$this->resizeImage($new_width, $new_height, $im, $image_file, $width, $height);
+			ImageDestroy($im); // Remove tmp Image Object
+		}
 	}
-    }
 
 	function createThumbnailIMagik( $tmp_path, $new_width, $new_height, $postfix = '' ) {
 		$extension = '.' . $this->getName('ext');
@@ -324,7 +323,7 @@ Class Image {
 		$extension = '.' . $ext;
 		$func1 = 'image' . ($ext == 'jpg' ? 'jpeg' : $ext);
 		$content_type = 'image/' . ($ext == 'jpg' ? 'jpeg' : $ext);
-        	$size = @strtolower($this->data['size']);
+		$size = @strtolower($this->data['size']);
 		$path = $config['path']['images'] . $this->barcode_path($this->get('barcode'));
 		$image =  $path . $this->get('barcode') . $extension;
 		$existsFlag = false;
@@ -332,7 +331,7 @@ Class Image {
 		$tmpPath = $_TMP . $this->get('filename');
 
 		# checking if exists
-		if(in_array(strtolower($size),array('s','m','l'))) {
+		if(in_array(strtolower($size),array('s', 'm', 'l'))) {
 			if($config['mode'] == 's3') {
 				$key = $this->barcode_path($this->get('barcode')) . $this->get('barcode') . '_' . $size . $extension;
 				$existsFlag = $this->data['obj']->if_object_exists($bucket,$key);
@@ -352,6 +351,7 @@ Class Image {
 			}
 
 			$fp = fopen($tmpPath, 'rb');
+// TODO THIS NEED to be the content type based on the data["type"] set
 			header("Content-Type: image/jpeg");
 			header("Content-Length: " . filesize($tmpPath));
 			fpassthru($fp);
@@ -362,8 +362,7 @@ Class Image {
 			exit;
 		}
 
-		# not exists
-
+		# Image variation does not exist
 		if($config['mode'] == 's3') {
 			# downloading original image
 			$key = $this->barcode_path($this->get('barcode')) . $this->get('barcode') . $extension;
@@ -373,10 +372,16 @@ Class Image {
 		} else {
 			$tmpPath =  $image;
 		}
-		if(in_array(strtolower($size),array('s','m','l'))){
+
+		if($this->data['width'] != '' || $this->data['height'] != "") {
+			$size = 'custom';
+		}
+		
+		if(in_array(strtolower($size), array('s', 'm', 'l', 'custom'))){
 			$dtls = @pathinfo($tmpPath);
 			$extension = '.' . $dtls['extension'];
 			$file_name =  $dtls['dirname'] . '/' . $dtls['filename'] . '_' . $size . $extension;
+// TODO you need to add the type param at the end of this and add it as an optiona argument in the createThumb			
 			switch($size) {
 				case 's':
 					$this->createThumb( $tmpPath, 100, 100, '_s');
@@ -387,6 +392,11 @@ Class Image {
 				case 'l':
 					$this->createThumb( $tmpPath, 800, 800, "_l");
 					break;
+				case 'custom':
+					$width = ($this->data['width']!='') ? $this->data['width'] : $this->data['height'];
+					$height = ($this->data['height']!='') ? $this->data['height'] : $this->data['width'];
+					$this->createThumb( $tmpPath, $width, $height, 'tmp', true);
+					break;					
 			}
 			if($config['mode'] == 's3') {
 				# putting the image to s3
@@ -403,160 +413,110 @@ Class Image {
 				@unlink($tmpPath);
 			}
 			exit;
-		} else if($this->data['width'] != '' || $this->data['height'] != "") {
-			# custom dimensions
-			$width = ($this->data['width']!='')?$this->data['width']:$this->data['height'];
-			$height = ($this->data['height']!='')?$this->data['height']:$this->data['width'];
-			$this->createThumb( $tmpPath, $width, $height, 'tmp', true);
 		} else {
 			return array('success' => false, 'code' => 138);
 		}
 
 	}
 
-/**
- * Gets the requested dimension image
- */
-/*
-    public function getImage() {
-	global $config;
-	$this->load_by_id($this->data['image_id']);
-	$ext = @strtolower($this->getName('ext'));
-	$extension = '.' . $ext;
-	$func1 = 'image' . ($ext == 'jpg' ? 'jpeg' : $ext);
-	$content_type = 'image/' . ($ext == 'jpg' ? 'jpeg' : $ext);
-        $path = $config['path']['images'] . $this->barcode_path($this->get('barcode'));
-        $size = @strtolower($this->data['size']);
-        $image =  $path . $this->get('barcode') . $extension;
+	/**
+	 * checks whether field exists in image table
+	 */
+	public function field_exists ($image_id){
+		if($image_id == '' || is_null($image_id)) return(false);
 
-	if(in_array(strtolower($size),array('s','m','l'))){
-		$file_name = $path . $this->get('barcode').'_' . $size . $extension;
-		if(!file_exists ($file_name)) {
-			switch($size) {
-			case 's':
-				$this->createThumb( $image, 100, 100, '_s');
-				break;
-			case 'm':
-				$this->createThumb( $image, 275, 275, "_m");
-				break;
-			case 'l':
-				$this->createThumb( $image, 800, 800, "_l");
-				break;
+		$query = sprintf("SELECT `image_id` FROM `image` WHERE `image_id` = %s;", $image_id );
+		$ret = $this->db->query_one( $query );
+		if ($ret == NULL) {
+			return false;
+		} else {
+			return true;
+		}
+	}
+
+	/**
+	 * checks whether field exists in image table
+	 */
+	public function barcode_exists ($barcode,$returnFlag = false){
+		$query = sprintf("SELECT `image_id` FROM `image` WHERE `barcode` = '%s';", $barcode );
+		$ret = $this->db->query_one( $query );
+		if ($ret == NULL) {
+			return false;
+		} else {
+			if($returnFlag) {
+				return $ret->image_id;
+			} else {
+				return true;
 			}
 		}
-		$fp = fopen($file_name, 'rb');
-		header("Content-Type: $content_type");
-		header("Content-Length: " . filesize($file_name));
-		fpassthru($fp);
-		exit;
-	} else if($this->data['width'] != '' || $this->data['height'] != "") {
-#custom dimensions
-		$width = ($this->data['width']!='')?$this->data['width']:$this->data['height'];
-		$height = ($this->data['height']!='')?$this->data['height']:$this->data['width'];
-		$this->createThumb( $image, $width, $height, 'tmp', true);
-	} else {
-		return false;
 	}
-    }
-*/
-
-    /**
-     * checks whether field exists in image table
-     */
-    public function field_exists ($image_id){
-	if($image_id == '' || is_null($image_id)) return false;
-        $query = sprintf("SELECT `image_id` FROM `image` WHERE `image_id` = %s;", $image_id );
-        $ret = $this->db->query_one( $query );
-        if ($ret == NULL) {
-            return false;
-        } else {
-            return true;
-        }
-    }
-
-    /**
-     * checks whether field exists in image table
-     */
-    public function barcode_exists ($barcode,$returnFlag = false){
-        $query = sprintf("SELECT `image_id` FROM `image` WHERE `barcode` = '%s';", $barcode );
-        $ret = $this->db->query_one( $query );
-        if ($ret == NULL) {
-            return false;
-        } else {
-		if($returnFlag) {
-			return $ret->image_id;
-		} else {
-            		return true;
-		}
-        }
-    }
 
 	public function save() {
 		if($this->field_exists($this->get('image_id'))) {
-            $query = sprintf("UPDATE `image` SET  `filename` = '%s', `timestamp_modified` = now(), `barcode` = '%s', `width` = '%s', `height` = '%s', `Family` = '%s', `Genus` = '%s', `SpecificEpithet` = '%s', `rank` = %s, `author` = '%s', `title` = '%s', `description` = '%s', `GlobalUniqueIdentifier` = '%s', `creative_commons` = '%s', `characters` = '%s', `flickr_PlantID` = '%s', `flickr_modified` = '%s', `flickr_details` = '%s', `picassa_PlantID` = '%s', `picassa_modified` = '%s', `gTileProcessed` = '%s', `zoomEnabled` = '%s', `processed` = '%s', `box_flag` = '%s', `ocr_flag` = '%s', `ocr_value` = '%s', `namefinder_flag` = '%s', `namefinder_value` = '%s', `ScientificName` = '%s', `CollectionCode` = '%s'  WHERE image_id = '%s' ;"
-            , mysql_escape_string($this->get('filename'))
-            , mysql_escape_string($this->get('barcode'))
-            , mysql_escape_string($this->get('width'))
-            , mysql_escape_string($this->get('height'))
-            , mysql_escape_string($this->get('Family'))
-            , mysql_escape_string($this->get('Genus'))
-            , mysql_escape_string($this->get('SpecificEpithet'))
-            , mysql_escape_string($this->get('rank'))
-	    , mysql_escape_string($this->get('author'))
-	    , mysql_escape_string($this->get('title'))
-	    , mysql_escape_string($this->get('description'))
-	    , mysql_escape_string($this->get('GlobalUniqueIdentifier'))
-	    , mysql_escape_string($this->get('creative_commons'))
-	    , mysql_escape_string($this->get('characters'))
-            , mysql_escape_string($this->get('flickr_PlantID'))
-            , mysql_escape_string($this->get('flickr_modified'))
-            , mysql_escape_string($this->get('flickr_details'))
-            , mysql_escape_string($this->get('picassa_PlantID'))
-            , mysql_escape_string($this->get('picassa_modified'))
-            , mysql_escape_string($this->get('gTileProcessed'))
-            , mysql_escape_string($this->get('zoomEnabled'))
-            , mysql_escape_string($this->get('processed'))
-            , mysql_escape_string($this->get('box_flag'))
-            , mysql_escape_string($this->get('ocr_flag'))
-            , mysql_escape_string($this->get('ocr_value'))
-            , mysql_escape_string($this->get('namefinder_flag'))
-            , mysql_escape_string($this->get('namefinder_value'))
-            , mysql_escape_string($this->get('ScientificName'))
-            , mysql_escape_string($this->get('CollectionCode'))
-            , mysql_escape_string($this->get('image_id'))
-            );
+			$query = sprintf("UPDATE `image` SET  `filename` = '%s', `timestamp_modified` = now(), `barcode` = '%s', `width` = '%s', `height` = '%s', `Family` = '%s', `Genus` = '%s', `SpecificEpithet` = '%s', `rank` = %s, `author` = '%s', `title` = '%s', `description` = '%s', `GlobalUniqueIdentifier` = '%s', `creative_commons` = '%s', `characters` = '%s', `flickr_PlantID` = '%s', `flickr_modified` = '%s', `flickr_details` = '%s', `picassa_PlantID` = '%s', `picassa_modified` = '%s', `gTileProcessed` = '%s', `zoomEnabled` = '%s', `processed` = '%s', `box_flag` = '%s', `ocr_flag` = '%s', `ocr_value` = '%s', `namefinder_flag` = '%s', `namefinder_value` = '%s', `ScientificName` = '%s', `CollectionCode` = '%s'  WHERE image_id = '%s' ;"
+				, mysql_escape_string($this->get('filename'))
+				, mysql_escape_string($this->get('barcode'))
+				, mysql_escape_string($this->get('width'))
+				, mysql_escape_string($this->get('height'))
+				, mysql_escape_string($this->get('Family'))
+				, mysql_escape_string($this->get('Genus'))
+				, mysql_escape_string($this->get('SpecificEpithet'))
+				, mysql_escape_string($this->get('rank'))
+				, mysql_escape_string($this->get('author'))
+				, mysql_escape_string($this->get('title'))
+				, mysql_escape_string($this->get('description'))
+				, mysql_escape_string($this->get('GlobalUniqueIdentifier'))
+				, mysql_escape_string($this->get('creative_commons'))
+				, mysql_escape_string($this->get('characters'))
+				, mysql_escape_string($this->get('flickr_PlantID'))
+				, mysql_escape_string($this->get('flickr_modified'))
+				, mysql_escape_string($this->get('flickr_details'))
+				, mysql_escape_string($this->get('picassa_PlantID'))
+				, mysql_escape_string($this->get('picassa_modified'))
+				, mysql_escape_string($this->get('gTileProcessed'))
+				, mysql_escape_string($this->get('zoomEnabled'))
+				, mysql_escape_string($this->get('processed'))
+				, mysql_escape_string($this->get('box_flag'))
+				, mysql_escape_string($this->get('ocr_flag'))
+				, mysql_escape_string($this->get('ocr_value'))
+				, mysql_escape_string($this->get('namefinder_flag'))
+				, mysql_escape_string($this->get('namefinder_value'))
+				, mysql_escape_string($this->get('ScientificName'))
+				, mysql_escape_string($this->get('CollectionCode'))
+				, mysql_escape_string($this->get('image_id'))
+			);
 		} else {
-            $query = sprintf("INSERT IGNORE INTO `image` SET `filename` = '%s', `timestamp_modified` = now(), `barcode` = '%s', `width` = '%s', `height` = '%s', `Family` = '%s', `Genus` = '%s', `SpecificEpithet` = '%s', `rank` = %s, `author` = '%s', `title` = '%s', `description` = '%s', `GlobalUniqueIdentifier` = '%s', `creative_commons` = '%s', `characters` = '%s', `flickr_PlantID` = '%s', `flickr_modified` = '%s', `flickr_details` = '%s', `picassa_PlantID` = '%s', `picassa_modified` = '%s', `gTileProcessed` = '%s', `zoomEnabled` = '%s', `processed` = '%s', `box_flag` = '%s', `ocr_flag` = '%s', `ocr_value` = '%s', `namefinder_flag` = '%s', `namefinder_value` = '%s', `ScientificName` = '%s', `CollectionCode` = '%s' ;"
-            , mysql_escape_string($this->get('filename'))
-            , mysql_escape_string($this->get('barcode'))
-            , mysql_escape_string($this->get('width'))
-            , mysql_escape_string($this->get('height'))
-            , mysql_escape_string($this->get('Family'))
-            , mysql_escape_string($this->get('Genus'))
-            , mysql_escape_string($this->get('SpecificEpithet'))
-            , mysql_escape_string($this->get('rank'))
-	    , mysql_escape_string($this->get('author'))
-	    , mysql_escape_string($this->get('title'))
-	    , mysql_escape_string($this->get('description'))
-	    , mysql_escape_string($this->get('GlobalUniqueIdentifier'))
-	    , mysql_escape_string($this->get('creative_commons'))
-	    , mysql_escape_string($this->get('characters'))
-            , mysql_escape_string($this->get('flickr_PlantID'))
-            , mysql_escape_string($this->get('flickr_modified'))
-            , mysql_escape_string($this->get('flickr_details'))
-            , mysql_escape_string($this->get('picassa_PlantID'))
-            , mysql_escape_string($this->get('picassa_modified'))
-            , mysql_escape_string($this->get('gTileProcessed'))
-            , mysql_escape_string($this->get('zoomEnabled'))
-            , mysql_escape_string($this->get('processed'))
-            , mysql_escape_string($this->get('box_flag'))
-            , mysql_escape_string($this->get('ocr_flag'))
-            , mysql_escape_string($this->get('ocr_value'))
-            , mysql_escape_string($this->get('namefinder_flag'))
-            , mysql_escape_string($this->get('namefinder_value'))
-            , mysql_escape_string($this->get('ScientificName'))
-            , mysql_escape_string($this->get('CollectionCode'))
-            );
+			$query = sprintf("INSERT IGNORE INTO `image` SET `filename` = '%s', `timestamp_modified` = now(), `barcode` = '%s', `width` = '%s', `height` = '%s', `Family` = '%s', `Genus` = '%s', `SpecificEpithet` = '%s', `rank` = %s, `author` = '%s', `title` = '%s', `description` = '%s', `GlobalUniqueIdentifier` = '%s', `creative_commons` = '%s', `characters` = '%s', `flickr_PlantID` = '%s', `flickr_modified` = '%s', `flickr_details` = '%s', `picassa_PlantID` = '%s', `picassa_modified` = '%s', `gTileProcessed` = '%s', `zoomEnabled` = '%s', `processed` = '%s', `box_flag` = '%s', `ocr_flag` = '%s', `ocr_value` = '%s', `namefinder_flag` = '%s', `namefinder_value` = '%s', `ScientificName` = '%s', `CollectionCode` = '%s' ;"
+				, mysql_escape_string($this->get('filename'))
+				, mysql_escape_string($this->get('barcode'))
+				, mysql_escape_string($this->get('width'))
+				, mysql_escape_string($this->get('height'))
+				, mysql_escape_string($this->get('Family'))
+				, mysql_escape_string($this->get('Genus'))
+				, mysql_escape_string($this->get('SpecificEpithet'))
+				, mysql_escape_string($this->get('rank'))
+				, mysql_escape_string($this->get('author'))
+				, mysql_escape_string($this->get('title'))
+				, mysql_escape_string($this->get('description'))
+				, mysql_escape_string($this->get('GlobalUniqueIdentifier'))
+				, mysql_escape_string($this->get('creative_commons'))
+				, mysql_escape_string($this->get('characters'))
+				, mysql_escape_string($this->get('flickr_PlantID'))
+				, mysql_escape_string($this->get('flickr_modified'))
+				, mysql_escape_string($this->get('flickr_details'))
+				, mysql_escape_string($this->get('picassa_PlantID'))
+				, mysql_escape_string($this->get('picassa_modified'))
+				, mysql_escape_string($this->get('gTileProcessed'))
+				, mysql_escape_string($this->get('zoomEnabled'))
+				, mysql_escape_string($this->get('processed'))
+				, mysql_escape_string($this->get('box_flag'))
+				, mysql_escape_string($this->get('ocr_flag'))
+				, mysql_escape_string($this->get('ocr_value'))
+				, mysql_escape_string($this->get('namefinder_flag'))
+				, mysql_escape_string($this->get('namefinder_value'))
+				, mysql_escape_string($this->get('ScientificName'))
+				, mysql_escape_string($this->get('CollectionCode'))
+			);
 		}
 // echo '<br> Query : ' . $query;
 		if($this->db->query($query)) {
@@ -566,7 +526,6 @@ Class Image {
 		}
 	}
 
-
 	public function getNameFinderRecords($filter = '') {
 		$query = " SELECT * FROM `image` WHERE ( `namefinder_flag` = 0 OR `namefinder_flag` IS NULL ) AND `ocr_flag` = 1 ";
 		if(trim($filter['start']) != '' && trim($filter['limit']) != '') {
@@ -575,6 +534,7 @@ Class Image {
 		$ret = $this->db->query($query);
 		return($ret);
 	}
+
 	public function getOcrRecords($filter = '') {
 		$query = " SELECT * FROM `image` WHERE ( `ocr_flag` = 0 OR `ocr_flag` IS NULL ) AND `processed` = 1 ";
 		if(trim($filter['start']) != '' && trim($filter['limit']) != '') {
@@ -583,6 +543,7 @@ Class Image {
 		$ret = $this->db->query($query);
 		return($ret);
 	}
+
 	public function getBoxRecords($filter = '') {
 		$query = " SELECT * FROM `image` WHERE ( `box_flag` = 0 OR `box_flag` IS NULL ) ";
 		if(trim($filter['start']) != '' && trim($filter['limit']) != '') {
@@ -591,6 +552,7 @@ Class Image {
 		$ret = $this->db->query($query);
 		return($ret);
 	}
+
 	public function getFlickrRecords($filter = '') {
 		$query = " SELECT * FROM `image` WHERE `flickr_PlantID` = 0 OR `flickr_PlantID` IS NULL ";
 		if(trim($filter['start']) != '' && trim($filter['limit']) != '') {
@@ -607,10 +569,11 @@ Class Image {
 		}
 		return ($this->db->query($query));
 	}
-/**
- * Return image records yet to be gTileProcessed
- * @return mysql resultset
- */
+
+	/**
+	 * Return image records yet to be gTileProcessed
+	 * @return mysql resultset
+	 */
 	public function getGTileRecords($filter='') {
 		$query = " SELECT * FROM `image` WHERE `gTileProcessed` = 0 OR `gTileProcessed` IS NULL ";
 		if(trim($filter['start']) != '' && trim($filter['limit']) != '') {
@@ -647,13 +610,12 @@ Class Image {
 		$func = 'imagecreatefrom' . ($ext == 'jpg' ? 'jpeg' : $ext);
 		$func1 = 'image' . ($ext == 'jpg' ? 'jpeg' : $ext);
 
-
-			$outputPath = $config['path']['images'] . $this->barcode_path( $barcode ) . 'google_tiles/';
-			$image = $config['path']['images'] . $this->barcode_path( $barcode ) . $this->get('filename');
+		$outputPath = $config['path']['images'] . $this->barcode_path( $barcode ) . 'google_tiles/';
+		$image = $config['path']['images'] . $this->barcode_path( $barcode ) . $this->get('filename');
 
 // 			$src = imagecreatefromjpeg( $image );
-			$src = $func( $image );
-			$dest = imagecreatetruecolor(256, 256);
+		$src = $func( $image );
+		$dest = imagecreatetruecolor(256, 256);
 
 // 2x Zoom
 			$zoomfactor = 2;
@@ -706,7 +668,7 @@ Class Image {
 	}
 
 	/**
-	 * Creates the GoogleMap Tiles for the image using IM for s3 mode
+	 * Creates the GoogleMap Tiles for the image using IM for S3 mode
 	 * @param string barcode
 	 * @param mixed s3 details and object
 	 */
@@ -732,49 +694,47 @@ Class Image {
 		global $config;
 		$_TMP = ($config['path']['tmp'] != '') ? $config['path']['tmp'] : sys_get_temp_dir() . '/';		if($this->load_by_barcode($barcode)) {
 
-			$tmpPath = $_TMP . 'tiles/';
-			if(!@file_exists($tmpPath)) {
-				@mkdir($tmpPath,0775);
-			}
-			$tilepath = $tmpPath;
+		$tmpPath = $_TMP . 'tiles/';
+		if(!@file_exists($tmpPath)) {
+			@mkdir($tmpPath,0775);
+		}
+		$tilepath = $tmpPath;
 
-			# getting the image from s3
-			$filename = $_TMP . $this->get('filename');
+		# getting the image from s3
+		$filename = $_TMP . $this->get('filename');
 
-			$bucket = $arr['s3']['bucket'];
-			$key = $this->barcode_path($barcode) . $this->get('filename');
-			$arr['obj']->get_object($bucket, $key, array('fileDownload' => $filename));
+		$bucket = $arr['s3']['bucket'];
+		$key = $this->barcode_path($barcode) . $this->get('filename');
+		$arr['obj']->get_object($bucket, $key, array('fileDownload' => $filename));
 
-			# creating tiles using Image Magik
+		# creating tiles using Image Magik
+		$gTileRes = $this->createGTileIM($filename,$tilepath);
 
-			$gTileRes = $this->createGTileIM($filename,$tilepath);
-
-			# uploading to s3 and deleting the files
-			$tiles3path = $this->barcode_path($barcode) . 'google_tiles/';
-			
-			if ($handle = @opendir($tilepath)) {
-				while (false !== ($file = @readdir($handle))) {
-					if ($file != '.' && $file != '..') {
-						$file = $tilepath . $file;
-						if(is_dir($file)) {
-			
-							if ($tempHandle = @opendir($file)) {
-								while (false !== ($tile = @readdir($tempHandle))) {
-									if ($tile != '.' && $tile != '..') {
-$tmpThumbPath = $tilepath . @basename($file) . '/' . @basename($tile);
-$tmpS3Path = $tiles3path . @basename($file) . '/' . @basename($tile);
-$response = $arr['obj']->create_object ( $bucket, $tmpS3Path, array('fileUpload' => $tmpThumbPath,'acl' => AmazonS3::ACL_PUBLIC,'storage' => AmazonS3::STORAGE_REDUCED) );
-@unlink($tilepath . @basename($file) . '/' . @basename($tile));
-									} # not . or ..
-								} # while tile
-								@closedir($tempHandle);
-							} # temp handle
-							rmdir($file);
-						} # is dir
-					} # not . or ..
-				} # while file
-				@closedir($handle);
-			} # handle
+		# uploading to s3 and deleting the files
+		$tiles3path = $this->barcode_path($barcode) . 'google_tiles/';
+		
+		if ($handle = @opendir($tilepath)) {
+			while (false !== ($file = @readdir($handle))) {
+				if ($file != '.' && $file != '..') {
+					$file = $tilepath . $file;
+					if(is_dir($file)) {		
+						if ($tempHandle = @opendir($file)) {
+							while (false !== ($tile = @readdir($tempHandle))) {
+								if ($tile != '.' && $tile != '..') {
+									$tmpThumbPath = $tilepath . @basename($file) . '/' . @basename($tile);
+									$tmpS3Path = $tiles3path . @basename($file) . '/' . @basename($tile);
+									$response = $arr['obj']->create_object ( $bucket, $tmpS3Path, array('fileUpload' => $tmpThumbPath,'acl' => AmazonS3::ACL_PUBLIC,'storage' => AmazonS3::STORAGE_REDUCED) );
+									@unlink($tilepath . @basename($file) . '/' . @basename($tile));
+								} # not . or ..
+							} # while tile
+							@closedir($tempHandle);
+						} # temp handle
+						rmdir($file);
+					} # is dir
+				} # not . or ..
+			} # while file
+			@closedir($handle);
+		} # handle
 
 			@unlink($filename);
 			@unlink($tmpPath);
@@ -783,85 +743,83 @@ $response = $arr['obj']->create_object ( $bucket, $tmpS3Path, array('fileUpload'
 		return false;
 	}
 
-
-/**
- * Creates gTiles using IM
- * @param string $filename : input filename
- * @param string $outputPath : location for creating tiles
- */
-function createGTileIM($filename, $outputPath) {
-
-	if (!file_exists($filename)) {
-		return( array("success" => false, "error" => array("code" => 100, "msg" => "File does not exist.") ) );
-	}
-
-	$filePath = @dirname($filename) . '/';
-
-	$dimensions = exec('identify -format "%w,%h" ' . $filename);
-	list($owidth,$oheight) = explode(',',$dimensions);
+	/**
+	 * Creates gTiles using IM
+	 * @param string $filename : input filename
+	 * @param string $outputPath : location for creating tiles
+	 */
+	function createGTileIM($filename, $outputPath) {
 	
-	if(!file_exists($outputPath)) {
-		@mkdir($outputPath, 0777);
-	}
-
-	$zoomLevels = round(sqrt($oheight / 256));
-	for ($z = 0; $z < $zoomLevels; $z++) {
-		if ($z == 0) {
-			$width = $owidth;
-			$height = $oheight;
-			$tmpFile = $filename;
-		} else {
-			$tmpFile = $filePath . $z . "tmp" . @basename($filename);
-			$percent = 1 / pow(2, $z);
-			$width = $owidth * $percent;
-			$height = $oheight * $percent;
-			$cmd = sprintf("convert %s -resize %sx%s %s"
-				,	$filename
-				,	$width
-				,	$height
-				,	$tmpFile
-			);
-			$res = system($cmd);
+		if (!file_exists($filename)) {
+			return( array("success" => false, "error" => array("code" => 100, "msg" => "File does not exist.") ) );
 		}
-
-		$iLimit = (int) ( $width / 256 );
-		$jLimit = (int) ( $height / 256 );
-
-		for ($i = 0; $i <= $iLimit; $i++) {
-			for ($j = 0; $j <= $jLimit; $j++) {
-			
-				$x = $i;
-				$y = $j;
-//				$z = 1;
-				
-				$this->mkdir_recursive($outputPath . $z . '/');
 	
-				$cmd = sprintf("convert %s -crop %sx%s+%s+%s\! %s%s/tile_%s_%s_%s.jpg"
-					, $tmpFile
-					,	256
-					,	256
-					,	($i * 256)
-					,	($j * 256)
-					,	$outputPath
-					,	$z
-					,	$z
-					,	$x
-					,	$y
+		$filePath = @dirname($filename) . '/';
+		$dimensions = exec('identify -format "%w,%h" ' . $filename);
+		list($owidth,$oheight) = explode(',',$dimensions);
+		
+		if(!file_exists($outputPath)) {
+			@mkdir($outputPath, 0777);
+		}
+	
+		$zoomLevels = round(sqrt($oheight / 256));
+		for ($z = 0; $z < $zoomLevels; $z++) {
+			if ($z == 0) {
+				$width = $owidth;
+				$height = $oheight;
+				$tmpFile = $filename;
+			} else {
+				$tmpFile = $filePath . $z . "tmp" . @basename($filename);
+				$percent = 1 / pow(2, $z);
+				$width = $owidth * $percent;
+				$height = $oheight * $percent;
+				$cmd = sprintf("convert %s -resize %sx%s %s"
+					,	$filename
+					,	$width
+					,	$height
+					,	$tmpFile
 				);
 				$res = system($cmd);
-				if($i == $iLimit || $j == $jLimit) {
-					$tmpImage = sprintf("%s%s/tile_%s_%s_%s.jpg",$outputPath,$z,$z,$x,$y);
-					$cmd = sprintf("convert %s -background white -extent 256x256 +repage %s", $tmpImage, $tmpImage);
+			}
+	
+			$iLimit = (int) ( $width / 256 );
+			$jLimit = (int) ( $height / 256 );
+	
+			for ($i = 0; $i <= $iLimit; $i++) {
+				for ($j = 0; $j <= $jLimit; $j++) {
+				
+					$x = $i;
+					$y = $j;
+	//				$z = 1;
+					
+					$this->mkdir_recursive($outputPath . $z . '/');
+		
+					$cmd = sprintf("convert %s -crop %sx%s+%s+%s\! %s%s/tile_%s_%s_%s.jpg"
+						, $tmpFile
+						,	256
+						,	256
+						,	($i * 256)
+						,	($j * 256)
+						,	$outputPath
+						,	$z
+						,	$z
+						,	$x
+						,	$y
+					);
 					$res = system($cmd);
+					if($i == $iLimit || $j == $jLimit) {
+						$tmpImage = sprintf("%s%s/tile_%s_%s_%s.jpg",$outputPath,$z,$z,$x,$y);
+						$cmd = sprintf("convert %s -background white -extent 256x256 +repage %s", $tmpImage, $tmpImage);
+						$res = system($cmd);
+					}
 				}
 			}
+			if($tmpFile != $filename) {
+				@unlink($tmpFile);
+			}
 		}
-		if($tmpFile != $filename) {
-			@unlink($tmpFile);
-		}
+		return( array("success" => true) );
 	}
-	return( array("success" => true) );
-}
 
 	/**
 	 * Zoomify the image
@@ -971,8 +929,6 @@ function createGTileIM($filename, $outputPath) {
 		$this->setOrderFilter();
 		$this->setLimitFilter();
 
-// die($this->query);
-
 		$this->total = $this->db->query_total();
 		if($queryFlag) {
 			$ret = $this->db->query_all($this->query);
@@ -983,7 +939,6 @@ function createGTileIM($filename, $outputPath) {
 		}
 	}
 
-
 	public function imageSequenceCache() {
 
 		$query = 'SELECT SQL_CALC_FOUND_ROWS * FROM `image` WHERE 0=0 ';
@@ -993,7 +948,6 @@ function createGTileIM($filename, $outputPath) {
 
 		$query .= ' ORDER BY `barcode` ';
 
-// 		$records = $this->db->query_all( $query );
 		$Ret = $this->db->query($query);
 
 		$pre_fix = '';
@@ -1003,10 +957,7 @@ function createGTileIM($filename, $outputPath) {
 		$end = '';
 		$preCount = 0;
 
-// 		if(count($records) && is_array($records)) {
 		if(is_object($Ret)) {
-
-// 			foreach($records as $record) {
 			while ($record = $Ret->fetch_object()) {
 				$ar = getBarcodePrefix($record->barcode);
 				$barpre = $ar['prefix'];
@@ -1033,9 +984,7 @@ function createGTileIM($filename, $outputPath) {
 						$qq = getBarcodePrefix($record->barcode);
 						$qq_tail = (int) $qq['tail'];
 						$tmp_end = $barpre . $tmpStrip . ($qq_tail - 1);
-
-$strips_array[$end][] = array('startRange' => $tmp_start, 'endRange' => $tmp_end, 'prefix' => $pre, 'recordCount' => $lt, 'exist' => 0);
-
+						$strips_array[$end][] = array('startRange' => $tmp_start, 'endRange' => $tmp_end, 'prefix' => $pre, 'recordCount' => $lt, 'exist' => 0);
 					}
 
 					$strips_array[$start][] = array('startRange' => $start, 'endRange' => $end, 'prefix' => $pre, 'recordCount' => $preCount, 'exist' => 1);
@@ -1045,7 +994,6 @@ $strips_array[$end][] = array('startRange' => $tmp_start, 'endRange' => $tmp_end
 					$counter = $barc;
 				}
 				$pre_fix = $barpre;
-
 				$end = $record->barcode;
 				$counter++;
 			} # foreach
@@ -1057,7 +1005,6 @@ $strips_array[$end][] = array('startRange' => $tmp_start, 'endRange' => $tmp_end
 		} # if count array
 
 		ksort($strips_array);
-
 		$output = array();
 
 		if(count($strips_array) && is_array($strips_array)) {
@@ -1071,7 +1018,6 @@ $strips_array[$end][] = array('startRange' => $tmp_start, 'endRange' => $tmp_end
 		}
 
 		return $output;
-
 	}
 
 	public function rotateImage($image = array()) {
@@ -1096,7 +1042,7 @@ $strips_array[$end][] = array('startRange' => $tmp_start, 'endRange' => $tmp_end
 			$imagePath = $config['path']['images'] . $this->barcode_path( $barcode );
 		}
 		$imageFile = $imagePath . $this->get('filename');
-		if(in_array($image['degree'],array(90,180,270))){
+		if(in_array($image['degree'], array(90, 180, 270))){
 			#rotating the image
 			$cmd = sprintf("convert -limit memory 16MiB -limit map 32MiB %s -rotate %s %s", $imageFile, $image['degree'], $imageFile);
 //  echo '<br>' . $cmd;
@@ -1111,7 +1057,6 @@ $strips_array[$end][] = array('startRange' => $tmp_start, 'endRange' => $tmp_end
 		}
 
 		# deleting related images
-
 		if($config['mode'] == 's3') {
 			foreach(array('_s','_m','_l') as $postfix) {
 				$response = $image['obj']->delete_object($config['s3']['bucket'], $this->barcode_path($barcode) . $barcode . $postfix . '.jpg');
@@ -1130,15 +1075,15 @@ $strips_array[$end][] = array('startRange' => $tmp_start, 'endRange' => $tmp_end
 			}
 		}
 
-		$this->set('flickr_PlantID',0);
-		$this->set('picassa_PlantID',0);
-		$this->set('gTileProcessed',0);
-		$this->set('zoomEnabled',0);
-		$this->set('processed',0);
+		$this->set('flickr_PlantID', 0);
+		$this->set('picassa_PlantID', 0);
+		$this->set('gTileProcessed', 0);
+		$this->set('zoomEnabled', 0);
+		$this->set('processed', 0);
 		$this->save();
 
-		$pqueue->set('image_id',$barcode);
-		$pqueue->set('process_type','all');
+		$pqueue->set('image_id', $barcode);
+		$pqueue->set('process_type', 'all');
 		$pqueue->save();
 
 		$ret['success'] = true;
@@ -1274,9 +1219,6 @@ $strips_array[$end][] = array('startRange' => $tmp_start, 'endRange' => $tmp_end
 				}
 		
 				$query .= sprintf(" GROUP BY %s ORDER BY %s ", $child, $child);
-
-// print $query;
-
 				$nextChild = $mapping[$this->data['nodeApi']];
 				$leaf = true;
 				if (isset($nextChild)) {
@@ -1320,8 +1262,7 @@ $strips_array[$end][] = array('startRange' => $tmp_start, 'endRange' => $tmp_end
 		$ar['totalCount'] = count($nodes);
 		$ar['results'] = $nodes;
 
-		return $ar;
-
+		return($ar);
 	}
 
 	function getCollectionSpecimenCount() {
@@ -1366,8 +1307,6 @@ $strips_array[$end][] = array('startRange' => $tmp_start, 'endRange' => $tmp_end
 		}
 		return $ret;
 	}
-
-#
 
 	private function setFilters() {
 		$this->setCharacterFilter();
@@ -1643,7 +1582,7 @@ $strips_array[$end][] = array('startRange' => $tmp_start, 'endRange' => $tmp_end
 		, mysql_escape_string($query)
 		);
 		$this->db->query($query);
-		return( $id );
+		return($id);
 	}
 
 	public function renameAttribute() {
@@ -1661,7 +1600,7 @@ $strips_array[$end][] = array('startRange' => $tmp_start, 'endRange' => $tmp_end
 		, mysql_escape_string($query)
 		);
 		$this->db->query($query);
-		return true;
+		return(true);
 	}
 
 	public function deleteAttribute() {
@@ -1669,14 +1608,11 @@ $strips_array[$end][] = array('startRange' => $tmp_start, 'endRange' => $tmp_end
 		$query = sprintf("DELETE FROM `image_attrib` WHERE valueID = %s", mysql_escape_string($valueID));
 		$this->db->query($query);
 		$query = sprintf("DELETE FROM `image_attrib_value` WHERE valueID = %s", mysql_escape_string($valueID));
-		$this->db->query($query);
-		
+		$this->db->query($query);		
 		$query = sprintf("INSERT INTO `image_log` (action, after_desc, query, date_created) VALUES (9, 'Attrib ID: %s', '%s', NOW())", mysql_escape_string($valueID), mysql_escape_string($query));
 		$this->db->query($query);
 		return true;
 	}
-
-	
 
 	public function loadImageNodesCharacters() {
 		unset($this->records);
@@ -1716,153 +1652,151 @@ $strips_array[$end][] = array('startRange' => $tmp_start, 'endRange' => $tmp_end
 		}
 	}
 
-public function loadImageNodesImages() {
-
-	unset($this->records);
-	$this->nodes = array();
-	$this->query = '';
-	if(isset($this->data['nodeApi'])) {
-	switch(@strtolower($this->data['nodeApi'])) {
-
-	case "root":
-		$children='';
-		for ($i=65;$i<91;$i++) {
-			$tmp = chr($i);
-			$children[] = array('text'=>$tmp, 'iconCls'=>'icon_folder_picture', 'nodeApi'=>'families', 'nodeValue'=>$tmp);
-		}
-		
-		$this->nodes[] = array('text'=>"by Family", 'iconCls'=>'icon_folder_picture', 'expanded'=>false, 'nodeApi'=>'alpha', 'nodeValue'=>'alpha', 'children'=> $children);
-
-		$children='';
-		for ($i=65;$i<91;$i++) {
-			$tmp = chr($i);
-			$children[] = array('text'=>$tmp, 'iconCls'=>'icon_folder_picture', 'nodeApi'=>'genera', 'nodeValue'=>$tmp);
-		}
-
-		$this->nodes[] = array('text'=>"by Genus", 'iconCls'=>'icon_folder_picture', 'expanded'=>false, 'nodeApi'=>'alpha', 'nodeValue'=>'alpha', 'children'=> $children);
-
-		break;
-
-	case "alpha":
-		for ($i=65;$i<91;$i++) {
-			$tmp = chr($i);
-		}
-		$this->nodes[] = array('text'=>$tmp, 'iconCls'=>'icon_folder_picture', 'draggable'=>false, 'nodeApi'=>'families', 'nodeValue'=>$tmp);
-		break;
-
-	case "families":
-
-		$this->query = sprintf( "SELECT Family, count(Family) as family_size FROM image WHERE Family like '%s%%' GROUP by Family ORDER by Family", mysql_escape_string($this->data['nodeValue']) );
-
-		try {
-			$records = $this->db->query_all($this->query);
-		} catch (Exception $e) {
-			trigger_error($e->getMessage(),E_USER_ERROR);
-		}
-
-		if(count($records)) {
-			foreach($records as $record) {
-				$this->nodes[] = array('text'=>$record->Family . " (" . number_format($record->family_size) . ")", 'imageCount' => $record->family_size, 'family'=>$record->Family, 'iconCls'=>'icon_picture', 'checked'=>false, 'nodeApi'=>'family', 'nodeValue'=>$record->Family);
-
+	public function loadImageNodesImages() {
+	
+		unset($this->records);
+		$this->nodes = array();
+		$this->query = '';
+		if(isset($this->data['nodeApi'])) {
+		switch(@strtolower($this->data['nodeApi'])) {
+	
+		case "root":
+			$children='';
+			for ($i=65;$i<91;$i++) {
+				$tmp = chr($i);
+				$children[] = array('text'=>$tmp, 'iconCls'=>'icon_folder_picture', 'nodeApi'=>'families', 'nodeValue'=>$tmp);
 			}
-		}
-		break;
-
-	case "family":
 			
-		if( trim($this->data['nodeValue']) == '' ) {
-			$this->query = "SELECT Genus, count(Genus) as genus_size FROM image GROUP by Genus ORDER by Genus";
-		} else {
-			$this->query = sprintf( "SELECT Genus, count(Genus) as genus_size FROM image WHERE Family = '%s' GROUP by Genus ORDER by Genus ", mysql_escape_string($this->data['nodeValue']) );
-		}
-
-		try {
-			$records = $this->db->query_all($this->query);
-		} catch (Exception $e) {
-			trigger_error($e->getMessage(),E_USER_ERROR);
-		}
-
-		if(count($records)) {
-			foreach($records as $record) {
-				$this->nodes[] = array('text'=>$record->Genus . " (" . $record->genus_size . ")", 'imageCount' => $record->genus_size, 'id'=>$record->Genus, 'family'=>$this->data['family'], 'genus'=>$record->Genus, 'iconCls'=>'icon_picture', 'checked'=>false, 'draggable'=>false, 'isTarget'=>false, 'nodeApi'=>'genus', 'nodeValue'=>$record->Genus);
-
+			$this->nodes[] = array('text'=>"by Family", 'iconCls'=>'icon_folder_picture', 'expanded'=>false, 'nodeApi'=>'alpha', 'nodeValue'=>'alpha', 'children'=> $children);
+	
+			$children='';
+			for ($i=65;$i<91;$i++) {
+				$tmp = chr($i);
+				$children[] = array('text'=>$tmp, 'iconCls'=>'icon_folder_picture', 'nodeApi'=>'genera', 'nodeValue'=>$tmp);
 			}
-		}
-		break;
-
-	case "genera":
-		$this->query = sprintf( "SELECT Genus, count(Genus) as genus_size FROM image WHERE Genus like '%s%%' GROUP by Genus ORDER by Genus", mysql_escape_string($this->data['nodeValue']) );
-		try {
-			$records = $this->db->query_all($this->query);
-		} catch (Exception $e) {
-			trigger_error($e->getMessage(),E_USER_ERROR);
-		}
-
-		if(count($records)) {
-			foreach($records as $record) {
-				$this->nodes[] = array('text'=>$record->Genus . " (" . number_format($record->genus_size) . ")", 'imageCount' => $record->genus_size, 'genus'=>$record->Genus, 'iconCls'=>'icon_picture', 'checked'=>false, 'nodeApi'=>'genus', 'nodeValue'=>$record->Genus);
-
+	
+			$this->nodes[] = array('text'=>"by Genus", 'iconCls'=>'icon_folder_picture', 'expanded'=>false, 'nodeApi'=>'alpha', 'nodeValue'=>'alpha', 'children'=> $children);
+	
+			break;
+	
+		case "alpha":
+			for ($i=65;$i<91;$i++) {
+				$tmp = chr($i);
 			}
-		}
-		break;
-		
-	case "genus":
+			$this->nodes[] = array('text'=>$tmp, 'iconCls'=>'icon_folder_picture', 'draggable'=>false, 'nodeApi'=>'families', 'nodeValue'=>$tmp);
+			break;
+	
+		case "families":
+	
+			$this->query = sprintf( "SELECT Family, count(Family) as family_size FROM image WHERE Family like '%s%%' GROUP by Family ORDER by Family", mysql_escape_string($this->data['nodeValue']) );
+	
+			try {
+				$records = $this->db->query_all($this->query);
+			} catch (Exception $e) {
+				trigger_error($e->getMessage(),E_USER_ERROR);
+			}
+	
+			if(count($records)) {
+				foreach($records as $record) {
+					$this->nodes[] = array('text'=>$record->Family . " (" . number_format($record->family_size) . ")", 'imageCount' => $record->family_size, 'family'=>$record->Family, 'iconCls'=>'icon_picture', 'checked'=>false, 'nodeApi'=>'family', 'nodeValue'=>$record->Family);
+	
+				}
+			}
+			break;
+	
+		case "family":
+				
+			if( trim($this->data['nodeValue']) == '' ) {
+				$this->query = "SELECT Genus, count(Genus) as genus_size FROM image GROUP by Genus ORDER by Genus";
+			} else {
+				$this->query = sprintf( "SELECT Genus, count(Genus) as genus_size FROM image WHERE Family = '%s' GROUP by Genus ORDER by Genus ", mysql_escape_string($this->data['nodeValue']) );
+			}
+	
+			try {
+				$records = $this->db->query_all($this->query);
+			} catch (Exception $e) {
+				trigger_error($e->getMessage(),E_USER_ERROR);
+			}
+	
+			if(count($records)) {
+				foreach($records as $record) {
+					$this->nodes[] = array('text'=>$record->Genus . " (" . $record->genus_size . ")", 'imageCount' => $record->genus_size, 'id'=>$record->Genus, 'family'=>$this->data['family'], 'genus'=>$record->Genus, 'iconCls'=>'icon_picture', 'checked'=>false, 'draggable'=>false, 'isTarget'=>false, 'nodeApi'=>'genus', 'nodeValue'=>$record->Genus);
+	
+				}
+			}
+			break;
+	
+		case "genera":
+			$this->query = sprintf( "SELECT Genus, count(Genus) as genus_size FROM image WHERE Genus like '%s%%' GROUP by Genus ORDER by Genus", mysql_escape_string($this->data['nodeValue']) );
+			try {
+				$records = $this->db->query_all($this->query);
+			} catch (Exception $e) {
+				trigger_error($e->getMessage(),E_USER_ERROR);
+			}
+	
+			if(count($records)) {
+				foreach($records as $record) {
+					$this->nodes[] = array('text'=>$record->Genus . " (" . number_format($record->genus_size) . ")", 'imageCount' => $record->genus_size, 'genus'=>$record->Genus, 'iconCls'=>'icon_picture', 'checked'=>false, 'nodeApi'=>'genus', 'nodeValue'=>$record->Genus);
+	
+				}
+			}
+			break;
 			
-		if( trim($this->data['nodeValue']) == '' ) {
-			$this->query = "SELECT SpecificEpithet, count(SpecificEpithet) as species_size FROM image GROUP by SpecificEpithet ORDER by SpecificEpithet";
-		} else {
-			$this->query = sprintf( "SELECT SpecificEpithet, count(SpecificEpithet) as species_size FROM image WHERE Genus = '%s' GROUP by SpecificEpithet ORDER by SpecificEpithet", mysql_escape_string($this->data['nodeValue']) );
-		}
-
-		try {
-			$records = $this->db->query_all($this->query);
-		} catch (Exception $e) {
-			trigger_error($e->getMessage(),E_USER_ERROR);
-		}
-
-		if(count($records)) {
-			foreach($records as $record) {
-				$this->nodes[] = array('text'=>$record->SpecificEpithet . " (" . $record->species_size . ")", 'imageCount' => $record->species_size, 'id'=>$record->SpecificEpithet, 'family'=>$this->data['family'], 'genus'=>$this->data['genus'], 'species'=>$record->SpecificEpithet, 'iconCls'=>'icon_picture', 'checked'=>false, 'leaf'=>true, 'draggable'=>false, 'isTarget'=>false, 'nodeApi'=>'species', 'nodeValue'=>$record->SpecificEpithet, 'genus'=>$this->data['nodeValue']);
-
+		case "genus":
+				
+			if( trim($this->data['nodeValue']) == '' ) {
+				$this->query = "SELECT SpecificEpithet, count(SpecificEpithet) as species_size FROM image GROUP by SpecificEpithet ORDER by SpecificEpithet";
+			} else {
+				$this->query = sprintf( "SELECT SpecificEpithet, count(SpecificEpithet) as species_size FROM image WHERE Genus = '%s' GROUP by SpecificEpithet ORDER by SpecificEpithet", mysql_escape_string($this->data['nodeValue']) );
 			}
-		}
-		break;
-
-	case 'scientificname':
-			
-		if( trim($this->data['nodeValue']) == '' ) {
-			$this->query = "SELECT concat(Genus, ' ', SpecificEpithet) as name, count(SpecificEpithet) as sz, Family, Genus, SpecificEpithet  FROM image  GROUP by Genus, SpecificEpithet ORDER by Genus, SpecificEpithet";
-		} else {
-			$this->query = sprintf( "SELECT concat(Genus, ' ', SpecificEpithet) as name, count(SpecificEpithet) as sz, Family, Genus, SpecificEpithet  FROM image WHERE Family = '%s'  GROUP by Genus, SpecificEpithet ORDER by Genus, SpecificEpithet", mysql_escape_string($this->data['nodeValue']) );
-		}
-
-		try {
-			$records = $this->db->query_all($this->query);
-		} catch (Exception $e) {
-			trigger_error($e->getMessage(),E_USER_ERROR);
-		}
-
-		if(count($records)) {
-			foreach($records as $record) {
-				$this->nodes[] = array('text'=>$record->name . " (" . $record->sz . ")", 'imageCount' => $record->sz, 'id'=>$record->name, 'family'=>$record->Family, 'genus'=>$record->Genus, 'species'=>$record->SpecificEpithet, 'iconCls'=>'icon_picture', 'checked'=>false, 'leaf'=>true, 'draggable'=>false, 'isTarget'=>false, 'nodeApi'=>'ScientificName', 'nodeValue'=>$record->name);
+	
+			try {
+				$records = $this->db->query_all($this->query);
+			} catch (Exception $e) {
+				trigger_error($e->getMessage(),E_USER_ERROR);
 			}
+	
+			if(count($records)) {
+				foreach($records as $record) {
+					$this->nodes[] = array('text'=>$record->SpecificEpithet . " (" . $record->species_size . ")", 'imageCount' => $record->species_size, 'id'=>$record->SpecificEpithet, 'family'=>$this->data['family'], 'genus'=>$this->data['genus'], 'species'=>$record->SpecificEpithet, 'iconCls'=>'icon_picture', 'checked'=>false, 'leaf'=>true, 'draggable'=>false, 'isTarget'=>false, 'nodeApi'=>'species', 'nodeValue'=>$record->SpecificEpithet, 'genus'=>$this->data['nodeValue']);
+	
+				}
+			}
+			break;
+	
+		case 'scientificname':
+				
+			if( trim($this->data['nodeValue']) == '' ) {
+				$this->query = "SELECT concat(Genus, ' ', SpecificEpithet) as name, count(SpecificEpithet) as sz, Family, Genus, SpecificEpithet  FROM image  GROUP by Genus, SpecificEpithet ORDER by Genus, SpecificEpithet";
+			} else {
+				$this->query = sprintf( "SELECT concat(Genus, ' ', SpecificEpithet) as name, count(SpecificEpithet) as sz, Family, Genus, SpecificEpithet  FROM image WHERE Family = '%s'  GROUP by Genus, SpecificEpithet ORDER by Genus, SpecificEpithet", mysql_escape_string($this->data['nodeValue']) );
+			}
+	
+			try {
+				$records = $this->db->query_all($this->query);
+			} catch (Exception $e) {
+				trigger_error($e->getMessage(),E_USER_ERROR);
+			}
+	
+			if(count($records)) {
+				foreach($records as $record) {
+					$this->nodes[] = array('text'=>$record->name . " (" . $record->sz . ")", 'imageCount' => $record->sz, 'id'=>$record->name, 'family'=>$record->Family, 'genus'=>$record->Genus, 'species'=>$record->SpecificEpithet, 'iconCls'=>'icon_picture', 'checked'=>false, 'leaf'=>true, 'draggable'=>false, 'isTarget'=>false, 'nodeApi'=>'ScientificName', 'nodeValue'=>$record->name);
+				}
+			}
+	
+			break;
+	
 		}
-
-		break;
-
+			return $this->nodes;
+		} else {
+			return false;
+		}
+	
 	}
-		return $this->nodes;
-	} else {
-		return false;
-	}
-
-}
 
 	public function loadCharacterList() {
 		unset($this->records);
-
 		$this->query = "SELECT I.image_id";
-
 		$this->setFilters();
 
 		if (($this->data['characters'] != '') && ($this->data['characters'] != '[]')) {
@@ -1870,7 +1804,6 @@ public function loadImageNodesImages() {
 		}
 
 		$this->query = "SELECT valueID as id FROM image_attrib t1 INNER JOIN  (" . $this->query . ") AS t2 ON t1.imageID = t2.image_id GROUP BY t1.valueID ORDER BY t1.valueID;";
-// die($this->query);
 		try {
 			$this->records = $this->db->query_all($this->query);
 		} catch (Exception $e) {
@@ -1889,9 +1822,7 @@ public function loadImageNodesImages() {
 		$this->query = '';
 
 		$this->query = "SELECT I.`image_id` AS imageID, I.`filename` AS filename, I.`Family`, I.`Genus`, I.`SpecificEpithet`, I.`zoomEnabled`, I.`gTileProcessed`, I.`timestamp_modified`, I.`characters`, I.`barcode`, I.`GlobalUniqueIdentifier` ";
-
 		$this->queryCount = ' SELECT count(*) AS sz ';
-
 		$this->setFilters();
 
 		if (($this->data['characters'] != '') && ($this->data['characters'] != '[]')) {
@@ -1902,7 +1833,6 @@ public function loadImageNodesImages() {
 
 		if (($this->data['sort'] != '')) {
 			$sort = $this->data['sort'];
-// 			if ($sort == "SpecificEpithet") $sort = "SpecificEpithet";
 			if ($sort == "GUID") $sort = "GlobalUniqueIdentifier";
 			$this->query .= sprintf(" ORDER BY I.%s %s", $sort, $this->data['dir']);
 		} else {
@@ -1930,7 +1860,6 @@ public function loadImageNodesImages() {
 		if(count($records)){
 			foreach($records as $record) {
 				$this->records[] = $record;
-//				$this->records[] = array('filename'=>$record->name,'extension'=>$record->extension, 'id'=>$record->imageID, 'family'=>$record->family, 'genus'=>$record->genus, 'species'=>$record->species, 'zoomEnabled'=>$record->zoomEnabled, 'dateCreated' => $record->dateCreated, 'characters' => $record->characters);
 			}
 		}
 		return $this->records;
@@ -1985,7 +1914,6 @@ public function loadImageNodesImages() {
 		}
 		return $ret;
 	}
-
 	
 }
 ?>

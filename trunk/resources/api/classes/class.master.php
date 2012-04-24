@@ -1,8 +1,7 @@
 <?php
 
 	/**
-	 * @copyright SilverBiology, LLC
-	 * @author Michael Giddens
+	 * @author SilverBiology
 	 * @website http://www.silverbiology.com
 	*/
 
@@ -30,9 +29,7 @@
 
 		function __construct($project) {
 			global $config;
-
 			$this->load($project);
-
 			$this->logger = new Logger($this->db);
 			$this->images = new Images($this->db);
 			$this->image = new Image($this->db);
@@ -58,26 +55,25 @@
 			global $config;
 			$connection_string="server={$config['mysql']['host']}; database=$project; username={$config['mysql']['user']}; password={$config['mysql']['pass']};";
 			$this->db = new MysqliDatabase($connection_string);
-
 			return( true );
 		}
 
-		public function getError ($error_code) {
+		public function getError($error_code) {
 			$ar = array (
-				   100 => 'No Command Provided'
-				 , 101 => 'sc_id Should be provided'
-				 , 102 => 'Logs not Loaded'
-				 , 103 => 'Date Should be provided.'
-				 , 104 => 'Date2 Should be provided.'
-				 , 105 => 'start_id Should be provided.'
-				 , 106 => 'filename Should be provided.'
-				 , 107 => 'image_id Should be provided.'
-				 , 108 => 'Barcode was not found.'
-				 , 109 => 'id Should be provided.'
-				 , 110 => 'Images Rotated and Added to Queue.'
-				 , 111 => 'degree Should be provided.'
-				 , 112 => 'width and height Should be provided.'
-				 , 113 => 'User is not logged-in or do not have the previlege to access this command.'
+					100 => 'No Command Provided'
+				, 101 => 'sc_id Should be provided'
+				, 102 => 'Logs not Loaded'
+				, 103 => 'Date Should be provided.'
+				, 104 => 'Date2 Should be provided.'
+				, 105 => 'start_id Should be provided.'
+				, 106 => 'filename Should be provided.'
+				, 107 => 'image_id Should be provided.'
+				, 108 => 'Barcode was not found.'
+				, 109 => 'id Should be provided.'
+				, 110 => 'Images Rotated and Added to Queue.'
+				, 111 => 'degree Should be provided.'
+				, 112 => 'width and height Should be provided.'
+				, 113 => 'User is not logged-in or do not have the previlege to access this command.'
 				, 114 => 'Not an allowed value for nodeApi'
 				, 115 => 'Database Not Loaded'
 				, 116 => 'Image Id does not exist.'
@@ -98,8 +94,8 @@
 				, 131 => 'Event Type Id should be given'
 				, 132 => 'Title should be given'
 				, 133 => 'Event Id should be given'
-				, 134 => 'Barcode Or Image Id should be given'
-				, 135 => 'Not a Valid Barcode Or Image Id'
+				, 134 => 'The \'barcode\' or \'image_id\' should be given.'
+				, 135 => 'Not a valid \'barcode\' or \'image_id\'.'
 				, 136 => 'Tesseract Not Enabled'
 				, 137 => 'Box Detect Not Enabled.'
 				, 138 => 'Size or width and height should be provided.'
@@ -112,5 +108,5 @@
 		}
 
 	}
-	
+
 ?>
