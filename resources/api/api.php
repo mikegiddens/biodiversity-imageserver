@@ -1,10 +1,9 @@
 <?php
-error_reporting(E_ALL ^ E_NOTICE);
-ini_set('display_errors', '1');
-ini_set('memory_limit','128M');
-set_time_limit(0);
-session_start();
-ob_start();
+	error_reporting(E_ALL ^ E_NOTICE);
+	ini_set('memory_limit','128M');
+	set_time_limit(0);
+	session_start();
+	ob_start();
 
 	/**
 	 * @copyright SilverBiology, LLC
@@ -97,7 +96,6 @@ ob_start();
 		,'title'
 		,'description'
 
-		, 'updateFlag'
 		, 'code'
 		, 'showOCR'
 
@@ -489,9 +487,9 @@ ob_start();
 			break;
 
 		case 'storage_info':
-			$updateFlag = (trim($updateFlag) == '1') ? 1 : 0;
+			$force = (trim($force) == '1') ? 1 : 0;
 			$output = array();
-			if($updateFlag) {
+			if($force) {
 				$si->image->mkdir_recursive(@dirname($config['storageCache']));
 				$data = array();
 				$data['used'] = array('text'=>'Size Used','value'=> getdirsize($config['path']['images']));
@@ -2041,72 +2039,71 @@ ob_start();
 
 			$_TMP = ($config['path']['tmp'] != '') ? $config['path']['tmp'] : sys_get_temp_dir() . '/';
 			$loadFlag = false;
+
 			if(trim($image_id) != '') {
 				$loadFlag = $si->image->load_by_id($image_id);
-			} else if(trim($barcode) != '') {
+			} elseif(trim($barcode) != '') {
 				$loadFlag = $si->image->load_by_barcode($barcode);
 			}
+
 			if(!$loadFlag) {
 				$valid = false;
 				$code = 135;
-			}
-			if($valid) {
+				print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($code) , 'code' => $code ) ) ) );
+			} else {
 				# getting image
 				$key = $si->image->barcode_path($si->image->get('barcode')) . $si->image->get('filename');
 				$cacheFlag = false;
 				$cachePath = $si->image->barcode_path($si->image->get('barcode')).$si->image->get('barcode')."-barcodes.json";
-				if($config['mode'] == 's3') {
-					$cacheFlag = $si->amazon->if_object_exists($config['s3']['bucket'],$cachePath);
-				} else {
-					$cacheFlag = @file_exists($config['path']['images'] . $cachePath);
-				}
-				if(isset($force))
-				{
-					$force = strtolower($force);
-					if($force == true)
-					{
-						$cacheFlag = false;
+
+				if(strtolower($force) != true) {
+					if($config['mode'] == 's3') {
+						$cacheFlag = $si->amazon->if_object_exists($config['s3']['bucket'], $cachePath);
+					} else {
+						$cacheFlag = @file_exists($config['path']['images'] . $cachePath);
 					}
 				}
+
 				if($cacheFlag) {
 					if($config['mode'] == 's3') {
 						$tmpCachePath = $_TMP . $si->image->get('barcode')."-barcodes.json";
-						$fp = @fopen($tmpCachePath,"w+b");
-						$si->amazon->get_object($config['s3']['bucket'],$cachePath, array('fileDownload' => $tmpCachePath));
+						$fp = @fopen($tmpCachePath, "w+b");
+						$si->amazon->get_object($config['s3']['bucket'], $cachePath, array('fileDownload' => $tmpCachePath));
 						@fclose($fp);
 						$jsonFile = $tmpCachePath;
 					} else {
 						$jsonFile = $config['path']['images'].$cachePath;
 					}
+
 					$data = file_get_contents($jsonFile);
 					$processTime = microtime(true) - $time_start;
-					$data = json_decode($data,true);
+					$data = json_decode($data, true);
 					$data['processTime'] = $processTime;
 					$data = json_encode($data);
 					print_c($data);
 				} else {
+					// No cache or not using cache
 					if($config['mode'] == 's3') {
 						$tmpPath = $_TMP . $si->image->get('filename');
 						$fp = @fopen($tmpPath, "w+b");
 						$si->amazon->get_object($config['s3']['bucket'], $key, array('fileDownload' => $tmpPath));
 						@fclose($fp);
-						$image = $tmpPath;
-					
+						$image = $tmpPath;					
 					} else {
 						$image = $config['path']['images'] . $key;
 					}
+
 					$command = sprintf("%s %s", $config['zBarImgPath'], $image);
 					$data = exec($command);
-					$tmpArrayArray = explode("\r\n",$data);
+					$tmpArrayArray = explode("\r\n", $data);
 					$data = array();
 					foreach($tmpArrayArray as $tmpArray) {
-						$tmpArray_1 = explode(":",$tmpArray);
-						$data[] = array('code'=>$tmpArray_1[0], 'value'=>$tmpArray_1[1]);
+						$parts = explode(":",$tmpArray);
+						$data[] = array('code' => $parts[0], 'value' => $parts[1]);
 					}
 					if($config['mode'] == 's3') {
 						@unlink($tmpImage);
 					}
-					$processTime = microtime(true) - $time_start;
 					$command = sprintf("%s --version ", $config['zBarImgPath']);
 					$ver = exec($command);
 					$lastTested = time();
@@ -2116,22 +2113,14 @@ ob_start();
 						$tmpJson = $_TMP . $si->image->get('barcode') . '-barcodes.json';
 						@file_put_contents($tmpJson,$tmpJsonFile);
 						$response = $si->amazon->create_object ($config['s3']['bucket'], $key, array('fileUpload' => $tmpJson,'acl' => AmazonS3::ACL_PUBLIC,'storage' => AmazonS3::STORAGE_REDUCED) );
-						@unlink($tmpJson);
-						
+						@unlink($tmpJson);	
 					} else {
 						@file_put_contents($config['path']['images'] . $key,$tmpJsonFile);
 					}
+					$processTime = microtime(true) - $time_start;
 					print_c(json_encode(array('success' => true, 'processTime' => $processTime, 'lastTested'=>$lastTested , 'software'=>"zbarimg", 'version'=>$ver , 'data' => $data)));
-
 				}
-				
-				
-				
-
-			} else {
-				print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($code) , 'code' => $code ) ) ) );
-			}
-
+			}	
 			break;
 
 # Test Tasks
@@ -2162,7 +2151,6 @@ ob_start();
 			unlink($tmpPath);
 			exit;
 */
-
 			break;
 
 		case 'clearProcessQueue':
@@ -2179,16 +2167,13 @@ ob_start();
 			$allowedTypes = array('flickr_add','picassa_add','zoomify','google_tile','ocr_add','name_add','all');
 			$ret = $si->pqueue->clearQueue();
 			print_c(json_encode(array('success' => true, 'recordCount' => $ret['recordCount'])), $callback);
-
 			break;
 
 		default:
 			$code = 100;
-
 			header('Content-type: application/json');
 			print( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ) );
 			break;
-
 	}
 
 ob_end_flush();
