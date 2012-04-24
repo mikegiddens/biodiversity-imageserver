@@ -106,6 +106,7 @@
 				, 139 => 'zBarImg Not Enabled.'
 				, 140 => 'Error Directory does not exist, or does not have write permission.'
 				, 141 => 'Images Directory does not exist, or does not have write permission.'
+				, 142 => 'Requested file type is not supported currently'
 			);
 			return $ar[$error_code];
 		}
