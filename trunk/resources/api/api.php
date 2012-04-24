@@ -100,6 +100,9 @@ ob_start();
 		, 'updateFlag'
 		, 'code'
 		, 'showOCR'
+
+		, 'force'
+		, 'ext'
 	);
 
 	// Initialize allowed variables
@@ -541,6 +544,19 @@ ob_start();
 			$data['mode'] = $config['mode'];
 			$data['s3'] = $config['s3'];
 			$data['obj'] = $si->amazon;
+
+			$config['allowed_ext'] = array('jpg','png');
+			if(!isset($ext)) {
+				$ext = "jpg";
+			} else {
+				$ext = trim($ext);
+				$ext = strtolower($ext);
+				if(!in_array($ext,$config['allowed_ext'])) {
+					$valid = false;
+					$code = 142;
+				}
+			}
+			$data['ext'] = $ext;
 
 			if($valid) {
 				$si->image->setData($data);
@@ -2044,6 +2060,14 @@ ob_start();
 				} else {
 					$cacheFlag = @file_exists($config['path']['images'] . $cachePath);
 				}
+				if(isset($force))
+				{
+					$force = strtolower($force);
+					if($force == true)
+					{
+						$cacheFlag = false;
+					}
+				}
 				if($cacheFlag) {
 					if($config['mode'] == 's3') {
 						$tmpCachePath = $_TMP . $si->image->get('barcode')."-barcodes.json";
@@ -2055,7 +2079,11 @@ ob_start();
 						$jsonFile = $config['path']['images'].$cachePath;
 					}
 					$data = file_get_contents($jsonFile);
-					$data = json_decode(stripslashes(trim($data)),true);
+					$processTime = microtime(true) - $time_start;
+					$data = json_decode($data,true);
+					$data['processTime'] = $processTime;
+					$data = json_encode($data);
+					print_c($data);
 				} else {
 					if($config['mode'] == 's3') {
 						$tmpPath = $_TMP . $si->image->get('filename');
@@ -2078,7 +2106,11 @@ ob_start();
 					if($config['mode'] == 's3') {
 						@unlink($tmpImage);
 					}
-					$tmpJsonFile = json_encode($data);
+					$processTime = microtime(true) - $time_start;
+					$command = sprintf("%s --version ", $config['zBarImgPath']);
+					$ver = exec($command);
+					$lastTested = time();
+					$tmpJsonFile = json_encode(array('success' => true, 'processTime' => $processTime, 'lastTested'=>$lastTested , 'software'=>"zbarimg", 'version'=>$ver , 'data' => $data));
 					$key = $si->image->barcode_path($si->image->get('barcode')) . $si->image->get('barcode') . '-barcodes.json';
 					if($config['mode'] == 's3') {
 						$tmpJson = $_TMP . $si->image->get('barcode') . '-barcodes.json';
@@ -2089,14 +2121,12 @@ ob_start();
 					} else {
 						@file_put_contents($config['path']['images'] . $key,$tmpJsonFile);
 					}
+					print_c(json_encode(array('success' => true, 'processTime' => $processTime, 'lastTested'=>$lastTested , 'software'=>"zbarimg", 'version'=>$ver , 'data' => $data)));
 
 				}
 				
-				$processTime = microtime(true) - $time_start;
-				$command = sprintf("%s --version ", $config['zBarImgPath']);
-				$ver = exec($command);
-				$lastTested = time();
-				print_c(json_encode(array('success' => true, 'processTime' => $processTime, 'lastTested'=>$lastTested , 'software'=>"zbarimg", 'version'=>$ver , 'data' => $data)));
+				
+				
 
 			} else {
 				print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($code) , 'code' => $code ) ) ) );
