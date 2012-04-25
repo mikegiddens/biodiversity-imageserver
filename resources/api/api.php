@@ -5,6 +5,8 @@
 	session_start();
 	ob_start();
 
+	$old_error_handler = set_error_handler("myErrorHandler");
+
 	/**
 	 * @author SilverBiology
 	 * @website http://www.silverbiology.com
@@ -112,6 +114,45 @@
 		print $cb;
 	}
 
+	/*
+	* Function myErrorHandler
+	* Used to catch any errors and send back a custom json error message.
+	*/
+	function myErrorHandler($errno, $errstr, $errfile, $errline) {
+		global $allowed_ips, $config;
+		switch ($errno) {
+
+			case E_USER_ERROR:
+				$msg = "ERROR [$errno] $errstr";
+				$msg .= "  Fatal error on line $errline in file $errfile";
+				$msg .= ", PHP " . PHP_VERSION . " (" . PHP_OS . ")";
+				$msg .= "Aborting...";
+				print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $msg , 'code' => $errno ) ) ) );
+				if($config['report_software_errors']) {
+					$get = urlencode(json_encode( array( 'datetime' => date('d-M-Y'), 'license' => $config['license'], 'version' => $config['version'], 'errorno' => $errno, 'errorstr' => $errstr, 'errline' => $errline, 'errfile' => $errfile ) ));
+					@file_get_contents( $config['error_report_path'] .  '?log=' . $get );
+				}
+				exit(1);
+				break;
+/*			
+			case E_USER_WARNING:
+				echo "<b>WARNING</b> [$errno] $errstr<br />\n";
+				break;
+			
+			case E_USER_NOTICE:
+				echo "<b>NOTICE</b> [$errno] $errstr<br />\n";
+				break;
+			
+			default:
+				echo "Unknown error type: [$errno] $errstr<br />\n";
+				break;
+*/
+		}
+		
+		/* Don't execute PHP internal error handler */
+		return true;
+	}
+
 	if (PHP_SAPI === 'cli') {
 	
 		function parseArgs($argv){
@@ -170,12 +211,7 @@
 	$user_access = new Access_user($config['mysql']['host'], $config['mysql']['user'], $config['mysql']['pass'], $config['mysql']['name']);
 
 // TODO - move this and all case php functins into an api-picassa.php project so that those commands will be separated out from api.php
-	// setting picassa constants
-	$si->picassa->set('picassa_path', $config['picassa']['lib_path']);
-	$si->picassa->set('picassa_user', $config['picassa']['email']);
-	$si->picassa->set('picassa_pass', $config['picassa']['pass']);
-	$si->picassa->set('picassa_album', $config['picassa']['album']);
-	
+		
 	// This is the output type that the program needs to return, defaults to json
 	if(!isset($api)) {
 		$api = "json";
@@ -274,9 +310,9 @@
 				$si->logger->setData($data);
 				$si->logger->loadCollectionReport();
 				$records = $si->logger->getRecords();
-				print( json_encode( array( 'success' => true,  'data' => $records ) ) );
+				print_c( json_encode( array( 'success' => true,  'data' => $records ) ) );
 			} else {
-				print( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ) );
+				print_c( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ) );
 			}
 			break;
 
@@ -296,9 +332,9 @@
 				$si->logger->clearRecords();
 				$si->logger->loadReportByDateRange();
 				$records = $si->logger->getRecords();
-				print( json_encode( array( 'success' => true,  'data' => $records ) ) );
+				print_c( json_encode( array( 'success' => true,  'data' => $records ) ) );
 			} else {
-				print( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ) );
+				print_c( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ) );
 			}
 			break;
 
@@ -319,9 +355,9 @@
 				$si->logger->setData($data);
 				$si->logger->loadReportByDate();
 				$records = $si->logger->getRecords();
-				print( json_encode( array( 'success' => true,  'data' => $records ) ) );
+				print_c( json_encode( array( 'success' => true,  'data' => $records ) ) );
 			} else {
-				print( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ) );
+				print_c( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ) );
 			}
 
 			break;
@@ -346,9 +382,9 @@
 				$si->logger->setData($data);
 				$si->logger->loadGraphReportUsers();
 				$records = $si->logger->getRecords();
-				print( json_encode( array( 'success' => true,  'data' => $records ) ) );
+				print_c( json_encode( array( 'success' => true,  'data' => $records ) ) );
 			} else {
-				print( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ) );
+				print_c( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ) );
 			}
 
 			break;
@@ -372,9 +408,9 @@
 				$si->logger->setData($data);
 				$si->logger->loadGraphReportStations();
 				$records = $si->logger->getRecords();
-				print( json_encode( array( 'success' => true,  'data' => $records ) ) );
+				print_c( json_encode( array( 'success' => true,  'data' => $records ) ) );
  			}else {
-				print( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ) );
+				print_c( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ) );
 			}
 			break;
 
@@ -397,9 +433,9 @@
 				$si->logger->setData($data);
 				$si->logger->loadGraphReportSc();
 				$records = $si->logger->getRecords();
-				print( json_encode( array( 'success' => true,  'data' => $records ) ) );
+				print_c( json_encode( array( 'success' => true,  'data' => $records ) ) );
  			}else {
-				print( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ) );
+				print_c( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ) );
 			}
 			break;
 
@@ -411,7 +447,7 @@
 			$data[] = array( 'text' => '# of images allowed:', 'value' => $stats['allowed_images'] );
 
 			header('Content-type: application/json');
-			print( json_encode( array( 'success' => true,  'data' => $data ) ) );
+			print_c( json_encode( array( 'success' => true,  'data' => $data ) ) );
 			break;
 		// END REPORTS
 
@@ -472,7 +508,7 @@
 			$time = microtime(true) - $time_start;
 
 			header('Content-type: application/json');
-			print( json_encode( array( 'success' => true, 'process_time' => $time, 'total_images' => $count ) ) );
+			print_c( json_encode( array( 'success' => true, 'process_time' => $time, 'total_images' => $count ) ) );
 			break;
 
 		// Get storage info from the images path
@@ -618,10 +654,10 @@
 				}
 				$processTime = microtime(true) - $time_start;
 				header('Content-type: application/json');
-				print( json_encode( array( 'success' => true, 'processTime' => $processTime, 'url' => $config['tileUrl'] . strtolower($barcode)) ) );
+				print_c( json_encode( array( 'success' => true, 'processTime' => $processTime, 'url' => $config['tileUrl'] . strtolower($barcode)) ) );
 			} else {
 				header('Content-type: application/json');
-				print( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ) );
+				print_c( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ) );
 			}
 			break;
 
@@ -647,9 +683,9 @@
 				$data = $si->pqueue->listQueue();
 				$total = $si->pqueue->db->query_total();
 				$processTime = microtime(true) - $time_start;				
-				print( json_encode( array( 'success' => true, 'processTime' => $processTime, 'totalCount' => $total, 'data' => $data ) ) );
+				print_c( json_encode( array( 'success' => true, 'processTime' => $processTime, 'totalCount' => $total, 'data' => $data ) ) );
 			}else {
-				print( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ) );
+				print_c( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ) );
 			}
 			break;
 
@@ -792,9 +828,9 @@
 				fclose($fp);
 
 				$total = $si->image->db->query_total();
-				print( json_encode( array( 'success' => true, 'totalCount' => $total, 'cacheFile' => $pathUrl, 'records' => $data ) ) );
+				print_c( json_encode( array( 'success' => true, 'totalCount' => $total, 'cacheFile' => $pathUrl, 'records' => $data ) ) );
 			} else {
-				print( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ) );
+				print_c( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ) );
 			}
 			break;
 
@@ -810,9 +846,9 @@
 
 				$si->collection->setData($data);
 				$data = $si->collection->listCollection();
-				print( json_encode( array( 'success' => true, 'data' => $data ) ) );
+				print_c( json_encode( array( 'success' => true, 'data' => $data ) ) );
 			} else {
-				print( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ) );
+				print_c( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ) );
 			}
 
 			break;
@@ -827,9 +863,9 @@
 			if($valid) {
 				$si->collection->setData($data);
 				$data = $si->collection->getSizeOfCollection();
-				print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time, 'data' => $data ) ), $callback );
+				print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time, 'data' => $data ) ));
 			} else {
-				print_c( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ), $callback );
+				print_c( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ));
 			}
 			break;
 
@@ -843,9 +879,9 @@
 				$si->logger->setData($data);
 				$si->logger->clearRecords();
 				$records = $si->logger->getStationUsers();
-				print( json_encode( $records ) );
+				print_c( json_encode( $records ) );
 			} else {
-				print( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ) );
+				print_c( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ) );
 			}
 			break;
 
@@ -886,9 +922,9 @@
 						}
 					}
 				}
-				print( json_encode( array('success' => true, 'records' => $ar ) ) );
+				print_c( json_encode( array('success' => true, 'records' => $ar ) ) );
 			} else {
-				print( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ) );
+				print_c( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ) );
 			}
 			break;
 
@@ -916,12 +952,12 @@
 			if($valid) {
 				$ret = $si->image->rotateImage($image);
 				if($ret['success']) {
-					print( json_encode( array( 'success' => true,  'message' => $si->getError(110) ) ) );
+					print_c( json_encode( array( 'success' => true,  'message' => $si->getError(110) ) ) );
 				} else {
-					print( json_encode( array( 'success' => false ) ));
+					print_c( json_encode( array( 'success' => false ) ));
 				}
 			} else {
-				print( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ) );
+				print_c( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ) );
 			}
 			break;
 
@@ -946,12 +982,12 @@
 				$si->image->setData($data);
 				$ret = $si->image->deleteImage();
 				if($ret['success']) {
-					print( json_encode( array( 'success' => true ) ) );
+					print_c( json_encode( array( 'success' => true ) ) );
 				} else {
-					print( json_encode( array( 'success' => false, 'error' => array('code' => $ret['code'], 'message' => $si->getError($ret['code']))) ) );
+					print_c( json_encode( array( 'success' => false, 'error' => array('code' => $ret['code'], 'message' => $si->getError($ret['code']))) ) );
 				}
 			} else {
-				print( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ) );
+				print_c( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ) );
 			}
 
 			break;
@@ -1038,7 +1074,7 @@
 					} # higher taxonId not null
 				} # while $ret
 			} # if $ret
-			print( json_encode( array( 'success' => true, 'recordsUpdated' => $records) ) );
+			print_c( json_encode( array( 'success' => true, 'recordsUpdated' => $records) ) );
 
 			break;
 
@@ -1057,108 +1093,13 @@
 			if($valid) {
 				$si->image->setData($data);
 				$results = $si->image->getCollectionSpecimenCount();
-				print( json_encode( array( 'success' => true,  'results' => $results ) ) );
+				print_c( json_encode( array( 'success' => true,  'results' => $results ) ) );
 				
 			} else {
-				print( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ) );
+				print_c( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ) );
 			}
 			break;
 
-		# picassa commands
-
-		/**
-		 * Lists the details of a particular photo
-		 */
-		case 'picassa_image_details':
-			$image_id = trim($image_id);
-			if($image_id == "") {
-				$valid = false;
-				$code = 107;
-			}
-
-			header('Content-type: application/json');
-			if($valid) {
-				if($si->image->load_by_id($image_id)) {
-					$si->picassa->clientLogin();
-					$photos = $si->picassa->getPhotodetails($si->image->get('picassa_PlantID'));
-					print( json_encode( array( 'success' => true, 'details' => $photos) ) );
-				}
-			} else {
-				print( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ) );
-			}
-			break;
-
-		/**
-		 * Updates the details of a particular photo
-		 */
-		case 'picassa_update_image':
-			$image_id = trim($image_id);
-			if($image_id == "") {
-				$valid = false;
-				$code = 107;
-			}
-
-			header('Content-type: application/json');
-			if($valid) {
-				if($si->image->load_by_id($image_id)) {
-					$si->picassa->clientLogin();
-					$si->picassa->set('photo_title',@trim($photo_title));
-					$si->picassa->set('photo_summary',@trim($photo_summary));
-					$si->picassa->set('photo_tags',@trim($photo_tags));
-					$photos = $si->picassa->updatePhoto($si->image->get('picassa_PlantID'));
-					print( json_encode( array( 'success' => true ) ) );
-				}
-			} else {
-				print( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ) );
-			}
-			break;
-
-		/**
-		 * add a tag to a particular image
-		 */
-		case 'picassa_add_tag':
-			$image_id = trim($image_id);
-			$tag = trim($tag);
-			if($image_id == "") {
-				$valid = false;
-				$code = 107;
-			}
-
-			header('Content-type: application/json');
-			if($valid) {
-				if($si->image->load_by_id($image_id)) {
-					$si->picassa->clientLogin();
-					$si->picassa->addTag($si->image->get('picassa_PlantID'),$tag);
-					print( json_encode( array( 'success' => true ) ) );
-				}
-			} else {
-				print( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ) );
-			}
-			
-			break;
-			
-		/**
-		 * deletes a specific tag of a particular image
-		 */
-		case 'picassa_delete_tag':
-			$image_id = trim($image_id);
-			$tag = trim($tag);
-			if($image_id == "") {
-				$valid = false;
-				$code = 107;
-			}
-
-			header('Content-type: application/json');
-			if($valid) {
-				if($si->image->load_by_id($image_id)) {
-					$si->picassa->clientLogin();
-					$si->picassa->deleteTag($si->image->get('picassa_PlantID'),$tag);
-					print( json_encode( array( 'success' => true ) ) );
-				}
-			} else {
-				print( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ) );
-			}
-			break;
 
 /**
  * Populates the image table with the data of images present in the s3 account
@@ -1171,13 +1112,13 @@
 			if($response->isOK()) {
 				$ret = $si->image->populateS3Data($response);
 				if($ret['success']) {
-					print(json_encode(array('success' => true, 'recordCount' => $ret['recordCount'] ) ) );
+					print_c( json_encode(array('success' => true, 'recordCount' => $ret['recordCount'] ) ) );
 				} else {
-					print( json_encode( array( 'success' => false ) ) );
+					print_c( json_encode( array( 'success' => false ) ) );
 				}
 
 			} else {
-				print( json_encode( array( 'success' => false, 'error' => array( 'message' => 's3 Error' ) ) ));
+				print_c( json_encode( array( 'success' => false, 'error' => array( 'message' => 's3 Error' ) ) ));
 			}
 
 			break;
@@ -1202,9 +1143,9 @@
 				$si->bis->setData($data);
 				$data = $si->bis->listHSQueue();
 				$total = $si->bis->db->query_total();
-				print( json_encode( array( 'success' => true, 'totalCount' => $total, 'data' => $data ) ) );
+				print_c( json_encode( array( 'success' => true, 'totalCount' => $total, 'data' => $data ) ) );
 			}else {
-				print( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ) );
+				print_c( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ) );
 			}
 
 			break;
@@ -1365,7 +1306,7 @@
 
 				} # foreach file
 			} # if count file
-			print_c ( json_encode( array( 'success' => true, 'recordCount' => count($statsArray), 'stats' => $statsArray ) ), $callback );
+			print_c ( json_encode( array( 'success' => true, 'recordCount' => count($statsArray), 'stats' => $statsArray ) ) );
 			break;
 
 		case 'searchEnLabels':
@@ -1415,9 +1356,9 @@
 				} # if labels
 				$data = @array_values($data);
 				$time = microtime(true) - $time_start;
-				print_c( json_encode( array( 'success' => true, 'processTime' => $time, 'totalCount' => $totalNotes, 'data' => $data ) ), $callback );
+				print_c( json_encode( array( 'success' => true, 'processTime' => $time, 'totalCount' => $totalNotes, 'data' => $data ) ));
 			} else {
-				print_c( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ), $callback );
+				print_c( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ));
 			}
 
 			break;
@@ -1436,9 +1377,9 @@
 			$ret = $si->image->loadImageCharacters();
 			$processTime = microtime(true) - $time_start;
 			if($ret['success']) {
-				print_c( json_encode( array( 'success' => true, 'processTime' => $time, 'totalCount' => $ret['recordCount'], 'data' => $ret['data'] ) ), $callback );
+				print_c( json_encode( array( 'success' => true, 'processTime' => $time, 'totalCount' => $ret['recordCount'], 'data' => $ret['data'] ) ));
 			} else {
-				print_c( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ), $callback );
+				print_c( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ));
 			}
 			break;
 
@@ -2145,13 +2086,13 @@
 			$si->pqueue->setData($data);
 			$allowedTypes = array('flickr_add','picassa_add','zoomify','google_tile','ocr_add','name_add','all');
 			$ret = $si->pqueue->clearQueue();
-			print_c(json_encode(array('success' => true, 'recordCount' => $ret['recordCount'])), $callback);
+			print_c(json_encode(array('success' => true, 'recordCount' => $ret['recordCount'])));
 			break;
 
 		default:
 			$code = 100;
 			header('Content-type: application/json');
-			print( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ) );
+			print_c( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ) );
 			break;
 	}
 
