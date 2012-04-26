@@ -571,7 +571,7 @@
 			$data['obj'] = $si->amazon;
 
 			// Type null defaults to 'jpg'
-			$config['allowed_image_format'] = array('jpg', 'png', 'gif', 'tiff');
+			$config['allowed_image_format'] = array('jpg', 'jpeg', 'png', 'gif', 'tiff');
 			if(($type != '') && !in_array(strtolower($type), $config['allowed_image_format'])) {
 				$valid = false;
 				$code = 142;

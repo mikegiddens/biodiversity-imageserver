@@ -203,10 +203,10 @@
 				if($si->image->load_by_id($image_id)) {
 					$si->picassa->clientLogin();
 					$photos = $si->picassa->getPhotodetails($si->image->get('picassa_PlantID'));
-					print( json_encode( array( 'success' => true, 'details' => $photos) ) );
+					print_c( json_encode( array( 'success' => true, 'details' => $photos) ) );
 				}
 			} else {
-				print( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ) );
+				print_c( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ) );
 			}
 			break;
 
@@ -228,10 +228,10 @@
 					$si->picassa->set('photo_summary',@trim($photo_summary));
 					$si->picassa->set('photo_tags',@trim($photo_tags));
 					$photos = $si->picassa->updatePhoto($si->image->get('picassa_PlantID'));
-					print( json_encode( array( 'success' => true ) ) );
+					print_c( json_encode( array( 'success' => true ) ) );
 				}
 			} else {
-				print( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ) );
+				print_c( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ) );
 			}
 			break;
 
@@ -251,10 +251,10 @@
 				if($si->image->load_by_id($image_id)) {
 					$si->picassa->clientLogin();
 					$si->picassa->addTag($si->image->get('picassa_PlantID'),$tag);
-					print( json_encode( array( 'success' => true ) ) );
+					print_c( json_encode( array( 'success' => true ) ) );
 				}
 			} else {
-				print( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ) );
+				print_c( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ) );
 			}
 			
 			break;
@@ -275,16 +275,16 @@
 				if($si->image->load_by_id($image_id)) {
 					$si->picassa->clientLogin();
 					$si->picassa->deleteTag($si->image->get('picassa_PlantID'),$tag);
-					print( json_encode( array( 'success' => true ) ) );
+					print_c( json_encode( array( 'success' => true ) ) );
 				}
 			} else {
-				print( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ) );
+				print_c( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ) );
 			}
 			break;
 		default:
 			$code = 100;
 			header('Content-type: application/json');
-			print( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ) );
+			print_c( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ) );
 			break;
 	}
 

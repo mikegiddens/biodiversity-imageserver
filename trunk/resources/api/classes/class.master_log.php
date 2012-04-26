@@ -107,19 +107,17 @@ Class Logger {
 		$ret = array();
 
 		# taking log files from the s3 logs folder
-		//$logArray = $this->data['obj']->getBucket($this->data['s3']['bucket'],$this->data['s3']['logPath']);
-		//$logArray = $this->data['obj']->get_object_list($this->data['s3']['bucket'], array('prefix' => $this->data['s3']['logPath']));
 		try {
-			$rets = $this->db->query_all( $query );
-			$logArray = $this->data['obj']->getBucket($this->data['s3']['bucket'],$this->data['s3']['logPath']);
+			$logArray = $this->data['obj']->get_object_list($this->data['s3']['bucket'], array('prefix' => $this->data['s3']['path']['logs']));
 		} catch (Exception $e) {
 			trigger_error($e->getMessage(),E_USER_ERROR);
 		}
 		if(count($logArray) && is_array($logArray)) {
 			foreach($logArray as $log) {
-				$this->data['obj']->getBucketFile($log['name'], $this->data['s3']['bucket'], $filename);
-				//$this->data['obj']->get_object( $this->data['s3']['bucket'], $filename);
-
+				//$this->data['obj']->getBucketFile($log['name'], $this->data['s3']['bucket'], $filename);
+				$fp = fopen($filename,'w+');
+				$res = $this->data['obj']->get_object( $this->data['s3']['bucket'], $log, array('fileDownload' => $fp));
+				fclose($fp);
 				$fp = fopen($filename,'r');
 				while (($data = fgetcsv($fp, ",")) !== FALSE) {
 					$this->setFieldFromCsv($data);
@@ -130,8 +128,8 @@ Class Logger {
 				$count++;
 
 				#uploading to s3 processed logs directory and deleting from logs directory
-				$this->data['obj']->putObjectFile($filename, $this->data['s3']['bucket'], $this->data['s3']['processedLogPath'] . @basename($log['name']), S3::ACL_PUBLIC_READ);
-				//$this->data['obj']->create_object( $this->data['s3']['bucket'], $filename, array('body' => $this->data['s3']['processedLogPath'] . @basename($log['name']), 'acl' => AmazonS3::ACL_PUBLIC));
+				//$this->data['obj']->putObjectFile($filename, $this->data['s3']['bucket'], $this->data['s3']['processedLogPath'] . @basename($log['name']), S3::ACL_PUBLIC_READ);
+				$this->data['obj']->create_object( $this->data['s3']['bucket'], $filename, array('body' => $this->data['s3']['path']['processedLogs'] . @basename($log['name']), 'acl' => AmazonS3::ACL_PUBLIC));
 				@unlink($filename);
 				$this->data['obj']->deleteObject($this->data['s3']['bucket'], $log['name']);
 				//$this->data['obj']->delete_object($this->data['s3']['bucket'], $log['name']);

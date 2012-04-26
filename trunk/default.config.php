@@ -53,6 +53,8 @@
 	$config['s3']['secretKey'] = '';
 	$config['s3']['bucket'] = '';
 	$config['s3']['url'] = '';
+	$config['s3']['path']['logs'] = 'logs/';
+	$config['s3']['path']['processedLogs'] = 'processedLogs/';
 
 	$config['hsUrl'] = 'http://eria.helpingscience.org/silverarchive_engine/silverarchive.php';
 	$config['evernoteUrl'] = 'http://eria.helpingscience.org/evernote_engine/evernote.php';
