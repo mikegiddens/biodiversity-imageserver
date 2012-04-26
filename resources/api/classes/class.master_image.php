@@ -188,17 +188,25 @@ Class Image {
 		$res = system($tmp);
 	}
 
-	function createThumb( $tmp_path, $new_width, $new_height, $postfix = '', $display_flag=false ) {
+	function createThumb( $tmp_path, $new_width, $new_height, $postfix = '', $display_flag=false, $type) {
 		global $config;
 		$dtls = @pathinfo($tmp_path);
 		$extension = '.' . $dtls['extension'];
 		$content_type = 'image/' . ($dtls['extension'] == 'jpg' ? 'jpeg' : $dtls['extension']);
+		
 
 		if($config['image_processing'] == 1) {
 			$destination =  $dtls['dirname'] . '/' . $dtls['filename'] . $postfix . $extension;
 #			$tmp = sprintf("convert %s -thumbnail %sx%s %s", $tmp_path,$new_width,$new_height,$destination);
 			$tmp = sprintf("convert -limit memory 16MiB -limit map 32MiB %s -thumbnail %sx%s %s", $tmp_path,$new_width,$new_height,$destination);
 			$res = exec($tmp);
+			$tmp_path = $destination;
+			$extension = '.' . $type;
+			$content_type = 'image/' . ($type == 'jpg' ? 'jpeg' : $type);
+			$destination =  $dtls['dirname'] . '/' . $dtls['filename'] . $postfix . $extension;
+			$tmp = sprintf("convert %s %s",$tmp_path,$destination);
+			$res = exec($tmp);
+			
 			if($display_flag) {
 				$fp = fopen($destination, 'rb');
 				header("Content-Type: $content_type");
@@ -319,7 +327,7 @@ Class Image {
 		}
 		if(!$flag) return array('success' => false, 'code' => 135);
 
-		$ext = @strtolower($this->getName('ext'));
+		$ext = ($this->data['type']==''?@strtolower($this->getName('ext')):$this->data['type']);
 		$extension = '.' . $ext;
 		$func1 = 'image' . ($ext == 'jpg' ? 'jpeg' : $ext);
 		$content_type = 'image/' . ($ext == 'jpg' ? 'jpeg' : $ext);
@@ -352,7 +360,7 @@ Class Image {
 
 			$fp = fopen($tmpPath, 'rb');
 // TODO THIS NEED to be the content type based on the data["type"] set
-			header("Content-Type: image/jpeg");
+			header("Content-Type: " . $content_type);
 			header("Content-Length: " . filesize($tmpPath));
 			fpassthru($fp);
 			fclose($fp);
@@ -361,6 +369,9 @@ Class Image {
 			}
 			exit;
 		}
+
+		$ext = @strtolower($this->getName('ext'));
+		$extension = '.' . $ext;
 
 		# Image variation does not exist
 		if($config['mode'] == 's3') {
@@ -380,22 +391,26 @@ Class Image {
 		if(in_array(strtolower($size), array('s', 'm', 'l', 'custom'))){
 			$dtls = @pathinfo($tmpPath);
 			$extension = '.' . $dtls['extension'];
+			//$file_name =  $dtls['dirname'] . '/' . $dtls['filename'] . '_' . $size . $extension;
+// TODO you need to add the type param at the end of this and add it as an optiona argument in the createThumb
+			$type = ($this->data['type']==''?@strtolower($this->getName('ext')):$this->data['type']);
+			$extension = '.' . ($type == 'jpg' ? 'jpeg' : $type);
 			$file_name =  $dtls['dirname'] . '/' . $dtls['filename'] . '_' . $size . $extension;
-// TODO you need to add the type param at the end of this and add it as an optiona argument in the createThumb			
+
 			switch($size) {
 				case 's':
-					$this->createThumb( $tmpPath, 100, 100, '_s');
+					$this->createThumb( $tmpPath, 100, 100, '_s', false, $type);
 					break;
 				case 'm':
-					$this->createThumb( $tmpPath, 275, 275, "_m");
+					$this->createThumb( $tmpPath, 275, 275, "_m", false, $type);
 					break;
 				case 'l':
-					$this->createThumb( $tmpPath, 800, 800, "_l");
+					$this->createThumb( $tmpPath, 800, 800, "_l", false, $type);
 					break;
 				case 'custom':
 					$width = ($this->data['width']!='') ? $this->data['width'] : $this->data['height'];
 					$height = ($this->data['height']!='') ? $this->data['height'] : $this->data['width'];
-					$this->createThumb( $tmpPath, $width, $height, 'tmp', true);
+					$this->createThumb( $tmpPath, $width, $height, 'tmp', true, $type);
 					break;					
 			}
 			if($config['mode'] == 's3') {
