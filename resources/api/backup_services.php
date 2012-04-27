@@ -663,6 +663,133 @@ switch($cmd) {
 		print json_encode(array('success' => true, 'process_time' => $time_taken, 'labelCount' => $labelCount));
 		break;
 
+	case 'populateGuessTaxaProcessQueue':
+		$time_start = microtime(true);
+		$count = 0;
+		$filter['start'] = 0;
+		$filter['limit'] = $limit;
+		if(trim($image_id) != '') {
+			$imageIds = json_decode(stripslashes($image_id),true);
+			if(is_array($imageIds) && count($imageIds)) {
+				foreach($imageIds as $imageId) {
+					$loadFlag = false;
+					if(!is_numeric($imageId)) {
+						$loadFlag = $si->image->load_by_barcode($imageId);
+					} else {
+						$loadFlag = $si->image->load_by_id($imageId);
+					}
+					if($loadFlag) {
+						if(!$si->pqueue->field_exists($si->image->get('barcode'),'guess_add')) {
+							$si->pqueue->set('image_id', $si->image->get('barcode'));
+							$si->pqueue->set('process_type', 'guess_add');
+							$si->pqueue->save();
+							$count++;
+						}
+					}
+				}
+			}
+		} else {
+			$ret = $si->image->getOcrRecords($filter);
+			$countFlag = true;
+			while(($record = $ret->fetch_object()) && ($countFlag)) {
+				if(!$si->pqueue->field_exists($record->barcode,'guess_add')) {
+					$si->pqueue->set('image_id', $record->barcode);
+					$si->pqueue->set('process_type', 'guess_add');
+					$si->pqueue->save();
+					$count++;
+					if($limit != '' && $count >= $limit) {
+						$countFlag = false;
+					}
+				}
+			}
+		}
+		$time = microtime(true) - $time_start;
+		print json_encode(array('success' => true, 'process_time' => $time, 'total_records_added' => $count));
+		break;
+
+	case 'processGuessTaxa':
+		if(!$config['tesseractEnabled']) {
+			header('Content-type: application/json');
+			print json_encode(array('success' => false, 'error' => array('code' => 137, 'message' => $si->getError(137))));
+			exit;
+		}
+		$_TMP = ($config['path']['tmp'] != '') ? $config['path']['tmp'] : sys_get_temp_dir() . '/';
+
+		$time_start = microtime(true);
+		$tStart = time();
+		$loop_flag = true;
+		$images_array = array();$image_count = 0;
+		while($loop_flag) {
+			$tDiff = time() - $tStart;
+			if( ($stop != '') && ( $tDiff > $stop) ) $loop_flag = false;
+
+			if($limit != '') {
+				if($limit == 0) break;
+			}
+			if($limit != '' && $image_count >= ($limit - 1)) $loop_flag = false;
+
+			$record = $si->pqueue->popQueue('guess_add');
+			if($record === false) {
+				$loop_flag = false;
+			} else {
+				$imageId = $record->image_id;
+				$si->image->load_by_barcode($imageId);
+				if(!($si->image->get('ocr_flag')))
+				{
+				//Perform ocr and store values
+						if($config['mode'] == 's3') {
+						$tmpFileName = 'Img_' . microtime();
+						$tmpFilePath = $_TMP . $tmpFileName;
+						$tmpFile = $tmpFilePath . '.jpg';
+						$key = $si->image->barcode_path($record->image_id) . $record->image_id . '.jpg';
+
+						$si->amazon->get_object($config['s3']['bucket'], $key, array('fileDownload' => $tmpFile));
+					} else {
+						$tmpFilePath = $config['path']['images'] . $si->image->barcode_path($record->image_id) . $record->image_id;
+						$tmpFile = $tmpFilePath . '.jpg';
+					}
+
+					if($config['image_processing'] == 1) {
+						$tmpImage = $tmpFilePath . '_tmp.jpg';
+						$cd = "convert " . $tmpFile . " -colorspace Gray  -contrast-stretch 15% " . $tmpImage;
+						exec($cd);
+						$command = sprintf("%s %s %s", $config['tesseractPath'], $tmpImage, $tmpFilePath);
+						exec($command);
+						@unlink($tmpImage);
+					} else {
+						$command = sprintf("%s %s %s", $config['tesseractPath'], $tmpFile, $tmpFilePath);
+						exec($command);
+					}
+
+					if(@file_exists($tmpFilePath . '.txt')){
+						$value = file_get_contents($tmpFilePath . '.txt');
+						$si->image->load_by_barcode($record->image_id);
+						$images_array[] = array('image_id' => $si->image->get('image_id'), 'barcode' => $si->image->get('barcode'));
+						$image_count++;
+
+						$si->image->set('ocr_flag',1);
+						$si->image->set('ocr_value',$value);
+						$si->image->save();
+					}
+
+					if($config['mode'] == 's3') {
+						@unlink($tmpFile);
+						@unlink($tmpFilePath . '.txt');
+					}
+				}
+				$si->image->load_by_barcode($imageId);
+				$ocrValue = urlencode($si->image->get('ocr_value'));
+				$gbifURL = "http://ecat-dev.gbif.org/tf?type=text&format=json&input=".$ocrValue;
+				$data = file_get_contents($gbifURL);
+				$array = json_decode($data,true);
+				//Incomplete...
+			}
+		}
+		$time_taken = microtime(true) - $time_start;
+		header('Content-type: application/json');
+		print json_encode(array('success' => true, 'process_time' => $time_taken, 'total' => $image_count, 'images' => $images_array));
+		break;
+
 # Test Tasks
 
 		default:
