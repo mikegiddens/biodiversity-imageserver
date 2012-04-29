@@ -210,8 +210,6 @@
 	$si = new SilverImage($config['mysql']['name']);
 	$user_access = new Access_user($config['mysql']['host'], $config['mysql']['user'], $config['mysql']['pass'], $config['mysql']['name']);
 
-// TODO - move this and all case php functins into an api-picassa.php project so that those commands will be separated out from api.php
-		
 	// This is the output type that the program needs to return, defaults to json
 	if(!isset($api)) {
 		$api = "json";
@@ -454,7 +452,6 @@
 
 		// Service - Should not normally be run as a cron but can be run using the api.
 		case 'check-new-images':
-			$time_start = microtime(true);
 			$si->images->clear_files();
 
 			$rr = $si->images->load_from_folder($config['path']['incoming']);
@@ -505,10 +502,9 @@
 					}
 				}
 			}
-			$time = microtime(true) - $time_start;
 
 			header('Content-type: application/json');
-			print_c( json_encode( array( 'success' => true, 'process_time' => $time, 'total_images' => $count ) ) );
+			print_c( json_encode( array( 'success' => true, 'process_time' =>  microtime(true) - $time_start, 'total_images' => $count ) ) );
 			break;
 
 		// Get storage info from the images path
@@ -522,13 +518,11 @@
 				$data['free'] = array('text'=>'Free Disk Space','value'=> decodeSize(disk_free_space($config['path']['images'])));
 				$data['total'] = array('text'=>'Total Disk Space','value'=> decodeSize(disk_total_space($config['path']['images'])));
 				file_put_contents($config['storageCache'],json_encode($data));
-				$processTime = microtime(true) - $time_start;
-				$output = array('success' => true, 'processTime' => $processTime, 'data' => $data);
+				$output = array('success' => true, 'processTime' => microtime(true) - $time_start, 'data' => $data);
 			} else {
 				if(file_exists($config['storageCache'])) {
 					$data = json_decode(stripslashes(file_get_contents($config['storageCache'])));
-					$processTime = microtime(true) - $time_start;
-					$output = array('success' => true, 'processTime' => $processTime, 'data' => $data);
+					$output = array('success' => true, 'processTime' => microtime(true) - $time_start, 'data' => $data);
 				} else {
 					$output = array('success' => true, 'read' => -1, 'write' => -1);
 				}
@@ -605,15 +599,14 @@
 			break;
 
 		case 'get_image_tiles':
-			$time_start = microtime(true);
 			$image_id = trim($image_id);
-
 			$_TMP = ($config['path']['tmp'] != '') ? $config['path']['tmp'] : sys_get_temp_dir() . '/';
 
 			if($image_id == "") {
 				$valid = false;
 				$code = 107;
 			}
+
 			if($valid) {
 				$si->image->load_by_id($image_id);
 				$barcode = $si->image->getName();
@@ -652,9 +645,8 @@
 						$si->image->rmdir_recursive($config['path']['tiles'] . $tileFolder);
 					}
 				}
-				$processTime = microtime(true) - $time_start;
 				header('Content-type: application/json');
-				print_c( json_encode( array( 'success' => true, 'processTime' => $processTime, 'url' => $config['tileUrl'] . strtolower($barcode)) ) );
+				print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start, 'url' => $config['tileUrl'] . strtolower($barcode)) ) );
 			} else {
 				header('Content-type: application/json');
 				print_c( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ) );
@@ -682,8 +674,7 @@
 				$si->pqueue->setData($data);
 				$data = $si->pqueue->listQueue();
 				$total = $si->pqueue->db->query_total();
-				$processTime = microtime(true) - $time_start;				
-				print_c( json_encode( array( 'success' => true, 'processTime' => $processTime, 'totalCount' => $total, 'data' => $data ) ) );
+				print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start, 'totalCount' => $total, 'data' => $data ) ) );
 			}else {
 				print_c( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ) );
 			}
@@ -1310,7 +1301,6 @@
 			break;
 
 		case 'searchEnLabels':
-			$time_start = microtime(true);
 			$searchWord = urldecode(trim($value));
 			$enAccountId = trim($enAccountId);
 			if($searchWord == '') {
@@ -1355,8 +1345,7 @@
 				} # for
 				} # if labels
 				$data = @array_values($data);
-				$time = microtime(true) - $time_start;
-				print_c( json_encode( array( 'success' => true, 'processTime' => $time, 'totalCount' => $totalNotes, 'data' => $data ) ));
+				print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start, 'totalCount' => $totalNotes, 'data' => $data ) ));
 			} else {
 				print_c( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ));
 			}
@@ -1369,15 +1358,13 @@
 				print_c ( json_encode( array( 'success' => false, 'error' => array('message' => $sa->getError(113), 'code' => 113 )) ));
 				exit;
 			}
-			$time_start = microtime(true);
 			$start = ($start != '') ? $start : 0;
 			$limit = ($limit != '') ? $limit : 25;
 			$data['attributes'] = implode(',',json_encode($attributes,true));
 			$si->image->setData($data);
 			$ret = $si->image->loadImageCharacters();
-			$processTime = microtime(true) - $time_start;
 			if($ret['success']) {
-				print_c( json_encode( array( 'success' => true, 'processTime' => $time, 'totalCount' => $ret['recordCount'], 'data' => $ret['data'] ) ));
+				print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start, 'totalCount' => $ret['recordCount'], 'data' => $ret['data'] ) ));
 			} else {
 				print_c( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ));
 			}
@@ -1388,7 +1375,7 @@
 				print_c (json_encode( array( 'success' => false, 'error' => array('message' => $sa->getError(113), 'code' => 113 )) ));
 				exit;
 			}
-			$time_start = microtime(true);
+
 			$data['imageID'] = $imageID;
 			if($data['imageID'] == "") {
 				$valid = false;
@@ -1403,8 +1390,7 @@
 			if($valid) {
 				$si->image->setData($data);
 				if($si->image->addImageAttribute()) {
-					$processTime = microtime(true) - $time_start;
-					print_c( json_encode( array( 'success' => true, 'processTime' => $processTime ) ) );
+					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start ) ) );
 				} else {
 					print_c( json_encode( array( 'success' => false, 'error' => array ( 'code' => 121, 'msg' => $si->error(121) ) ) ) );
 				}
@@ -1418,7 +1404,7 @@
 				print_c ( json_encode( array( 'success' => false, 'error' => array('message' => $sa->getError(113), 'code' => 113 )) ));
 				exit;
 			}
-			$time_start = microtime(true);
+
 			$data['imageID'] = $imageID;
 			if($data['imageID'] == "") {
 				$valid = false;
@@ -1432,8 +1418,7 @@
 			if($valid) {
 				$si->image->setData($data);
 				if($si->image->deleteImageAttribute()) {
-					$processTime = microtime(true) - $time_start;
-					print_c( json_encode( array( 'success' => true, 'processTime' => $processTime ) ) );
+					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start ) ) );
 				} else {
 					print_c( json_encode( array( 'success' => false, 'error' => array ( 'code' => 122, 'msg' => $sa->error(122) ) ) ) );
 				}
@@ -1447,7 +1432,7 @@
 					print_c ( json_encode( array( 'success' => false, 'error' => array('message' => $sa->getError(113), 'code' => 113 )) ));
 					exit;
 				}
-				$time_start = microtime(true);
+
 				$data['value'] = $value;
 				if($data['value'] == "") {
 					$valid = false;
@@ -1471,7 +1456,7 @@
 					print_c (json_encode( array( 'success' => false, 'error' => array('message' => $sa->getError(113), 'code' => 113 )) ));
 					exit;
 				}
-				$time_start = microtime(true);
+
 				$data['value'] = $value;
 				if($data['value'] == "") {
 					$valid = false;
@@ -1499,7 +1484,7 @@
 					print_c (json_encode( array( 'success' => false, 'error' => array('message' => $sa->getError(113), 'code' => 113 )) ));
 					exit;
 				}
-				$time_start = microtime(true);
+
 				$data['categoryID'] = $categoryID;
 				if($data['categoryID'] == "") {
 					$valid = false;
@@ -1520,7 +1505,7 @@
 					print_c (json_encode( array( 'success' => false, 'error' => array('message' => $sa->getError(113), 'code' => 113 )) ));
 					exit;
 				}
-				$time_start = microtime(true);
+
 				$data['categoryID'] = $categoryID;
 				if($data['categoryID'] == "") {
 					$valid = false;
@@ -1547,7 +1532,7 @@
 					print_c ( json_encode( array( 'success' => false, 'error' => array('message' => $sa->getError(113), 'code' => 113 )) ));
 					exit;
 				}
-				$time_start = microtime(true);
+
 				$data['value'] = $value;
 				if($data['value'] == "") {
 					$valid = false;
@@ -1573,7 +1558,7 @@
 					print_c ( json_encode( array( 'success' => false, 'error' => array('message' => $sa->getError(113), 'code' => 113 )) ));
 					exit;
 				}
-				$time_start = microtime(true);
+
 				$data['valueID'] = $valueID;
 				if($data['valueID'] == "") {
 					$valid = false;
@@ -1604,8 +1589,7 @@
 				if($valid) {
 					$si->image->setData($data);
 					if(false !== ($nodes = $si->image->loadImageNodesCharacters())) {
-						$processTime = microtime(true) - $time_start;
-						print_c( json_encode( array( 'success' => true, 'processTime' => $processTime, 'recordCount' => count($nodes), 'results' => $nodes)));
+						print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start, 'recordCount' => count($nodes), 'results' => $nodes)));
 					} else {
 						print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError(127) , 'code' => 127 ) ) ) );
 					}
@@ -1628,8 +1612,7 @@
 				if($valid) {
 					$si->image->setData($data);
 					if(false !== ($nodes = $si->image->loadImageNodesImages())) {
-						$processTime = microtime(true) - $time_start;
-						print_c( json_encode( array( 'success' => true, 'processTime' => $processTime, 'recordCount' => count($nodes), 'results' => $nodes)));
+						print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start, 'recordCount' => count($nodes), 'results' => $nodes)));
 					} else {
 						print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError(127) , 'code' => 127 ) ) ) );
 					}
@@ -1651,8 +1634,7 @@
 				if($valid) {
 					$si->image->setData($data);
 					if(false !== ($nodes = $si->image->loadCharacterList())) {
-						$processTime = microtime(true) - $time_start;
-						print_c( json_encode( array( 'success' => true, 'processTime' => $processTime, 'recordCount' => count($nodes), 'results' => $nodes)));
+						print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start, 'recordCount' => count($nodes), 'results' => $nodes)));
 					} else {
 						print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError(127) , 'code' => 127 ) ) ) );
 					}
@@ -1679,8 +1661,7 @@
 				if($valid) {
 					$si->image->setData($data);
 					if(false !== ($nodes = $si->image->loadImageList())) {
-						$processTime = microtime(true) - $time_start;
-						print_c( json_encode( array( 'success' => true, 'processTime' => $processTime, 'recordCount' => $si->image->total, 'results' => $nodes)));
+						print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start, 'recordCount' => $si->image->total, 'results' => $nodes)));
 					} else {
 						print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError(129) , 'code' => 129 ) ) ) );
 					}
@@ -1701,8 +1682,7 @@
 				$ar = $si->image->loadImageDetails();
 
 				if($ar['status']) {
-					$processTime = microtime(true) - $time_start;
-					print_c( json_encode( array( 'success' => true, 'processTime' => $processTime, 'results' => $ar['record'] ) ) );
+					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start, 'results' => $ar['record'] ) ) );
 				} else {
 					print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $sc->error($ar['error']) , 'code' => $ar['error'] ) ) ) );
 				}
@@ -1724,8 +1704,7 @@
 				if($valid) {
 					$si->geograghy->setData($data);
 					$ret = $si->geograghy->listRecords();
-					$processTime = microtime(true) - $time_start;
-					print_c( json_encode( array( 'success' => true, 'processTime' => $processTime, 'results' => $ret ) ) );
+					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start, 'results' => $ret ) ) );
 				} else {
 					print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($code) , 'code' => $code ) ) ) );
 				}
@@ -1778,8 +1757,7 @@
 				if($valid) {
 					$si->event->setData($data);
 					$ret = $si->event->listRecords();
-					$processTime = microtime(true) - $time_start;
-					print_c( json_encode( array( 'success' => true, 'processTime' => $processTime, 'results' => $ret ) ) );
+					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start, 'results' => $ret ) ) );
 				} else {
 					print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($code) , 'code' => $code ) ) ) );
 				}
@@ -1845,8 +1823,7 @@
 				if($valid) {
 					$si->eventType->setData($data);
 					$ret = $si->eventType->listRecords();
-					$processTime = microtime(true) - $time_start;
-					print_c( json_encode( array( 'success' => true, 'processTime' => $processTime, 'results' => $ret ) ) );
+					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start, 'results' => $ret ) ) );
 				} else {
 					print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($code) , 'code' => $code ) ) ) );
 				}
@@ -1873,81 +1850,92 @@
 
 		case 'getBoxDetect':
 			$_TMP = ($config['path']['tmp'] != '') ? $config['path']['tmp'] : sys_get_temp_dir() . '/';
-			$loadFlag = false;
+			$loadFlag = $existsFlag = false;
+				
 			if(trim($image_id) != '') {
 				$loadFlag = $si->image->load_by_id($image_id);
-			} else if(trim($barcode) != '') {
+			} elseif(trim($barcode) != '') {
 				$loadFlag = $si->image->load_by_barcode($barcode);
 			}
+
 			if(!$loadFlag) {
 				$valid = false;
 				$code = 135;
 			}
 
 			if($valid) {
-				$existsFlag = false;
 				$key = $si->image->barcode_path($si->image->get('barcode')) . $si->image->get('barcode') . '_box.json';
-				if($config['mode'] == 's3') {
-					$existsFlag = $si->amazon->if_object_exists($config['s3']['bucket'],$key);
-				} else {
-					$existsFlag = @file_exists($config['path']['images'] . $key);
+				switch($config['mode']) {
+					case 's3':
+						if ($si->amazon->if_object_exists($config['s3']['bucket'], $key)) {
+							$tmpPath = $_TMP . $si->image->get('barcode') . '_box.json';
+							$fp = fopen($tmpPath, "w+b");
+							$si->amazon->get_object($config['s3']['bucket'], $key, array('fileDownload' => $tmpPath));
+							fclose($fp);
+							$data = @file_get_contents($tmpPath);
+							@unlink($tmpPath);
+							$existsFlag = true;
+						}
+						break;
+						
+					default:
+						if (@file_exists($config['path']['images'] . $key)) {
+							$data = @file_get_contents($config['path']['images'] . $key);						
+							$existsFlag = true;
+						}
+						break;
 				}
 
-				if($existsFlag) {
-					if($config['mode'] == 's3') {
-						$tmpPath = $_TMP . $si->image->get('barcode') . '_box.json';
-						$fp = fopen($tmpPath, "w+b");
-						$si->amazon->get_object($config['s3']['bucket'], $key, array('fileDownload' => $tmpPath));
-						fclose($fp);
-						$data = @file_get_contents($tmpPath);
-						@unlink($tmpPath);
-					} else {
-						$data = @file_get_contents($config['path']['images'] . $key);
+				if(!$existsFlag || $force) {
+					$image = $si->image->barcode_path($si->image->get('barcode')) . $si->image->get('filename');
+
+					# Getting image
+					switch($config['mode']) {
+						case 's3':
+							$tmpPath = $_TMP . $si->image->get('filename');
+							$fp = fopen($tmpPath, "w+b");
+							$si->amazon->get_object($config['s3']['bucket'], $image, array('fileDownload' => $tmpPath));
+							fclose($fp);
+							$image = $tmpPath;
+							break;
+							
+						default:
+							$image = $config['path']['images'] . $image;
+							break;
 					}
-				} else {
-					$key = $si->image->barcode_path($si->image->get('barcode')) . $si->image->get('filename');
-					# getting image
-					if($config['mode'] == 's3') {
-						$tmpPath = $_TMP . $si->image->get('filename');
-						$fp = fopen($tmpPath, "w+b");
-						$si->amazon->get_object($config['s3']['bucket'], $key, array('fileDownload' => $tmpPath));
-						fclose($fp);
-						$image = $tmpPath;
-					} else {
-						$image = $config['path']['images'] . $key;
-					}
+
 					# processing
 					putenv("LD_LIBRARY_PATH=/usr/local/lib");
 					$data = exec(sprintf("%s %s", $config['boxDetectPath'], $image));
-					# putting the json data
-					$key = $si->image->barcode_path($si->image->get('barcode')) . $si->image->get('barcode') . '_box.json';
-					if($config['mode'] == 's3') {
-						$tmpJson = $_TMP . $si->image->get('barcode') . '_box.json';
-						@file_put_contents($tmpJson,$data);
-						$response = $si->amazon->create_object ($config['s3']['bucket'], $key, array('fileUpload' => $tmpJson,'acl' => AmazonS3::ACL_PUBLIC,'storage' => AmazonS3::STORAGE_REDUCED) );
-						@unlink($tmpJson);
-						@unlink($tmpPath);
-					} else {
-						@file_put_contents($config['path']['images'] . $key,$data);
+
+					# saving the json object
+					switch($config['mode']) {
+						case 's3':
+							$tmpJson = $_TMP . $si->image->get('barcode') . '_box.json';
+							@file_put_contents($tmpJson, $data);
+							$response = $si->amazon->create_object ($config['s3']['bucket'], $key, array('fileUpload' => $tmpJson,'acl' => AmazonS3::ACL_PUBLIC,'storage' => AmazonS3::STORAGE_REDUCED) );
+							@unlink($tmpJson);
+							@unlink($tmpPath);
+							break;
+						
+						default:
+							@file_put_contents($config['path']['images'] . $key, $data);
+							break;
 					}
 				}
-				$si->pqueue->deleteProcessQueue($si->image->get('barcode'),'box_add');
-				$si->image->set('box_flag',1);
+				$si->pqueue->deleteProcessQueue($si->image->get('barcode'), 'box_add');
+				$si->image->set('box_flag', 1);
 				$si->image->save();
 
-				$data = json_decode($data,true);
-				$data['processedTime'] = microtime(true) - $time_start;
-
+				$data = json_decode($data, true);
 				$variable = ($data['data']['height'] > $data['data']['width']) ? $data['data']['height'] : $data['data']['width'];
-
 				$data['data']['pixelsPerCentimeter'] = @round($variable/4);
 				$data['data']['pixelsPerInch'] = @round($variable/1.57);
-
+				$data['processedTime'] = microtime(true) - $time_start;
 				print_c(json_encode($data));
 			} else {
 				print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($code) , 'code' => $code ) ) ) );
 			}
-
 			break;
 
 		case 'detectBarcode':
@@ -1996,9 +1984,8 @@
 					}
 
 					$data = file_get_contents($jsonFile);
-					$processTime = microtime(true) - $time_start;
 					$data = json_decode($data, true);
-					$data['processTime'] = $processTime;
+					$data['processTime'] = microtime(true) - $time_start;
 					$data = json_encode($data);
 					print_c($data);
 				} else {
@@ -2027,7 +2014,7 @@
 					$command = sprintf("%s --version ", $config['zBarImgPath']);
 					$ver = exec($command);
 					$lastTested = time();
-					$tmpJsonFile = json_encode(array('success' => true, 'processTime' => $processTime, 'lastTested'=>$lastTested , 'software'=>"zbarimg", 'version'=>$ver , 'data' => $data));
+					$tmpJsonFile = json_encode(array('success' => true, 'processTime' => microtime(true) - $time_start, 'lastTested'=>$lastTested , 'software'=>"zbarimg", 'version'=>$ver , 'data' => $data));
 					$key = $si->image->barcode_path($si->image->get('barcode')) . $si->image->get('barcode') . '-barcodes.json';
 					if($config['mode'] == 's3') {
 						$tmpJson = $_TMP . $si->image->get('barcode') . '-barcodes.json';
@@ -2037,8 +2024,8 @@
 					} else {
 						@file_put_contents($config['path']['images'] . $key,$tmpJsonFile);
 					}
-					$processTime = microtime(true) - $time_start;
-					print_c(json_encode(array('success' => true, 'processTime' => $processTime, 'lastTested'=>$lastTested , 'software'=>"zbarimg", 'version'=>$ver , 'data' => $data)));
+
+					print_c(json_encode(array('success' => true, 'processTime' => microtime(true) - $time_start, 'lastTested'=>$lastTested , 'software'=>"zbarimg", 'version'=>$ver , 'data' => $data)));
 				}
 			}	
 			break;
@@ -2084,7 +2071,7 @@
 			}
 
 			$si->pqueue->setData($data);
-			$allowedTypes = array('flickr_add','picassa_add','zoomify','google_tile','ocr_add','name_add','all');
+			$allowedTypes = array('flickr_add', 'picassa_add', 'zoomify', 'google_tile', 'ocr_add', 'name_add', 'all');
 			$ret = $si->pqueue->clearQueue();
 			print_c(json_encode(array('success' => true, 'recordCount' => $ret['recordCount'])));
 			break;
