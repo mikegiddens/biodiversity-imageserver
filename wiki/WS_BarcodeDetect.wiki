@@ -32,7 +32,7 @@ Note that you must provide either image_id or barcode but not both.
 Responses are returned in the format indicates by the output flag within the URL request's path.
 
  === JSON Output Formats ===
-    * success (bool) - If response was successful or not. If it false see [http://code.google.com/p/silvercollection/wiki/jsonErrorResponse JSON Error Response] for more details
+    * success (bool) - If response was successful or not. If it false see [http://code.google.com/p/biodiversity-imageserver/wiki/jsonErrorResponse JSON Error Response] for more details
     * processTime (float) - Time it takes to complete the request.
     * count (int) - Number of barcodes returned.
     * lastTested (int) - Time the zbar was ran.
