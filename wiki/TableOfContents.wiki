@@ -5,6 +5,12 @@
    * [Screenshots  Screen shots]
    * [Quickstart Quickstart]
    * [Demos Demos]
+ * *Web Services*
+  * Tools
+    * [WS_BoxDetect  Pixel Ratio using Color Control]
+    * [WS_BarcodeDetect  Barcode Detection]
+  * Queue
+    * [WS_ChecklistSearch  Checklist Search]
  * *Examples*
    * [Carousel  Carousel]
    * [CarouselLightbox  Carousel + Lightbox]
