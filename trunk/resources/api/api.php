@@ -1962,7 +1962,7 @@
 				# getting image
 				$key = $si->image->barcode_path($si->image->get('barcode')) . $si->image->get('filename');
 				$cacheFlag = false;
-				$cachePath = $si->image->barcode_path($si->image->get('barcode')).$si->image->get('barcode')."-barcodes.json";
+				$cachePath = $si->image->barcode_path($si->image->get('barcode')) . $si->image->get('barcode') . "-barcodes.json";
 
 				if(strtolower($force) != true) {
 					if($config['mode'] == 's3') {
@@ -1973,14 +1973,18 @@
 				}
 
 				if($cacheFlag) {
-					if($config['mode'] == 's3') {
-						$tmpCachePath = $_TMP . $si->image->get('barcode')."-barcodes.json";
-						$fp = @fopen($tmpCachePath, "w+b");
-						$si->amazon->get_object($config['s3']['bucket'], $cachePath, array('fileDownload' => $tmpCachePath));
-						@fclose($fp);
-						$jsonFile = $tmpCachePath;
-					} else {
-						$jsonFile = $config['path']['images'].$cachePath;
+					switch($config['mode']) {
+						case 's3':
+							$tmpCachePath = $_TMP . $si->image->get('barcode') . "-barcodes.json";
+							$fp = @fopen($tmpCachePath, "w+b");
+							$si->amazon->get_object($config['s3']['bucket'], $cachePath, array('fileDownload' => $tmpCachePath));
+							@fclose($fp);
+							$jsonFile = $tmpCachePath;
+							break;
+						
+						default:
+							$jsonFile = $config['path']['images'] . $cachePath;
+							break;
 					}
 
 					$data = file_get_contents($jsonFile);
@@ -1990,14 +1994,18 @@
 					print_c($data);
 				} else {
 					// No cache or not using cache
-					if($config['mode'] == 's3') {
-						$tmpPath = $_TMP . $si->image->get('filename');
-						$fp = @fopen($tmpPath, "w+b");
-						$si->amazon->get_object($config['s3']['bucket'], $key, array('fileDownload' => $tmpPath));
-						@fclose($fp);
-						$image = $tmpPath;					
-					} else {
-						$image = $config['path']['images'] . $key;
+					switch($config['mode']) {
+						case 's3':
+							$tmpPath = $_TMP . $si->image->get('filename');
+							$fp = @fopen($tmpPath, "w+b");
+							$si->amazon->get_object($config['s3']['bucket'], $key, array('fileDownload' => $tmpPath));
+							@fclose($fp);
+							$image = $tmpPath;					
+							break;
+							
+						default:
+							$image = $config['path']['images'] . $key;
+							break;
 					}
 
 					$command = sprintf("%s %s", $config['zBarImgPath'], $image);
@@ -2005,7 +2013,7 @@
 					$tmpArrayArray = explode("\r\n", $data);
 					$data = array();
 					foreach($tmpArrayArray as $tmpArray) {
-						$parts = explode(":",$tmpArray);
+						$parts = explode(":", $tmpArray);
 						$data[] = array('code' => $parts[0], 'value' => $parts[1]);
 					}
 					if($config['mode'] == 's3') {
@@ -2013,19 +2021,22 @@
 					}
 					$command = sprintf("%s --version ", $config['zBarImgPath']);
 					$ver = exec($command);
-					$lastTested = time();
-					$tmpJsonFile = json_encode(array('success' => true, 'processTime' => microtime(true) - $time_start, 'lastTested'=>$lastTested , 'software'=>"zbarimg", 'version'=>$ver , 'data' => $data));
+					$tmpJsonFile = json_encode(array('success' => true, 'processTime' => microtime(true) - $time_start, 'count' => count($data), 'lastTested' => time(), 'software' => 'zbarimg', 'version' => $ver, 'data' => $data));
 					$key = $si->image->barcode_path($si->image->get('barcode')) . $si->image->get('barcode') . '-barcodes.json';
-					if($config['mode'] == 's3') {
-						$tmpJson = $_TMP . $si->image->get('barcode') . '-barcodes.json';
-						@file_put_contents($tmpJson,$tmpJsonFile);
-						$response = $si->amazon->create_object ($config['s3']['bucket'], $key, array('fileUpload' => $tmpJson,'acl' => AmazonS3::ACL_PUBLIC,'storage' => AmazonS3::STORAGE_REDUCED) );
-						@unlink($tmpJson);	
-					} else {
-						@file_put_contents($config['path']['images'] . $key,$tmpJsonFile);
-					}
 
-					print_c(json_encode(array('success' => true, 'processTime' => microtime(true) - $time_start, 'lastTested'=>$lastTested , 'software'=>"zbarimg", 'version'=>$ver , 'data' => $data)));
+					switch($config['mode']) {
+						case 's3':
+							$tmpJson = $_TMP . $si->image->get('barcode') . '-barcodes.json';
+							@file_put_contents($tmpJson,$tmpJsonFile);
+							$response = $si->amazon->create_object ($config['s3']['bucket'], $key, array('fileUpload' => $tmpJson,'acl' => AmazonS3::ACL_PUBLIC,'storage' => AmazonS3::STORAGE_REDUCED) );
+							@unlink($tmpJson);	
+							break;
+						
+						default:
+							@file_put_contents($config['path']['images'] . $key,$tmpJsonFile);
+							break;
+					}
+					print_c($tmpJsonFile);
 				}
 			}	
 			break;
