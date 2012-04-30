@@ -226,21 +226,23 @@
 
 		// Adds logs from SilverImage into BIS
 		case 'load_logs':
-			if($config['mode'] == 's3') {
-				$data['mode'] = $config['mode'];
-				$data['s3'] = $config['s3'];
-				$data['obj'] = $si->amazon;
-				$data['time_start'] = microtime(true);
-				$si->logger->setData($data);
-				$ret = $si->logger->loadS3Logs();
-			} else {
-				$data['path_files'] = $config['path']['files'];
-				$data['processed_files'] = $config['path']['processed_files'];
-				$data['time_start'] = microtime(true);
-				$si->logger->setData($data);
-				$ret = $si->logger->loadLogs();
+			switch($config['mode']) {
+				case 's3':
+					$data['mode'] = $config['mode'];
+					$data['s3'] = $config['s3'];
+					$data['obj'] = $si->amazon;
+					$data['time_start'] = microtime(true);
+					$si->logger->setData($data);
+					$ret = $si->logger->loadS3Logs();
+					break;
+				default:
+					$data['path_files'] = $config['path']['files'];
+					$data['processed_files'] = $config['path']['processed_files'];
+					$data['time_start'] = microtime(true);
+					$si->logger->setData($data);
+					$ret = $si->logger->loadLogs();
+					break;
 			}
-
 			header('Content-type: application/json');
 			if($ret['success']) {
 				print_c( json_encode ( array( 'success' => true, 'process_time' => $ret['time'], 'total_files_loaded' =>  $ret['total']) ) );
@@ -288,167 +290,6 @@
 				print_c( json_encode( $records ) );
 			}
 			break;
-
-		// REPORTS		
-		case 'collection_report':
-			$data['date'] = trim($date);
-			$data['date2'] = trim($date2);
-
-			$data['report_type'] = (trim($report_type) == '') ? 'year' : trim($report_type);
-			$data['month'] = trim($month);
-			$data['year'] = (trim($year) == '') ? ($data['report_type'] == 'year' ? date('Y'):'') : trim($year);
-			$data['station'] = trim($station);
-			$data['sc'] = trim($sc);
-			$data['collection_id'] = trim($collection_id);
-
-			$data['users'] = json_decode(stripslashes(trim($users)),true);
-
-			header('Content-type: application/json');
-			if($valid) {
-				$si->logger->setData($data);
-				$si->logger->loadCollectionReport();
-				$records = $si->logger->getRecords();
-				print_c( json_encode( array( 'success' => true,  'data' => $records ) ) );
-			} else {
-				print_c( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ) );
-			}
-			break;
-
-		case 'report_by_date_range':
-			$data['date'] = trim($date);
-			$data['date2'] = trim($date2);
-			$data['year'] = trim($year);
-			$data['users'] = json_decode(stripslashes(trim($users)),true);
-			$data['stage'] = trim($stage);
-			$data['station'] = trim($station);
-			$data['sc'] = trim($sc);
-			$data['user_id'] = trim($user_id);
-
-			header('Content-type: application/json');
-			if($valid) {
-				$si->logger->setData($data);
-				$si->logger->clearRecords();
-				$si->logger->loadReportByDateRange();
-				$records = $si->logger->getRecords();
-				print_c( json_encode( array( 'success' => true,  'data' => $records ) ) );
-			} else {
-				print_c( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ) );
-			}
-			break;
-
-		case 'report_by_date':
-
-			$data['date'] = trim($date);
-			if($data['date'] == '') {
-				$valid = false;
-				$code = 103;
-			}
-			$data['users'] = trim($users);
-			$data['stage'] = trim($stage);
-			$data['station'] = trim($station);
-			$data['sc'] = trim($sc);
-
-			header('Content-type: application/json');
-			if($valid) {
-				$si->logger->setData($data);
-				$si->logger->loadReportByDate();
-				$records = $si->logger->getRecords();
-				print_c( json_encode( array( 'success' => true,  'data' => $records ) ) );
-			} else {
-				print_c( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ) );
-			}
-
-			break;
-
-		case 'graph_report_user':
-
-			$data['date'] = trim($date);
-			$data['date2'] = trim($date2);
-
-			$data['report_type'] = (trim($report_type) == '') ? 'year' : trim($report_type);
-			$data['week'] = trim($week);
-			$data['month'] = trim($month);
-			$data['year'] = (trim($year) == '') ? ($data['report_type'] == 'year' ? date('Y'):'') : trim($year);
-			$data['station'] = trim($station);
-			$data['sc'] = trim($sc);
-			$data['user_id'] = trim($user_id);
-
-			$data['users'] = json_decode(stripslashes(trim($users)),true);
-
-			header('Content-type: application/json');
-			if($valid) {
-				$si->logger->setData($data);
-				$si->logger->loadGraphReportUsers();
-				$records = $si->logger->getRecords();
-				print_c( json_encode( array( 'success' => true,  'data' => $records ) ) );
-			} else {
-				print_c( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ) );
-			}
-
-			break;
-
-		case 'graph_report_station':
-
-			$data['date'] = trim($date);
-			if($data['date'] == '') {
-				$valid = false;
-				$code = 103;
-			}
-			$data['date2'] = trim($date2);
-			if($data['date2'] == '') {
-				$valid = false;
-				$code = 104;
-			}
-			$data['station'] = trim($station);
-
-			header('Content-type: application/json');
-			if($valid) {
-				$si->logger->setData($data);
-				$si->logger->loadGraphReportStations();
-				$records = $si->logger->getRecords();
-				print_c( json_encode( array( 'success' => true,  'data' => $records ) ) );
- 			}else {
-				print_c( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ) );
-			}
-			break;
-
-		case 'graph_report_sc':
-
-			$data['date'] = trim($date);
-			if($data['date'] == '') {
-				$valid = false;
-				$code = 103;
-			}
-			$data['date2'] = trim($date2);
-			if($data['date2'] == '') {
-				$valid = false;
-				$code = 104;
-			}
-			$data['sc'] = trim($sc);
-
-			header('Content-type: application/json');
-			if($valid) {
-				$si->logger->setData($data);
-				$si->logger->loadGraphReportSc();
-				$records = $si->logger->getRecords();
-				print_c( json_encode( array( 'success' => true,  'data' => $records ) ) );
- 			}else {
-				print_c( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ) );
-			}
-			break;
-
-		case 'image-storage-report':
-
-			$data = array();
-			$stats = $si->logger->getImageStorageStats();
-			$data[] = array( 'text' => '# of images:', 'value' => $stats['total'] );
-			$data[] = array( 'text' => '# of images allowed:', 'value' => $stats['allowed_images'] );
-
-			header('Content-type: application/json');
-			print_c( json_encode( array( 'success' => true,  'data' => $data ) ) );
-			break;
-		// END REPORTS
-
 
 		// Service - Should not normally be run as a cron but can be run using the api.
 		case 'check-new-images':
@@ -613,14 +454,18 @@
 				$filename = $si->image->get('filename');
 
 				$url = $config['tileGenerator'] . '?cmd=loadImage&filename=' . $filename;
-				if($config['mode'] == 's3') {
-					$tmpPath = $_TMP . $filename;
-					$fp = fopen($tmpPath, "w+b");
-					# getting the image from s3
-					$bucket = $config['s3']['bucket'];
-					$key = $si->image->barcode_path($barcode) . $filename;
-					$si->amazon->get_object($bucket, $key, array('fileDownload' => $tmpPath));
-					$url .= '&absolutePath=' . $_TMP;
+				switch($config['mode']) {
+					case 's3':
+						$tmpPath = $_TMP . $filename;
+						$fp = fopen($tmpPath, "w+b");
+						# getting the image from s3
+						$bucket = $config['s3']['bucket'];
+						$key = $si->image->barcode_path($barcode) . $filename;
+						$si->amazon->get_object($bucket, $key, array('fileDownload' => $tmpPath));
+						$url .= '&absolutePath=' . $_TMP;
+						break;
+					default:
+						break;
 				}
 				$res = json_decode(trim(@file_get_contents($url)));
 				if($config['mode'] == 's3') {
@@ -725,10 +570,13 @@
 
 				if(is_array($data) && count($data)) {
 					foreach($data as &$dt) {
-						if($config['mode'] == 's3') {
-							$dt->path = $config['s3']['url'] . $si->image->barcode_path($dt->barcode);
-						} else {
-							$dt->path = str_replace($config['doc_root'],rtrim($config['base_url'],'/') . '/', $config['path']['images'] . $si->image->barcode_path($dt->barcode));
+						switch($config['mode']) {
+							case 's3':
+								$dt->path = $config['s3']['url'] . $si->image->barcode_path($dt->barcode);
+								break;
+							default:
+								$dt->path = str_replace($config['doc_root'],rtrim($config['base_url'],'/') . '/', $config['path']['images'] . $si->image->barcode_path($dt->barcode));
+								break;
 						}
 
 					}
@@ -1183,10 +1031,11 @@
 					$barcode = $fl['filename'];
 					if($barcode == '') {continue;}
 
-					if($config['mode'] == 's3') {
-						$prefix = $si->image->barcode_path($barcode);
-						$response = $si->amazon->list_objects($config['s3']['bucket'],array('prefix' => $prefix));
-						if($response->isOK()) {
+					switch($config['mode']) {
+						case 's3':
+							$prefix = $si->image->barcode_path($barcode);
+							$response = $si->amazon->list_objects($config['s3']['bucket'],array('prefix' => $prefix));
+							if($response->isOK()) {
 							$ar = array_fill_keys($tplArray,false);
 							$opArray = array('small','medium','large','google_tile');
 							$body = $response->body;
@@ -1238,8 +1087,10 @@
 	
 						} # response ok
 						$statsArray[] = array('file' => $fl['basename'], 'barcode' => $fl['filename'], 'details' => $displayAr);
-					} else {
-					# config mode local
+						break;
+
+						default:
+						# config mode local
 	
 						$imagePath = $config['path']['images'] . $si->image->barcode_path( $barcode );
 						clearstatcache();
@@ -1292,6 +1143,7 @@
 							} # foreach auto-process
 						} # if autoprocess
 						$statsArray[] = array('file' => $fl['basename'], 'barcode' => $fl['filename'], 'details' => $displayAr);
+						break;
 
 					} # else local
 
@@ -2082,7 +1934,7 @@
 			}
 
 			$si->pqueue->setData($data);
-			$allowedTypes = array('flickr_add', 'picassa_add', 'zoomify', 'google_tile', 'ocr_add', 'name_add', 'all');
+			$allowedTypes = array('flickr_add', 'picassa_add', 'zoomify', 'google_tile', 'ocr_add', 'name_add', 'all', 'guess_add');
 			$ret = $si->pqueue->clearQueue();
 			print_c(json_encode(array('success' => true, 'recordCount' => $ret['recordCount'])));
 			break;
