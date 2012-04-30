@@ -476,7 +476,7 @@ Class Image {
 
 	public function save() {
 		if($this->field_exists($this->get('image_id'))) {
-			$query = sprintf("UPDATE `image` SET  `filename` = '%s', `timestamp_modified` = now(), `barcode` = '%s', `width` = '%s', `height` = '%s', `Family` = '%s', `Genus` = '%s', `SpecificEpithet` = '%s', `rank` = %s, `author` = '%s', `title` = '%s', `description` = '%s', `GlobalUniqueIdentifier` = '%s', `creative_commons` = '%s', `characters` = '%s', `flickr_PlantID` = '%s', `flickr_modified` = '%s', `flickr_details` = '%s', `picassa_PlantID` = '%s', `picassa_modified` = '%s', `gTileProcessed` = '%s', `zoomEnabled` = '%s', `processed` = '%s', `box_flag` = '%s', `ocr_flag` = '%s', `ocr_value` = '%s', `namefinder_flag` = '%s', `namefinder_value` = '%s', `ScientificName` = '%s', `CollectionCode` = '%s', 'tmpFamily' = '%s', 'tmpFamilyAccepted' = '%s', 'tmpGenus' = '%s', 'tmpGenusAccepted' = '%s', 'guess_flag' = '%s'  WHERE image_id = '%s' ;"
+			$query = sprintf("UPDATE `image` SET  `filename` = '%s', `timestamp_modified` = now(), `barcode` = '%s', `width` = '%s', `height` = '%s', `Family` = '%s', `Genus` = '%s', `SpecificEpithet` = '%s', `rank` = %s, `author` = '%s', `title` = '%s', `description` = '%s', `GlobalUniqueIdentifier` = '%s', `creative_commons` = '%s', `characters` = '%s', `flickr_PlantID` = '%s', `flickr_modified` = '%s', `flickr_details` = '%s', `picassa_PlantID` = '%s', `picassa_modified` = '%s', `gTileProcessed` = '%s', `zoomEnabled` = '%s', `processed` = '%s', `box_flag` = '%s', `ocr_flag` = '%s', `ocr_value` = '%s', `namefinder_flag` = '%s', `namefinder_value` = '%s', `ScientificName` = '%s', `CollectionCode` = '%s', `tmpFamily` = '%s', `tmpFamilyAccepted` = '%s', `tmpGenus` = '%s', `tmpGenusAccepted` = '%s', `guess_flag` = '%s'  WHERE image_id = '%s' ;"
 				, mysql_escape_string($this->get('filename'))
 				, mysql_escape_string($this->get('barcode'))
 				, mysql_escape_string($this->get('width'))
@@ -514,7 +514,7 @@ Class Image {
 				, mysql_escape_string($this->get('image_id'))
 			);
 		} else {
-			$query = sprintf("INSERT IGNORE INTO `image` SET `filename` = '%s', `timestamp_modified` = now(), `barcode` = '%s', `width` = '%s', `height` = '%s', `Family` = '%s', `Genus` = '%s', `SpecificEpithet` = '%s', `rank` = %s, `author` = '%s', `title` = '%s', `description` = '%s', `GlobalUniqueIdentifier` = '%s', `creative_commons` = '%s', `characters` = '%s', `flickr_PlantID` = '%s', `flickr_modified` = '%s', `flickr_details` = '%s', `picassa_PlantID` = '%s', `picassa_modified` = '%s', `gTileProcessed` = '%s', `zoomEnabled` = '%s', `processed` = '%s', `box_flag` = '%s', `ocr_flag` = '%s', `ocr_value` = '%s', `namefinder_flag` = '%s', `namefinder_value` = '%s', `ScientificName` = '%s', `CollectionCode` = '%s', 'tmpFamily' = '%s', 'tmpFamilyAccepted' = '%s', 'tmpGenus' = '%s', 'tmpGenusAccepted' = '%s', 'guess_flag' = '%s' ;"
+			$query = sprintf("INSERT IGNORE INTO `image` SET `filename` = '%s', `timestamp_modified` = now(), `barcode` = '%s', `width` = '%s', `height` = '%s', `Family` = '%s', `Genus` = '%s', `SpecificEpithet` = '%s', `rank` = %s, `author` = '%s', `title` = '%s', `description` = '%s', `GlobalUniqueIdentifier` = '%s', `creative_commons` = '%s', `characters` = '%s', `flickr_PlantID` = '%s', `flickr_modified` = '%s', `flickr_details` = '%s', `picassa_PlantID` = '%s', `picassa_modified` = '%s', `gTileProcessed` = '%s', `zoomEnabled` = '%s', `processed` = '%s', `box_flag` = '%s', `ocr_flag` = '%s', `ocr_value` = '%s', `namefinder_flag` = '%s', `namefinder_value` = '%s', `ScientificName` = '%s', `CollectionCode` = '%s', `tmpFamily` = '%s', `tmpFamilyAccepted` = '%s', `tmpGenus` = '%s', `tmpGenusAccepted` = '%s', `guess_flag` = '%s' ;"
 				, mysql_escape_string($this->get('filename'))
 				, mysql_escape_string($this->get('barcode'))
 				, mysql_escape_string($this->get('width'))
@@ -570,6 +570,15 @@ Class Image {
 
 	public function getOcrRecords($filter = '') {
 		$query = " SELECT * FROM `image` WHERE ( `ocr_flag` = 0 OR `ocr_flag` IS NULL ) AND `processed` = 1 ";
+		if(trim($filter['start']) != '' && trim($filter['limit']) != '') {
+			$query .= build_limit(trim($filter['start']),trim($filter['limit']));
+		}
+		$ret = $this->db->query($query);
+		return($ret);
+	}
+
+	public function getGuessTaxaRecords($filter = '') {
+		$query = " SELECT * FROM `image` WHERE ( `guess_flag` = 0 OR `guess_flag` IS NULL ) AND `processed` = 1 ";
 		if(trim($filter['start']) != '' && trim($filter['limit']) != '') {
 			$query .= build_limit(trim($filter['start']),trim($filter['limit']));
 		}

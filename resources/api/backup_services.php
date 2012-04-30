@@ -71,6 +71,7 @@ ini_set('display_errors', '1');
 	require_once("classes/class.master.php");
 	require_once("classes/class.picassa.php");
 	require_once("classes/class.misc.php");
+	require_once("classes/class.gbif.php");
 
 	$si = new SilverImage($config['mysql']['name']);
 	$time_start = microtime(true);	
@@ -690,7 +691,7 @@ ini_set('display_errors', '1');
 					}
 				}
 			} else {
-				$ret = $si->image->getOcrRecords($filter);
+				$ret = $si->image->getGuessTaxaRecords($filter);
 				$countFlag = true;
 				while(($record = $ret->fetch_object()) && ($countFlag)) {
 					if(!$si->pqueue->field_exists($record->barcode,'guess_add')) {
@@ -738,7 +739,7 @@ ini_set('display_errors', '1');
 					if(!($si->image->get('ocr_flag')))
 					{
 					//Perform ocr and store values
-							if($config['mode'] == 's3') {
+						if($config['mode'] == 's3') {
 							$tmpFileName = 'Img_' . microtime();
 							$tmpFilePath = $_TMP . $tmpFileName;
 							$tmpFile = $tmpFilePath . '.jpg';
@@ -772,18 +773,39 @@ ini_set('display_errors', '1');
 							$si->image->set('ocr_value',$value);
 							$si->image->save();
 						}
-	
 						if($config['mode'] == 's3') {
 							@unlink($tmpFile);
 							@unlink($tmpFilePath . '.txt');
 						}
 					}
 					$si->image->load_by_barcode($imageId);
-					$ocrValue = urlencode($si->image->get('ocr_value'));
-					$gbifURL = "http://ecat-dev.gbif.org/tf?type=text&format=json&input=".$ocrValue;
-					$data = file_get_contents($gbifURL);
-					$array = json_decode($data,true);
-					//Incomplete...
+					$image_count++;
+					$array = gbifNameFinder($si->image->get('ocr_value'));
+					if($array) {
+						foreach($array as $names) {
+							$array1 = gbifChecklistBank($names);
+							$array2 = gbifFullRecord($array1['taxonID']);
+							$expectedRank = array('family','genus');
+							if(strtolower($array2['taxonomicStatus']=='synonym')) {
+								if(in_array(strtolower($array1['rank']),$expectedRank))
+								{
+									$si->image->set('tmp'.ucfirst($array1['rank']),$array2['canonicalName']);
+									$si->image->set('guess_flag',1);
+									$si->image->save();
+								}
+							}
+							else
+							{
+								if(in_array(strtolower($array1['rank']),$expectedRank))
+								{
+									$si->image->set('tmp'.ucfirst($array1['rank']).'Accepted',$array2['higherTaxon']);
+									$si->image->set('guess_flag',1);
+									$si->image->save();
+								}
+							}
+						}
+					}
+					
 				}
 			}
 			$time_taken = microtime(true) - $time_start;
