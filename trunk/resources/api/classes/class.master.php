@@ -22,6 +22,7 @@
 	require_once( $config['path']['base'] . 'resources/api/classes/class.events.php');
 	require_once( $config['path']['base'] . 'resources/api/classes/class.log.php');
 	require_once( $config['path']['base'] . 'resources/api/classes/class.user_permissions.php');
+	require_once( $config['path']['base'] . 'resources/api/classes/class.remoteaccess.php');
 
 	Class SilverImage {
 
@@ -49,6 +50,7 @@
 			$this->eventType = new EventTypes($this->db);
 			$this->lg = new LogClass($this->db);
 			$this->userPerm = new UserPermissions($this->db);
+			$this->remoteAccess = new RemoteAccess($this->db);
 		}
 
 		function load($project) {
@@ -103,6 +105,9 @@
 				, 140 => 'Error Directory does not exist, or does not have write permission.'
 				, 141 => 'Images Directory does not exist, or does not have write permission.'
 				, 142 => 'Requested file type is not supported currently'
+				, 143 => 'Insufficient privileges to run this command.'
+				, 144 => 'Invalid URL given.'
+				, 145 => 'Invalid Key given.'
 			);
 			return $ar[$error_code];
 		}

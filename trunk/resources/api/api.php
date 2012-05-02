@@ -52,6 +52,7 @@
 		,	'image_id'
 		,	'imagesType'
 		,	'index'
+		,	'key'
 		,	'limit'
 		,	'month'
 		,	'nodeApi'
@@ -81,6 +82,7 @@
 		,	'tpl'
 		,	'type'
 		,	'types'
+		,	'url'
 		,	'user_id'
 		,	'users'
 		,	'value'
@@ -1892,6 +1894,87 @@
 				}
 			}	
 			break;
+
+		case 'generateRemoteAccessKey':
+			$whitelist=  array('localhost',  '127.0.0.1');
+			if(!in_array($_SERVER['HTTP_HOST'],  $whitelist)){
+				$valid = false;
+				$code = 143;
+			}
+			elseif(!isset($url)) {
+				$valid = false;
+				$code = 144;
+			}
+			else {
+				$valid = true;
+			}
+
+			if($valid) {
+				$ip = gethostbyname($url);
+				$ip = ip2long($ip);
+				if($ip) {
+					$key = crypt($ip, $config["secretKey"]);
+					$si->remoteAccess->set('ip', $ip);
+					$si->remoteAccess->set('key', $key);
+					$si->remoteAccess->save();
+					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start, 'key' => $key ) ) );
+				} else {
+					$code = 144;
+					print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($code) , 'code' => $code ) ) ) );
+				}
+			} else {
+				print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($code) , 'code' => $code ) ) ) );
+			}
+			break;
+			
+		case 'listRemoteAccessKeys':
+			$whitelist=  array('localhost',  '127.0.0.1');
+			if(!in_array($_SERVER['HTTP_HOST'],  $whitelist)){
+				$valid = false;
+				$code = 143;
+			}
+			else {
+				$valid = true;
+			}
+
+			if($valid) {
+				$list = $si->remoteAccess->list_all();
+				$listArray = array();
+				while($record = $list->fetch_object())
+				{
+					$item['ip'] = $record->ip;
+					$item['key'] = $record->key;
+					$item['active'] = $record->active;
+					$listArray[] = $item;
+				}
+				print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start, 'keys' => $listArray ) ) );
+			} else {
+				print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($code) , 'code' => $code ) ) ) );
+			}
+			break;
+			
+		case 'createObject':
+			if($si->remoteAccess->checkRemoteAccess(ip2long($_SERVER['REMOTE_ADDR']), $key)) {
+				$valid = true;
+			} else {
+				$valid = false;
+				$code = 145;
+			}
+			if($valid) {
+				if ($_FILES["filename"]["error"] > 0)
+				{
+					print_c( json_encode( array( 'success' => false,  'error' => $_FILES["filename"]["error"] ) ) );
+				}
+				else
+				{
+					$response = $si->amazon->create_object ($config['s3']['bucket'], "test/".$key."/".$_FILES["filename"]["name"], array('fileUpload' => $_FILES["filename"]["tmp_name"],'acl' => AmazonS3::ACL_PUBLIC,'storage' => AmazonS3::STORAGE_REDUCED) );
+					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start ) ) );
+				}
+			} else {
+				print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($code) , 'code' => $code ) ) ) );
+			}
+			break;
+
 
 # Test Tasks
 
