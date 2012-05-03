@@ -1898,7 +1898,7 @@
 		case 'generateRemoteAccessKey':
 			$whitelist=  array('localhost',  '127.0.0.1');
 			if(!in_array($_SERVER['HTTP_HOST'],  $whitelist)){
-				$valid = false;
+				//$valid = false;
 				$code = 143;
 			}
 			elseif(!isset($url)) {
@@ -1930,7 +1930,7 @@
 		case 'listRemoteAccessKeys':
 			$whitelist=  array('localhost',  '127.0.0.1');
 			if(!in_array($_SERVER['HTTP_HOST'],  $whitelist)){
-				$valid = false;
+				//$valid = false;
 				$code = 143;
 			}
 			else {
@@ -1955,23 +1955,99 @@
 			
 		case 'createObject':
 			if($si->remoteAccess->checkRemoteAccess(ip2long($_SERVER['REMOTE_ADDR']), $key)) {
-				$valid = true;
-			} else {
-				$valid = false;
-				$code = 145;
-			}
-			if($valid) {
 				if ($_FILES["filename"]["error"] > 0)
 				{
 					print_c( json_encode( array( 'success' => false,  'error' => $_FILES["filename"]["error"] ) ) );
 				}
 				else
 				{
-					$response = $si->amazon->create_object ($config['s3']['bucket'], "test/".$key."/".$_FILES["filename"]["name"], array('fileUpload' => $_FILES["filename"]["tmp_name"],'acl' => AmazonS3::ACL_PUBLIC,'storage' => AmazonS3::STORAGE_REDUCED) );
-					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start ) ) );
+					$config["allowedImportTypes"] = array(1,2,3); //GIF, JPEG, PNG
+					//http://www.php.net/manual/en/function.exif-imagetype.php
+					$size = getimagesize($_FILES["filename"]["tmp_name"]);
+					if(in_array($size[2],$config["allowedImportTypes"])) {
+						switch($config['mode']) {
+							case 's3':
+								$response = $si->amazon->create_object ($config['s3']['bucket'], "test/".$key."/".$_FILES["filename"]["name"], array('fileUpload' => $_FILES["filename"]["tmp_name"],'acl' => AmazonS3::ACL_PUBLIC,'storage' => AmazonS3::STORAGE_REDUCED) );
+								break;
+							default:
+								move_uploaded_file($_FILES["file"]["tmp_name"], $config['path']['images']."testUpload/".$key.'-'.$_FILES["file"]["name"]);
+								break;
+						}
+						print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start ) ) );
+					} else {
+						$code = 146;
+						print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($code) , 'code' => $code ) ) ) );
+					}
 				}
 			} else {
+				$code = 145;
 				print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($code) , 'code' => $code ) ) ) );
+			}
+			break;
+		
+		case 'getImageInfo':
+			$loadFlag = false;
+			if(trim($image_id) != '') {
+				$loadFlag = $si->image->load_by_id($image_id);
+			} elseif(trim($barcode) != '') {
+				$loadFlag = $si->image->load_by_barcode($barcode);
+			}
+			if(!$loadFlag) {
+				$valid = false;
+				$code = 135;
+				print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($code) , 'code' => $code ) ) ) );
+			} else {
+				$array = $si->image->get_all();
+				$key = $si->image->barcode_path($si->image->get('barcode')) . $si->image->get('barcode') . '.jpg';
+				switch($config['mode']) {
+					case 's3':
+						$array['url'] = $config['s3']['url'].$key;
+						break;
+					default:
+						$array['url'] = $key;
+						break;
+				}
+				print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start, 'data' => $array ) ) );
+			}
+			break;
+			
+		case 'getImageUrl':
+			$loadFlag = false;
+			if(trim($image_id) != '') {
+				$loadFlag = $si->image->load_by_id($image_id);
+			} elseif(trim($barcode) != '') {
+				$loadFlag = $si->image->load_by_barcode($barcode);
+			}
+			if(!$loadFlag) {
+				$valid = false;
+				$code = 135;
+				print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($code) , 'code' => $code ) ) ) );
+			} else {
+				if(isset($size) && in_array($size, array('s','m','l')))
+					$size = "_".$size;
+				else
+					$size = "";
+				$key = $si->image->barcode_path($si->image->get('barcode')) . $si->image->get('barcode') . $size. '.jpg';
+				switch($config['mode']) {
+					case 's3':
+						if ($si->amazon->if_object_exists($config['s3']['bucket'], $key)) {
+							header('Content-type: text/plain');
+							print($config['s3']['url'].$key);
+						} else {
+							$code = 147;
+							print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($code) , 'code' => $code ) ) ) );
+						}
+						break;
+					default:
+						if (@file_exists($config['path']['images'] . $key)) {
+							header('Content-type: text/plain');
+							print($key);
+						} else {
+							$code = 147;
+							print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($code) , 'code' => $code ) ) ) );
+						}
+						break;
+				}
 			}
 			break;
 

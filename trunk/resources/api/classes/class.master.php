@@ -108,6 +108,8 @@
 				, 143 => 'Insufficient privileges to run this command.'
 				, 144 => 'Invalid URL given.'
 				, 145 => 'Invalid Key given.'
+				, 146 => 'File type not allowed.'
+				, 147 => 'File not found.'
 			);
 			return $ar[$error_code];
 		}
