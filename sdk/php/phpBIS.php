@@ -1,7 +1,8 @@
 <?php
-
+error_reporting(E_ALL ^ E_NOTICE);
 class phpBIS
 {
+	public $lastError = array();
 	public function __construct($key,$server/* = 'http://bis.silverbiology.com/dev/resources/api/'*/) {
 		$this->key = $key;
 		$this->server = $server;
@@ -29,8 +30,15 @@ class phpBIS
 		$ext = @pathinfo($path,PATHINFO_EXTENSION);
 		$mime = (@strtolower($ext) == 'jpg') ? 'image/jpeg' : 'image/' . @strtolower($ext);
 		$data = array('key' => $this->key, 'file' => '@'.$path.';type='.$mime, 'cmd' => 'createObject');
-		$res = $this->CURL($this->server . '/api.php',$data);
-		return $res;
+		$result = $this->CURL($this->server . '/api.php',$data);
+		$result = json_decode($result,true);
+		if($result['success'] == true) {
+			return $result;
+		} else {
+			$this->lastError['code'] = $result['error']['code'];
+			$this->lastError['msg'] = $result['error']['msg'];
+			return false;
+		}
 	}
 	public function getURL($type, $code, $size) {
 		$data = array();
@@ -53,61 +61,119 @@ class phpBIS
 		$data['valueID'] = $valueID;
 		$data['categoryID'] = $categoryID;
 		$data['cmd'] = 'add_image_attribute';
-		$res = $this->CURL($this->server . '/api.php',$data);
-		return $res;
+		$result = $this->CURL($this->server . '/api.php',$data);
+		$result = json_decode($result,true);
+		if($result['success'] == true) {
+			return $result;
+		} else {
+			$this->lastError['code'] = $result['error']['code'];
+			$this->lastError['msg'] = $result['error']['msg'];
+			return false;
+		}
 	}
 	public function deleteImageAttribute($imageID, $valueID) {
 		$data = array();
 		$data['imageID'] = $imageID;
 		$data['valueID'] = $valueID;
 		$data['cmd'] = 'delete_image_attribute';
-		$res = $this->CURL($this->server . '/api.php',$data);
-		return $res;
+		$result = $this->CURL($this->server . '/api.php',$data);
+		$result = json_decode($result,true);
+		if($result['success'] == true) {
+			return $result;
+		} else {
+			$this->lastError['code'] = $result['error']['code'];
+			$this->lastError['msg'] = $result['error']['msg'];
+			return false;
+		}
 	}
 	public function addCategory($value) {
 		$data = array();
 		$data['value'] = $value;
 		$data['cmd'] = 'add_category';
-		$res = $this->CURL($this->server . '/api.php',$data);
-		return $res;
+		$result = $this->CURL($this->server . '/api.php',$data);
+		$result = json_decode($result,true);
+		if($result['success'] == true) {
+			return $result;
+		} else {
+			$this->lastError['code'] = $result['error']['code'];
+			$this->lastError['msg'] = $result['error']['msg'];
+			return false;
+		}
 	}
 	public function renameCategory($valueID,$value) {
 		$data = array();
 		$data['valueID'] = $valueID;
 		$data['value'] = $value;
 		$data['cmd'] = 'rename_category';
-		$res = $this->CURL($this->server . '/api.php',$data);
-		return $res;
+		$result = $this->CURL($this->server . '/api.php',$data);
+		$result = json_decode($result,true);
+		if($result['success'] == true) {
+			return $result;
+		} else {
+			$this->lastError['code'] = $result['error']['code'];
+			$this->lastError['msg'] = $result['error']['msg'];
+			return false;
+		}
 	}
 	public function deleteCategory($categoryID) {
 		$data = array();
 		$data['categoryID'] = $categoryID;
 		$data['cmd'] = 'delete_category';
-		$res = $this->CURL($this->server . '/api.php',$data);
-		return $res;
+		$result = $this->CURL($this->server . '/api.php',$data);
+		$result = json_decode($result,true);
+		if($result['success'] == true) {
+			return $result;
+		} else {
+			$this->lastError['code'] = $result['error']['code'];
+			$this->lastError['msg'] = $result['error']['msg'];
+			return false;
+		}
 	}
 	public function addAttribute($categoryID,$value) {
 		$data = array();
 		$data['categoryID'] = $categoryID;
 		$data['value'] = $value;
 		$data['cmd'] = 'add_attribute';
-		$res = $this->CURL($this->server . '/api.php',$data);
-		return $res;
+		$result = $this->CURL($this->server . '/api.php',$data);
+		$result = json_decode($result,true);
+		if($result['success'] == true) {
+			return $result;
+		} else {
+			$this->lastError['code'] = $result['error']['code'];
+			$this->lastError['msg'] = $result['error']['msg'];
+			return false;
+		}
 	}
 	public function renameAttribute($valueID,$value) {
 		$data = array();
 		$data['valueID'] = $valueID;
 		$data['value'] = $value;
 		$data['cmd'] = 'rename_attribute';
-		$res = $this->CURL($this->server . '/api.php',$data);
-		return $res;
+		$result = $this->CURL($this->server . '/api.php',$data);
+		$result = json_decode($result,true);
+		if($result['success'] == true) {
+			return $result;
+		} else {
+			$this->lastError['code'] = $result['error']['code'];
+			$this->lastError['msg'] = $result['error']['msg'];
+			return false;
+		}
 	}
 	public function deleteAttribute($valueID) {
 		$data = array();
 		$data['valueID'] = $valueID;
 		$data['cmd'] = 'delete_attribute';
-		$res = $this->CURL($this->server . '/api.php',$data);
-		return $res;
+		$result = $this->CURL($this->server . '/api.php',$data);
+		if($result['success'] == true) {
+			return $result;
+		} else {
+			$this->lastError['code'] = $result['error']['code'];
+			$this->lastError['msg'] = $result['error']['msg'];
+			return false;
+		}
+	}
+	public function getLastError() {
+		return $this->lastError;
 	}
 }
 ?>
