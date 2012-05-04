@@ -14,10 +14,13 @@
 
 	$expected = array (
 			'cmd'
+		,	'active'
 		,	'api'
 		,	'attributes'
 		,	'autoProcess'
 		,	'barcode'
+		,	'basePath'
+		,	'baseUrl'
 		,	'browse'
 		,	'callback'
 		,	'categoryID'
@@ -55,6 +58,7 @@
 		,	'key'
 		,	'limit'
 		,	'month'
+		,	'name'
 		,	'nodeApi'
 		,	'nodeValue'
 		,	'order'
@@ -63,6 +67,7 @@
 		,	'photo_tags'
 		,	'photo_title'
 		,	'picassa_PlantID'
+		,	'pw'
 		,	'report_type'
 		,	'sc'
 		,	'sc_id'
@@ -76,6 +81,7 @@
 		,	'station'
 		,	'station_id'
 		,	'stop'
+		,	'storage_id'
 		,	'tag'
 		,	'tiles'
 		,	'title'
@@ -83,6 +89,7 @@
 		,	'type'
 		,	'types'
 		,	'url'
+		,	'user'
 		,	'user_id'
 		,	'users'
 		,	'value'
@@ -1953,7 +1960,7 @@
 			}
 			break;
 			
-		case 'createObject':
+		case 'addImage':
 			if($si->remoteAccess->checkRemoteAccess(ip2long($_SERVER['REMOTE_ADDR']), $key)) {
 				if ($_FILES["filename"]["error"] > 0)
 				{
@@ -1965,15 +1972,18 @@
 					//http://www.php.net/manual/en/function.exif-imagetype.php
 					$size = getimagesize($_FILES["filename"]["tmp_name"]);
 					if(in_array($size[2],$config["allowedImportTypes"])) {
-						switch($config['mode']) {
-							case 's3':
-								$response = $si->amazon->create_object ($config['s3']['bucket'], "test/".$key."/".$_FILES["filename"]["name"], array('fileUpload' => $_FILES["filename"]["tmp_name"],'acl' => AmazonS3::ACL_PUBLIC,'storage' => AmazonS3::STORAGE_REDUCED) );
-								break;
-							default:
-								move_uploaded_file($_FILES["file"]["tmp_name"], $config['path']['images']."testUpload/".$key.'-'.$_FILES["file"]["name"]);
-								break;
+						if($storage_id!='' && $si->storage->exists($storage_id)) {
+							$response = $si->storage->store($_FILES["filename"]["tmp_name"],$storage_id,$_FILES["filename"]["name"], "test/".$key);
+							if($response) {
+								print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start ) ) );
+							} else {
+								$code = 151;
+								print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($code) , 'code' => $code ) ) ) );
+							}
+						} else {
+							$code = 150;
+							print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($code) , 'code' => $code ) ) ) );
 						}
-						print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start ) ) );
 					} else {
 						$code = 146;
 						print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($code) , 'code' => $code ) ) ) );
@@ -2049,6 +2059,39 @@
 						break;
 				}
 			}
+			break;
+
+		case 'addStorageDevice':
+			$data['name'] = trim($name);
+			$data['description'] = trim($description);
+			$data['type'] = trim($type);
+			$data['baseUrl'] = trim($baseUrl);
+			$data['basePath'] = trim($basePath);
+			$data['user'] = trim($user);
+			$data['pw'] = trim($pw);
+			$data['key'] = trim($key);
+			$data['active'] = trim($active)!=''?trim($active):'true';
+			if($name=='' || $type=='' || $baseUrl=='') {
+				$code = 148;
+				print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($code) , 'code' => $code ) ) ) );
+			} else {
+				$si->storage->set_all($data);
+				$si->storage->save();
+				print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start ) ) );
+			}
+			break;
+		
+		case 'listStorageDevices':
+			if(is_array($si->storage->devices)) {
+				print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start, 'data' => $si->storage->devices ) ) );
+			} else {
+				$code = 149;
+				print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($code) , 'code' => $code ) ) ) );
+			}
+			break;
+			
+		case 'testTest':
+			var_dump($si->storage->getType($key));
 			break;
 
 

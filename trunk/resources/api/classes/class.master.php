@@ -23,6 +23,7 @@
 	require_once( $config['path']['base'] . 'resources/api/classes/class.log.php');
 	require_once( $config['path']['base'] . 'resources/api/classes/class.user_permissions.php');
 	require_once( $config['path']['base'] . 'resources/api/classes/class.remoteaccess.php');
+	require_once( $config['path']['base'] . 'resources/api/classes/class.storage.php');
 
 	Class SilverImage {
 
@@ -51,6 +52,7 @@
 			$this->lg = new LogClass($this->db);
 			$this->userPerm = new UserPermissions($this->db);
 			$this->remoteAccess = new RemoteAccess($this->db);
+			$this->storage = new Storage($this->db);
 		}
 
 		function load($project) {
@@ -110,6 +112,10 @@
 				, 145 => 'Invalid Key given.'
 				, 146 => 'File type not allowed.'
 				, 147 => 'File not found.'
+				, 148 => 'name, type and baseUrl required.'
+				, 149 => 'No storage devices found.'
+				, 150 => 'Invalid Storage ID given.'
+				, 151 => 'Unable to create file.'
 			);
 			return $ar[$error_code];
 		}
