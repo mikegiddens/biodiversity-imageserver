@@ -10,7 +10,7 @@ ImagePortal.ByCollection = function(config) {
 
 
 	this.coldaystore = new Ext.data.JsonStore({
-				url:'resources/api/api.php'	
+				url:'resources/api/reports.php'	
 			,	fields: ['coll','l1']		
 			,	root: 'data'
 			,	baseParams: {
