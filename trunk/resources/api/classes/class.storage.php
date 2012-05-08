@@ -110,37 +110,111 @@ class Storage {
 	}
 	
 	public function store($tmpFile, $storage_id, $storageFileName, $storageFilePath='') {
+		$img = new Image($this->db);
 		if($tmpFile!='' && $storage_id!='' && $storageFileName!='' && $this->exists($storage_id)) {
 			$device = $this->get($storage_id);
 			switch(strtolower($this->getType($storage_id))) {
 				case 's3':
 					$amazon = new AmazonS3(array('key' => $device['pw'],'secret' => $device['key']));
-					$response = $amazon->create_object ($device['basePath'], $storageFilePath . '/' .  $storageFileName, array('fileUpload' => $tmpFile,'acl' => AmazonS3::ACL_PUBLIC,'storage' => AmazonS3::STORAGE_REDUCED) );
+					$response = $amazon->create_object ($device['basePath'], 'test'.$storageFilePath . '/' .  $storageFileName, array('fileUpload' => $tmpFile,'acl' => AmazonS3::ACL_PUBLIC,'storage' => AmazonS3::STORAGE_REDUCED) );
 					if($response->isOK()) {
-						return true;
+						$result['image_id'] = $img->getImageId($storageFileName, $storageFilePath, 1);
+						if(!$result['image_id']) {
+							$img->set('filename',$storageFileName);
+							$img->set('storage_id', 1);
+							$img->set('path', $storageFilePath);
+							$img->set('originalFilename', $storageFileName);
+							$img->save();
+							$result['image_id'] = $img->getImageId($storageFileName, $storageFilePath, 1);
+						}
+						$result['success'] = true;
+						return $result;
 					} else {
-						return false;
+						$result['success'] = false;
+						return $result;
 					}
 					break;
 				case 'local':
-					$img = new Image();
-					$img->mkdir_recursive($device['basePath'].'/'.$storageFilePath);
+					$img->mkdir_recursive($device['basePath'].$storageFilePath);
 					$fp = fopen($tmpFile, "r");
-					$response = file_put_contents($device['basePath'].'/'.$storageFilePath . '/' .  $storageFileName, $fp);
+					$response = file_put_contents($device['basePath'].$storageFilePath . '/' .  $storageFileName, $fp);
 					fclose($fp);
 					if($response) {
-						return true;
+						$result['image_id'] = $img->getImageId($storageFileName, $storageFilePath, 2);
+						if(!$result['image_id']) {
+							$img->set('filename',$storageFileName);
+							$img->set('storage_id', 2);
+							$img->set('path', $storageFilePath);
+							$img->set('originalFilename', $storageFileName);
+							$img->save();
+							$result['image_id'] = $img->getImageId($storageFileName, $storageFilePath, 2);
+						}
+						$result['success'] = true;
+						return $result;
 					} else {
-						return false;
+						$result['success'] = false;
+						return $result;
 					}
 					break;
+				default:
+					$result['success'] = false;
+					return $result;
+					break;
+			}
+		} else {
+			$result['success'] = false;
+			return $result;
+		}
+	}
+		
+	public function delete($storage_id, $storageFileName, $storageFilePath='') {
+		if($storage_id == '' || $storageFileName == '') {
+			return false;
+		} else {
+			$device = $this->get($storage_id);
+			switch(strtolower($this->getType($storage_id))) {
+				case 's3':
+					$amazon = new AmazonS3(array('key' => $device['pw'],'secret' => $device['key']));
+					$response = $amazon->delete_object ($device['basePath'], 'test'.$storageFilePath . '/' .  $storageFileName);
+					break;
+				
+				case 'local':
+					@unlink($device['basePath'].$storageFilePath . '/' .  $storageFileName);
+					break;
+					
 				default:
 					return false;
 					break;
 			}
+			return true;
+		}
+	}
+	
+	public function moveExistingImage($image_id, $newStorageId, $newImagePath) {
+		$img = new Image($this->db);
+		if($image_id == '' || $newStorageId == '' || $newImagePath == '' || !$img->field_exists($image_id) || !$this->exists($newStorageId)) {
+			return false;
+		}
+		if($img->load_by_id($image_id)) {
+			if(($img->get('storage_id') == $newStorageId) && ($img->get('path') == $newImagePath)) {
+				return true;
+			} else {
+				$device1 = $this->get($img->get('storage_id'));
+				$device2 = $this->get($newStorageId);
+				
+				//code to move the file from one device to other
+				
+				$this->delete($img->get('storage_id'), $img->get('filename'), $img->get('path'));
+				$img->set('storage_id', $newStorageId);
+				$img->set('path', $newImagePath);
+				$img->save();
+				return true;
+			}
 		} else {
 			return false;
 		}
-	}	
+		
+	}
+	
 }
 ?>
