@@ -442,6 +442,17 @@ Class Image {
 
 	}
 
+	public function getImageId($filename, $filepath, $storage_id) {
+		if($filename == '' || $filepath == '' || $storage_id == '') return false;
+		$query = sprintf("SELECT `image_id` FROM `image` WHERE `originalFilename` = '%s' AND `path` = '%s' AND `storage_id` = '%s';", $filename, $filepath, $storage_id);
+		$ret = $this->db->query_one($query);
+		if($ret->image_id == NULL) {
+			return false;
+		} else {
+			return $ret->image_id;
+		}
+	}
+
 	/**
 	 * checks whether field exists in image table
 	 */
@@ -476,7 +487,7 @@ Class Image {
 
 	public function save() {
 		if($this->field_exists($this->get('image_id'))) {
-			$query = sprintf("UPDATE `image` SET  `filename` = '%s', `timestamp_modified` = now(), `barcode` = '%s', `width` = '%s', `height` = '%s', `Family` = '%s', `Genus` = '%s', `SpecificEpithet` = '%s', `rank` = %s, `author` = '%s', `title` = '%s', `description` = '%s', `GlobalUniqueIdentifier` = '%s', `creative_commons` = '%s', `characters` = '%s', `flickr_PlantID` = '%s', `flickr_modified` = '%s', `flickr_details` = '%s', `picassa_PlantID` = '%s', `picassa_modified` = '%s', `gTileProcessed` = '%s', `zoomEnabled` = '%s', `processed` = '%s', `box_flag` = '%s', `ocr_flag` = '%s', `ocr_value` = '%s', `namefinder_flag` = '%s', `namefinder_value` = '%s', `ScientificName` = '%s', `CollectionCode` = '%s', `tmpFamily` = '%s', `tmpFamilyAccepted` = '%s', `tmpGenus` = '%s', `tmpGenusAccepted` = '%s', `guess_flag` = '%s'  WHERE image_id = '%s' ;"
+			$query = sprintf("UPDATE `image` SET  `filename` = '%s', `timestamp_modified` = now(), `barcode` = '%s', `width` = '%s', `height` = '%s', `Family` = '%s', `Genus` = '%s', `SpecificEpithet` = '%s', `rank` = '%s', `author` = '%s', `title` = '%s', `description` = '%s', `GlobalUniqueIdentifier` = '%s', `creative_commons` = '%s', `characters` = '%s', `flickr_PlantID` = '%s', `flickr_modified` = '%s', `flickr_details` = '%s', `picassa_PlantID` = '%s', `picassa_modified` = '%s', `gTileProcessed` = '%s', `zoomEnabled` = '%s', `processed` = '%s', `box_flag` = '%s', `ocr_flag` = '%s', `ocr_value` = '%s', `namefinder_flag` = '%s', `namefinder_value` = '%s', `ScientificName` = '%s', `CollectionCode` = '%s', `tmpFamily` = '%s', `tmpFamilyAccepted` = '%s', `tmpGenus` = '%s', `tmpGenusAccepted` = '%s', `guess_flag` = '%s', `storage_id` = '%s', `path` = '%s', `originalFilename` = '%s'  WHERE image_id = '%s' ;"
 				, mysql_escape_string($this->get('filename'))
 				, mysql_escape_string($this->get('barcode'))
 				, mysql_escape_string($this->get('width'))
@@ -511,10 +522,13 @@ Class Image {
 				, mysql_escape_string($this->get('tmpGenus'))
 				, mysql_escape_string($this->get('tmpGenusAccepted'))
 				, mysql_escape_string($this->get('guess_flag'))
+				, mysql_escape_string($this->get('storage_id'))
+				, mysql_escape_string($this->get('path'))
+				, mysql_escape_string($this->get('originalFilename'))
 				, mysql_escape_string($this->get('image_id'))
 			);
 		} else {
-			$query = sprintf("INSERT IGNORE INTO `image` SET `filename` = '%s', `timestamp_modified` = now(), `barcode` = '%s', `width` = '%s', `height` = '%s', `Family` = '%s', `Genus` = '%s', `SpecificEpithet` = '%s', `rank` = %s, `author` = '%s', `title` = '%s', `description` = '%s', `GlobalUniqueIdentifier` = '%s', `creative_commons` = '%s', `characters` = '%s', `flickr_PlantID` = '%s', `flickr_modified` = '%s', `flickr_details` = '%s', `picassa_PlantID` = '%s', `picassa_modified` = '%s', `gTileProcessed` = '%s', `zoomEnabled` = '%s', `processed` = '%s', `box_flag` = '%s', `ocr_flag` = '%s', `ocr_value` = '%s', `namefinder_flag` = '%s', `namefinder_value` = '%s', `ScientificName` = '%s', `CollectionCode` = '%s', `tmpFamily` = '%s', `tmpFamilyAccepted` = '%s', `tmpGenus` = '%s', `tmpGenusAccepted` = '%s', `guess_flag` = '%s' ;"
+			$query = sprintf("INSERT IGNORE INTO `image` SET `filename` = '%s', `timestamp_modified` = now(), `barcode` = '%s', `width` = '%s', `height` = '%s', `Family` = '%s', `Genus` = '%s', `SpecificEpithet` = '%s', `rank` = '%s', `author` = '%s', `title` = '%s', `description` = '%s', `GlobalUniqueIdentifier` = '%s', `creative_commons` = '%s', `characters` = '%s', `flickr_PlantID` = '%s', `flickr_modified` = '%s', `flickr_details` = '%s', `picassa_PlantID` = '%s', `picassa_modified` = '%s', `gTileProcessed` = '%s', `zoomEnabled` = '%s', `processed` = '%s', `box_flag` = '%s', `ocr_flag` = '%s', `ocr_value` = '%s', `namefinder_flag` = '%s', `namefinder_value` = '%s', `ScientificName` = '%s', `CollectionCode` = '%s', `tmpFamily` = '%s', `tmpFamilyAccepted` = '%s', `tmpGenus` = '%s', `tmpGenusAccepted` = '%s', `guess_flag` = '%s', `storage_id` = '%s', `path` = '%s', `originalFilename` = '%s' ;"
 				, mysql_escape_string($this->get('filename'))
 				, mysql_escape_string($this->get('barcode'))
 				, mysql_escape_string($this->get('width'))
@@ -549,6 +563,9 @@ Class Image {
 				, mysql_escape_string($this->get('tmpGenus'))
 				, mysql_escape_string($this->get('tmpGenusAccepted'))
 				, mysql_escape_string($this->get('guess_flag'))
+				, mysql_escape_string($this->get('storage_id'))
+				, mysql_escape_string($this->get('path'))
+				, mysql_escape_string($this->get('originalFilename'))
 			);
 		}
 // echo '<br> Query : ' . $query;

@@ -116,6 +116,9 @@
 				, 149 => 'No storage devices found.'
 				, 150 => 'Invalid Storage ID given.'
 				, 151 => 'Unable to create file.'
+				, 152 => 'storage_id, imagePath and filename required'
+				, 153 => 'image_id, newStorageId and newImagePath are required'
+				, 154 => 'Unable to move existing file.'
 			);
 			return $ar[$error_code];
 		}

@@ -52,6 +52,7 @@
 		,	'id'
 		,	'imageID'
 		,	'imageId'
+		,	'imagePath'
 		,	'image_id'
 		,	'imagesType'
 		,	'index'
@@ -59,6 +60,8 @@
 		,	'limit'
 		,	'month'
 		,	'name'
+		,	'newImagePath'
+		,	'newStorageId'
 		,	'nodeApi'
 		,	'nodeValue'
 		,	'order'
@@ -1961,21 +1964,19 @@
 			break;
 			
 		case 'addImage':
+			$imagePath = (isset($imagePath))?$imagePath:'';
 			if($si->remoteAccess->checkRemoteAccess(ip2long($_SERVER['REMOTE_ADDR']), $key)) {
-				if ($_FILES["filename"]["error"] > 0)
-				{
+				if ($_FILES["filename"]["error"] > 0) {
 					print_c( json_encode( array( 'success' => false,  'error' => $_FILES["filename"]["error"] ) ) );
-				}
-				else
-				{
+				} else {
 					$config["allowedImportTypes"] = array(1,2,3); //GIF, JPEG, PNG
 					//http://www.php.net/manual/en/function.exif-imagetype.php
 					$size = getimagesize($_FILES["filename"]["tmp_name"]);
 					if(in_array($size[2],$config["allowedImportTypes"])) {
 						if($storage_id!='' && $si->storage->exists($storage_id)) {
-							$response = $si->storage->store($_FILES["filename"]["tmp_name"],$storage_id,$_FILES["filename"]["name"], "test/".$key);
-							if($response) {
-								print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start ) ) );
+							$response = $si->storage->store($_FILES["filename"]["tmp_name"],$storage_id,$_FILES["filename"]["name"], $imagePath);
+							if($response['success']) {
+								print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start, 'image_id' => $response['image_id'] ) ) );
 							} else {
 								$code = 151;
 								print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($code) , 'code' => $code ) ) ) );
@@ -2089,10 +2090,45 @@
 				print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($code) , 'code' => $code ) ) ) );
 			}
 			break;
-			
-		case 'testTest':
-			var_dump($si->storage->getType($key));
+		
+		case 'addExistingImage':
+			if($storage_id == '' || $imagePath == '' || $filename == '') {
+				$code = 152;
+				print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($code) , 'code' => $code ) ) ) );
+			} else {
+				$image_id = $si->image->getImageId($filename, $imagePath, $storage_id);
+				if(!$image_id) {
+					$si->image->set('filename',$filename);
+					$si->image->set('storage_id', $storage_id);
+					$si->image->set('path', $imagePath);
+					$si->image->set('originalFilename', $filename);
+					$si->image->save();
+					$image_id = $si->image->getImageId($filename, $imagePath, $storage_id);
+				}
+				print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start, 'image_id' => $image_id ) ) );
+			}
 			break;
+			
+		case 'moveExistingImage':
+			if($image_id == '' || $newStorageId == '' || $newImagePath == '') {
+				$code = 153;
+				print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($code) , 'code' => $code ) ) ) );
+			} elseif(!$si->image->field_exists($image_id)) {
+				$code = 116;
+				print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($code) , 'code' => $code ) ) ) );
+			} elseif(!$si->storage->exists($newStorageId)) {
+				$code = 150;
+				print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($code) , 'code' => $code ) ) ) );
+			} else {
+				if($si->storage->moveExistingImage($image_id, $newStorageId, $newImagePath)) {
+					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start ) ) );
+				} else {
+					$code = 154;
+					print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($code) , 'code' => $code ) ) ) );
+				}
+			}
+			break;
+		
 
 
 # Test Tasks
