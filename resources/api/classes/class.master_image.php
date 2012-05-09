@@ -1673,6 +1673,25 @@ Class Image {
 		return true;
 	}
 
+	public function get_all_attributes($image_id) {
+		$query = sprintf("SELECT * FROM `image_attrib` WHERE imageID = %s", $image_id);
+		$records = $this->db->query_all($query);
+		if(count($records)) {
+			foreach($records as $record) {
+				$typeID = $record->typeID;
+				$valueID = $record->valueID;
+				$query = sprintf("SELECT * FROM `image_attrib_type` WHERE typeID = %s", $typeID);
+				$list = $this->db->query_one($query);
+				$title = $list->title;
+				$query = sprintf("SELECT * FROM `image_attrib_value` WHERE valueID = %s", $valueID);
+				$list = $this->db->query_one($query);
+				$value = $list->name;
+				$array[$title][] = $value;
+			}
+		}
+		return $array;
+	}
+
 	public function loadImageNodesCharacters() {
 		unset($this->records);
 		$this->nodes = array();

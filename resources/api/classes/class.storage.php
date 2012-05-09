@@ -202,19 +202,73 @@ class Storage {
 				$device1 = $this->get($img->get('storage_id'));
 				$device2 = $this->get($newStorageId);
 				
-				//code to move the file from one device to other
-				
-				$this->delete($img->get('storage_id'), $img->get('filename'), $img->get('path'));
-				$img->set('storage_id', $newStorageId);
-				$img->set('path', $newImagePath);
-				$img->save();
-				return true;
+				switch(strtolower($device2['type'])) {
+					case 's3':
+						$amazon = new AmazonS3(array('key' => $device2['pw'],'secret' => $device2['key']));
+						switch(strtolower($device1['type'])) {
+							case 's3':
+								$source = 'test' . $img->get('path') . '/' . $img->get('filename');
+								$tmpImage = $img->get('filename');
+								$fp = fopen($tmpImage, "w+b");
+								$amazon->get_object($device1['basePath'], $source, array('fileDownload' => $tmpImage));
+								fclose($fp);
+								$response = $amazon->create_object ($device2['basePath'], 'test'.$newImagePath . '/' .  $img->get('filename'), array('fileUpload' => $tmpImage,'acl' => AmazonS3::ACL_PUBLIC,'storage' => AmazonS3::STORAGE_REDUCED) );
+								unlink($tmpImage);
+								break;
+							
+							case 'local':
+								$source = $device1['basePath'] . $img->get('path') . '/' . $img->get('filename');
+								$response = $amazon->create_object ($device2['basePath'], 'test'.$newImagePath . '/' .  $img->get('filename'), array('fileUpload' => $source,'acl' => AmazonS3::ACL_PUBLIC,'storage' => AmazonS3::STORAGE_REDUCED) );
+								break;
+						}
+						if($response->isOK()) {
+							$this->delete($img->get('storage_id'), $img->get('filename'), $img->get('path'));
+							$img->set('storage_id', $newStorageId);
+							$img->set('path', $newImagePath);
+							$img->save();
+							return true;
+						} else {
+							return false;
+						}
+						break;
+					
+					case 'local':
+						switch(strtolower($device1['type'])) {
+							case 's3':
+								$amazon = new AmazonS3(array('key' => $device1['pw'],'secret' => $device1['key']));
+								$source = 'test' . $img->get('path') . '/' . $img->get('filename');
+								$tmpImage = $img->get('filename');
+								$fp = fopen($tmpImage, "w+b");
+								$amazon->get_object($device1['basePath'], $source, array('fileDownload' => $tmpImage));
+								fclose($fp);
+								$img->mkdir_recursive($device2['basePath'].$newImagePath);
+								$fp = fopen($tmpImage, "r");
+								$response = file_put_contents($device2['basePath'].$newImagePath . '/' .  $img->get('filename'), $fp);
+								fclose($fp);
+								unlink($tmpImage);
+								break;
+							
+							case 'local':
+								$source = $device1['basePath'] . $img->get('path') . '/' . $img->get('filename');
+								$img->mkdir_recursive($device2['basePath'].$newImagePath);
+								$fp = fopen($source, "r");
+								$response = file_put_contents($device2['basePath'].$newImagePath . '/' .  $img->get('filename'), $fp);
+								fclose($fp);
+								break;
+						}
+						$this->delete($img->get('storage_id'), $img->get('filename'), $img->get('path'));
+						$img->set('storage_id', $newStorageId);
+						$img->set('path', $newImagePath);
+						$img->save();
+						return true;
+						break;
+				}
 			}
 		} else {
 			return false;
 		}
-		
 	}
 	
 }
+
 ?>
