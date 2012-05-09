@@ -1236,7 +1236,7 @@
 
 		case 'add_image_attribute':
 			if(!$user_access->is_logged_in()){
-				print_c (json_encode( array( 'success' => false, 'error' => array('message' => $sa->getError(113), 'code' => 113 )) ));
+				print_c (json_encode( array( 'success' => false, 'error' => array('message' => $si->getError(113), 'code' => 113 )) ));
 				exit;
 			}
 
@@ -2018,6 +2018,7 @@
 						$array['url'] = $key;
 						break;
 				}
+				$array['attribute'] = $si->image->get_all_attributes($image_id);
 				print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start, 'data' => $array ) ) );
 			}
 			break;
