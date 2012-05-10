@@ -60,7 +60,7 @@ class Event
 			$where = " WHERE " . $where;
 		}
 		if($this->data['eventId'] != '') {
-			$where .= sprintf(" AND `id` = '%s' ", mysql_escape_string($this->data['eventId']));
+			$where .= sprintf(" AND `eventId` = '%s' ", mysql_escape_string($this->data['eventId']));
 		}
 		if($this->data['geoId'] != '') {
 			$where .= sprintf(" AND `geoId` = '%s' ", mysql_escape_string($this->data['geoId']));
@@ -135,6 +135,54 @@ class Event
 			$this->lg->set('query', $query);
 			$this->lg->save();
 			return  true;
+		}
+		return false;
+	}
+	
+	public function addImageEvent($imageId, $eventId) {
+		if($imageId == '' || $eventId == '') return false;
+		if(!$this->recordExists($eventId)) return false;
+		$query = sprintf("INSERT INTO event_images SET `imageId` = '%s', `eventId` = '%s'"
+				, mysql_escape_string($imageId)
+				, mysql_escape_string($eventId) 
+				);
+		if($this->db->query($query)) {
+			$this->lg->set('table', 'event_images');
+			$this->lg->set('query', $query);
+			$this->lg->save();
+			return true;
+		} else {
+			return false;
+		}
+	}
+	
+	public function deleteImageEvent($imageId, $eventId) {
+		if($imageId == '' || $eventId == '') return false;
+		if(!$this->recordExists($eventId)) return false;
+		$query = sprintf("DELETE FROM `event_images` WHERE `imageId` = '%s' AND `eventId` = '%s' ", mysql_escape_string($imageId), mysql_escape_string($eventId));
+		if($this->db->query($query)) {
+			$this->lg->set('table', 'event_images');
+			$this->lg->set('query', $query);
+			$this->lg->save();
+			return true;
+		} else {
+			return false;
+		}
+	}
+	
+	public function get_all_events($imageId) {
+		$query = sprintf("SELECT eventId FROM `event_images` WHERE `imageId` = '%s';", mysql_escape_string($imageId));
+		$records = $this->db->query_all($query);
+		if(count($records)) {
+			foreach($records as $record) {
+				$eventId = $record->eventId;
+				$query = sprintf("SELECT title FROM `events` WHERE `eventId` = '%s';", mysql_escape_string($eventId));
+				$list = $this->db->query_one($query);
+				$tmpArray['id'] = $eventId;
+				$tmpArray['name'] = $list->title;
+				$array[] = $tmpArray;
+			}
+			return $array;
 		}
 		return false;
 	}

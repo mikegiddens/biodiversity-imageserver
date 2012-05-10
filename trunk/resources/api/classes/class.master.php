@@ -24,6 +24,7 @@
 	require_once( $config['path']['base'] . 'resources/api/classes/class.user_permissions.php');
 	require_once( $config['path']['base'] . 'resources/api/classes/class.remoteaccess.php');
 	require_once( $config['path']['base'] . 'resources/api/classes/class.storage.php');
+	require_once( $config['path']['base'] . 'resources/api/classes/class.set.php');
 
 	Class SilverImage {
 
@@ -53,6 +54,7 @@
 			$this->userPerm = new UserPermissions($this->db);
 			$this->remoteAccess = new RemoteAccess($this->db);
 			$this->storage = new Storage($this->db);
+			$this->set = new Set($this->db);
 		}
 
 		function load($project) {
@@ -119,6 +121,9 @@
 				, 152 => 'storage_id, imagePath and filename required'
 				, 153 => 'image_id, newStorageId and newImagePath are required'
 				, 154 => 'Unable to move existing file.'
+				, 155 => 'imageId should be provided.'
+				, 156 => 'name and description should be given.'
+				, 157 => 'set id should be given.'
 			);
 			return $ar[$error_code];
 		}
