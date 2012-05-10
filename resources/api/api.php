@@ -77,6 +77,7 @@
 		,	'search_type'
 		,	'search_value'
 		,	'showOCR'
+		,	'sId'
 		,	'size'
 		,	'sort'
 		,	'stage'
@@ -1219,7 +1220,7 @@
 		# New Image Admin Tasks
 		case 'image_characters':
 			if(!$user_access->is_logged_in()){
-				print_c ( json_encode( array( 'success' => false, 'error' => array('message' => $sa->getError(113), 'code' => 113 )) ));
+				print_c ( json_encode( array( 'success' => false, 'error' => array('message' => $si->getError(113), 'code' => 113 )) ));
 				exit;
 			}
 			$start = ($start != '') ? $start : 0;
@@ -1265,7 +1266,7 @@
 
 		case 'delete_image_attribute':
 			if(!$user_access->is_logged_in()){
-				print_c ( json_encode( array( 'success' => false, 'error' => array('message' => $sa->getError(113), 'code' => 113 )) ));
+				print_c ( json_encode( array( 'success' => false, 'error' => array('message' => $si->getError(113), 'code' => 113 )) ));
 				exit;
 			}
 
@@ -1284,7 +1285,7 @@
 				if($si->image->deleteImageAttribute()) {
 					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start ) ) );
 				} else {
-					print_c( json_encode( array( 'success' => false, 'error' => array ( 'code' => 122, 'msg' => $sa->error(122) ) ) ) );
+					print_c( json_encode( array( 'success' => false, 'error' => array ( 'code' => 122, 'msg' => $si->getError(122) ) ) ) );
 				}
 			} else {
 				print_c( json_encode( array( 'success' => false, 'error' => array ( 'code' => $code, 'msg' => $si->getError($code) ) ) ) );
@@ -1293,7 +1294,7 @@
 
 			case 'add_category':
 				if(!$user_access->is_logged_in()){
-					print_c ( json_encode( array( 'success' => false, 'error' => array('message' => $sa->getError(113), 'code' => 113 )) ));
+					print_c ( json_encode( array( 'success' => false, 'error' => array('message' => $si->getError(113), 'code' => 113 )) ));
 					exit;
 				}
 
@@ -1308,7 +1309,7 @@
 					if($id) {
 						print_c( json_encode( array( 'success' => true, 'new_id' => $id ) ) );
 					} else {
-						print_c( json_encode( array( 'success' => false, 'error' => array ( 'code' => 124, 'msg' => $sa->error(124) ) ) ) );
+						print_c( json_encode( array( 'success' => false, 'error' => array ( 'code' => 124, 'msg' => $si->getError(124) ) ) ) );
 					}
 				} else {
 					print_c( json_encode( array( 'success' => false, 'error' => array ( 'code' => $code, 'msg' => $si->getError($code) ) ) ) );
@@ -1317,7 +1318,7 @@
 
 			case 'rename_category':
 				if(!$user_access->is_logged_in()){
-					print_c (json_encode( array( 'success' => false, 'error' => array('message' => $sa->getError(113), 'code' => 113 )) ));
+					print_c (json_encode( array( 'success' => false, 'error' => array('message' => $si->getError(113), 'code' => 113 )) ));
 					exit;
 				}
 
@@ -1336,7 +1337,7 @@
 					if($si->image->renameCategory()) {
 						print_c( json_encode( array( 'success' => true ) ) );
 					} else {
-						print_c( json_encode( array( 'success' => false, 'error' => array ( 'code' => 125, 'msg' => $sa->error(125) ) ) ) );
+						print_c( json_encode( array( 'success' => false, 'error' => array ( 'code' => 125, 'msg' => $si->getError(125) ) ) ) );
 					}
 				} else {
 					print_c( json_encode( array( 'success' => false, 'error' => array ( 'code' => $code, 'msg' => $si->getError($code) ) ) ) );
@@ -1345,7 +1346,7 @@
 
 			case 'delete_category':
 				if(!$user_access->is_logged_in()){
-					print_c (json_encode( array( 'success' => false, 'error' => array('message' => $sa->getError(113), 'code' => 113 )) ));
+					print_c (json_encode( array( 'success' => false, 'error' => array('message' => $si->getError(113), 'code' => 113 )) ));
 					exit;
 				}
 
@@ -1366,7 +1367,7 @@
 
 			case 'add_attribute':
 				if(!$user_access->is_logged_in()){
-					print_c (json_encode( array( 'success' => false, 'error' => array('message' => $sa->getError(113), 'code' => 113 )) ));
+					print_c (json_encode( array( 'success' => false, 'error' => array('message' => $si->getError(113), 'code' => 113 )) ));
 					exit;
 				}
 
@@ -1393,7 +1394,7 @@
 
 			case 'rename_attribute':
 				if(!$user_access->is_logged_in()){
-					print_c ( json_encode( array( 'success' => false, 'error' => array('message' => $sa->getError(113), 'code' => 113 )) ));
+					print_c ( json_encode( array( 'success' => false, 'error' => array('message' => $si->getError(113), 'code' => 113 )) ));
 					exit;
 				}
 
@@ -1419,7 +1420,7 @@
 
 			case 'delete_attribute':
 				if(!$user_access->is_logged_in()){
-					print_c ( json_encode( array( 'success' => false, 'error' => array('message' => $sa->getError(113), 'code' => 113 )) ));
+					print_c ( json_encode( array( 'success' => false, 'error' => array('message' => $si->getError(113), 'code' => 113 )) ));
 					exit;
 				}
 
@@ -1576,7 +1577,7 @@
 
 			case 'addEvent':
 				if(!$user_access->is_logged_in()){
-					print_c ( json_encode( array( 'success' => false, 'error' => array('message' => $sa->getError(113), 'code' => 113 )) ));
+					print_c ( json_encode( array( 'success' => false, 'error' => array('message' => $si->getError(113), 'code' => 113 )) ));
 					exit;
 				}
 
@@ -1628,8 +1629,8 @@
 				break;
 
 			case 'deleteEvent':
-				if(!$user_access->is_logged_in()){
-					print_c ( json_encode( array( 'success' => false, 'error' => array('message' => $sa->getError(113), 'code' => 113 )) ));
+				if(!$user_access->is_logged_in()) {
+					print_c ( json_encode( array( 'success' => false, 'error' => array('message' => $si->getError(113), 'code' => 113 )) ));
 					exit;
 				}
 
@@ -1647,10 +1648,56 @@
 					print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($code) , 'code' => $code ) ) ) );
 				}
 				break;
+				
+			case 'addImageEvent':
+				if(!$user_access->is_logged_in()) {
+					print_c ( json_encode( array( 'success' => false, 'error' => array('message' => $si->getError(113), 'code' => 113 )) ));
+					exit;
+				}
+				if($eventId == '') {
+					$valid = false;
+					$code = 133;
+				}
+				if($imageId == '') {
+					$valid = false;
+					$code = 155;
+				}
+				if($valid) {
+					$si->event->lg->set('action', 'addImageEvent');
+					$si->event->lg->set('lastModifiedBy', $_SESSION['user_id']);
+					$si->event->addImageEvent($imageId, $eventId);
+					print_c( json_encode( array( 'success' => true ) ) );
+				} else {
+					print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($code) , 'code' => $code ) ) ) );
+				}
+				break;
+				
+			case 'deleteImageEvent':
+				if(!$user_access->is_logged_in()) {
+					print_c ( json_encode( array( 'success' => false, 'error' => array('message' => $si->getError(113), 'code' => 113 )) ));
+					exit;
+				}
+				if($eventId == '') {
+					$valid = false;
+					$code = 133;
+				}
+				if($imageId == '') {
+					$valid = false;
+					$code = 155;
+				}
+				if($valid) {
+					$si->event->lg->set('action', 'deleteImageEvent');
+					$si->event->lg->set('lastModifiedBy', $_SESSION['user_id']);
+					$si->event->deleteImageEvent($imageId, $eventId);
+					print_c( json_encode( array( 'success' => true ) ) );
+				} else {
+					print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($code) , 'code' => $code ) ) ) );
+				}
+				break;
 
 			case 'addEventType':
 				if(!$user_access->is_logged_in()){
-					print_c ( json_encode( array( 'success' => false, 'error' => array('message' => $sa->getError(113), 'code' => 113 )) ));
+					print_c ( json_encode( array( 'success' => false, 'error' => array('message' => $si->getError(113), 'code' => 113 )) ));
 					exit;
 				}
 				if(!$si->eventType->load_by_id($eventTypeId)) {
@@ -2018,7 +2065,22 @@
 						$array['url'] = $key;
 						break;
 				}
-				$array['attribute'] = $si->image->get_all_attributes($image_id);
+				$attrb = $si->image->get_all_attributes($image_id);
+				if($attrb) {
+					if(count($attrb)>1) {
+						$array['attributes'] = $attrb;
+					} else {
+						$array['attribute'] = $attrb;
+					}
+				}
+				$event = $si->event->get_all_events($image_id);
+				if($event) {
+					if(count($event)>1) {
+						$array['events'] = $event;
+					} else {
+						$array['event'] = $event;
+					}
+				}
 				print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start, 'data' => $array ) ) );
 			}
 			break;
@@ -2127,6 +2189,46 @@
 					$code = 154;
 					print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($code) , 'code' => $code ) ) ) );
 				}
+			}
+			break;
+			
+		case 'addSet':
+			if(!$user_access->is_logged_in()) {
+				print_c ( json_encode( array( 'success' => false, 'error' => array('message' => $si->getError(113), 'code' => 113 )) ));
+				exit;
+			}
+			if($name == '' || $description == '') {
+				$valid = false;
+				$code = 156;
+			}
+			
+			if($valid) {
+				$si->set->addSet($name, $description);
+				print_c( json_encode( array( 'success' => true ) ) );
+			} else {
+				print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($code) , 'code' => $code ) ) ) );
+			}
+			break;
+			
+		case 'editSet':
+			if(!$user_access->is_logged_in()) {
+				print_c ( json_encode( array( 'success' => false, 'error' => array('message' => $si->getError(113), 'code' => 113 )) ));
+				exit;
+			}
+			if($name == '' || $description == '') {
+				$valid = false;
+				$code = 156;
+			}
+			if($sId == '') {
+				$valid = false;
+				$code = 157;
+			}
+			
+			if($valid) {
+				$si->set->editSet($sId, $name, $description);
+				print_c( json_encode( array( 'success' => true ) ) );
+			} else {
+				print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($code) , 'code' => $code ) ) ) );
 			}
 			break;
 		

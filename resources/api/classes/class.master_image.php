@@ -1674,19 +1674,30 @@ Class Image {
 	}
 
 	public function get_all_attributes($image_id) {
-		$query = sprintf("SELECT * FROM `image_attrib` WHERE imageID = %s", $image_id);
+		$query = sprintf("SELECT DISTINCT typeID FROM `image_attrib` WHERE imageID = %s", $image_id);
 		$records = $this->db->query_all($query);
 		if(count($records)) {
 			foreach($records as $record) {
 				$typeID = $record->typeID;
-				$valueID = $record->valueID;
-				$query = sprintf("SELECT * FROM `image_attrib_type` WHERE typeID = %s", $typeID);
+				$query = sprintf("SELECT title FROM `image_attrib_type` WHERE typeID = %s", $typeID);
 				$list = $this->db->query_one($query);
 				$title = $list->title;
-				$query = sprintf("SELECT * FROM `image_attrib_value` WHERE valueID = %s", $valueID);
-				$list = $this->db->query_one($query);
-				$value = $list->name;
-				$array[$title][] = $value;
+				$query = sprintf("SELECT valueID FROM `image_attrib` WHERE typeID = %s AND imageID = %s", $typeID, $image_id);
+				$lists = $this->db->query_all($query);
+				unset($tmpArray2);
+				foreach($lists as $list) {
+					$valueID = $list->valueID;
+					$query = sprintf("SELECT name FROM `image_attrib_value` WHERE valueID = %s", $valueID);
+					$val = $this->db->query_one($query);
+					$value = $val->name;
+					$tmpArray1['id'] = $valueID;
+					$tmpArray1['value'] = $value;
+					$tmpArray2[] = $tmpArray1;
+				}
+				$tmpArray3['id'] = $typeID;
+				$tmpArray3['key'] = $title;
+				$tmpArray3['values'] = $tmpArray2;
+				$array[] = $tmpArray3;
 			}
 		}
 		return $array;
