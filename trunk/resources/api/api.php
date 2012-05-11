@@ -71,6 +71,7 @@
 		,	'photo_title'
 		,	'picassa_PlantID'
 		,	'pw'
+		,	'rank'
 		,	'report_type'
 		,	'sc'
 		,	'sc_id'
@@ -97,6 +98,7 @@
 		,	'user_id'
 		,	'users'
 		,	'value'
+		,	'valueId'
 		,	'valueID'
 		,	'week'
 		,	'width'
@@ -2227,6 +2229,108 @@
 			if($valid) {
 				$si->set->editSet($sId, $name, $description);
 				print_c( json_encode( array( 'success' => true ) ) );
+			} else {
+				print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($code) , 'code' => $code ) ) ) );
+			}
+			break;
+			
+		case 'deleteSet':
+			if(!$user_access->is_logged_in()) {
+				print_c ( json_encode( array( 'success' => false, 'error' => array('message' => $si->getError(113), 'code' => 113 )) ));
+				exit;
+			}
+			if($sId == '') {
+				$valid = false;
+				$code = 157;
+			}
+			if($valid) {
+				$si->set->deleteSet($sId);
+				print_c( json_encode( array( 'success' => true ) ) );
+			} else {
+				print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($code) , 'code' => $code ) ) ) );
+			}
+			break;
+			
+		case 'listSet':
+			$array = $si->set->listSet();
+			print_c( json_encode( array( 'success' => true, 'total_count' => $array['count'], 'data' => $array['data'] ) ) );
+			break;
+			
+		case 'addSetValue':
+			if(!$user_access->is_logged_in()) {
+				print_c ( json_encode( array( 'success' => false, 'error' => array('message' => $si->getError(113), 'code' => 113 )) ));
+				exit;
+			}
+			if($sId == '' || $valueId == '' || $rank == '') {
+				$valid = false;
+				$code = 158;
+			}
+			if(!$si->set->load_by_id($sId)) {
+				$valid = false;
+				$code = 159;
+			}
+			if($valid) {
+				$si->set->addSetValue($sId, $valueId, $rank);
+				print_c( json_encode( array( 'success' => true ) ) );
+			} else {
+				print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($code) , 'code' => $code ) ) ) );
+			}
+			break;
+			
+		case 'editSetValue':
+			if(!$user_access->is_logged_in()) {
+				print_c ( json_encode( array( 'success' => false, 'error' => array('message' => $si->getError(113), 'code' => 113 )) ));
+				exit;
+			}
+			if($sId == '' || $valueId == '' || $rank == '') {
+				$valid = false;
+				$code = 158;
+			}
+			if(!$si->set->load_by_id($sId)) {
+				$valid = false;
+				$code = 159;
+			}
+			if($id == '') {
+				$valid = false;
+				$code = 160;
+			}
+			if($valid) {
+				$si->set->editSetValue($id, $sId, $valueId, $rank);
+				print_c( json_encode( array( 'success' => true ) ) );
+			} else {
+				print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($code) , 'code' => $code ) ) ) );
+			}
+			break;
+			
+		case 'deleteSetValue':
+			if(!$user_access->is_logged_in()) {
+				print_c ( json_encode( array( 'success' => false, 'error' => array('message' => $si->getError(113), 'code' => 113 )) ));
+				exit;
+			}
+			if($sId == '' || $valueId == '') {
+				$valid = false;
+				$code = 161;
+			}
+			if($valid) {
+				$si->set->deleteSetValue($sId, $valueId);
+				print_c( json_encode( array( 'success' => true ) ) );
+			} else {
+				print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($code) , 'code' => $code ) ) ) );
+			}
+			break;
+			
+		case 'listImageBySet':
+			if(isset($sId) && $sId!='') {
+				if(!$si->set->load_by_id($sId)) {
+					$valid = false;
+					$code = 159;
+				}
+			} else {
+				$sId = '';
+			}
+			if($valid) {
+				$array = $si->set->listImageBySet($sId);
+				print_c( json_encode( array( 'success' => true, 'data' => $array['data'] ) ) );
 			} else {
 				print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($code) , 'code' => $code ) ) ) );
 			}

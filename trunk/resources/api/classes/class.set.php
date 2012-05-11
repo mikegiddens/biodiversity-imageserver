@@ -53,6 +53,144 @@ class Set
 			return false;
 		}
 	}
+	
+	public function deleteSet($sId) {
+		if($sId == '') return false;
+		$query = sprintf("DELETE FROM `set` WHERE `id` = '%s'", mysql_escape_string($sId));
+		if($this->db->query($query)) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+	
+	public function listSet() {
+		$query = "SELECT s.id sID, s.name sNAME, s.description sDESCRIPTION, sv.id svID, iav.name iavNAME, sv.rank svRANK FROM `set` s LEFT OUTER JOIN set_values sv ON (sv.sId = s.id) JOIN image_attrib_value iav on (iav.valueID = sv.valueID) ORDER BY s.name, sv.rank";
+		$records = $this->db->query_all($query);
+		if(count($records)) {
+			$array['count'] = 0;
+			$prevID = 0;
+			foreach($records as $record) {
+				if($prevID != $record->sID) {
+					$array['count']++;
+					$prevID = $record->sID;
+					if(isset($tmpArray3)) {
+						$tmpArray1['values'] = $tmpArray3;
+						$array['data'][] = $tmpArray1;
+						unset($tmpArray3);
+					}
+					$tmpArray1['id'] = $record->sID;
+					$tmpArray1['name'] = $record->sNAME;
+					$tmpArray1['description'] = $record->sDESCRIPTION;
+				}
+				$tmpArray2['id'] = $record->svID;
+				$tmpArray2['value'] = $record->iavNAME;
+				$tmpArray2['rank'] = $record->svRANK;
+				$tmpArray3[] = $tmpArray2;
+			}
+			$tmpArray1['values'] = $tmpArray3;
+			$array['data'][] = $tmpArray1;
+			return $array;
+		} else {
+			return false;
+		}
+	}
+	
+	public function addSetValue($sId, $valueId, $rank) {
+		if($sId == '' || $valueId == '' || $rank == '') return false;
+		$query = sprintf("INSERT INTO `set_values` SET `sId` = '%s', `valueId` = '%s', `rank` = '%s'"
+				, mysql_escape_string($sId)
+				, mysql_escape_string($valueId)
+				, mysql_escape_string($rank)
+				);
+		if($this->db->query($query)) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+	
+	public function editSetValue($id, $sId, $valueId, $rank) {
+		if($id == '' || $sId == '' || $valueId == '' || $rank == '') return false;
+		$query = sprintf("UPDATE `set_values` SET `sId` = '%s', `valueId` = '%s', `rank` = '%s' WHERE `id` = '%s'"
+				, mysql_escape_string($sId)
+				, mysql_escape_string($valueId)
+				, mysql_escape_string($rank)
+				, mysql_escape_string($id)
+				);
+		if($this->db->query($query)) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+	
+	public function deleteSetValue($sId,$valueId) {
+		if($sId == '' || $valueId == '') return false;
+		$query = sprintf("DELETE FROM `set_values` WHERE `sId` = '%s' AND `valueId` = '%s'"
+				, mysql_escape_string($sId)
+				, mysql_escape_string($valueId)
+				);
+		if($this->db->query($query)) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+	
+	public function listImageBySet($sId = '') {
+		if($sId == '') {
+			$query = "SELECT s.id sID, s.name sNAME, s.description sDESCRIPTION, sv.id svID, iav.valueID iavID, iav.name iavNAME, sv.rank svRANK FROM `set` s LEFT OUTER JOIN set_values sv ON (sv.sId = s.id) JOIN image_attrib_value iav on (iav.valueID = sv.valueID) ORDER BY s.name, sv.rank";
+		} else {
+			if(!$this->load_by_id($sId)) {
+				return false;
+			} else {
+				$query = "SELECT s.id sID, s.name sNAME, s.description sDESCRIPTION, sv.id svID, iav.valueID iavID, iav.name iavNAME, sv.rank svRANK FROM `set` s LEFT OUTER JOIN set_values sv ON (sv.sId = s.id) JOIN image_attrib_value iav on (iav.valueID = sv.valueID) WHERE s.id = '$sId' ORDER BY s.name, sv.rank";
+			}
+		}
+		$records = $this->db->query_all($query);
+		if(count($records)) {
+			$prevID = 0;
+			foreach($records as $record) {
+				if($prevID != $record->sID) {
+					$prevID = $record->sID;
+					if(isset($tmpArray3)) {
+						$tmpArray1['values'] = $tmpArray3;
+						$array['data'][] = $tmpArray1;
+						unset($tmpArray3);
+					}
+					$tmpArray1['id'] = $record->sID;
+					$tmpArray1['name'] = $record->sNAME;
+					$tmpArray1['description'] = $record->sDESCRIPTION;
+				}
+				$tmpArray2['id'] = $record->svID;
+				$tmpArray2['value'] = $record->iavNAME;
+				$tmpArray2['rank'] = $record->svRANK;
+				$query = sprintf("SELECT imageID FROM `image_attrib` WHERE `valueID` = '%s'"
+						, mysql_escape_string($record->iavID)
+						);
+				$results = $this->db->query_all($query);
+				if(count($results)) {
+					$image = new Image($this->db);
+					foreach($results as $result) {
+						$details = $image->getUrl($result->imageID);
+						$tmpArray4['id'] = $result->imageID;
+						$tmpArray4['filename'] = $details['filename'];
+						$tmpArray4['url'] = $details['url'];
+						$tmpArray5[] = $tmpArray4;
+					}
+					$tmpArray2['images'] = $tmpArray5;
+					unset($tmpArray5);
+				}
+				$tmpArray3[] = $tmpArray2;
+			}
+			$tmpArray1['values'] = $tmpArray3;
+			$array['data'][] = $tmpArray1;
+			return $array;
+		} else {
+			return false;
+		}
+	}
 }
 
 ?>
