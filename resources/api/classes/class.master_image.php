@@ -2004,5 +2004,26 @@ Class Image {
 		return $ret;
 	}
 	
+	public function getUrl($image_id) {
+		$this->load_by_id($image_id);
+		$storage = new Storage($this->db);
+		$device = $storage->get($this->get('storage_id'));
+		$url['url'] = $device['baseUrl'];
+		switch(strtolower($device['type'])) {
+			case 's3':
+				$url['url'].= 'test'.$this->get('path'). '/' .$this->get('filename');
+				break;
+			case 'local':
+				if(substr($url['url'], strlen($url['url'])-1, 1) == '/') {
+					$url['url'] = substr($url['url'],0,strlen($url['url'])-1);
+				}
+				$url['url'].= $this->get('path'). '/' .$this->get('filename');
+				break;
+		}
+		$url['filename'] = $this->get('filename');
+		return $url;
+	}
+		
+	
 }
 ?>
