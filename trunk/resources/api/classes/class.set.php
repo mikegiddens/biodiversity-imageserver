@@ -13,9 +13,17 @@ class Set
 		return( true );
 	}
 	
+	public function get($field) {
+		if(isset($this->record[$field])) {
+			return $this->record[$field];
+		} else {
+			return false;
+		}
+	}
+	
 	public function load_by_id( $setId ) {
 		if($setId == '') return false;
-		$query = sprintf("SELECT * FROM `set` WHERE `id` = %s ", mysql_escape_string($setId) );
+		$query = sprintf("SELECT * FROM `set` WHERE `id` = '%s'", mysql_escape_string($setId) );
 		$ret = $this->db->query_one( $query );
 		if ($ret != NULL) {
 			foreach( $ret as $field => $value ) {
@@ -27,8 +35,33 @@ class Set
 		}
 	}
 	
+	public function load_by_set_name( $name ) {
+		if($name == '') return false;
+		$query = sprintf("SELECT * FROM `set` WHERE `name` = '%s'", mysql_escape_string($name) );
+		$ret = $this->db->query_one( $query );
+		if ($ret != NULL) {
+			foreach( $ret as $field => $value ) {
+				$this->set($field, $value);
+			}
+			return(true);
+		} else {
+			return(false);
+		}
+	}
+	
+	public function exists($name) {
+		if($name == '') return false;
+		$query = sprintf("SELECT * FROM `set` WHERE `name` = '%s'", mysql_escape_string($name));
+		$result = $this->db->query_all($query);
+		if(count($result)) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+	
 	public function addSet($name, $description) {
-		if($name == '' || $description == '') return false;
+		if($name == '') return false;
 		$query = sprintf("INSERT INTO `set` SET `name` = '%s', `description` = '%s'"
 				, mysql_escape_string($name)
 				, mysql_escape_string($description)
@@ -41,12 +74,19 @@ class Set
 	}
 	
 	public function editSet($sId, $name, $description) {
-		if($name == '' || $description == '' || $sId == '') return false;
-		$query = sprintf("UPDATE `set` SET `name` = '%s', `description` = '%s' WHERE `id` = '%s'"
+		if($name == '' || $sId == '') return false;
+		if($description == '') {
+			$query = sprintf("UPDATE `set` SET `name` = '%s' WHERE `id` = '%s'"
+					, mysql_escape_string($name)
+					, mysql_escape_string($sId)
+					);
+		} else {
+			$query = sprintf("UPDATE `set` SET `name` = '%s', `description` = '%s' WHERE `id` = '%s'"
 				, mysql_escape_string($name)
 				, mysql_escape_string($description)
 				, mysql_escape_string($sId)
 				);
+		}
 		if($this->db->query($query)) {
 			return true;
 		} else {
@@ -97,7 +137,7 @@ class Set
 	}
 	
 	public function addSetValue($sId, $valueId, $rank) {
-		if($sId == '' || $valueId == '' || $rank == '') return false;
+		if($sId == '' || $valueId == '') return false;
 		$query = sprintf("INSERT INTO `set_values` SET `sId` = '%s', `valueId` = '%s', `rank` = '%s'"
 				, mysql_escape_string($sId)
 				, mysql_escape_string($valueId)
@@ -111,13 +151,21 @@ class Set
 	}
 	
 	public function editSetValue($id, $sId, $valueId, $rank) {
-		if($id == '' || $sId == '' || $valueId == '' || $rank == '') return false;
-		$query = sprintf("UPDATE `set_values` SET `sId` = '%s', `valueId` = '%s', `rank` = '%s' WHERE `id` = '%s'"
+		if($id == '' || $sId == '' || $valueId == '') return false;
+		if($rank == '') {
+			$query = sprintf("UPDATE `set_values` SET `sId` = '%s', `valueId` = '%s' WHERE `id` = '%s'"
+					, mysql_escape_string($sId)
+					, mysql_escape_string($valueId)
+					, mysql_escape_string($id)
+					);
+		} else {
+			$query = sprintf("UPDATE `set_values` SET `sId` = '%s', `valueId` = '%s', `rank` = '%s' WHERE `id` = '%s'"
 				, mysql_escape_string($sId)
 				, mysql_escape_string($valueId)
 				, mysql_escape_string($rank)
 				, mysql_escape_string($id)
 				);
+		}
 		if($this->db->query($query)) {
 			return true;
 		} else {
@@ -125,13 +173,21 @@ class Set
 		}
 	}
 	
-	public function deleteSetValue($sId,$valueId) {
-		if($sId == '' || $valueId == '') return false;
-		$query = sprintf("DELETE FROM `set_values` WHERE `sId` = '%s' AND `valueId` = '%s'"
-				, mysql_escape_string($sId)
-				, mysql_escape_string($valueId)
-				);
+	public function deleteSetValue($id) {
+		if($id == '') return false;
+		$query = sprintf("DELETE FROM `set_values` WHERE `id` = '%s'", mysql_escape_string($id));
 		if($this->db->query($query)) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+	
+	public function exists_set_values_by_id($id) {
+		if($id == '') return false;
+		$query = sprintf("SELECT * FROM `set_values` WHERE `id` = '%s'", mysql_escape_string($id));
+		$result = $this->db->query_all($query);
+		if(count($result)) {
 			return true;
 		} else {
 			return false;

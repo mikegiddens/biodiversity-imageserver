@@ -122,12 +122,17 @@
 				, 153 => 'image_id, newStorageId and newImagePath are required'
 				, 154 => 'Unable to move existing file.'
 				, 155 => 'imageId should be provided.'
-				, 156 => 'name and description should be given.'
+				, 156 => 'Name should be given.'
 				, 157 => 'sId should be given.'
-				, 158 => 'sId, valueId and rank should be given'
+				, 158 => 'sId and valueId should be given'
 				, 159 => 'Invalid sId given.'
-				, 160 => 'id should be provided.'
+				, 160 => 'sId, valueId and id should be provided.'
 				, 161 => 'sId and valueId should be given.'
+				, 162 => 'Entry already exists in database.'
+				, 163 => 'Set already exists.'
+				, 164 => 'Invalid valueID given.'
+				, 165 => 'Invalid id given.'
+				, 166 => 'Id should be provided.'
 			);
 			return $ar[$error_code];
 		}
