@@ -1699,8 +1699,21 @@ Class Image {
 				$tmpArray3['values'] = $tmpArray2;
 				$array[] = $tmpArray3;
 			}
+			return $array;
+		} else {
+			return false;
 		}
-		return $array;
+	}
+	
+	public function exists_attrb_value_by_id($valueID) {
+		if($valueID == '') return false;
+		$query = sprintf("SELECT * FROM `image_attrib_value` WHERE `valueID` = '%s'", mysql_escape_string($valueID));
+		$result = $this->db->query_all($query);
+		if(count($result)) {
+			return true;
+		} else {
+			return false;
+		}
 	}
 
 	public function loadImageNodesCharacters() {
@@ -2023,7 +2036,27 @@ Class Image {
 		$url['filename'] = $this->get('filename');
 		return $url;
 	}
-		
 	
+	public function image_exists($storage_id, $imagePath, $filename) {
+		$storage = new Storage($this->db);
+		$device = $storage->get($storage_id);
+		$path = $device['baseUrl'];
+		switch(strtolower($device['type'])) {
+			case 's3':
+				$path.= 'test' . $imagePath . '/' . $filename;
+				break;
+			case 'local':
+				if(substr($path, strlen($path)-1, 1) == '/' ) {
+					$path = substr($path, 0, strlen($path)-1);
+				}
+				$path.= $imagePath . '/' . $filename;
+				break;
+		}
+		if(fopen($path, "r")) {
+			return true;
+		} else {
+			return false;
+		}
+	}
 }
 ?>

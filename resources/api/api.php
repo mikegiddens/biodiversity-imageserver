@@ -2067,22 +2067,10 @@
 						$array['url'] = $key;
 						break;
 				}
-				$attrb = $si->image->get_all_attributes($image_id);
-				if($attrb) {
-					if(count($attrb)>1) {
-						$array['attributes'] = $attrb;
-					} else {
-						$array['attribute'] = $attrb;
-					}
-				}
-				$event = $si->event->get_all_events($image_id);
-				if($event) {
-					if(count($event)>1) {
-						$array['events'] = $event;
-					} else {
-						$array['event'] = $event;
-					}
-				}
+				$attbr = $si->image->get_all_attributes($image_id);
+				if($attbr) $array['attributes'] = $attbr;
+				$events = $si->event->get_all_events($image_id);
+				if($events) $array['events'] = $events;
 				print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start, 'data' => $array ) ) );
 			}
 			break;
@@ -2158,9 +2146,18 @@
 		
 		case 'addExistingImage':
 			if($storage_id == '' || $imagePath == '' || $filename == '') {
+				$valid = false;
 				$code = 152;
-				print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($code) , 'code' => $code ) ) ) );
+			} elseif(!$si->storage->exists($storage_id)) {
+				$valid = false;
+				$code = 150;	
+			} elseif(!$si->image->image_exists($storage_id, $imagePath, $filename)) {
+				$valid = false;
+				$code = 147;
 			} else {
+				$valid = true;
+			}
+			if($valid) {
 				$image_id = $si->image->getImageId($filename, $imagePath, $storage_id);
 				if(!$image_id) {
 					$si->image->set('filename',$filename);
@@ -2169,9 +2166,21 @@
 					$si->image->set('originalFilename', $filename);
 					$si->image->save();
 					$image_id = $si->image->getImageId($filename, $imagePath, $storage_id);
+					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start, 'image_id' => $image_id ) ) );
+				} else {
+					$code = 162;
+					print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($code) , 'code' => $code ) ) ) );
 				}
-				print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start, 'image_id' => $image_id ) ) );
+				
+			} else {
+				print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($code) , 'code' => $code ) ) ) );
 			}
+			break;
+		case 'temptest':
+			//$p = "http://silverbiology-imagingtour2010.s3.amazonaws.com/test/v/may9/picture.jpg";
+			$p = "http://bis.silverbiology.com/images/v/may9/picture.jpg";
+			//$p = urlencode($p);
+			var_dump(file_exists($p));
 			break;
 			
 		case 'moveExistingImage':
@@ -2199,16 +2208,21 @@
 				print_c ( json_encode( array( 'success' => false, 'error' => array('message' => $si->getError(113), 'code' => 113 )) ));
 				exit;
 			}
-			if($name == '' || $description == '') {
-				$valid = false;
+			if($name == '') {
 				$code = 156;
-			}
-			
-			if($valid) {
-				$si->set->addSet($name, $description);
-				print_c( json_encode( array( 'success' => true ) ) );
-			} else {
 				print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($code) , 'code' => $code ) ) ) );
+			} elseif($si->set->exists($name)) {
+				$code = 163;
+				$si->set->load_by_set_name($name);
+				$data['id'] = $si->set->get('id');
+				$data['name'] = $si->set->get('name');
+				$data['description'] = $si->set->get('description');
+				print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($code) , 'code' => $code ), 'details' => $data ) ) );
+			} else {
+				$description = isset($description)?$description:'';
+				$si->set->addSet($name, $description);
+				$si->set->load_by_set_name($name);
+				print_c(json_encode(array('success' => true, setID => $si->set->get('id'))));
 			}
 			break;
 			
@@ -2217,16 +2231,19 @@
 				print_c ( json_encode( array( 'success' => false, 'error' => array('message' => $si->getError(113), 'code' => 113 )) ));
 				exit;
 			}
-			if($name == '' || $description == '') {
+			if($name == '') {
 				$valid = false;
 				$code = 156;
-			}
-			if($sId == '') {
+			} elseif($sId == '') {
 				$valid = false;
 				$code = 157;
+			} elseif(!$si->set->load_by_id($sId)) {
+				$valid = false;
+				$code = 159;
 			}
 			
 			if($valid) {
+				$description = isset($description)?$description:'';
 				$si->set->editSet($sId, $name, $description);
 				print_c( json_encode( array( 'success' => true ) ) );
 			} else {
@@ -2242,6 +2259,9 @@
 			if($sId == '') {
 				$valid = false;
 				$code = 157;
+			} elseif(!$si->set->load_by_id($sId)) {
+				$valid = false;
+				$code = 159;
 			}
 			if($valid) {
 				$si->set->deleteSet($sId);
@@ -2251,7 +2271,7 @@
 			}
 			break;
 			
-		case 'listSet':
+		case 'listSets':
 			$array = $si->set->listSet();
 			print_c( json_encode( array( 'success' => true, 'total_count' => $array['count'], 'data' => $array['data'] ) ) );
 			break;
@@ -2261,15 +2281,18 @@
 				print_c ( json_encode( array( 'success' => false, 'error' => array('message' => $si->getError(113), 'code' => 113 )) ));
 				exit;
 			}
-			if($sId == '' || $valueId == '' || $rank == '') {
+			if($sId == '' || $valueId == '') {
 				$valid = false;
 				$code = 158;
-			}
-			if(!$si->set->load_by_id($sId)) {
+			} elseif(!$si->set->load_by_id($sId)) {
 				$valid = false;
 				$code = 159;
+			} elseif(!$si->image->exists_attrb_value_by_id($valueId)) {
+				$valid = false;
+				$code = 164;
 			}
 			if($valid) {
+				$rank = isset($rank)?$rank:0;
 				$si->set->addSetValue($sId, $valueId, $rank);
 				print_c( json_encode( array( 'success' => true ) ) );
 			} else {
@@ -2282,19 +2305,21 @@
 				print_c ( json_encode( array( 'success' => false, 'error' => array('message' => $si->getError(113), 'code' => 113 )) ));
 				exit;
 			}
-			if($sId == '' || $valueId == '' || $rank == '') {
-				$valid = false;
-				$code = 158;
-			}
-			if(!$si->set->load_by_id($sId)) {
-				$valid = false;
-				$code = 159;
-			}
-			if($id == '') {
+			if($sId == '' || $valueId == '' || $id == '') {
 				$valid = false;
 				$code = 160;
+			} elseif(!$si->set->load_by_id($sId)) {
+				$valid = false;
+				$code = 159;
+			} elseif(!$si->image->exists_attrb_value_by_id($valueId)) {
+				$valid = false;
+				$code = 164;
+			} elseif(!$si->set->exists_set_values_by_id($id)) {
+				$valid = false;
+				$code = 165;
 			}
 			if($valid) {
+				$rank = isset($rank)?$rank:'';
 				$si->set->editSetValue($id, $sId, $valueId, $rank);
 				print_c( json_encode( array( 'success' => true ) ) );
 			} else {
@@ -2307,12 +2332,15 @@
 				print_c ( json_encode( array( 'success' => false, 'error' => array('message' => $si->getError(113), 'code' => 113 )) ));
 				exit;
 			}
-			if($sId == '' || $valueId == '') {
+			if($id == '') {
 				$valid = false;
-				$code = 161;
+				$code = 166;
+			} elseif(!$si->set->exists_set_values_by_id($id)) {
+				$valid = false;
+				$code = 165;
 			}
 			if($valid) {
-				$si->set->deleteSetValue($sId, $valueId);
+				$si->set->deleteSetValue($id);
 				print_c( json_encode( array( 'success' => true ) ) );
 			} else {
 				print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($code) , 'code' => $code ) ) ) );
