@@ -133,6 +133,7 @@
 				, 164 => 'Invalid valueID given.'
 				, 165 => 'Invalid id given.'
 				, 166 => 'Id should be provided.'
+				, 167 => 'url, storage id and key should be provided.'
 			);
 			return $ar[$error_code];
 		}

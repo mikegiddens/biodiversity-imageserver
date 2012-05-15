@@ -1672,34 +1672,30 @@ Class Image {
 		$this->db->query($query);
 		return true;
 	}
-
+	
 	public function get_all_attributes($image_id) {
-		$query = sprintf("SELECT DISTINCT typeID FROM `image_attrib` WHERE imageID = %s", $image_id);
+		$query = sprintf("SELECT ia.typeID iaTID, ia.valueID iaVID, iat.title iatTitle, iav.name iavValue FROM image_attrib ia LEFT OUTER JOIN image_attrib_type iat ON ( ia.typeID = iat.typeID ) JOIN image_attrib_value iav ON (iav.valueID = ia.valueID AND ia.imageID = '%s' ) ORDER BY ia.typeID", mysql_escape_string($image_id));
 		$records = $this->db->query_all($query);
 		if(count($records)) {
+			$prevID = 0;
 			foreach($records as $record) {
-				$typeID = $record->typeID;
-				$query = sprintf("SELECT title FROM `image_attrib_type` WHERE typeID = %s", $typeID);
-				$list = $this->db->query_one($query);
-				$title = $list->title;
-				$query = sprintf("SELECT valueID FROM `image_attrib` WHERE typeID = %s AND imageID = %s", $typeID, $image_id);
-				$lists = $this->db->query_all($query);
-				unset($tmpArray2);
-				foreach($lists as $list) {
-					$valueID = $list->valueID;
-					$query = sprintf("SELECT name FROM `image_attrib_value` WHERE valueID = %s", $valueID);
-					$val = $this->db->query_one($query);
-					$value = $val->name;
-					$tmpArray1['id'] = $valueID;
-					$tmpArray1['value'] = $value;
-					$tmpArray2[] = $tmpArray1;
+				if($prevID != $record->iaTID) {
+					$prevID = $record->iaTID;
+					if(isset($tmpArray3)) {
+						$tmpArray1['values'] = $tmpArray3;
+						$data[] = $tmpArray1;
+						unset($tmpArray3);
+					}
+					$tmpArray1['id'] = $record->iaTID;
+					$tmpArray1['key'] = $record->iatTitle;
 				}
-				$tmpArray3['id'] = $typeID;
-				$tmpArray3['key'] = $title;
-				$tmpArray3['values'] = $tmpArray2;
-				$array[] = $tmpArray3;
+				$tmpArray2['id'] = $record->iaVID;
+				$tmpArray2['value'] = $record->iavValue;
+				$tmpArray3[] = $tmpArray2;
 			}
-			return $array;
+			$tmpArray1['values'] = $tmpArray3;
+			$data[] = $tmpArray1;
+			return $data;
 		} else {
 			return false;
 		}
