@@ -2057,21 +2057,21 @@
 				$code = 135;
 				print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($code) , 'code' => $code ) ) ) );
 			} else {
-				$array = $si->image->get_all();
+				$data = $si->image->get_all();
 				$key = $si->image->barcode_path($si->image->get('barcode')) . $si->image->get('barcode') . '.jpg';
 				switch($config['mode']) {
 					case 's3':
-						$array['url'] = $config['s3']['url'].$key;
+						$data['url'] = $config['s3']['url'].$key;
 						break;
 					default:
-						$array['url'] = $key;
+						$data['url'] = $key;
 						break;
 				}
 				$attbr = $si->image->get_all_attributes($image_id);
-				if($attbr) $array['attributes'] = $attbr;
+				if($attbr) $data['attributes'] = $attbr;
 				$events = $si->event->get_all_events($image_id);
-				if($events) $array['events'] = $events;
-				print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start, 'data' => $array ) ) );
+				if($events) $data['events'] = $events;
+				print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start, 'data' => $data ) ) );
 			}
 			break;
 			
@@ -2272,8 +2272,8 @@
 			break;
 			
 		case 'listSets':
-			$array = $si->set->listSet();
-			print_c( json_encode( array( 'success' => true, 'total_count' => $array['count'], 'data' => $array['data'] ) ) );
+			$data = $si->set->listSet();
+			print_c( json_encode( array( 'success' => true, 'total_count' => $data['count'], 'data' => $data['data'] ) ) );
 			break;
 			
 		case 'addSetValue':
@@ -2357,8 +2357,55 @@
 				$sId = '';
 			}
 			if($valid) {
-				$array = $si->set->listImageBySet($sId);
-				print_c( json_encode( array( 'success' => true, 'data' => $array['data'] ) ) );
+				$data = $si->set->listImageBySet($sId);
+				print_c( json_encode( array( 'success' => true, 'data' => $data['data'] ) ) );
+			} else {
+				print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($code) , 'code' => $code ) ) ) );
+			}
+			break;
+			
+		case 'addImageFromURL':
+			if($url == '' || $storage_id == '' || $key == '') {
+				$valid = false;
+				$code = 167;
+			} elseif(!$si->remoteAccess->checkRemoteAccess(ip2long($_SERVER['REMOTE_ADDR']), $key)) {
+				$valid = false;
+				$code = 145;
+			} elseif(!$si->storage->exists($storage_id)) {
+				$valid = false;
+				$code = 150;
+			} elseif(!($section = file_get_contents($url, NULL, NULL, 0, 8))) {
+				$valid = false;
+				$code = 144;
+			} else {
+				for($i=0;$i<strlen($section);$i++) {
+					$hexString .= dechex(ord($section[$i]));
+				}
+				if($hexString == '89504e47da1aa') {
+					$fileType = 'png';
+				} elseif(substr($hexString, 0, 12) == '474946383961' || substr($hexString, 0, 12) == '474946383761') {
+					$fileType = 'gif';
+				} elseif(substr($hexString, 0, 4) == 'ffd8') {
+					$fileType = 'jpg';
+				} else {
+					$valid = false;
+					$code = 146;
+				}
+			}
+			if($valid) {
+				$imagePath = (isset($imagePath))?$imagePath:'';
+				$temp = explode('/', $url);
+				$filename = $temp[count($temp)-1];
+				$data = file_get_contents($url);
+				file_put_contents($filename, $data);
+				$response = $si->storage->store($filename,$storage_id,$filename, $imagePath);
+				unlink($filename);
+				if($response['success']) {
+					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start, 'image_id' => $response['image_id'] ) ) );
+				} else {
+					$code = 151;
+					print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($code) , 'code' => $code ) ) ) );
+				}
 			} else {
 				print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($code) , 'code' => $code ) ) ) );
 			}

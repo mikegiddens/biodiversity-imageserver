@@ -116,7 +116,8 @@ class Storage {
 			switch(strtolower($this->getType($storage_id))) {
 				case 's3':
 					$amazon = new AmazonS3(array('key' => $device['pw'],'secret' => $device['key']));
-					$response = $amazon->create_object ($device['basePath'], 'test'.$storageFilePath . '/' .  $storageFileName, array('fileUpload' => $tmpFile,'acl' => AmazonS3::ACL_PUBLIC,'storage' => AmazonS3::STORAGE_REDUCED) );
+					$storageFilePath1 = substr($storageFilePath,0,1)=='/' ? substr($storageFilePath,1,strlen($storageFilePath)-1) : $storageFilePath;
+					$response = $amazon->create_object ($device['basePath'], $storageFilePath1 . '/' .  $storageFileName, array('fileUpload' => $tmpFile,'acl' => AmazonS3::ACL_PUBLIC,'storage' => AmazonS3::STORAGE_REDUCED) );
 					if($response->isOK()) {
 						$result['image_id'] = $img->getImageId($storageFileName, $storageFilePath, 1);
 						if(!$result['image_id']) {
@@ -175,7 +176,8 @@ class Storage {
 			switch(strtolower($this->getType($storage_id))) {
 				case 's3':
 					$amazon = new AmazonS3(array('key' => $device['pw'],'secret' => $device['key']));
-					$response = $amazon->delete_object ($device['basePath'], 'test'.$storageFilePath . '/' .  $storageFileName);
+					$storageFilePath1 = substr($storageFilePath,0,1)=='/' ? substr($storageFilePath,1,strlen($storageFilePath)-1) : $storageFilePath;
+					$response = $amazon->delete_object ($device['basePath'], $storageFilePath1 . '/' .  $storageFileName);
 					break;
 				
 				case 'local':
@@ -207,18 +209,24 @@ class Storage {
 						$amazon = new AmazonS3(array('key' => $device2['pw'],'secret' => $device2['key']));
 						switch(strtolower($device1['type'])) {
 							case 's3':
-								$source = 'test' . $img->get('path') . '/' . $img->get('filename');
+								$tmp = $img->get('path');
+								$tmp = substr($tmp,0,1)=='/' ? substr($tmp,1,strlen($tmp)-1) : $tmp;
+								$source = $tmp . '/' . $img->get('filename');
 								$tmpImage = $img->get('filename');
 								$fp = fopen($tmpImage, "w+b");
 								$amazon->get_object($device1['basePath'], $source, array('fileDownload' => $tmpImage));
 								fclose($fp);
-								$response = $amazon->create_object ($device2['basePath'], 'test'.$newImagePath . '/' .  $img->get('filename'), array('fileUpload' => $tmpImage,'acl' => AmazonS3::ACL_PUBLIC,'storage' => AmazonS3::STORAGE_REDUCED) );
+								$tmp = $newImagePath;
+								$tmp = substr($tmp,0,1)=='/' ? substr($tmp,1,strlen($tmp)-1) : $tmp;
+								$response = $amazon->create_object ($device2['basePath'], $tmp . '/' .  $img->get('filename'), array('fileUpload' => $tmpImage,'acl' => AmazonS3::ACL_PUBLIC,'storage' => AmazonS3::STORAGE_REDUCED) );
 								unlink($tmpImage);
 								break;
 							
 							case 'local':
 								$source = $device1['basePath'] . $img->get('path') . '/' . $img->get('filename');
-								$response = $amazon->create_object ($device2['basePath'], 'test'.$newImagePath . '/' .  $img->get('filename'), array('fileUpload' => $source,'acl' => AmazonS3::ACL_PUBLIC,'storage' => AmazonS3::STORAGE_REDUCED) );
+								$tmp = $newImagePath;
+								$tmp = substr($tmp,0,1)=='/' ? substr($tmp,1,strlen($tmp)-1) : $tmp;
+								$response = $amazon->create_object ($device2['basePath'], $tmp . '/' .  $img->get('filename'), array('fileUpload' => $source,'acl' => AmazonS3::ACL_PUBLIC,'storage' => AmazonS3::STORAGE_REDUCED) );
 								break;
 						}
 						if($response->isOK()) {
@@ -236,7 +244,9 @@ class Storage {
 						switch(strtolower($device1['type'])) {
 							case 's3':
 								$amazon = new AmazonS3(array('key' => $device1['pw'],'secret' => $device1['key']));
-								$source = 'test' . $img->get('path') . '/' . $img->get('filename');
+								$tmp = $img->get('path');
+								$tmp = substr($tmp,0,1)=='/' ? substr($tmp,1,strlen($tmp)-1) : $tmp;
+								$source = $tmp . '/' . $img->get('filename');
 								$tmpImage = $img->get('filename');
 								$fp = fopen($tmpImage, "w+b");
 								$amazon->get_object($device1['basePath'], $source, array('fileDownload' => $tmpImage));
