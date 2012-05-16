@@ -2020,12 +2020,16 @@ Class Image {
 		$url['url'] = $device['baseUrl'];
 		switch(strtolower($device['type'])) {
 			case 's3':
-				$url['url'].= 'test'.$this->get('path'). '/' .$this->get('filename');
+				$tmp = $this->get('path');
+				$tmp = substr($tmp, 0, 1)=='/' ? substr($tmp, 1, strlen($tmp)-1) : $tmp;
+				$url['baseUrl'] = $url['url'] . $tmp . '/';
+				$url['url'].= $tmp . '/' . $this->get('filename');
 				break;
 			case 'local':
 				if(substr($url['url'], strlen($url['url'])-1, 1) == '/') {
 					$url['url'] = substr($url['url'],0,strlen($url['url'])-1);
 				}
+				$url['baseUrl'] = $url['url'] . $this->get('path') . '/';
 				$url['url'].= $this->get('path'). '/' .$this->get('filename');
 				break;
 		}
@@ -2039,7 +2043,9 @@ Class Image {
 		$path = $device['baseUrl'];
 		switch(strtolower($device['type'])) {
 			case 's3':
-				$path.= 'test' . $imagePath . '/' . $filename;
+				$tmp = $imagePath;
+				$tmp = substr($tmp, 0, 1)=='/' ? substr($tmp, 1, strlen($tmp)-1) : $tmp;
+				$path.= $tmp . '/' . $filename;
 				break;
 			case 'local':
 				if(substr($path, strlen($path)-1, 1) == '/' ) {
@@ -2049,6 +2055,21 @@ Class Image {
 				break;
 		}
 		if(fopen($path, "r")) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+	
+	public function importMetaDataPackage($data) {
+		if((!is_array($data)) || (count($data)!=4)) return false;
+		$query = sprintf("INSERT IGNORE INTO `image_attrib_type` SET `title` = '%s', `description` = '%s', `elementSet` = '%s', `term` = '%s'"
+				, mysql_escape_string($data[0])
+				, mysql_escape_string($data[1])
+				, mysql_escape_string($data[2])
+				, mysql_escape_string($data[3])
+				);
+		if($this->db->query($query)) {
 			return true;
 		} else {
 			return false;

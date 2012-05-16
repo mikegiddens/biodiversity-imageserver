@@ -134,6 +134,8 @@
 				, 165 => 'Invalid id given.'
 				, 166 => 'Id should be provided.'
 				, 167 => 'url, storage id and key should be provided.'
+				, 168 => 'url and key should be provided.'
+				, 169 => 'No new records added.'
 			);
 			return $ar[$error_code];
 		}

@@ -1878,10 +1878,13 @@
 				$cachePath = $si->image->barcode_path($si->image->get('barcode')) . $si->image->get('barcode') . "-barcodes.json";
 
 				if(strtolower($force) != true) {
-					if($config['mode'] == 's3') {
-						$cacheFlag = $si->amazon->if_object_exists($config['s3']['bucket'], $cachePath);
-					} else {
-						$cacheFlag = @file_exists($config['path']['images'] . $cachePath);
+					switch($config['mode']) {
+						case 's3':
+							$cacheFlag = $si->amazon->if_object_exists($config['s3']['bucket'], $cachePath);
+							break;
+						default:
+							$cacheFlag = @file_exists($config['path']['images'] . $cachePath);
+							break;
 					}
 				}
 
@@ -2058,15 +2061,8 @@
 				print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($code) , 'code' => $code ) ) ) );
 			} else {
 				$data = $si->image->get_all();
-				$key = $si->image->barcode_path($si->image->get('barcode')) . $si->image->get('barcode') . '.jpg';
-				switch($config['mode']) {
-					case 's3':
-						$data['url'] = $config['s3']['url'].$key;
-						break;
-					default:
-						$data['url'] = $key;
-						break;
-				}
+				$url = $si->image->getUrl($si->image->get('image_id'));
+				$data['url'] = $url['url'];
 				$attbr = $si->image->get_all_attributes($image_id);
 				if($attbr) $data['attributes'] = $attbr;
 				$events = $si->event->get_all_events($image_id);
@@ -2087,30 +2083,22 @@
 				$code = 135;
 				print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($code) , 'code' => $code ) ) ) );
 			} else {
-				if(isset($size) && in_array($size, array('s','m','l')))
+				if(isset($size) && in_array($size, array('s','m','l'))) {
 					$size = "_".$size;
-				else
+				} else {
 					$size = "";
-				$key = $si->image->barcode_path($si->image->get('barcode')) . $si->image->get('barcode') . $size. '.jpg';
-				switch($config['mode']) {
-					case 's3':
-						if ($si->amazon->if_object_exists($config['s3']['bucket'], $key)) {
-							header('Content-type: text/plain');
-							print($config['s3']['url'].$key);
-						} else {
-							$code = 147;
-							print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($code) , 'code' => $code ) ) ) );
-						}
-						break;
-					default:
-						if (@file_exists($config['path']['images'] . $key)) {
-							header('Content-type: text/plain');
-							print($key);
-						} else {
-							$code = 147;
-							print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($code) , 'code' => $code ) ) ) );
-						}
-						break;
+				}
+				$image_id = $si->image->get('image_id');
+				$tmpFilename = explode(".",$si->image->get('filename'));
+				$tmpFilename[0] .= $size;
+				$filename = implode(".", $tmpFilename);
+				if($si->image->image_exists($si->image->get('storage_id'), $si->image->get('path'), $filename)) {
+					$url = $si->image->getUrl($image_id);
+					header('Content-type: text/plain');
+					print($url['baseUrl'] . $filename);
+				} else {
+					$code = 147;
+					print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($code) , 'code' => $code ) ) ) );
 				}
 			}
 			break;
@@ -2175,12 +2163,6 @@
 			} else {
 				print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($code) , 'code' => $code ) ) ) );
 			}
-			break;
-		case 'temptest':
-			//$p = "http://silverbiology-imagingtour2010.s3.amazonaws.com/test/v/may9/picture.jpg";
-			$p = "http://bis.silverbiology.com/images/v/may9/picture.jpg";
-			//$p = urlencode($p);
-			var_dump(file_exists($p));
 			break;
 			
 		case 'moveExistingImage':
@@ -2405,6 +2387,35 @@
 				} else {
 					$code = 151;
 					print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($code) , 'code' => $code ) ) ) );
+				}
+			} else {
+				print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($code) , 'code' => $code ) ) ) );
+			}
+			break;
+			
+		case 'importMetaDataPackage':
+			if($url == '' || $key == '') {
+				$valid = false;
+				$code = 168;
+			} elseif(!$si->remoteAccess->checkRemoteAccess(ip2long($_SERVER['REMOTE_ADDR']), $key)) {
+				$valid = false;
+				$code = 145;
+			} elseif(!($fp = fopen($url, "r"))) {
+				$valid = false;
+				$code = 144;
+			}
+			if($valid) {
+				$count = 0;
+				while($data = fgetcsv($fp, NULL, ",")) {
+					if($si->image->importMetaDataPackage($data)) {
+						$count++;
+					}
+				}
+				if($count == 0) {
+					$code = 169;
+					print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($code) , 'code' => $code ) ) ) );
+				} else {
+					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start, 'newEntries' => $count ) ) );
 				}
 			} else {
 				print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($code) , 'code' => $code ) ) ) );
