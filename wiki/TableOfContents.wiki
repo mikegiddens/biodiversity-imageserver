@@ -6,6 +6,15 @@
    * [Quickstart Quickstart]
    * [Demos Demos]
  * *Web Services*
+  * Storage
+    * [WS_AddStorageDevice Add Storage Device]
+    * [WS_ListStorageDevices List Storage Devices]
+  * Collections
+  * Attributes (metadata)
+  * Images
+    * [WS_AddImage Add Image]
+    * [WS_AddExistingImage Add Existing Image]
+    * [WS_AddImageFromURL Add Image from URL]
   * Tools
     * [WS_BoxDetect  Pixel Ratio using Color Control]
     * [WS_BarcodeDetect  Barcode Detection]
