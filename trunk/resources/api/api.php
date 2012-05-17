@@ -585,14 +585,17 @@
 
 				if(is_array($data) && count($data)) {
 					foreach($data as &$dt) {
-						switch($config['mode']) {
+						/*switch($config['mode']) {
 							case 's3':
 								$dt->path = $config['s3']['url'] . $si->image->barcode_path($dt->barcode);
 								break;
 							default:
 								$dt->path = str_replace($config['doc_root'],rtrim($config['base_url'],'/') . '/', $config['path']['images'] . $si->image->barcode_path($dt->barcode));
 								break;
-						}
+						}*/
+						$total++;
+						$tmpPath = $si->image->getUrl($dt->image_id);
+						$dt->path = $tmpPath['baseUrl'];
 
 					}
 				}
@@ -628,7 +631,7 @@
 					$RSSFeed->genarateFeed();
 				} else {
 					header('Content-type: application/json');
-					$total = $si->image->db->query_total();
+					//$total = $si->image->db->query_total();
 					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time, 'totalCount' => $total, 'data' => $data ) ));
 				}
 			} else {				
@@ -1777,64 +1780,27 @@
 			}
 
 			if($valid) {
-				$key = $si->image->barcode_path($si->image->get('barcode')) . $si->image->get('barcode') . '_box.json';
-				switch($config['mode']) {
-					case 's3':
-						if ($si->amazon->if_object_exists($config['s3']['bucket'], $key)) {
-							$tmpPath = $_TMP . $si->image->get('barcode') . '_box.json';
-							$fp = fopen($tmpPath, "w+b");
-							$si->amazon->get_object($config['s3']['bucket'], $key, array('fileDownload' => $tmpPath));
-							fclose($fp);
-							$data = @file_get_contents($tmpPath);
-							@unlink($tmpPath);
-							$existsFlag = true;
-						}
-						break;
-						
-					default:
-						if (@file_exists($config['path']['images'] . $key)) {
-							$data = @file_get_contents($config['path']['images'] . $key);						
-							$existsFlag = true;
-						}
-						break;
+				$filename = explode('.', $si->image->get('filename'));
+				$key = $si->image->get('path') . '/' . $filename[0] . '_box.json';
+				if($si->storage->fileExists($si->image->get('storage_id'), $key)) {
+					$data = $si->storage->fileGetContents($si->image->get('storage_id'), $key);
+					if($data) {
+						$existsFlag = true;
+					}
 				}
 
 				if(!$existsFlag || $force) {
-					$image = $si->image->barcode_path($si->image->get('barcode')) . $si->image->get('filename');
+					$image = $si->image->get('path') . '/' . $si->image->get('filename');
 
 					# Getting image
-					switch($config['mode']) {
-						case 's3':
-							$tmpPath = $_TMP . $si->image->get('filename');
-							$fp = fopen($tmpPath, "w+b");
-							$si->amazon->get_object($config['s3']['bucket'], $image, array('fileDownload' => $tmpPath));
-							fclose($fp);
-							$image = $tmpPath;
-							break;
-							
-						default:
-							$image = $config['path']['images'] . $image;
-							break;
-					}
+					$image = $si->storage->fileDownload($si->image->get('storage_id'), $image);
 
 					# processing
 					putenv("LD_LIBRARY_PATH=/usr/local/lib");
 					$data = exec(sprintf("%s %s", $config['boxDetectPath'], $image));
 
 					# saving the json object
-					switch($config['mode']) {
-						case 's3':
-							$tmpJson = $_TMP . $si->image->get('barcode') . '_box.json';
-							@file_put_contents($tmpJson, $data);
-							$response = $si->amazon->create_object ($config['s3']['bucket'], $key, array('fileUpload' => $tmpJson,'acl' => AmazonS3::ACL_PUBLIC,'storage' => AmazonS3::STORAGE_REDUCED) );
-							@unlink($tmpJson);
-							@unlink($tmpPath);
-							break;
-						
-						default:
-							@file_put_contents($config['path']['images'] . $key, $data);
-							break;
-					}
+					$si->storage->createFile_Data($si->image->get('storage_id'), $key, $data);
 				}
 				$si->pqueue->deleteProcessQueue($si->image->get('barcode'), 'box_add');
 				$si->image->set('box_flag', 1);
