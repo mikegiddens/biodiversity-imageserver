@@ -982,7 +982,7 @@ Class Image {
 			$where .= sprintf(" AND `%s` = '%s' ", mysql_escape_string($this->data['field']), mysql_escape_string($this->data['value']));
 		}
 
-		$thsi->query .= $where;
+		$this->query .= $where;
 
 		$this->setGroupFilter();
 		$this->setOrderFilter();

@@ -279,6 +279,146 @@ class Storage {
 		}
 	}
 	
+	public function fileExists($storage_id, $key) {
+		if($storage_id == '' || $key == '') return false;
+		$device = $this->get($storage_id);
+		switch(strtolower($device['type'])) {
+			case 's3':
+				$key = substr($key,0,1)=='/' ? substr($key,1,strlen($key)-1) : $key;
+				$amazon = new AmazonS3(array('key' => $device['pw'],'secret' => $device['key']));
+				if($amazon->if_object_exists($device['basePath'], $key)) {
+					return true;
+				} else {
+					return false;
+				}
+				break;
+				
+			case 'local':
+				$key = substr($key,0,1)!='/' ? '/'.$key : $key;
+				if(@file_exists($device['basePath'].$key)) {
+					return true;
+				} else {
+					return false;
+				}
+				break;
+				
+			default:
+				return false;
+				break;
+		}
+	}
+	
+	public function fileGetContents($storage_id, $key) {
+		if($storage_id == '' || $key == '') return false;
+		$device = $this->get($storage_id);
+		switch(strtolower($device['type'])) {
+			case 's3':
+				$amazon = new AmazonS3(array('key' => $device['pw'],'secret' => $device['key']));
+				$key = substr($key,0,1)=='/' ? substr($key,1,strlen($key)-1) : $key;
+				$tmpPath = uniqid('tmpFile');
+				$fp = fopen($tmpPath, "w+b");
+				$response = $amazon->get_object($device['basePath'], $key, array('fileDownload' => $tmpPath));
+				fclose($fp);
+				if($response->isOK()) {
+					$data = @file_get_contents($tmpPath);
+					@unlink($tmpPath);
+					return $data;
+				} else {
+					@unlink($tmpPath);
+					return false;
+				}
+				break;
+				
+			case 'local':
+				$key = substr($key,0,1)!='/' ? '/'.$key : $key;
+				$data = @file_get_contents($device['basePath'] . $key);
+				if($data) {
+					return $data;
+				} else {
+					return false;
+				}
+				break;
+				
+			default:
+				return false;
+				break;
+		}
+	}
+	
+	public function fileDownload($storage_id , $key) {
+		if($storage_id == '' || $key == '') return false;
+		$device = $this->get($storage_id);
+		switch(strtolower($device['type'])) {
+			case 's3':
+				$amazon = new AmazonS3(array('key' => $device['pw'],'secret' => $device['key']));
+				$key = substr($key,0,1)=='/' ? substr($key,1,strlen($key)-1) : $key;
+				$tmp = explode("/" , $key);
+				if(is_array($tmp)) {
+					$tmp1 = $tmp[count($tmp)-1];
+				} else {
+					$tmp1 = $tmp;
+				}
+				$tmpPath = '/tmp/'.uniqid('d').$tmp1;
+				$fp = fopen($tmpPath, "w+b");
+				$response = $amazon->get_object($device['basePath'], $key, array('fileDownload' => $tmpPath));
+				fclose($fp);
+				if($response->isOK()) {
+					return $tmpPath;
+				} else {
+					@unlink($tmpPath);
+					return false;
+				}
+				break;
+				
+			case 'local':
+				$key = substr($key,0,1)!='/' ? '/'.$key : $key;
+				return ($device['basePath'] . $key);
+				
+			default:
+				return false;
+				break;
+		}
+	}
+	
+	public function createFile_Data($storage_id, $key, $data) {
+		if($storage_id == '' || $key == '' || $data == '') return false;
+		$device = $this->get($storage_id);
+		switch(strtolower($device['type'])) {
+			case 's3':
+				$amazon = new AmazonS3(array('key' => $device['pw'],'secret' => $device['key']));
+				$key = substr($key,0,1)=='/' ? substr($key,1,strlen($key)-1) : $key;
+				$tmp = explode("/" , $key);
+				if(is_array($tmp)) {
+					$tmp1 = $tmp[count($tmp)-1];
+				} else {
+					$tmp1 = $tmp;
+				}
+				$tmpPath = '/tmp/'.uniqid('u').$tmp1;
+				@file_put_contents($tmpPath, $data);
+				$response = $amazon->create_object ($device['basePath'], $key, array('fileUpload' => $tmpPath,'acl' => AmazonS3::ACL_PUBLIC,'storage' => AmazonS3::STORAGE_REDUCED) );
+				@unlink($tmpPath);
+				if($response->isOK()) {
+					return true;
+				} else {
+					return false;
+				}
+				break;
+				
+			case 'local':
+				$key = substr($key,0,1)!='/' ? '/'.$key : $key;
+				if(@file_put_contents($device['basePath'] . $key, $data)) {
+					return true;
+				} else {
+					return false;
+				}
+				break;
+				
+			default:
+				return false;
+				break;
+		}
+	}
+	
 }
 
 ?>
