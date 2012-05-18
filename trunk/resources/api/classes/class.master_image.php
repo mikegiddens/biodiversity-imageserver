@@ -959,7 +959,7 @@ Class Image {
 
 		$this->query .= " WHERE 1=1 AND (";
 		$this->setBrowseFilter();
-		$this->query .= " AND I.barcode != '' ";
+		$this->query .= " AND I.image_id != '' ";
 		$this->setAdminCharacterFilter();
 
 		if ($this->data['search_value'] != '') {
@@ -985,7 +985,11 @@ Class Image {
 		$this->query .= $where;
 
 		$this->setGroupFilter();
-		$this->setOrderFilter();
+		if(($this->data['sort']!='') && ($this->data['dir']!='')) {
+			$this->setOrderFilter('manual');
+		} else {
+			$this->setOrderFilter();
+		}
 		$this->setLimitFilter();
 
 		$this->total = $this->db->query_total();
