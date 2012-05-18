@@ -282,6 +282,7 @@ class Storage {
 	public function fileExists($storage_id, $key) {
 		if($storage_id == '' || $key == '') return false;
 		$device = $this->get($storage_id);
+		if(!$device) return false;
 		switch(strtolower($device['type'])) {
 			case 's3':
 				$key = substr($key,0,1)=='/' ? substr($key,1,strlen($key)-1) : $key;
@@ -311,6 +312,7 @@ class Storage {
 	public function fileGetContents($storage_id, $key) {
 		if($storage_id == '' || $key == '') return false;
 		$device = $this->get($storage_id);
+		if(!$device) return false;
 		switch(strtolower($device['type'])) {
 			case 's3':
 				$amazon = new AmazonS3(array('key' => $device['pw'],'secret' => $device['key']));
@@ -348,6 +350,7 @@ class Storage {
 	public function fileDownload($storage_id , $key) {
 		if($storage_id == '' || $key == '') return false;
 		$device = $this->get($storage_id);
+		if(!$device) return false;
 		switch(strtolower($device['type'])) {
 			case 's3':
 				$amazon = new AmazonS3(array('key' => $device['pw'],'secret' => $device['key']));
@@ -383,6 +386,7 @@ class Storage {
 	public function createFile_Data($storage_id, $key, $data) {
 		if($storage_id == '' || $key == '' || $data == '') return false;
 		$device = $this->get($storage_id);
+		if(!$device) return false;
 		switch(strtolower($device['type'])) {
 			case 's3':
 				$amazon = new AmazonS3(array('key' => $device['pw'],'secret' => $device['key']));

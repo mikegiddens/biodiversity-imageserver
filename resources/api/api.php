@@ -26,6 +26,7 @@
 		,	'categoryID'
 		,	'characters'
 		,	'code'
+		,	'code1'
 		,	'collectionCode'
 		,	'collection_id'
 		,	'country'
@@ -468,7 +469,7 @@
 				$barcode = $si->image->getName();
 				$filename = $si->image->get('filename');
 
-				$url = $config['tileGenerator'] . '?cmd=loadImage&filename=' . $filename;
+			/*	$url = $config['tileGenerator'] . '?cmd=loadImage&filename=' . $filename;
 				switch($config['mode']) {
 					case 's3':
 						$tmpPath = $_TMP . $filename;
@@ -481,15 +482,26 @@
 						break;
 					default:
 						break;
-				}
+				}*/
+				//New code starts
+				$tmpPath = $si->storage->fileDownload($si->image->get('storage_id'), ($si->image->get('path').'/'.$si->image->get('filename')));
+				$t1 = explode("/", $tmpPath);
+				$t2 = $t1[count($t1)-1];
+				unset($t1[count($t1)-1]);
+				$t1 = implode("/", $t1);
+				$url = $config['tileGenerator'] . '?cmd=loadImage&filename=' . $t2 . '&absolutePath=' . $t1.'/';
+				$t3 = explode(".", $t2);
+				//New code ends
+				//Replaced $barcode with $t3[0] at two places in the code below.
 				$res = json_decode(trim(@file_get_contents($url)));
-				if($config['mode'] == 's3') {
+				if(strtolower($si->storage->getType($si->image->get('storage_id'))) == 's3') {
 					@unlink($tmpPath);
 				}
 
+				
 				if(in_array(@strtolower($tiles),array('create','createclear'))) {
 					$si->image->mkdir_recursive( $config['path']['imgTiles'] );
-					$tileFolder = @strtolower($barcode);
+					$tileFolder = @strtolower($t3[0]);
 					$it = new imgTiles($config['path']['imgTiles'] . $tileFolder . '.sqlite');
 
 					$handle = @opendir($config['path']['tiles'] . $tileFolder);
@@ -506,7 +518,8 @@
 					}
 				}
 				header('Content-type: application/json');
-				print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start, 'url' => $config['tileUrl'] . strtolower($barcode)) ) );
+				
+				print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start, 'url' => $config['tileUrl'] . strtolower($t3[0])) ) );
 			} else {
 				header('Content-type: application/json');
 				print_c( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ) );
@@ -569,9 +582,11 @@
 			$data['field'] = trim($field);
 			$data['value'] = trim($value);
 			if(trim($sort) != '') {
-				$data['order'] = array(array('field' => trim($sort), 'dir' => trim($dir)));
+				//$data['order'] = array(array('field' => trim($sort), 'dir' => trim($dir)));
+				$data['sort'] = trim($sort);
+				$data['dir'] = trim($dir);
 			}
-			$data['code'] = ($code != '') ? $code : '';
+			$data['code'] = ($code1 != '') ? $code1 : '';
 
 			$data['characters'] = $characters;
 			$data['browse'] = $browse;
@@ -582,7 +597,7 @@
 			if($valid) {
 				$si->image->setData($data);
 				$data = $si->image->listImages();
-
+				$total = 0;
 				if(is_array($data) && count($data)) {
 					foreach($data as &$dt) {
 						/*switch($config['mode']) {
@@ -1818,7 +1833,7 @@
 			break;
 
 		case 'detectBarcode':
-			header('Content-type: application/json');
+			//header('Content-type: application/json');
 			if(!$config['zBarImgEnabled']) {
 				print json_encode(array('success' => false, 'error' => array('code' => 139, 'message' => $si->getError(139))));
 				exit;
@@ -1839,85 +1854,45 @@
 				print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($code) , 'code' => $code ) ) ) );
 			} else {
 				# getting image
-				$key = $si->image->barcode_path($si->image->get('barcode')) . $si->image->get('filename');
+				$key = $si->image->get('path') . '/' . $si->image->get('filename');
 				$cacheFlag = false;
-				$cachePath = $si->image->barcode_path($si->image->get('barcode')) . $si->image->get('barcode') . "-barcodes.json";
+				$explodeFilename = explode(".", $si->image->get('filename'));
+				$cachePath = $si->image->get('path') . '/' . $explodeFilename[0] . "-barcodes.json";
 
 				if(strtolower($force) != true) {
-					switch($config['mode']) {
-						case 's3':
-							$cacheFlag = $si->amazon->if_object_exists($config['s3']['bucket'], $cachePath);
-							break;
-						default:
-							$cacheFlag = @file_exists($config['path']['images'] . $cachePath);
-							break;
-					}
+					$cacheFlag = $si->storage->fileExists($si->image->get('storage_id'), $cachePath);
 				}
 
 				if($cacheFlag) {
-					switch($config['mode']) {
-						case 's3':
-							$tmpCachePath = $_TMP . $si->image->get('barcode') . "-barcodes.json";
-							$fp = @fopen($tmpCachePath, "w+b");
-							$si->amazon->get_object($config['s3']['bucket'], $cachePath, array('fileDownload' => $tmpCachePath));
-							@fclose($fp);
-							$jsonFile = $tmpCachePath;
-							break;
-						
-						default:
-							$jsonFile = $config['path']['images'] . $cachePath;
-							break;
-					}
-
-					$data = file_get_contents($jsonFile);
+					$data = $si->storage->fileGetContents($si->image->get('storage_id'), $cachePath);
 					$data = json_decode($data, true);
 					$data['processTime'] = microtime(true) - $time_start;
 					$data = json_encode($data);
 					print_c($data);
 				} else {
 					// No cache or not using cache
-					switch($config['mode']) {
-						case 's3':
-							$tmpPath = $_TMP . $si->image->get('filename');
-							$fp = @fopen($tmpPath, "w+b");
-							$si->amazon->get_object($config['s3']['bucket'], $key, array('fileDownload' => $tmpPath));
-							@fclose($fp);
-							$image = $tmpPath;					
-							break;
-							
-						default:
-							$image = $config['path']['images'] . $key;
-							break;
-					}
-
+					$image = $si->storage->fileDownload($si->image->get('storage_id'), $key);
 					$command = sprintf("%s %s", $config['zBarImgPath'], $image);
 					$data = exec($command);
 					$tmpArrayArray = explode("\r\n", $data);
 					$data = array();
-					foreach($tmpArrayArray as $tmpArray) {
-						$parts = explode(":", $tmpArray);
-						$data[] = array('code' => $parts[0], 'value' => $parts[1]);
+					if(is_array($tmpArrayArray)) {
+						foreach($tmpArrayArray as $tmpArray) {
+							if($tmpArray != '') {
+								$parts = explode(":", $tmpArray);
+								$data[] = array('code' => $parts[0], 'value' => $parts[1]);
+							}
+						}
 					}
-					if($config['mode'] == 's3') {
-						@unlink($tmpImage);
+					if(strtolower($si->storage->getType($si->image->get('storage_id'))) == 's3') {
+						@unlink($image);
 					}
 					$command = sprintf("%s --version ", $config['zBarImgPath']);
 					$ver = exec($command);
 					$tmpJsonFile = json_encode(array('success' => true, 'processTime' => microtime(true) - $time_start, 'count' => count($data), 'lastTested' => time(), 'software' => 'zbarimg', 'version' => $ver, 'data' => $data));
-					$key = $si->image->barcode_path($si->image->get('barcode')) . $si->image->get('barcode') . '-barcodes.json';
+					$key = $si->image->get('path') . '/' . $explodeFilename[0] . '-barcodes.json';
 
-					switch($config['mode']) {
-						case 's3':
-							$tmpJson = $_TMP . $si->image->get('barcode') . '-barcodes.json';
-							@file_put_contents($tmpJson,$tmpJsonFile);
-							$response = $si->amazon->create_object ($config['s3']['bucket'], $key, array('fileUpload' => $tmpJson,'acl' => AmazonS3::ACL_PUBLIC,'storage' => AmazonS3::STORAGE_REDUCED) );
-							@unlink($tmpJson);	
-							break;
-						
-						default:
-							@file_put_contents($config['path']['images'] . $key,$tmpJsonFile);
-							break;
-					}
+					$si->storage->createFile_Data($si->image->get('storage_id'), $key, $tmpJsonFile);
 					print_c($tmpJsonFile);
 				}
 			}	
