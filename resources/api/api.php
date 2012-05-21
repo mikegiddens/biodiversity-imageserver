@@ -1969,6 +1969,9 @@
 						if($storage_id!='' && $si->storage->exists($storage_id)) {
 							$response = $si->storage->store($_FILES["filename"]["tmp_name"],$storage_id,$_FILES["filename"]["name"], $imagePath);
 							if($response['success']) {
+								$si->pqueue->set('image_id', $response['image_id']);
+								$si->pqueue->set('process_type','all');
+								$si->pqueue->save();
 								print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start, 'image_id' => $response['image_id'] ) ) );
 							} else {
 								$code = 151;
@@ -2079,7 +2082,7 @@
 				$code = 152;
 			} elseif(!$si->storage->exists($storage_id)) {
 				$valid = false;
-				$code = 150;	
+				$code = 150;
 			} elseif(!$si->image->image_exists($storage_id, $imagePath, $filename)) {
 				$valid = false;
 				$code = 147;
@@ -2095,6 +2098,9 @@
 					$si->image->set('originalFilename', $filename);
 					$si->image->save();
 					$image_id = $si->image->getImageId($filename, $imagePath, $storage_id);
+					$si->pqueue->set('image_id', $image_id);
+					$si->pqueue->set('process_type','all');
+					$si->pqueue->save();
 					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start, 'image_id' => $image_id ) ) );
 				} else {
 					$code = 162;
@@ -2324,6 +2330,9 @@
 				$response = $si->storage->store($filename,$storage_id,$filename, $imagePath);
 				unlink($filename);
 				if($response['success']) {
+					$si->pqueue->set('image_id', $response['image_id']);
+					$si->pqueue->set('process_type','all');
+					$si->pqueue->save();
 					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start, 'image_id' => $response['image_id'] ) ) );
 				} else {
 					$code = 151;
