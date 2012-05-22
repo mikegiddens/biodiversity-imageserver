@@ -195,6 +195,7 @@ class phpBIS
 		$data['valueID'] = $valueID;
 		$data['cmd'] = 'delete_attribute';
 		$result = $this->CURL($this->server . '/api.php',$data);
+		$result = json_decode($result,true);
 		if($result['success'] == true) {
 			return $result;
 		} else {
@@ -210,7 +211,7 @@ class phpBIS
 		$data['geoId'] = (trim($geoId) != '') ? $geoId : '';
 		$data['description'] = (trim($description) != '') ? $description : '';
 		$data['cmd'] = 'addEvent';
-		$result = $this->CURL($this->server . '/api.php',$data);
+		$result = $this->CURL($this->server . '/api.php', $data);
 		$result = json_decode($result,true);
 		if($result['success'] == true) {
 			return $result;
@@ -221,10 +222,29 @@ class phpBIS
 		}
 		
 	}
+	public function listEvents($start, $limit, $eventId, $eventTypeId, $geoId, $field, $value) {
+		$data['start'] = (trim($start) != '') ? $start : '';
+		$data['limit'] = (trim($limit) != '') ? $limit : '';
+		$data['eventId'] = (trim($eventId) != '') ? $eventId : '';
+		$data['eventTypeId'] = (trim($eventTypeId) != '') ? $eventTypeId : '';
+		$data['geoId'] = (trim($geoId) != '') ? $geoId : '';
+		$data['field'] = (trim($field) != '') ? $field : '';
+		$data['value'] = (trim($value) != '') ? $value : '';
+		$data['cmd'] = 'listEvents';
+		$result = $this->CURL($this->server . '/api.php', $data);
+		$result = json_decode($result, true);
+		if($result['success'] == true) {
+			return $result;
+		} else {
+			$this->lastError['code'] = $result['error']['code'];
+			$this->lastError['msg'] = $result['error']['msg'];
+			return false;
+		}
+	}
 	public function deleteEvent($eventId) {
 		$data['eventId'] = $eventId;
 		$data['cmd'] = 'deleteEvent';
-		$result = $this->CURL($this->server . '/api.php',$data);
+		$result = $this->CURL($this->server . '/api.php', $data);
 		$result = json_decode($result,true);
 		if($result['success'] == true) {
 			return $result;
@@ -234,6 +254,97 @@ class phpBIS
 			return false;
 		}
 	}
+	public function addImageEvent($eventId, $imageId) {
+		$data['eventId'] = $eventId;
+		$data['imageId'] = $imageId;
+		$data['cmd'] = 'addImageEvent';
+		$result = $this->CURL($this->server . '/api.php', $data);
+		$result = json_decode($result, true);
+		if($result['success'] == true) {
+			return $result;
+		} else {
+			$this->lastError['code'] = $result['error']['code'];
+			$this->lastError['msg'] = $result['error']['msg'];
+			return false;
+		}
+	}
+	public function deleteImageEvent($eventId, $imageId) {
+		$data['eventId'] = $eventId;
+		$data['imageId'] = $imageId;
+		$data['cmd'] = 'deleteImageEvent';
+		$result = $this->CURL($this->server . '/api.php', $data);
+		$result = json_decode($result, true);
+		if($result['success'] == true) {
+			return $result;
+		} else {
+			$this->lastError['code'] = $result['error']['code'];
+			$this->lastError['msg'] = $result['error']['msg'];
+			return false;
+		}
+	}
+	public function addEventType($eventTypeId, $title, $description) {
+		$data['eventTypeId'] = $eventTypeId;
+		$data['title'] = $title;
+		$data['description'] = $description;
+		$data['cmd'] = 'addEventType';
+		$result = $this->CURL($this->server . '/api.php', $data);
+		$result = json_decode($result, true);
+		if($result['success'] == true) {
+			return $result;
+		} else {
+			$this->lastError['code'] = $result['error']['code'];
+			$this->lastError['msg'] = $result['error']['msg'];
+			return false;
+		}
+	}
+	public function listEventTypes($start, $limit, $eventTypeId, $title, $field, $value) {
+		$data['start'] = (trim($start) != '') ? $start : '';
+		$data['limit'] = (trim($limit) != '') ? $limit : '';
+		$data['eventTypeId'] = (trim($eventTypeId) != '') ? $eventTypeId : '';
+		$data['title'] = (trim($title) != '') ? $title : '';
+		$data['field'] = (trim($field) != '') ? $field : '';
+		$data['value'] = (trim($value) != '') ? $value : '';
+		$data['cmd'] = 'listEventTypes';
+		$result = $this->CURL($this->server . '/api.php', $data);
+		$result = json_decode($result, true);
+		if($result['success'] == true) {
+			return $result;
+		} else {
+			$this->lastError['code'] = $result['error']['code'];
+			$this->lastError['msg'] = $result['error']['msg'];
+			return false;
+		}
+	}
+	public function deleteEventType($eventTypeId) {
+		$data['eventTypeId'] = $eventTypeId;
+		$data['cmd'] = 'deleteEventType';
+		$result = $this->CURL($this->server . '/api.php', $data);
+		$result = json_decode($result, true);
+		if($result['success'] == true) {
+			return $result;
+		} else {
+			$this->lastError['code'] = $result['error']['code'];
+			$this->lastError['msg'] = $result['error']['msg'];
+			return false;
+		}
+	}
+	public function addSet($name, $description) {
+		$data['name'] = $name;
+		$data['description'] = (trim($description) != '') ? $description : '';
+		$data['cmd'] = 'addSet';
+		$result = $this->CURL($this->server . '/api.php', $data);
+		$result = json_decode($result, true);
+		if($result['success'] == true) {
+			return $result;
+		} else {
+			$this->lastError['code'] = $result['error']['code'];
+			$this->lastError['msg'] = $result['error']['msg'];
+			if(isset($result['details'])) {
+				$this->lastError['details'] = $result['details'];
+			}
+		}
+	}
+	
 	public function getLastError() {
 		return $this->lastError;
 	}
