@@ -15,6 +15,7 @@ Class ProcessQueue {
 		$this->db = $db;
 		$this->image = new Image();
 		$this->image->db = &$this->db;
+		$this->storage = new Storage($this->db);
 	}
 
 	/**
@@ -149,7 +150,7 @@ Class ProcessQueue {
 
 		$imageIds = $this->data['imageIds'];
 		if(is_array($imageIds) && count($imageIds)) {
-			$query = sprintf(" SELECT q.* FROM `process_queue` q, image i WHERE i.`barcode` = q.`image_id` AND q.`process_type` NOT IN ('picassa_add','flickr_add') AND i.`image_id` IN (%s) ORDER BY `date_added` ", @implode(',',$imageIds));
+			$query = sprintf(" SELECT q.* FROM `process_queue` q, image i WHERE i.`image_id` = q.`image_id` AND q.`process_type` NOT IN ('picassa_add','flickr_add') AND i.`image_id` IN (%s) ORDER BY `date_added` ", @implode(',',$imageIds));
 			$rets = $this->db->query_all($query);
 			if(is_array($rets) && count($rets)) {
 				foreach($rets as $record) {
@@ -262,10 +263,11 @@ Class ProcessQueue {
 
 	public function processType($record) {
 		global $config;
-		$this->image->load_by_barcode($record->image_id);
-		if($this->data['mode'] != 's3') {
-			$image_path = $config['path']['images'] . $this->image->barcode_path( $record->image_id );
-			$image = $image_path . $this->image->get('filename');
+		$this->image->load_by_id($record->image_id);
+		if(strtolower($this->storage->getType($this->image->get('storage_id'))) == 'local') {
+			$device = $this->storage->get($this->image->get('storage_id'));
+			$image_path =  $device['basePath'] . $this->image->get('path');
+			$image = $image_path . '/' . $this->image->get('filename');
 			$this->image->set_fullpath($image);
 		}
 		switch($record->process_type) {
@@ -274,7 +276,7 @@ Class ProcessQueue {
 				$this->process_stats['medium']++;
 				$this->process_stats['large']++;
 
-				if($this->data['mode'] == 's3') {
+				if(strtolower($this->storage->getType($this->image->get('storage_id'))) == 's3') {
 					$ar = array ('s3' => $this->data['s3'], 'obj' => $this->data['obj'], 'postfix' => '_s', 'width' => 100, 'height' => 100);
 					$tmpPath = $this->image->createThumbS3($record->image_id,$ar,false);
 
@@ -295,7 +297,7 @@ Class ProcessQueue {
 						$this->image->createThumbnail( $image, 800, 800, "_l");
 					}
 				}
-				$this->image->load_by_barcode($record->image_id);
+				$this->image->load_by_id($record->image_id);
 				$this->image->set('processed',1);
 				$this->image->save();
 				break;

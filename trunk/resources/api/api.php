@@ -2202,7 +2202,12 @@
 			
 		case 'listSets':
 			$data = $si->set->listSet();
-			print_c( json_encode( array( 'success' => true, 'total_count' => $data['count'], 'data' => $data['data'] ) ) );
+			if($data) {
+				print_c( json_encode( array( 'success' => true, 'total_count' => $data['count'], 'data' => $data['data'] ) ) );
+			} else {
+				$code = 170;
+				print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($code) , 'code' => $code ) ) ) );
+			}
 			break;
 			
 		case 'addSetValue':

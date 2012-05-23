@@ -136,6 +136,7 @@
 				, 167 => 'url, storage id and key should be provided.'
 				, 168 => 'url and key should be provided.'
 				, 169 => 'No new records added.'
+				, 170 => 'No sets defined.'
 			);
 			return $ar[$error_code];
 		}

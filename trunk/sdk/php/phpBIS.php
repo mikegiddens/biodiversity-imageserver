@@ -344,7 +344,131 @@ class phpBIS
 			}
 		}
 	}
-	
+	public function editSet($sId, $name, $description) {
+		$data['sId'] = $sId;
+		$data['name'] = $name;
+		$data['description'] = (trim($description) != '') ? $description : '';
+		$data['cmd'] = 'editSet';
+		$result = $this->CURL($this->server . '/api.php', $data);
+		$result = json_decode($result, true);
+		if($result['success'] == true) {
+			return $result;
+		} else {
+			$this->lastError['code'] = $result['error']['code'];
+			$this->lastError['msg'] = $result['error']['msg'];
+			return false;
+		}
+	}
+	public function deleteSet($sId) {
+		$data['sId'] = $sId;
+		$data['cmd'] = 'deleteSet';
+		$result = $this->CURL($this->server . '/api.php', $data);
+		$result = json_decode($result, true);
+		if($result['success'] == true) {
+			return $result;
+		} else {
+			$this->lastError['code'] = $result['error']['code'];
+			$this->lastError['msg'] = $result['error']['msg'];
+			return false;
+		}
+	}
+	public function listSets() {
+		$data['cmd'] = 'listSets';
+		$result = $this->CURL($this->server . '/api.php', $data);
+		$result = json_decode($result, true);
+		if($result['success'] == true) {
+			return $result;
+		} else {
+			$this->lastError['code'] = $result['error']['code'];
+			$this->lastError['msg'] = $result['error']['msg'];
+			return false;
+		}
+	}
+	public function addSetValue($sId, $valueId, $rank) {
+		$data['sId'] = $sId;
+		$data['valueId'] = $valueId;
+		$data['rank'] = (trim($rank) != '') ? $rank : 0;
+		$data['cmd'] = 'addSetValue';
+		$result = $this->CURL($this->server . '/api.php', $data);
+		$result = json_decode($result, true);
+		if($result['success'] == true) {
+			return $result;
+		} else {
+			$this->lastError['code'] = $result['error']['code'];
+			$this->lastError['msg'] = $result['error']['msg'];
+			return false;
+		}
+	}
+	public function editSetValue($id, $sId, $valueId, $rank) {
+		$data['id'] = $id;
+		$data['sId'] = $sId;
+		$data['valueId'] = $valueId;
+		$data['rank'] = (trim($rank) != '') ? $rank : '';
+		$data['cmd'] = 'editSetValue';
+		$result = $this->CURL($this->server . '/api.php', $data);
+		$result = json_decode($result, true);
+		if($result['success'] == true) {
+			return $result;
+		} else {
+			$this->lastError['code'] = $result['error']['code'];
+			$this->lastError['msg'] = $result['error']['msg'];
+			return false;
+		}
+	}
+	public function deleteSetValue($id) {
+		$data['id'] = $id;
+		$data['cmd'] = 'deleteSetValue';
+		$result = $this->CURL($this->server . '/api.php', $data);
+		$result = json_decode($result, true);
+		if($result['success'] == true) {
+			return $result;
+		} else {
+			$this->lastError['code'] = $result['error']['code'];
+			$this->lastError['msg'] = $result['error']['msg'];
+			return false;
+		}
+	}
+	public function listImageBySet($sId) {
+		$data['sId'] = (trim($sId) != '') ? $sId : '';
+		$data['cmd'] = 'listImageBySet';
+		$result = $this->CURL($this->server . '/api.php', $data);
+		$result = json_decode($result, true);
+		if($result['success'] == true) {
+			return $result;
+		} else {
+			$this->lastError['code'] = $result['error']['code'];
+			$this->lastError['msg'] = $result['error']['msg'];
+			return false;
+		}
+	}
+	public function listImages($start, $limit, $order, $showOCR, $filter, $image_id, $field, $value, $sort, $dir, $code1, $characters, $browse, $search_value, $search_type) {
+		$data['start'] = (trim($start) != '') ? $start : 0;
+		$data['limit'] = (trim($limit) != '') ? $limit : 100;
+		$data['order'] = $order;
+		$data['showOCR'] = (trim($showOCR) != '') ? $showOCR : false;
+		$data['filter'] = $filter;
+		$data['image_id'] = $image_id;
+		$data['field'] = $field;
+		$data['value'] = $value;
+		$data['sort'] = $sort;
+		$data['dir'] = (trim($sort) != '') ? ((trim($dir) != '') ? $dir : 'ASC') : '';
+		$data['code1'] = (trim($code1) != '') ? $code1 : '';
+		$data['characters'] = $characters;
+		$data['browse'] = $browse;
+		$data['search_value'] = $search_value;
+		$data['search_type'] = $search_type;
+		$data['output'] = 'JSON';
+		$data['cmd'] = 'images';
+		$result = $this->CURL($this->server . '/api.php', $data);
+		$result = json_decode($result, true);
+		if($result['success'] == true) {
+			return $result;
+		} else {
+			$this->lastError['code'] = $result['error']['code'];
+			$this->lastError['msg'] = $result['error']['msg'];
+			return false;
+		}
+	}
 	public function getLastError() {
 		return $this->lastError;
 	}
