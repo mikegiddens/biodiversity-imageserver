@@ -196,13 +196,12 @@ Class Image {
 		$res = system($tmp);
 	}
 
-	function createThumb( $tmp_path, $new_width, $new_height, $postfix = '', $display_flag=false, $type) {
+	function createThumb( $tmp_path, $new_width, $new_height, $postfix = '', $display_flag=false, $type='jpg') {
 		global $config;
 		$dtls = @pathinfo($tmp_path);
 		$extension = '.' . $dtls['extension'];
 		$content_type = 'image/' . ($dtls['extension'] == 'jpg' ? 'jpeg' : $dtls['extension']);
 		
-
 		if($config['image_processing'] == 1) {
 			$destination =  $dtls['dirname'] . '/' . $dtls['filename'] . $postfix . $extension;
 #			$tmp = sprintf("convert %s -thumbnail %sx%s %s", $tmp_path,$new_width,$new_height,$destination);
@@ -212,10 +211,12 @@ Class Image {
 			$extension = '.' . $type;
 			$content_type = 'image/' . ($type == 'jpg' ? 'jpeg' : $type);
 			$destination =  $dtls['dirname'] . '/' . $dtls['filename'] . $postfix . $extension;
+
 			$tmp = sprintf("convert %s %s",$tmp_path,$destination);
 			$res = exec($tmp);
 			
 			if($display_flag) {
+				
 				$fp = fopen($destination, 'rb');
 				header("Content-Type: $content_type");
 				header("Content-Length: " . filesize($destination));
@@ -243,28 +244,31 @@ Class Image {
 	 * @param string barcode
 	 * @param mixed s3 details and object
 	 */
-	function createThumbS3($barcode,$arr,$deleteFlag = true) {
+	function createThumbS3($image_id,$arr,$deleteFlag = true) {
 		global $config;
 		$_TMP = ($config['path']['tmp'] != '') ? $config['path']['tmp'] : sys_get_temp_dir() . '/';
 
-		if($this->load_by_barcode($barcode)) {
+		if($this->load_by_id($image_id)) {
 			$filName = 'Img_' . time();
-			$tmpThumbPath = $_TMP . $filName . $arr['postfix'] . '.jpg';
-			$thumbName = $this->barcode_path($barcode) . $barcode . $arr['postfix'] . '.jpg';
-			$tmpPath = $_TMP . $filName . '.jpg';
+			$fname = explode(".", $this->get('filename'));
+			$tmpThumbPath = $_TMP . $filName . $arr['postfix'] . '.' . $fname[1];
+			$thumbName = $this->get('path') .'/'. $fname[0] . $arr['postfix'] . '.' . $fname[1];
+			$thumbName = (substr($thumbName,0,1)=='/')? substr($thumbName,1,strlen($thumbName)-1) : $thumbName;
+			$tmpPath = $_TMP . $filName . '.' . $fname[1];
 
 			$fp = fopen($tmpPath, "w+b");
 
 			# getting the image from s3
 			$bucket = $arr['s3']['bucket'];
-			$key = $this->barcode_path($barcode) . $this->get('filename');
-			$arr['obj']->get_object($bucket, $key, array('fileDownload' => $tmpPath));
+			$key = $this->get('path') .'/'. $this->get('filename');
+			$key = (substr($key,0,1)=='/')? substr($key,1,strlen($key)-1) : $key;
+			$rr = $arr['obj']->get_object($bucket, $key, array('fileDownload' => $tmpPath));
 
 			$this->createThumb($tmpPath, $arr['width'], $arr['height'], $arr['postfix']);
-
+ 			
 			# uploading thumb to s3
 			$response = $arr['obj']->create_object ( $bucket, $thumbName, array('fileUpload' => $tmpThumbPath,'acl' => AmazonS3::ACL_PUBLIC,'storage' => AmazonS3::STORAGE_REDUCED) );
-
+			
 			@unlink($tmpThumbPath);
 			if($deleteFlag) {
 				@unlink($tmpPath);
@@ -275,12 +279,14 @@ Class Image {
 		return false;
 	}
 
-	function createFromFileS3($tmpPath,$barcode,$arr,$deleteFlag = false) {
+	function createFromFileS3($tmpPath,$image_id,$arr,$deleteFlag = false) {
 		if(!@file_exists($tmpPath)) return false;
 		$dtls = @pathinfo($tmpPath);
 		$extension = '.' . $dtls['extension'];
 		$tmpThumbPath =  $dtls['dirname'] . '/' . $dtls['filename'] . $arr['postfix'] . $extension;
-		$thumbName = $this->barcode_path($barcode) . $barcode . $arr['postfix'] . '.jpg';
+		$fname = explode(".", $this->get('filename'));
+		$thumbName = $this->get('path') . '/' . $fname[0] . $arr['postfix'] . '.' . $fname[1];
+		$thumbName = (substr($thumbName,0,1)=='/')? substr($thumbName,1,strlen($thumbName)-1) : $thumbName;
 
 		# uploading thumb to s3
 		$this->createThumb($tmpPath, $arr['width'], $arr['height'],$arr['postfix']);
@@ -334,36 +340,44 @@ Class Image {
 			$flag = $this->load_by_barcode($this->data['barcode']);
 		}
 		if(!$flag) return array('success' => false, 'code' => 135);
-
+		
+		$fname = explode(".", $this->get('filename'));
 		$ext = ($this->data['type']==''?@strtolower($this->getName('ext')):$this->data['type']);
 		$extension = '.' . $ext;
 		$func1 = 'image' . ($ext == 'jpg' ? 'jpeg' : $ext);
 		$content_type = 'image/' . ($ext == 'jpg' ? 'jpeg' : $ext);
 		$size = @strtolower($this->data['size']);
-		$path = $config['path']['images'] . $this->barcode_path($this->get('barcode'));
-		$image =  $path . $this->get('barcode') . $extension;
+		//$path = $config['path']['images'] . substr($this->get('path'), 1, strlen($this->get('path'))-1);
+		//$image =  $path . $fname[0] . $extension;
 		$existsFlag = false;
-		$bucket = $config['s3']['bucket'];
+		//$bucket = $config['s3']['bucket'];
 		$tmpPath = $_TMP . $this->get('filename');
-
+		
+		$storage = new Storage($this->db);
+		$device = $storage->get($this->get('storage_id'));
+		$bucket = $device['basePath'];
+		$path = $device['basePath'] . $this->get('path');
+		$image =  $path .'/'. $this->get('filename');
+		
 		# checking if exists
 		if(in_array(strtolower($size),array('s', 'm', 'l'))) {
-			if($config['mode'] == 's3') {
-				$key = $this->barcode_path($this->get('barcode')) . $this->get('barcode') . '_' . $size . $extension;
+			if(strtolower($device['type']) == 's3') {
+				$key = $this->get('path') .'/'. $fname[0] . '_' . $size . $extension;
+				$key = (substr($key, 0, 1) == '/') ? substr($key, 1, strlen($key)-1) : $key;
 				$existsFlag = $this->data['obj']->if_object_exists($bucket,$key);
 			} else {
-				$existsFlag = @file_exists($path . $this->get('barcode') . '_' . $size . $extension);
+				$existsFlag = @file_exists($path .'/'. $fname[0] . '_' . $size . $extension);
 			}
 		}
-
+		
 		# if exists
 		if($existsFlag) {
-			if($config['mode'] == 's3') {
+			if(strtolower($device['type']) == 's3') {
 				$fp = fopen($tmpPath, "w+b");
 				$this->data['obj']->get_object($bucket, $key, array('fileDownload' => $tmpPath));
 				fclose($fp);
 			} else {
-				$tmpPath = $path . $this->get('barcode') . '_' . $size . $extension;
+				$tmpPath = $path .'/'. $fname[0] . '_' . $size . $extension;
 			}
 
 			$fp = fopen($tmpPath, 'rb');
@@ -372,7 +386,7 @@ Class Image {
 			header("Content-Length: " . filesize($tmpPath));
 			fpassthru($fp);
 			fclose($fp);
-			if($config['mode'] == 's3') {
+			if(strtolower($device['type']) == 's3') {
 				@unlink($tmpPath);
 			}
 			exit;
@@ -380,16 +394,33 @@ Class Image {
 
 		$ext = @strtolower($this->getName('ext'));
 		$extension = '.' . $ext;
-
+		
 		# Image variation does not exist
-		if($config['mode'] == 's3') {
+		if(strtolower($device['type']) == 's3') {
 			# downloading original image
-			$key = $this->barcode_path($this->get('barcode')) . $this->get('barcode') . $extension;
+			$key = $this->get('path') .'/'. $fname[0] . $extension;
+			$key = (substr($key, 0, 1) == '/') ? substr($key, 1, strlen($key)-1) : $key;
 			$fp = fopen($tmpPath, "w+b");
 			$this->data['obj']->get_object($bucket, $key, array('fileDownload' => $tmpPath));
 			fclose($fp);
 		} else {
 			$tmpPath =  $image;
+		}
+		if(in_array(strtolower($size),array('s', 'm', 'l'))) {
+			switch (strtolower($size)) {
+				case 's':
+					$this->data['width'] = 100;
+					$this->data['height'] = 100;
+					break;
+				case 'm':
+					$this->data['width'] = 275;
+					$this->data['height'] = 275;
+					break;
+				case 'l':
+					$this->data['width'] = 800;
+					$this->data['height'] = 800;
+					break;
+			}
 		}
 
 		if($this->data['width'] != '' || $this->data['height'] != "") {
@@ -419,19 +450,22 @@ Class Image {
 					$width = ($this->data['width']!='') ? $this->data['width'] : $this->data['height'];
 					$height = ($this->data['height']!='') ? $this->data['height'] : $this->data['width'];
 					$this->createThumb( $tmpPath, $width, $height, 'tmp', true, $type);
-					break;					
+					break;
 			}
-			if($config['mode'] == 's3') {
+			
+			if(strtolower($device['type']) == 's3') {
 				# putting the image to s3
-				$key = $this->barcode_path($this->get('barcode')) . $this->get('barcode') . '_' . $size . $extension;
+				$key = $this->get('path') .'/'. $fname[0] . '_' . $size . $extension;
+				$key = (substr($key, 0, 1) == '/') ? substr($key, 1, strlen($key)-1) : $key;
 				$response = $this->data['obj']->create_object ( $bucket, $key, array('fileUpload' => $file_name,'acl' => AmazonS3::ACL_PUBLIC,'storage' => AmazonS3::STORAGE_REDUCED) );
+				
 			}
-
+			
 			$fp = fopen($file_name, 'rb');
 			header("Content-Type: $content_type");
 			header("Content-Length: " . filesize($file_name));
 			fpassthru($fp);
-			if($config['mode'] == 's3') {
+			if(strtolower($device['type']) == 's3') {
 				@unlink($file_name);
 				@unlink($tmpPath);
 			}
