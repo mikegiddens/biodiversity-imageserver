@@ -611,6 +611,8 @@
 						$total++;
 						$tmpPath = $si->image->getUrl($dt->image_id);
 						$dt->path = $tmpPath['baseUrl'];
+						$fname = explode(".", $dt->filename);
+						$dt->ext = $fname[1];
 
 					}
 				}
@@ -786,7 +788,7 @@
 							$si->image->set('processed',0);
 							$si->image->save();
 					
-							$si->pqueue->set('image_id',$si->image->get('barcode'));
+							$si->pqueue->set('image_id',$si->image->get('image_id'));
 							$si->pqueue->set('process_type','all');
 							$si->pqueue->save();
 
