@@ -2077,6 +2077,21 @@
 				print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($code) , 'code' => $code ) ) ) );
 			}
 			break;
+			
+		case 'setDefaultStorageDevice':
+			if(($storage_id == '') || (!$si->storage->exists($storage_id))) {
+				$valid = false;
+				$code = 150;
+			} else{
+				$valid = true;
+			}
+			if($valid){
+				$si->storage->setDefault($storage_id);
+				print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start ) ) );
+			} else {
+				print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($code) , 'code' => $code ) ) ) );
+			}
+			break;
 		
 		case 'addExistingImage':
 			if($storage_id == '' || $imagePath == '' || $filename == '') {
