@@ -7,6 +7,7 @@ class Storage {
 	public function __construct($db = null) {
 		$this->db = $db;
 		$this->getAllDevices();
+		$this->record['default_storage'] = 0;
 	}
 	
 	public function getAllDevices() {
@@ -24,7 +25,7 @@ class Storage {
 			$this->devices[$cnt]['pw']  =  $item->pw;
 			$this->devices[$cnt]['key']  =  $item->key;
 			$this->devices[$cnt]['active']  =  $item->active;
-			$this->devices[$cnt]['extra1']  =  $item->extra1;
+			$this->devices[$cnt]['default_storage']  =  $item->default_storage;
 			$this->devices[$cnt]['extra2']  =  $item->extra2;
 			$cnt++;
 		}
@@ -50,7 +51,7 @@ class Storage {
 	}
 	
 	public function save() {
-		$query = sprintf("INSERT IGNORE INTO `storage_device` SET `name` = '%s', `description` = '%s', `type` = '%s', `baseUrl` = '%s', `basePath` = '%s', `user` = '%s', `pw` = '%s', `key` = '%s', `active` = '%s', `extra1` = '%s', `extra2` = '%s' ;"
+		$query = sprintf("INSERT IGNORE INTO `storage_device` SET `name` = '%s', `description` = '%s', `type` = '%s', `baseUrl` = '%s', `basePath` = '%s', `user` = '%s', `pw` = '%s', `key` = '%s', `active` = '%s', `default_storage` = '%s', `extra2` = '%s' ;"
 		, mysql_escape_string($this->fetch('name'))
 		, mysql_escape_string($this->fetch('description'))
 		, mysql_escape_string($this->fetch('type'))
@@ -60,7 +61,7 @@ class Storage {
 		, mysql_escape_string($this->fetch('pw'))
 		, mysql_escape_string($this->fetch('key'))
 		, mysql_escape_string($this->fetch('active'))
-		, mysql_escape_string($this->fetch('extra1'))
+		, mysql_escape_string($this->fetch('default_storage'))
 		, mysql_escape_string($this->fetch('extra2'))
 		);
 		if($this->db->query($query)) {
@@ -104,6 +105,31 @@ class Storage {
 				}
 			}
 			return false;
+		} else {
+			return false;
+		}
+	}
+	
+	public function getDefault() {
+		if(is_array($this->devices)) {
+			foreach($this->devices as $device) {
+				if($device['default_storage'] == 1) {
+					return $device['storage_id'];
+				}
+			}
+			return false;
+		} else {
+			return false;
+		}
+	}
+	
+	public function setDefault($storage_id) {
+		if(($storage_id != '') && ($this->exists($storage_id))) {
+			$query = "UPDATE `storage_device` SET `default_storage` = 0";
+			$this->db->query($query);
+			$query = sprintf("UPDATE `storage_device` SET `default_storage` = 1 WHERE `storage_id` = '%s'", mysql_escape_string($storage_id));
+			$this->db->query($query);
+			return true;
 		} else {
 			return false;
 		}
