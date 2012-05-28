@@ -88,6 +88,7 @@
 		,	'station_id'
 		,	'stop'
 		,	'storage_id'
+		,	'stream'
 		,	'tag'
 		,	'tiles'
 		,	'title'
@@ -1264,16 +1265,24 @@
 			}
 
 			$data['imageID'] = $imageID;
+			$data['valueID'] = $valueID;
+			$data['categoryID'] = $categoryID;
 			if($data['imageID'] == "") {
 				$valid = false;
 				$code = 107;
-			}
-			$data['valueID'] = $valueID;
-			if($data['valueID'] == "") {
+			} elseif($data['valueID'] == "") {
 				$valid = false;
 				$code = 120;
+			} elseif(!$si->image->attribute_exist($data['valueID'])) {
+				$valid = false;
+				$code = 164;
+			} elseif($data['categoryID' == "") {
+				$valid = false;
+				$code = 173;
+			} elseif(!$si->image->category_exist($data['categoryID'])) {
+				$valid = false;
+				$code = 175;
 			}
-			$data['categoryID'] = $categoryID;
 			if($valid) {
 				$si->image->setData($data);
 				if($si->image->addImageAttribute()) {
@@ -1313,10 +1322,31 @@
 				print_c( json_encode( array( 'success' => false, 'error' => array ( 'code' => $code, 'msg' => $si->getError($code) ) ) ) );
 			}
 			break;
+			
+		case 'list_image_attributes':
+			if($imageID == '') {
+				$valid = false;
+				$code = 107;
+			} elseif(!$si->image->load_by_id($imageID)) {
+				$valid = false;
+				$code = 116;
+			}
+			if($valid) {
+				$attbr = $si->image->get_all_attributes($imageID);
+				if($attbr) {
+					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start , 'data' => $attbr) ) );
+				} else {
+					$code = 171;
+					print_c( json_encode( array( 'success' => false, 'error' => array ( 'code' => $code, 'msg' => $si->getError($code) ) ) ) );
+				}
+			} else {
+				print_c( json_encode( array( 'success' => false, 'error' => array ( 'code' => $code, 'msg' => $si->getError($code) ) ) ) );
+			}
+			break;
 
 			case 'add_category':
 				if(!$user_access->is_logged_in()){
-					print_c ( json_encode( array( 'success' => false, 'error' => array('message' => $si->getError(113), 'code' => 113 )) ));
+					print_c ( json_encode( array( 'success' => false, 'error' => array('msg' => $si->getError(113), 'code' => 113 )) ));
 					exit;
 				}
 
@@ -1383,6 +1413,16 @@
 						print_c( json_encode( array( 'success' => true ) ) );
 					}
 				} else {
+					print_c( json_encode( array( 'success' => false, 'error' => array ( 'code' => $code, 'msg' => $si->getError($code) ) ) ) );
+				}
+				break;
+				
+			case 'list_categories':
+				$result = $si->image->list_categories();
+				if($result) {
+					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start , 'data' => $result ) ) );
+				} else {
+					$code = 172;
 					print_c( json_encode( array( 'success' => false, 'error' => array ( 'code' => $code, 'msg' => $si->getError($code) ) ) ) );
 				}
 				break;
@@ -1458,6 +1498,21 @@
 					}
 				} else {
 					print_c( json_encode( array( 'success' => false, 'error' => array ( 'code' => $code, 'msg' => $si->getError($code) ) ) ) );
+				}
+				break;
+			
+			case 'list_attributes':
+				if($categoryID == '') {
+					$code = 173;
+					print_c( json_encode( array( 'success' => false, 'error' => array ( 'code' => $code, 'msg' => $si->getError($code) ) ) ) );
+				} else {
+					$result = $si->image->list_attributes($categoryID);
+					if($result) {
+						print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start , 'data' => $result ) ) );
+					} else {
+						$code = 174;
+						print_c( json_encode( array( 'success' => false, 'error' => array ( 'code' => $code, 'msg' => $si->getError($code) ) ) ) );
+					}
 				}
 				break;
 
@@ -1960,36 +2015,43 @@
 			
 		case 'addImage':
 			$imagePath = (isset($imagePath))?$imagePath:'';
-			if($si->remoteAccess->checkRemoteAccess(ip2long($_SERVER['REMOTE_ADDR']), $key)) {
-				if ($_FILES["filename"]["error"] > 0) {
-					print_c( json_encode( array( 'success' => false,  'error' => $_FILES["filename"]["error"] ) ) );
+			if(!$si->remoteAccess->checkRemoteAccess(ip2long($_SERVER['REMOTE_ADDR']), $key)) {
+				$code = 145;
+				$valid = false;
+			} elseif($storage_id=='' || !$si->storage->exists($storage_id)) {
+				$code = 150;
+				$valid = false;
+			} elseif($filename=='') {
+				$code = 106;
+				$valid = false;
+			} else {
+				$config["allowedImportTypes"] = array(1,2,3); //GIF, JPEG, PNG
+				//http://www.php.net/manual/en/function.exif-imagetype.php
+				$stream = ($stream != '') ? $stream : '';
+				if((strpos($filename,'/')) !== false) {
+					$tmpFilename = explode('/', $filename);
+					$filename = $tmpFilename[count($tmpFilename)-1];
+				}
+				file_put_contents($filename, $stream);
+				$size = getimagesize($filename);
+				if(!in_array($size[2],$config["allowedImportTypes"])) {
+					$code = 146;
+					$valid = false;
+				}
+			}
+			if($valid) {
+				$response = $si->storage->store($filename,$storage_id,$filename, $imagePath);
+				unlink($filename);
+				if($response['success']) {
+					$si->pqueue->set('image_id', $response['image_id']);
+					$si->pqueue->set('process_type','all');
+					$si->pqueue->save();
+					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start, 'image_id' => $response['image_id'] ) ) );
 				} else {
-					$config["allowedImportTypes"] = array(1,2,3); //GIF, JPEG, PNG
-					//http://www.php.net/manual/en/function.exif-imagetype.php
-					$size = getimagesize($_FILES["filename"]["tmp_name"]);
-					if(in_array($size[2],$config["allowedImportTypes"])) {
-						if($storage_id!='' && $si->storage->exists($storage_id)) {
-							$response = $si->storage->store($_FILES["filename"]["tmp_name"],$storage_id,$_FILES["filename"]["name"], $imagePath);
-							if($response['success']) {
-								$si->pqueue->set('image_id', $response['image_id']);
-								$si->pqueue->set('process_type','all');
-								$si->pqueue->save();
-								print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start, 'image_id' => $response['image_id'] ) ) );
-							} else {
-								$code = 151;
-								print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($code) , 'code' => $code ) ) ) );
-							}
-						} else {
-							$code = 150;
-							print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($code) , 'code' => $code ) ) ) );
-						}
-					} else {
-						$code = 146;
-						print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($code) , 'code' => $code ) ) ) );
-					}
+					$code = 151;
+					print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($code) , 'code' => $code ) ) ) );
 				}
 			} else {
-				$code = 145;
 				print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($code) , 'code' => $code ) ) ) );
 			}
 			break;
@@ -2393,8 +2455,8 @@
 				print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($code) , 'code' => $code ) ) ) );
 			}
 			break;
+			
 		
-
 
 # Test Tasks
 

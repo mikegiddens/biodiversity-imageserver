@@ -137,6 +137,11 @@
 				, 168 => 'url and key should be provided.'
 				, 169 => 'No new records added.'
 				, 170 => 'No sets defined.'
+				, 171 => 'No attributes set for the image.'
+				, 172 => 'No categories defined.'
+				, 173 => 'Category Id should be provided.'
+				, 174 => 'No attributes set for given category ID.'
+				, 175 => 'Invalid categoryID given.'
 			);
 			return $ar[$error_code];
 		}
