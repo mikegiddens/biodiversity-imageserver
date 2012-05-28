@@ -1569,21 +1569,23 @@ Class Image {
 		$valueID = $this->data['valueID'];
 		if(count($imageIDs)) {
 			foreach($imageIDs as $id) {
-				$query = sprintf("INSERT INTO image_attrib(imageID, typeID, valueID) VALUES(%s, %s, %s);"
-				, mysql_escape_string($id)
-				, mysql_escape_string($categoryID)
-				, mysql_escape_string($valueID)
-				);
+				if($this->load_by_id($id)) {
+					$query = sprintf("INSERT INTO image_attrib(imageID, typeID, valueID) VALUES(%s, %s, %s);"
+						, mysql_escape_string($id)
+						, mysql_escape_string($categoryID)
+						, mysql_escape_string($valueID)
+					);
 
-				$this->db->query($query);
+					$this->db->query($query);
 
-				$query = sprintf("INSERT INTO `image_log` (action, image_id, after_desc, query, date_created) VALUES (10, '%s', 'Cat ID: %s, Attrib ID: %s', '%s', NOW());"
-				, mysql_escape_string($id)
-				, mysql_escape_string($categoryID)
-				, mysql_escape_string($valueID)
-				, mysql_escape_string($query)
-				);
-				$this->db->query($query);
+					$query = sprintf("INSERT INTO `image_log` (action, image_id, after_desc, query, date_created) VALUES (10, '%s', 'Cat ID: %s, Attrib ID: %s', '%s', NOW());"
+						, mysql_escape_string($id)
+						, mysql_escape_string($categoryID)
+						, mysql_escape_string($valueID)
+						, mysql_escape_string($query)
+					);
+					$this->db->query($query);
+				}
 			}
 			return true;
 		} else {
@@ -1662,6 +1664,31 @@ Class Image {
 		$this->db->query($query);
 		return true;
 	}
+	
+	public function list_categories() {
+		$query = "SELECT * FROM `image_attrib_type`";
+		$records = $this->db->query_all($query);
+		if(count($records)) {
+			foreach($records as $record) {
+				$tmpArray['typeID'] = $record->typeID;
+				$tmpArray['title'] = $record->title;
+				$data[] = $tmpArray;
+			}
+			return $data;
+		} else {
+			return false;
+		}
+	}
+	
+	public function category_exist($typeID) {
+		$query = sprintf("SELECT * FROM `image_attrib_type` WHERE `typeID` = '%s'", mysql_escape_string($typeID));
+		$records = $this->db->query_all($query);
+		if(count($records)) {
+			return true;
+		} else {
+			return false;
+		}
+	}
 
 	public function addAttribute() {
 		$id = 0;
@@ -1709,6 +1736,31 @@ Class Image {
 		$query = sprintf("INSERT INTO `image_log` (action, after_desc, query, date_created) VALUES (9, 'Attrib ID: %s', '%s', NOW())", mysql_escape_string($valueID), mysql_escape_string($query));
 		$this->db->query($query);
 		return true;
+	}
+	
+	public function list_attributes ($typeID) {
+		$query = sprintf("SELECT * FROM `image_attrib_value` WHERE `typeID` = '%s'", mysql_escape_string($typeID));
+		$records = $this->db->query_all($query);
+		if(count($records)) {
+			foreach($records as $record) {
+				$tmpArray['valueID'] = $record->valueID;
+				$tmpArray['name'] = $record->name;
+				$data[] = $tmpArray;
+			}
+			return $data;
+		} else {
+			return false;
+		}
+	}
+	
+	public function attribute_exist($valueID) {
+		$query = sprintf("SELECT * FROM `image_attrib_value` WHERE `valueID` = '%s'", mysql_escape_string($valueID));
+		$records = $this->db->query_all($query);
+		if(count($records)) {
+			return true;
+		} else {
+			return false;
+		}
 	}
 	
 	public function get_all_attributes($image_id) {

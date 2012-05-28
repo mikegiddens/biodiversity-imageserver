@@ -26,10 +26,20 @@ class phpBIS
 		}
 		return $result;
 	}
-	public function addImage($path) {
-		$ext = @pathinfo($path,PATHINFO_EXTENSION);
-		$mime = (@strtolower($ext) == 'jpg') ? 'image/jpeg' : 'image/' . @strtolower($ext);
-		$data = array('key' => $this->key, 'file' => '@'.$path.';type='.$mime, 'cmd' => 'addImage');
+	public function addImage($source, $storageId, $destinationPath) {
+		$stream = file_get_contents($source);
+		if((strpos($source, '/')) !== false) {
+			$source = explode('/', $source);
+			$filename = $source[count($source)-1];
+		} else {
+			$filename = $source;
+		}
+		$data['key'] = $this->key;
+		$data['imagePath'] = $destinationPath;
+		$data['storage_id'] = $storageId;
+		$data['filename'] = $filename;
+		$data['stream'] = $stream;
+		$data['cmd'] = 'addImage';
 		$result = $this->CURL($this->server . '/api.php',$data);
 		$result = json_decode($result,true);
 		if($result['success'] == true) {
@@ -84,7 +94,14 @@ class phpBIS
 		$data['cmd'] = 'getImageUrl';
 		$data['size'] = (trim($size) != '') ? $size: '';
 		$res = $this->CURL($this->server . '/api.php',$data);
-		return file_get_contents($res);
+		$result = json_decode($res, true);
+		if((isset($result['success'])) && ($result['success'] == false)) {
+			$this->lastError['code'] = $result['error']['code'];
+			$this->lastError['msg'] = $result['error']['msg'];
+			return false;
+		} else {
+			return $res;
+		}
 	}
 	public function addImageAttribute($imageID, $valueID, $categoryID) {
 		$data = array();
@@ -107,6 +124,19 @@ class phpBIS
 		$data['imageID'] = $imageID;
 		$data['valueID'] = $valueID;
 		$data['cmd'] = 'delete_image_attribute';
+		$result = $this->CURL($this->server . '/api.php',$data);
+		$result = json_decode($result,true);
+		if($result['success'] == true) {
+			return $result;
+		} else {
+			$this->lastError['code'] = $result['error']['code'];
+			$this->lastError['msg'] = $result['error']['msg'];
+			return false;
+		}
+	}
+	public function listImageAttributes($imageID) {
+		$data['imageID'] = $imageID;
+		$data['cmd'] = 'list_image_attributes';
 		$result = $this->CURL($this->server . '/api.php',$data);
 		$result = json_decode($result,true);
 		if($result['success'] == true) {
@@ -150,6 +180,18 @@ class phpBIS
 		$data = array();
 		$data['categoryID'] = $categoryID;
 		$data['cmd'] = 'delete_category';
+		$result = $this->CURL($this->server . '/api.php',$data);
+		$result = json_decode($result,true);
+		if($result['success'] == true) {
+			return $result;
+		} else {
+			$this->lastError['code'] = $result['error']['code'];
+			$this->lastError['msg'] = $result['error']['msg'];
+			return false;
+		}
+	}
+	public function listCategories() {
+		$data['cmd'] = 'list_categories';
 		$result = $this->CURL($this->server . '/api.php',$data);
 		$result = json_decode($result,true);
 		if($result['success'] == true) {
