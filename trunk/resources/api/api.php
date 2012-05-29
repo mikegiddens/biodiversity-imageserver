@@ -57,6 +57,7 @@
 		,	'image_id'
 		,	'imagesType'
 		,	'index'
+		,	'interface'
 		,	'key'
 		,	'limit'
 		,	'month'
@@ -1243,7 +1244,7 @@
 		# New Image Admin Tasks
 		case 'image_characters':
 			if(!$user_access->is_logged_in()){
-				print_c ( json_encode( array( 'success' => false, 'error' => array('message' => $si->getError(113), 'code' => 113 )) ));
+				print_c ( json_encode( array( 'success' => false, 'error' => array('msg' => $si->getError(113), 'code' => 113 )) ));
 				exit;
 			}
 			$start = ($start != '') ? $start : 0;
@@ -1259,9 +1260,16 @@
 			break;
 
 		case 'add_image_attribute':
-			if(!$user_access->is_logged_in()){
-				print_c (json_encode( array( 'success' => false, 'error' => array('message' => $si->getError(113), 'code' => 113 )) ));
-				exit;
+			if((isset($interface)) && ($interface == 'cli')) {
+				if(!$si->remoteAccess->checkRemoteAccess(ip2long($_SERVER['REMOTE_ADDR']), $key)) {
+					print_c (json_encode( array( 'success' => false, 'error' => array('msg' => $si->getError(145), 'code' => 145 )) ));
+					exit;
+				}
+			} else {
+				if(!$user_access->is_logged_in()){
+					print_c (json_encode( array( 'success' => false, 'error' => array('msg' => $si->getError(113), 'code' => 113 )) ));
+					exit;
+				}
 			}
 
 			$data['imageID'] = $imageID;
@@ -1276,7 +1284,7 @@
 			} elseif(!$si->image->attribute_exist($data['valueID'])) {
 				$valid = false;
 				$code = 164;
-			} elseif($data['categoryID' == "") {
+			} elseif($data['categoryID' == ""]) {
 				$valid = false;
 				$code = 173;
 			} elseif(!$si->image->category_exist($data['categoryID'])) {
@@ -1296,9 +1304,16 @@
 			break;
 
 		case 'delete_image_attribute':
-			if(!$user_access->is_logged_in()){
-				print_c ( json_encode( array( 'success' => false, 'error' => array('message' => $si->getError(113), 'code' => 113 )) ));
-				exit;
+			if((isset($interface)) && ($interface == 'cli')) {
+				if(!$si->remoteAccess->checkRemoteAccess(ip2long($_SERVER['REMOTE_ADDR']), $key)) {
+					print_c (json_encode( array( 'success' => false, 'error' => array('msg' => $si->getError(145), 'code' => 145 )) ));
+					exit;
+				}
+			} else {
+				if(!$user_access->is_logged_in()){
+					print_c (json_encode( array( 'success' => false, 'error' => array('msg' => $si->getError(113), 'code' => 113 )) ));
+					exit;
+				}
 			}
 
 			$data['imageID'] = $imageID;
@@ -1345,9 +1360,16 @@
 			break;
 
 			case 'add_category':
-				if(!$user_access->is_logged_in()){
-					print_c ( json_encode( array( 'success' => false, 'error' => array('msg' => $si->getError(113), 'code' => 113 )) ));
-					exit;
+				if((isset($interface)) && ($interface == 'cli')) {
+					if(!$si->remoteAccess->checkRemoteAccess(ip2long($_SERVER['REMOTE_ADDR']), $key)) {
+						print_c (json_encode( array( 'success' => false, 'error' => array('msg' => $si->getError(145), 'code' => 145 )) ));
+						exit;
+					}
+				} else {
+					if(!$user_access->is_logged_in()){
+						print_c (json_encode( array( 'success' => false, 'error' => array('msg' => $si->getError(113), 'code' => 113 )) ));
+						exit;
+					}
 				}
 
 				$data['value'] = $value;
@@ -1369,9 +1391,16 @@
 				break;
 
 			case 'rename_category':
-				if(!$user_access->is_logged_in()){
-					print_c (json_encode( array( 'success' => false, 'error' => array('message' => $si->getError(113), 'code' => 113 )) ));
-					exit;
+				if((isset($interface)) && ($interface == 'cli')) {
+					if(!$si->remoteAccess->checkRemoteAccess(ip2long($_SERVER['REMOTE_ADDR']), $key)) {
+						print_c (json_encode( array( 'success' => false, 'error' => array('msg' => $si->getError(145), 'code' => 145 )) ));
+						exit;
+					}
+				} else {
+					if(!$user_access->is_logged_in()){
+						print_c (json_encode( array( 'success' => false, 'error' => array('msg' => $si->getError(113), 'code' => 113 )) ));
+						exit;
+					}
 				}
 
 				$data['value'] = $value;
@@ -1397,9 +1426,16 @@
 				break;
 
 			case 'delete_category':
-				if(!$user_access->is_logged_in()){
-					print_c (json_encode( array( 'success' => false, 'error' => array('message' => $si->getError(113), 'code' => 113 )) ));
-					exit;
+				if((isset($interface)) && ($interface == 'cli')) {
+					if(!$si->remoteAccess->checkRemoteAccess(ip2long($_SERVER['REMOTE_ADDR']), $key)) {
+						print_c (json_encode( array( 'success' => false, 'error' => array('msg' => $si->getError(145), 'code' => 145 )) ));
+						exit;
+					}
+				} else {
+					if(!$user_access->is_logged_in()){
+						print_c (json_encode( array( 'success' => false, 'error' => array('msg' => $si->getError(113), 'code' => 113 )) ));
+						exit;
+					}
 				}
 
 				$data['categoryID'] = $categoryID;
@@ -1428,9 +1464,16 @@
 				break;
 
 			case 'add_attribute':
-				if(!$user_access->is_logged_in()){
-					print_c (json_encode( array( 'success' => false, 'error' => array('message' => $si->getError(113), 'code' => 113 )) ));
-					exit;
+				if((isset($interface)) && ($interface == 'cli')) {
+					if(!$si->remoteAccess->checkRemoteAccess(ip2long($_SERVER['REMOTE_ADDR']), $key)) {
+						print_c (json_encode( array( 'success' => false, 'error' => array('msg' => $si->getError(145), 'code' => 145 )) ));
+						exit;
+					}
+				} else {
+					if(!$user_access->is_logged_in()){
+						print_c (json_encode( array( 'success' => false, 'error' => array('msg' => $si->getError(113), 'code' => 113 )) ));
+						exit;
+					}
 				}
 
 				$data['categoryID'] = $categoryID;
@@ -1455,9 +1498,16 @@
 				break;
 
 			case 'rename_attribute':
-				if(!$user_access->is_logged_in()){
-					print_c ( json_encode( array( 'success' => false, 'error' => array('message' => $si->getError(113), 'code' => 113 )) ));
-					exit;
+				if((isset($interface)) && ($interface == 'cli')) {
+					if(!$si->remoteAccess->checkRemoteAccess(ip2long($_SERVER['REMOTE_ADDR']), $key)) {
+						print_c (json_encode( array( 'success' => false, 'error' => array('msg' => $si->getError(145), 'code' => 145 )) ));
+						exit;
+					}
+				} else {
+					if(!$user_access->is_logged_in()){
+						print_c (json_encode( array( 'success' => false, 'error' => array('msg' => $si->getError(113), 'code' => 113 )) ));
+						exit;
+					}
 				}
 
 				$data['value'] = $value;
@@ -1481,9 +1531,16 @@
 				break;
 
 			case 'delete_attribute':
-				if(!$user_access->is_logged_in()){
-					print_c ( json_encode( array( 'success' => false, 'error' => array('message' => $si->getError(113), 'code' => 113 )) ));
-					exit;
+				if((isset($interface)) && ($interface == 'cli')) {
+					if(!$si->remoteAccess->checkRemoteAccess(ip2long($_SERVER['REMOTE_ADDR']), $key)) {
+						print_c (json_encode( array( 'success' => false, 'error' => array('msg' => $si->getError(145), 'code' => 145 )) ));
+						exit;
+					}
+				} else {
+					if(!$user_access->is_logged_in()){
+						print_c (json_encode( array( 'success' => false, 'error' => array('msg' => $si->getError(113), 'code' => 113 )) ));
+						exit;
+					}
 				}
 
 				$data['valueID'] = $valueID;
@@ -1653,9 +1710,16 @@
 			break;
 
 			case 'addEvent':
-				if(!$user_access->is_logged_in()){
-					print_c ( json_encode( array( 'success' => false, 'error' => array('message' => $si->getError(113), 'code' => 113 )) ));
-					exit;
+				if((isset($interface)) && ($interface == 'cli')) {
+					if(!$si->remoteAccess->checkRemoteAccess(ip2long($_SERVER['REMOTE_ADDR']), $key)) {
+						print_c (json_encode( array( 'success' => false, 'error' => array('msg' => $si->getError(145), 'code' => 145 )) ));
+						exit;
+					}
+				} else {
+					if(!$user_access->is_logged_in()){
+						print_c (json_encode( array( 'success' => false, 'error' => array('msg' => $si->getError(113), 'code' => 113 )) ));
+						exit;
+					}
 				}
 
 				if(!$si->event->load_by_id($eventId)) {
@@ -1706,9 +1770,16 @@
 				break;
 
 			case 'deleteEvent':
-				if(!$user_access->is_logged_in()) {
-					print_c ( json_encode( array( 'success' => false, 'error' => array('message' => $si->getError(113), 'code' => 113 )) ));
-					exit;
+				if((isset($interface)) && ($interface == 'cli')) {
+					if(!$si->remoteAccess->checkRemoteAccess(ip2long($_SERVER['REMOTE_ADDR']), $key)) {
+						print_c (json_encode( array( 'success' => false, 'error' => array('msg' => $si->getError(145), 'code' => 145 )) ));
+						exit;
+					}
+				} else {
+					if(!$user_access->is_logged_in()){
+						print_c (json_encode( array( 'success' => false, 'error' => array('msg' => $si->getError(113), 'code' => 113 )) ));
+						exit;
+					}
 				}
 
 				if($eventId == '') {
@@ -1727,9 +1798,16 @@
 				break;
 				
 			case 'addImageEvent':
-				if(!$user_access->is_logged_in()) {
-					print_c ( json_encode( array( 'success' => false, 'error' => array('message' => $si->getError(113), 'code' => 113 )) ));
-					exit;
+				if((isset($interface)) && ($interface == 'cli')) {
+					if(!$si->remoteAccess->checkRemoteAccess(ip2long($_SERVER['REMOTE_ADDR']), $key)) {
+						print_c (json_encode( array( 'success' => false, 'error' => array('msg' => $si->getError(145), 'code' => 145 )) ));
+						exit;
+					}
+				} else {
+					if(!$user_access->is_logged_in()){
+						print_c (json_encode( array( 'success' => false, 'error' => array('msg' => $si->getError(113), 'code' => 113 )) ));
+						exit;
+					}
 				}
 				if($eventId == '') {
 					$valid = false;
@@ -1750,9 +1828,16 @@
 				break;
 				
 			case 'deleteImageEvent':
-				if(!$user_access->is_logged_in()) {
-					print_c ( json_encode( array( 'success' => false, 'error' => array('message' => $si->getError(113), 'code' => 113 )) ));
-					exit;
+				if((isset($interface)) && ($interface == 'cli')) {
+					if(!$si->remoteAccess->checkRemoteAccess(ip2long($_SERVER['REMOTE_ADDR']), $key)) {
+						print_c (json_encode( array( 'success' => false, 'error' => array('msg' => $si->getError(145), 'code' => 145 )) ));
+						exit;
+					}
+				} else {
+					if(!$user_access->is_logged_in()){
+						print_c (json_encode( array( 'success' => false, 'error' => array('msg' => $si->getError(113), 'code' => 113 )) ));
+						exit;
+					}
 				}
 				if($eventId == '') {
 					$valid = false;
@@ -1773,9 +1858,16 @@
 				break;
 
 			case 'addEventType':
-				if(!$user_access->is_logged_in()){
-					print_c ( json_encode( array( 'success' => false, 'error' => array('message' => $si->getError(113), 'code' => 113 )) ));
-					exit;
+				if((isset($interface)) && ($interface == 'cli')) {
+					if(!$si->remoteAccess->checkRemoteAccess(ip2long($_SERVER['REMOTE_ADDR']), $key)) {
+						print_c (json_encode( array( 'success' => false, 'error' => array('msg' => $si->getError(145), 'code' => 145 )) ));
+						exit;
+					}
+				} else {
+					if(!$user_access->is_logged_in()){
+						print_c (json_encode( array( 'success' => false, 'error' => array('msg' => $si->getError(113), 'code' => 113 )) ));
+						exit;
+					}
 				}
 				if(!$si->eventType->load_by_id($eventTypeId)) {
 				# new record
@@ -1818,9 +1910,16 @@
 				break;
 
 			case 'deleteEventType':
-				if(!$user_access->is_logged_in()){
-					print_c ( json_encode( array( 'success' => false, 'error' => array('message' => $si->getError(113), 'code' => 113 )) ));
-					exit;
+				if((isset($interface)) && ($interface == 'cli')) {
+					if(!$si->remoteAccess->checkRemoteAccess(ip2long($_SERVER['REMOTE_ADDR']), $key)) {
+						print_c (json_encode( array( 'success' => false, 'error' => array('msg' => $si->getError(145), 'code' => 145 )) ));
+						exit;
+					}
+				} else {
+					if(!$user_access->is_logged_in()){
+						print_c (json_encode( array( 'success' => false, 'error' => array('msg' => $si->getError(113), 'code' => 113 )) ));
+						exit;
+					}
 				}
 				if($eventTypeId == '') {
 					$valid = false;
@@ -2213,7 +2312,7 @@
 			
 		case 'addSet':
 			if(!$user_access->is_logged_in()) {
-				print_c ( json_encode( array( 'success' => false, 'error' => array('message' => $si->getError(113), 'code' => 113 )) ));
+				print_c ( json_encode( array( 'success' => false, 'error' => array('msg' => $si->getError(113), 'code' => 113 )) ));
 				exit;
 			}
 			if($name == '') {
@@ -2236,7 +2335,7 @@
 			
 		case 'editSet':
 			if(!$user_access->is_logged_in()) {
-				print_c ( json_encode( array( 'success' => false, 'error' => array('message' => $si->getError(113), 'code' => 113 )) ));
+				print_c ( json_encode( array( 'success' => false, 'error' => array('msg' => $si->getError(113), 'code' => 113 )) ));
 				exit;
 			}
 			if($name == '') {
@@ -2261,7 +2360,7 @@
 			
 		case 'deleteSet':
 			if(!$user_access->is_logged_in()) {
-				print_c ( json_encode( array( 'success' => false, 'error' => array('message' => $si->getError(113), 'code' => 113 )) ));
+				print_c ( json_encode( array( 'success' => false, 'error' => array('msg' => $si->getError(113), 'code' => 113 )) ));
 				exit;
 			}
 			if($sId == '') {
@@ -2291,7 +2390,7 @@
 			
 		case 'addSetValue':
 			if(!$user_access->is_logged_in()) {
-				print_c ( json_encode( array( 'success' => false, 'error' => array('message' => $si->getError(113), 'code' => 113 )) ));
+				print_c ( json_encode( array( 'success' => false, 'error' => array('msg' => $si->getError(113), 'code' => 113 )) ));
 				exit;
 			}
 			if($sId == '' || $valueId == '') {
@@ -2315,7 +2414,7 @@
 			
 		case 'editSetValue':
 			if(!$user_access->is_logged_in()) {
-				print_c ( json_encode( array( 'success' => false, 'error' => array('message' => $si->getError(113), 'code' => 113 )) ));
+				print_c ( json_encode( array( 'success' => false, 'error' => array('msg' => $si->getError(113), 'code' => 113 )) ));
 				exit;
 			}
 			if($sId == '' || $valueId == '' || $id == '') {
@@ -2342,7 +2441,7 @@
 			
 		case 'deleteSetValue':
 			if(!$user_access->is_logged_in()) {
-				print_c ( json_encode( array( 'success' => false, 'error' => array('message' => $si->getError(113), 'code' => 113 )) ));
+				print_c ( json_encode( array( 'success' => false, 'error' => array('msg' => $si->getError(113), 'code' => 113 )) ));
 				exit;
 			}
 			if($id == '') {
