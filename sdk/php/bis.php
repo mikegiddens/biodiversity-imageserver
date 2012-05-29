@@ -10,6 +10,7 @@ ob_start();
 $expected = array(
 		'cmd:'
 	,	'barcode:'
+	,	'description:'
 	,	'eventId:'
 	,	'eventTypeId:'
 	,	'field:'
@@ -22,6 +23,7 @@ $expected = array(
 	,	'size:'
 	,	'start:'
 	,	'storageId:'
+	,	'title:'
 	,	'value:'
 );
 
@@ -33,8 +35,8 @@ $flag = implode('', $flag);
 
 $arguments = getopt($flag, $expected);
 
-foreach($arguments as $key=>$value) {
-	$$key = $value;
+foreach($arguments as $key1=>$value1) {
+	$$key1 = $value1;
 }
 
 function print_console($str, $newline = true, $processTime = false) {
@@ -46,9 +48,10 @@ function print_console($str, $newline = true, $processTime = false) {
 	}
 }
 
+require_once('config.php');
 require_once('phpBIS.php');
 
-$sdk = new phpBIS('key', 'http://bis.silverbiology.com/dev/resources/api/');
+$sdk = new phpBIS($config['key'], $config['api_path']);
 
 $valid = true;
 $code = 0;
@@ -81,17 +84,101 @@ switch ( $cmd ) {
 		}
 		break;
 	
-	/*case 'addValue':
+	case 'addValue':
 		if(!isset($imageId)) {
-			$code 106;
+			$code = 106;
 			$valid = false;
 		} elseif(!isset($key)) {
 			$code = 107;
 			$valid = false;
 		} elseif(!isset($value)) {
-			
+			$code = 108;
+			$valid = false;
 		}
-		break;*/
+		if($valid) {
+			$result1 = $sdk->listCategories();
+			$cat_flag = 0;
+			if(isset($result1['data']) && is_array($result1['data'])) {
+				foreach($result1['data'] as $res1) {
+					if(strtolower($res1['title']) == strtolower($key)) {
+						$cat_flag = $res1['typeID'];
+						break;
+					}
+				}
+			}
+			if($cat_flag) {
+				$result2 = $sdk->list_attributes($cat_flag);
+				$val_flag = 0;
+				if(isset($result2['data']) && is_array($result2['data'])) {
+					foreach($result2['data'] as $res2) {
+						if(strtolower($res2['name']) == strtolower($value)) {
+							$val_flag = $res2['valueID'];
+							break;
+						}
+					}
+				}
+				if($val_flag) {
+					$result3 = $sdk->addImageAttribute($imageId, $val_flag, $cat_flag);
+					if($result3) {
+						print_console('"'.$value.'" added as value for key "'.$key.'" to image: '.$imageId);
+					} else {
+						bis_error();
+					}
+				} else {
+					$result4 = $sdk->addAttribute($cat_flag, $value);
+					if($result4) {
+						$result5 = $sdk->addImageAttribute($imageId, $result4['new_id'], $cat_flag);
+						if($result5) {
+							print_console('"'.$value.'" added as value for key "'.$key.'" to image: '.$imageId);
+						} else {
+							bis_error();
+						}
+					} else {
+						bis_error();
+					}
+				}
+			} else {
+				$result1 = $sdk->addCategory($key);
+				if($result1) {
+					$cat_flag = $result1['new_id'];
+					$result2 = $sdk->list_attributes($cat_flag);
+					$val_flag = 0;
+					if(isset($result2['data']) && is_array($result2['data'])) {
+						foreach($result2['data'] as $res2) {
+							if(strtolower($res2['name']) == strtolower($value)) {
+								$val_flag = $res2['valueID'];
+								break;
+							}
+						}
+					}
+					if($val_flag) {
+						$result3 = $sdk->addImageAttribute($imageId, $val_flag, $cat_flag);
+						if($result3) {
+							print_console('"'.$value.'" added as value for key "'.$key.'" to image: '.$imageId);
+						} else {
+							bis_error();
+						}
+					} else {
+						$result4 = $sdk->addAttribute($cat_flag, $value);
+						if($result4) {
+							$result5 = $sdk->addImageAttribute($imageId, $result4['new_id'], $cat_flag);
+							if($result5) {
+								print_console('"'.$value.'" added as value for key "'.$key.'" to image: '.$imageId);
+							} else {
+								bis_error();
+							}
+						} else {
+							bis_error();
+						}
+					}
+				} else {
+					bis_error();
+				}
+			}
+		} else {
+			console_error($code);
+		}
+		break;
 		
 	case 'listAttributes':
 		if(!isset($imageId)) {
@@ -132,6 +219,20 @@ switch ( $cmd ) {
 		}
 		break;
 		
+	case 'addEvent':
+		$eventId = (isset($eventId)) ? $eventId : '';
+		$title = (isset($title)) ? $title : '';
+		$eventTypeId = (isset($eventTypeId)) ? $eventTypeId : '';
+		$geoId = (isset($geoId)) ? $geoId : '';
+		$description = (isset($description)) ? $description : '';
+		$result = $sdk->addEvent($eventId, $title, $eventTypeId, $geoId, $description);
+		if($result) {
+			print_console('Event added id: '.$result['new_id']);
+		} else {
+			bis_error();
+		}
+		break;
+		
 	case 'listEvents':
 		$start = (isset($start)) ? $start : '';
 		$limit = (isset($limit)) ? $limit : '';
@@ -151,6 +252,27 @@ switch ( $cmd ) {
 			bis_error();
 		}
 		break;
+	
+	case 'addImageToEvent':
+		if(!isset($eventId)) {
+			$code = 109;
+			$valid = false;
+		} elseif(!isset($imageId)) {
+			$code = 106;
+			$valid = false;
+		}
+		if($valid) {
+			$result = $sdk->addImageEvent($eventId, $imageId);
+			if($result) {
+				print_console('Image added to Event');
+			} else {
+				bis_error();
+			}
+		} else {
+			console_error($code);
+		}
+		
+		break;
 		
 	default: 
 		$code = 100;
@@ -169,6 +291,7 @@ function console_error($err, $newline=true, $processTime=false) {
 		, 106 => 'Image Id should be provided. Usage --imageId {value}'
 		, 107 => 'Key should be provided. Usage --key {value}'
 		, 108 => 'Value should be provided. Usage --value {value}'
+		, 109 => 'Event Id should be provided. Usage --eventId {value}'
 	);
 	print_console('Console Error : ' . $ar[$err], $newline, $processTime);
 }

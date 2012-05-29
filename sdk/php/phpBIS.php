@@ -109,6 +109,10 @@ class phpBIS
 		$data['valueID'] = $valueID;
 		$data['categoryID'] = $categoryID;
 		$data['cmd'] = 'add_image_attribute';
+		if(PHP_SAPI == 'cli'){
+			$data['interface'] = 'cli';
+			$data['key'] = $this->key;
+		}
 		$result = $this->CURL($this->server . '/api.php',$data);
 		$result = json_decode($result,true);
 		if($result['success'] == true) {
@@ -124,6 +128,10 @@ class phpBIS
 		$data['imageID'] = $imageID;
 		$data['valueID'] = $valueID;
 		$data['cmd'] = 'delete_image_attribute';
+		if(PHP_SAPI == 'cli'){
+			$data['interface'] = 'cli';
+			$data['key'] = $this->key;
+		}
 		$result = $this->CURL($this->server . '/api.php',$data);
 		$result = json_decode($result,true);
 		if($result['success'] == true) {
@@ -151,6 +159,10 @@ class phpBIS
 		$data = array();
 		$data['value'] = $value;
 		$data['cmd'] = 'add_category';
+		if(PHP_SAPI == 'cli'){
+			$data['interface'] = 'cli';
+			$data['key'] = $this->key;
+		}
 		$result = $this->CURL($this->server . '/api.php',$data);
 		$result = json_decode($result,true);
 		if($result['success'] == true) {
@@ -166,6 +178,10 @@ class phpBIS
 		$data['valueID'] = $valueID;
 		$data['value'] = $value;
 		$data['cmd'] = 'rename_category';
+		if(PHP_SAPI == 'cli'){
+			$data['interface'] = 'cli';
+			$data['key'] = $this->key;
+		}
 		$result = $this->CURL($this->server . '/api.php',$data);
 		$result = json_decode($result,true);
 		if($result['success'] == true) {
@@ -180,6 +196,10 @@ class phpBIS
 		$data = array();
 		$data['categoryID'] = $categoryID;
 		$data['cmd'] = 'delete_category';
+		if(PHP_SAPI == 'cli'){
+			$data['interface'] = 'cli';
+			$data['key'] = $this->key;
+		}
 		$result = $this->CURL($this->server . '/api.php',$data);
 		$result = json_decode($result,true);
 		if($result['success'] == true) {
@@ -207,6 +227,10 @@ class phpBIS
 		$data['categoryID'] = $categoryID;
 		$data['value'] = $value;
 		$data['cmd'] = 'add_attribute';
+		if(PHP_SAPI == 'cli'){
+			$data['interface'] = 'cli';
+			$data['key'] = $this->key;
+		}
 		$result = $this->CURL($this->server . '/api.php',$data);
 		$result = json_decode($result,true);
 		if($result['success'] == true) {
@@ -222,6 +246,10 @@ class phpBIS
 		$data['valueID'] = $valueID;
 		$data['value'] = $value;
 		$data['cmd'] = 'rename_attribute';
+		if(PHP_SAPI == 'cli'){
+			$data['interface'] = 'cli';
+			$data['key'] = $this->key;
+		}
 		$result = $this->CURL($this->server . '/api.php',$data);
 		$result = json_decode($result,true);
 		if($result['success'] == true) {
@@ -236,6 +264,23 @@ class phpBIS
 		$data = array();
 		$data['valueID'] = $valueID;
 		$data['cmd'] = 'delete_attribute';
+		if(PHP_SAPI == 'cli'){
+			$data['interface'] = 'cli';
+			$data['key'] = $this->key;
+		}
+		$result = $this->CURL($this->server . '/api.php',$data);
+		$result = json_decode($result,true);
+		if($result['success'] == true) {
+			return $result;
+		} else {
+			$this->lastError['code'] = $result['error']['code'];
+			$this->lastError['msg'] = $result['error']['msg'];
+			return false;
+		}
+	}
+	public function list_attributes($categoryID) {
+		$data['categoryID'] = $categoryID;
+		$data['cmd'] = 'list_attributes';
 		$result = $this->CURL($this->server . '/api.php',$data);
 		$result = json_decode($result,true);
 		if($result['success'] == true) {
@@ -253,6 +298,10 @@ class phpBIS
 		$data['geoId'] = (trim($geoId) != '') ? $geoId : '';
 		$data['description'] = (trim($description) != '') ? $description : '';
 		$data['cmd'] = 'addEvent';
+		if(PHP_SAPI == 'cli'){
+			$data['interface'] = 'cli';
+			$data['key'] = $this->key;
+		}
 		$result = $this->CURL($this->server . '/api.php', $data);
 		$result = json_decode($result,true);
 		if($result['success'] == true) {
@@ -286,6 +335,10 @@ class phpBIS
 	public function deleteEvent($eventId) {
 		$data['eventId'] = $eventId;
 		$data['cmd'] = 'deleteEvent';
+		if(PHP_SAPI == 'cli'){
+			$data['interface'] = 'cli';
+			$data['key'] = $this->key;
+		}
 		$result = $this->CURL($this->server . '/api.php', $data);
 		$result = json_decode($result,true);
 		if($result['success'] == true) {
@@ -300,6 +353,10 @@ class phpBIS
 		$data['eventId'] = $eventId;
 		$data['imageId'] = $imageId;
 		$data['cmd'] = 'addImageEvent';
+		if(PHP_SAPI == 'cli'){
+			$data['interface'] = 'cli';
+			$data['key'] = $this->key;
+		}
 		$result = $this->CURL($this->server . '/api.php', $data);
 		$result = json_decode($result, true);
 		if($result['success'] == true) {
@@ -314,6 +371,10 @@ class phpBIS
 		$data['eventId'] = $eventId;
 		$data['imageId'] = $imageId;
 		$data['cmd'] = 'deleteImageEvent';
+		if(PHP_SAPI == 'cli'){
+			$data['interface'] = 'cli';
+			$data['key'] = $this->key;
+		}
 		$result = $this->CURL($this->server . '/api.php', $data);
 		$result = json_decode($result, true);
 		if($result['success'] == true) {
@@ -329,6 +390,10 @@ class phpBIS
 		$data['title'] = $title;
 		$data['description'] = $description;
 		$data['cmd'] = 'addEventType';
+		if(PHP_SAPI == 'cli'){
+			$data['interface'] = 'cli';
+			$data['key'] = $this->key;
+		}
 		$result = $this->CURL($this->server . '/api.php', $data);
 		$result = json_decode($result, true);
 		if($result['success'] == true) {
@@ -360,6 +425,10 @@ class phpBIS
 	public function deleteEventType($eventTypeId) {
 		$data['eventTypeId'] = $eventTypeId;
 		$data['cmd'] = 'deleteEventType';
+		if(PHP_SAPI == 'cli'){
+			$data['interface'] = 'cli';
+			$data['key'] = $this->key;
+		}
 		$result = $this->CURL($this->server . '/api.php', $data);
 		$result = json_decode($result, true);
 		if($result['success'] == true) {
