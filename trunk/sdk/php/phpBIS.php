@@ -110,7 +110,7 @@ class phpBIS
 		$data['categoryID'] = $categoryID;
 		$data['cmd'] = 'add_image_attribute';
 		if(PHP_SAPI == 'cli'){
-			$data['interface'] = 'cli';
+			$data['authMode'] = 'key';
 			$data['key'] = $this->key;
 		}
 		$result = $this->CURL($this->server . '/api.php',$data);
@@ -129,7 +129,7 @@ class phpBIS
 		$data['valueID'] = $valueID;
 		$data['cmd'] = 'delete_image_attribute';
 		if(PHP_SAPI == 'cli'){
-			$data['interface'] = 'cli';
+			$data['authMode'] = 'key';
 			$data['key'] = $this->key;
 		}
 		$result = $this->CURL($this->server . '/api.php',$data);
@@ -160,7 +160,7 @@ class phpBIS
 		$data['value'] = $value;
 		$data['cmd'] = 'add_category';
 		if(PHP_SAPI == 'cli'){
-			$data['interface'] = 'cli';
+			$data['authMode'] = 'key';
 			$data['key'] = $this->key;
 		}
 		$result = $this->CURL($this->server . '/api.php',$data);
@@ -179,7 +179,7 @@ class phpBIS
 		$data['value'] = $value;
 		$data['cmd'] = 'rename_category';
 		if(PHP_SAPI == 'cli'){
-			$data['interface'] = 'cli';
+			$data['authMode'] = 'key';
 			$data['key'] = $this->key;
 		}
 		$result = $this->CURL($this->server . '/api.php',$data);
@@ -197,7 +197,7 @@ class phpBIS
 		$data['categoryID'] = $categoryID;
 		$data['cmd'] = 'delete_category';
 		if(PHP_SAPI == 'cli'){
-			$data['interface'] = 'cli';
+			$data['authMode'] = 'key';
 			$data['key'] = $this->key;
 		}
 		$result = $this->CURL($this->server . '/api.php',$data);
@@ -228,7 +228,7 @@ class phpBIS
 		$data['value'] = $value;
 		$data['cmd'] = 'add_attribute';
 		if(PHP_SAPI == 'cli'){
-			$data['interface'] = 'cli';
+			$data['authMode'] = 'key';
 			$data['key'] = $this->key;
 		}
 		$result = $this->CURL($this->server . '/api.php',$data);
@@ -247,7 +247,7 @@ class phpBIS
 		$data['value'] = $value;
 		$data['cmd'] = 'rename_attribute';
 		if(PHP_SAPI == 'cli'){
-			$data['interface'] = 'cli';
+			$data['authMode'] = 'key';
 			$data['key'] = $this->key;
 		}
 		$result = $this->CURL($this->server . '/api.php',$data);
@@ -265,7 +265,7 @@ class phpBIS
 		$data['valueID'] = $valueID;
 		$data['cmd'] = 'delete_attribute';
 		if(PHP_SAPI == 'cli'){
-			$data['interface'] = 'cli';
+			$data['authMode'] = 'key';
 			$data['key'] = $this->key;
 		}
 		$result = $this->CURL($this->server . '/api.php',$data);
@@ -299,7 +299,7 @@ class phpBIS
 		$data['description'] = (trim($description) != '') ? $description : '';
 		$data['cmd'] = 'addEvent';
 		if(PHP_SAPI == 'cli'){
-			$data['interface'] = 'cli';
+			$data['authMode'] = 'key';
 			$data['key'] = $this->key;
 		}
 		$result = $this->CURL($this->server . '/api.php', $data);
@@ -336,7 +336,7 @@ class phpBIS
 		$data['eventId'] = $eventId;
 		$data['cmd'] = 'deleteEvent';
 		if(PHP_SAPI == 'cli'){
-			$data['interface'] = 'cli';
+			$data['authMode'] = 'key';
 			$data['key'] = $this->key;
 		}
 		$result = $this->CURL($this->server . '/api.php', $data);
@@ -354,7 +354,7 @@ class phpBIS
 		$data['imageId'] = $imageId;
 		$data['cmd'] = 'addImageEvent';
 		if(PHP_SAPI == 'cli'){
-			$data['interface'] = 'cli';
+			$data['authMode'] = 'key';
 			$data['key'] = $this->key;
 		}
 		$result = $this->CURL($this->server . '/api.php', $data);
@@ -372,7 +372,7 @@ class phpBIS
 		$data['imageId'] = $imageId;
 		$data['cmd'] = 'deleteImageEvent';
 		if(PHP_SAPI == 'cli'){
-			$data['interface'] = 'cli';
+			$data['authMode'] = 'key';
 			$data['key'] = $this->key;
 		}
 		$result = $this->CURL($this->server . '/api.php', $data);
@@ -391,7 +391,7 @@ class phpBIS
 		$data['description'] = $description;
 		$data['cmd'] = 'addEventType';
 		if(PHP_SAPI == 'cli'){
-			$data['interface'] = 'cli';
+			$data['authMode'] = 'key';
 			$data['key'] = $this->key;
 		}
 		$result = $this->CURL($this->server . '/api.php', $data);
@@ -426,7 +426,7 @@ class phpBIS
 		$data['eventTypeId'] = $eventTypeId;
 		$data['cmd'] = 'deleteEventType';
 		if(PHP_SAPI == 'cli'){
-			$data['interface'] = 'cli';
+			$data['authMode'] = 'key';
 			$data['key'] = $this->key;
 		}
 		$result = $this->CURL($this->server . '/api.php', $data);
@@ -443,6 +443,10 @@ class phpBIS
 		$data['name'] = $name;
 		$data['description'] = (trim($description) != '') ? $description : '';
 		$data['cmd'] = 'addSet';
+		if(PHP_SAPI == 'cli'){
+			$data['authMode'] = 'key';
+			$data['key'] = $this->key;
+		}
 		$result = $this->CURL($this->server . '/api.php', $data);
 		$result = json_decode($result, true);
 		if($result['success'] == true) {
@@ -460,6 +464,10 @@ class phpBIS
 		$data['name'] = $name;
 		$data['description'] = (trim($description) != '') ? $description : '';
 		$data['cmd'] = 'editSet';
+		if(PHP_SAPI == 'cli'){
+			$data['authMode'] = 'key';
+			$data['key'] = $this->key;
+		}
 		$result = $this->CURL($this->server . '/api.php', $data);
 		$result = json_decode($result, true);
 		if($result['success'] == true) {
@@ -473,6 +481,10 @@ class phpBIS
 	public function deleteSet($sId) {
 		$data['sId'] = $sId;
 		$data['cmd'] = 'deleteSet';
+		if(PHP_SAPI == 'cli'){
+			$data['authMode'] = 'key';
+			$data['key'] = $this->key;
+		}
 		$result = $this->CURL($this->server . '/api.php', $data);
 		$result = json_decode($result, true);
 		if($result['success'] == true) {
@@ -500,6 +512,10 @@ class phpBIS
 		$data['valueId'] = $valueId;
 		$data['rank'] = (trim($rank) != '') ? $rank : 0;
 		$data['cmd'] = 'addSetValue';
+		if(PHP_SAPI == 'cli'){
+			$data['authMode'] = 'key';
+			$data['key'] = $this->key;
+		}
 		$result = $this->CURL($this->server . '/api.php', $data);
 		$result = json_decode($result, true);
 		if($result['success'] == true) {
@@ -516,6 +532,10 @@ class phpBIS
 		$data['valueId'] = $valueId;
 		$data['rank'] = (trim($rank) != '') ? $rank : '';
 		$data['cmd'] = 'editSetValue';
+		if(PHP_SAPI == 'cli'){
+			$data['authMode'] = 'key';
+			$data['key'] = $this->key;
+		}
 		$result = $this->CURL($this->server . '/api.php', $data);
 		$result = json_decode($result, true);
 		if($result['success'] == true) {
@@ -529,6 +549,10 @@ class phpBIS
 	public function deleteSetValue($id) {
 		$data['id'] = $id;
 		$data['cmd'] = 'deleteSetValue';
+		if(PHP_SAPI == 'cli'){
+			$data['authMode'] = 'key';
+			$data['key'] = $this->key;
+		}
 		$result = $this->CURL($this->server . '/api.php', $data);
 		$result = json_decode($result, true);
 		if($result['success'] == true) {
