@@ -1,0 +1,71 @@
+#summary List all the storage devices.
+
+== List Storage Devices ==
+
+An API request must be of the following form:
+
+{{{
+ http://{url_to_software}/api/api.php?cmd=listStorageDevices
+}}}
+
+No URL parameters are required along with this API request.
+
+== Output Formats ==
+
+ * [#JSON_Output_Formats json] - Available
+
+----
+== Responses ==
+
+Responses are returned in the format indicates by the output flag within the URL request's path.
+
+ === JSON Output Formats ===
+    * success (bool) - If response was successful or not. If it false see [http://code.google.com/p/biodiversity-imageserver/wiki/jsonErrorResponse JSON Error Response] for more details
+    * processTime (float) - Time it takes to complete the request.
+    * data (object) - Array of item objects.
+
+    * data (object)
+        * storage_id (int) - Db id of the storage device.
+        * name (string) - Name of the storage device.
+        * description (string) - Brief description of the storage device.
+        * type (string) - Type of the storage device.
+        * baseUrl (string) - Base url of the storage device.
+        * basePath (string) - Path used for storage within storage device.
+        * user (string) - User name used for authentication.
+        * pw (string) - Password used for authentication.
+        * key (string) - Key used for authentication.
+        * active (bool) - Current status of the storage device.
+        * default_storage (int) - Indicates default storage device with value 1.
+        * extra2 (reserved) - Reserved for future use.
+----
+== Example Requests ==
+
+1. This example request for the list of available storage device(s).
+
+{{{
+ http://{path_to_software}/api/api.php?cmd=listStorageDevices
+}}}
+
+ Response:
+{{{
+{
+    "success": true,
+    "processTime": 7.605553E-5,
+    "data": [
+        {
+            "storage_id": 1,
+            "name": "Amazon S3",
+            "description": "Amazon Simple Storage Service",
+            "type": "S3",
+            "baseUrl": "http://{base_url}/",
+            "basePath": "{base_path}",
+            "user": "{user_name}",
+            "pw": "{password}",
+            "key": "{key}",
+            "active": "true",
+            "default_storage": 1,
+            "extra2": "{blank}"
+        }
+    ]
+}
+}}}
