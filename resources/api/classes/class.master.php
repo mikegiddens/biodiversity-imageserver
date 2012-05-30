@@ -55,6 +55,7 @@
 			$this->remoteAccess = new RemoteAccess($this->db);
 			$this->storage = new Storage($this->db);
 			$this->set = new Set($this->db);
+			$this->authMode = 'session';
 		}
 
 		function load($project) {
@@ -64,6 +65,13 @@
 			return( true );
 		}
 
+		public function setAuthMode($authMode) {
+			$expectedAM = array('session', 'key');
+			if(in_array(strtolower($authMode), $expectedAM)) {
+				$this->authMode = strtolower($authMode);
+			}
+		}
+		
 		public function getError($error_code) {
 			$ar = array (
 					100 => 'No Command Provided'

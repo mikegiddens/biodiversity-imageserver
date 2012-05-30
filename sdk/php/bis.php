@@ -298,8 +298,11 @@ function console_error($err, $newline=true, $processTime=false) {
 
 function bis_error($newline=true, $processTime=false) {
 	global $sdk;
-	if(isset($sdk->lastError))
-	print_console('BIS Error : '.$sdk->lastError['code'].': '.$sdk->lastError['msg'], $newline, $processTime);
+	if(isset($sdk->lastError) && ($sdk->lastError['code']!='' || $sdk->lastError['msg']!='')) {
+		print_console('BIS Error : '.$sdk->lastError['code'].': '.$sdk->lastError['msg'], $newline, $processTime);
+	} else {
+		print_console('Unknown Error : No data received from BIS server.', $newline, $processTime);
+	}
 }
 
 function display_array($result, $level = 0) {

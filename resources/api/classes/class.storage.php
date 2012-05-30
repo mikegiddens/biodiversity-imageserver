@@ -65,7 +65,7 @@ class Storage {
 		, mysql_escape_string($this->fetch('extra2'))
 		);
 		if($this->db->query($query)) {
-			return(true);
+			return($this->db->insert_id);
 		} else {
 			return (false);
 		}
