@@ -58,9 +58,6 @@
     * [WS_EditSetValue Edit Set Value]
     * [WS_DeleteSetValue Delete Set Value]
     * [WS_ListImageBySet List Image By Set]
-  * Remote Access
-    * [WS_GenerateRemoteAccessKey Generate Remote Access Key]
-    * [WS_ListRemoteAccessKeys List Remote Access Keys]
  * *Examples*
    * [Carousel  Carousel]
    * [CarouselLightbox  Carousel + Lightbox]
