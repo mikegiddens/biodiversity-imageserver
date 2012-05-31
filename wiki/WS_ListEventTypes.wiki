@@ -1,4 +1,4 @@
-#summary List the events types based on the filter.
+#summary List the event types based on the filter.
 
 == List Events Types ==
 
