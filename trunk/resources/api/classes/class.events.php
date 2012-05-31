@@ -147,10 +147,11 @@ class Event
 				, mysql_escape_string($eventId) 
 				);
 		if($this->db->query($query)) {
+			$id = $this->db->insert_id;
 			$this->lg->set('table', 'event_images');
 			$this->lg->set('query', $query);
 			$this->lg->save();
-			return true;
+			return $id;
 		} else {
 			return false;
 		}

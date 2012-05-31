@@ -150,6 +150,8 @@
 				, 173 => 'Category Id should be provided.'
 				, 174 => 'No attributes set for given category ID.'
 				, 175 => 'Invalid categoryID given.'
+				, 176 => 'Invalid eventId given.'
+				, 177 => 'Invalid eventTypeId given.'
 			);
 			return $ar[$error_code];
 		}
