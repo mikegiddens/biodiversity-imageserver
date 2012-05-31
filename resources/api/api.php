@@ -1803,7 +1803,7 @@
 					$si->event->set('lastModifiedBy', $_SESSION['user_id']);
 					$si->event->save();
 
-					print_c( json_encode( array( 'success' => true, 'new_id' => $si->event->insert_id ) ) );
+					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start, 'new_id' => $si->event->insert_id ) ) );
 				} else {
 					print_c( json_encode( array( 'success' => false, 'error' => array ( 'code' => $code, 'msg' => $si->getError($code) ) ) ) );
 				}
@@ -1854,7 +1854,7 @@
 					$si->event->lg->set('lastModifiedBy', $_SESSION['user_id']);
 
 					$si->event->delete($eventId);
-					print_c( json_encode( array( 'success' => true ) ) );
+					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start ) ) );
 				} else {
 					print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($code) , 'code' => $code ) ) ) );
 				}
@@ -1885,11 +1885,19 @@
 					$valid = false;
 					$code = 155;
 				}
+				if(!$si->event->recordExists($eventId)) {
+					$valid = false;
+					$code = 176;
+				}
+				if(!$si->image->load_by_id($imageId)) {
+					$valid = false;
+					$code = 116;
+				}
 				if($valid) {
 					$si->event->lg->set('action', 'addImageEvent');
 					$si->event->lg->set('lastModifiedBy', $_SESSION['user_id']);
-					$si->event->addImageEvent($imageId, $eventId);
-					print_c( json_encode( array( 'success' => true ) ) );
+					$id = $si->event->addImageEvent($imageId, $eventId);
+					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start, 'new_id' => $id ) ) );
 				} else {
 					print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($code) , 'code' => $code ) ) ) );
 				}
@@ -1924,7 +1932,7 @@
 					$si->event->lg->set('action', 'deleteImageEvent');
 					$si->event->lg->set('lastModifiedBy', $_SESSION['user_id']);
 					$si->event->deleteImageEvent($imageId, $eventId);
-					print_c( json_encode( array( 'success' => true ) ) );
+					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start ) ) );
 				} else {
 					print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($code) , 'code' => $code ) ) ) );
 				}
@@ -1964,7 +1972,7 @@
 					$si->eventType->set('lastModifiedBy', $_SESSION['user_id']);
 					$si->eventType->save();
 
-					print_c( json_encode( array( 'success' => true, 'new_id' => $si->eventType->insert_id ) ) );
+					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start, 'new_id' => $si->eventType->insert_id ) ) );
 				} else {
 					print_c( json_encode( array( 'success' => false, 'error' => array ( 'code' => $code, 'msg' => $si->getError($code) ) ) ) );
 				}
@@ -2007,12 +2015,15 @@
 				if($eventTypeId == '') {
 					$valid = false;
 					$code = 131;
+				} elseif(!$si->eventType->load_by_id($eventTypeId)) {
+					$valid = false;
+					$code = 177;
 				}
 				if($valid) {
 					$si->eventType->lg->set('action', 'deleteEventType');
 					$si->eventType->lg->set('lastModifiedBy', $_SESSION['user_id']);
 					$si->eventType->delete($eventTypeId);
-					print_c( json_encode( array( 'success' => true ) ) );
+					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start ) ) );
 				} else {
 					print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($code) , 'code' => $code ) ) ) );
 				}
@@ -2424,7 +2435,7 @@
 				$description = isset($description)?$description:'';
 				$si->set->addSet($name, $description);
 				$si->set->load_by_set_name($name);
-				print_c(json_encode(array('success' => true, setID => $si->set->get('id'))));
+				print_c(json_encode(array('success' => true, 'processTime' => microtime(true) - $time_start, setID => $si->set->get('id'))));
 			}
 			break;
 			
@@ -2454,12 +2465,15 @@
 			} elseif(!$si->set->load_by_id($sId)) {
 				$valid = false;
 				$code = 159;
+			} elseif($si->set->exists($name)) {
+				$valid = false;
+				$code = 163;
 			}
 			
 			if($valid) {
 				$description = isset($description)?$description:'';
 				$si->set->editSet($sId, $name, $description);
-				print_c( json_encode( array( 'success' => true ) ) );
+				print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start ) ) );
 			} else {
 				print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($code) , 'code' => $code ) ) ) );
 			}
