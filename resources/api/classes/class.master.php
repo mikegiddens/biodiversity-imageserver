@@ -152,6 +152,7 @@
 				, 175 => 'Invalid categoryID given.'
 				, 176 => 'Invalid eventId given.'
 				, 177 => 'Invalid eventTypeId given.'
+				, 178 => 'Unable to create set value.'
 			);
 			return $ar[$error_code];
 		}
