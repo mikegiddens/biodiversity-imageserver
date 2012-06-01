@@ -144,7 +144,7 @@ class Set
 				, mysql_escape_string($rank)
 				);
 		if($this->db->query($query)) {
-			return true;
+			return $this->db->insert_id;
 		} else {
 			return false;
 		}

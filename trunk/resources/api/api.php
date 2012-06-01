@@ -1302,7 +1302,7 @@
 			} elseif(!$si->image->attribute_exist($data['valueID'])) {
 				$valid = false;
 				$code = 164;
-			} elseif($data['categoryID' == ""]) {
+			} elseif($data['categoryID'] == "") {
 				$valid = false;
 				$code = 173;
 			} elseif(!$si->image->category_exist($data['categoryID'])) {
@@ -1409,7 +1409,7 @@
 					$si->image->setData($data);
 					$id = $si->image->addCategory();
 					if($id) {
-						print_c( json_encode( array( 'success' => true, 'new_id' => $id ) ) );
+						print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start, 'new_id' => $id ) ) );
 					} else {
 						print_c( json_encode( array( 'success' => false, 'error' => array ( 'code' => 124, 'msg' => $si->getError(124) ) ) ) );
 					}
@@ -1449,7 +1449,7 @@
 				if($valid) {
 					$si->image->setData($data);
 					if($si->image->renameCategory()) {
-						print_c( json_encode( array( 'success' => true ) ) );
+						print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start ) ) );
 					} else {
 						print_c( json_encode( array( 'success' => false, 'error' => array ( 'code' => 125, 'msg' => $si->getError(125) ) ) ) );
 					}
@@ -1484,7 +1484,7 @@
 				if($valid) {
 					$si->image->setData($data);
 					if($si->image->deleteCategory()) {
-						print_c( json_encode( array( 'success' => true ) ) );
+						print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start ) ) );
 					}
 				} else {
 					print_c( json_encode( array( 'success' => false, 'error' => array ( 'code' => $code, 'msg' => $si->getError($code) ) ) ) );
@@ -1533,7 +1533,7 @@
 					$si->image->setData($data);
 					$id = $si->image->addAttribute();
 					if($id) {
-						print_c( json_encode( array( 'success' => true, 'new_id' => $id ) ) );
+						print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start, 'new_id' => $id ) ) );
 					}
 				} else {
 					print_c( json_encode( array( 'success' => false, 'error' => array ( 'code' => $code, 'msg' => $si->getError($code) ) ) ) );
@@ -1571,7 +1571,7 @@
 				if($valid) {
 					$si->image->setData($data);
 					if($si->image->renameAttribute()) {
-						print_c( json_encode( array( 'success' => true ) ) );
+						print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start ) ) );
 					}
 				} else {
 					print_c( json_encode( array( 'success' => false, 'error' => array ( 'code' => $code, 'msg' => $si->getError($code) ) ) ) );
@@ -1604,7 +1604,7 @@
 				if($valid) {
 					$si->image->setData($data);
 					if($si->image->deleteAttribute()) {
-						print_c( json_encode( array( 'success' => true ) ) );
+						print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start ) ) );
 					}
 				} else {
 					print_c( json_encode( array( 'success' => false, 'error' => array ( 'code' => $code, 'msg' => $si->getError($code) ) ) ) );
@@ -2505,7 +2505,7 @@
 			}
 			if($valid) {
 				$si->set->deleteSet($sId);
-				print_c( json_encode( array( 'success' => true ) ) );
+				print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start ) ) );
 			} else {
 				print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($code) , 'code' => $code ) ) ) );
 			}
@@ -2514,7 +2514,7 @@
 		case 'listSets':
 			$data = $si->set->listSet();
 			if($data) {
-				print_c( json_encode( array( 'success' => true, 'total_count' => $data['count'], 'data' => $data['data'] ) ) );
+				print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start, 'total_count' => $data['count'], 'data' => $data['data'] ) ) );
 			} else {
 				$code = 170;
 				print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($code) , 'code' => $code ) ) ) );
@@ -2550,8 +2550,13 @@
 			}
 			if($valid) {
 				$rank = isset($rank)?$rank:0;
-				$si->set->addSetValue($sId, $valueId, $rank);
-				print_c( json_encode( array( 'success' => true ) ) );
+				$id = $si->set->addSetValue($sId, $valueId, $rank);
+				if($id) {
+					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start, 'new_id' => $id ) ) );
+				} else {
+					$code = 178;
+					print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($code) , 'code' => $code ) ) ) );
+				}
 			} else {
 				print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($code) , 'code' => $code ) ) ) );
 			}
@@ -2590,7 +2595,7 @@
 			if($valid) {
 				$rank = isset($rank)?$rank:'';
 				$si->set->editSetValue($id, $sId, $valueId, $rank);
-				print_c( json_encode( array( 'success' => true ) ) );
+				print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start ) ) );
 			} else {
 				print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($code) , 'code' => $code ) ) ) );
 			}
@@ -2622,7 +2627,7 @@
 			}
 			if($valid) {
 				$si->set->deleteSetValue($id);
-				print_c( json_encode( array( 'success' => true ) ) );
+				print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start ) ) );
 			} else {
 				print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($code) , 'code' => $code ) ) ) );
 			}
@@ -2639,7 +2644,7 @@
 			}
 			if($valid) {
 				$data = $si->set->listImageBySet($sId);
-				print_c( json_encode( array( 'success' => true, 'data' => $data['data'] ) ) );
+				print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start, 'data' => $data['data'] ) ) );
 			} else {
 				print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($code) , 'code' => $code ) ) ) );
 			}
