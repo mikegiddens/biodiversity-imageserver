@@ -31,18 +31,15 @@ Responses are returned in the format indicates by the output flag within the URL
  === JSON Output Formats ===
     * success (bool) - If response was successful or not. If it false see [http://code.google.com/p/biodiversity-imageserver/wiki/jsonErrorResponse JSON Error Response] for more details
     * processTime (float) - Time it takes to complete the request.
-    * data (object) - Array of item objects.
-
-    * data object
-        * value(String)
+    * image_id (int) - Id of the image.
 
 ----
 == Example Requests ==
 
-1. This example request for the barcode(s).  We can see that the request and the results match.
+1. This example request add image from URL.
 
 {{{
- http://{path_to_software}/api/api.php?cmd=addImageFromURL&url=http://www.gstatic.com/codesite/ph/images/defaultlogo.png&storage_id=1&path=/mypics/&key={yourkey}
+ http://{path_to_software}/api/api.php?cmd=addImageFromURL&url=http://www.gstatic.com/codesite/ph/images/defaultlogo.png&storage_id=1&path=/mypics&key={yourkey}
 }}}
 
  Response:
@@ -50,10 +47,6 @@ Responses are returned in the format indicates by the output flag within the URL
 {
     "success": true,
     "processTime": 0.07549786567688,
-    "data": [
-        {
-            "value": ""
-        }
-    ]
+    "image_id" : 98
 }
 }}}
