@@ -438,7 +438,7 @@
 				if($ar['success'] == false) {
 					print_c( json_encode( array('success' => false,  'error' => array('code' => $ar['code'], 'message' => $si->getError($ar['code'])) ) ) );
 				} else {
-					print_c( json_encode( array('success' => true) ) );
+					print_c( json_encode( array('success' => true, 'processTime' => microtime(true) - $time_start) ) );
 				}
 			} else {
 				header('Content-type: application/json');
