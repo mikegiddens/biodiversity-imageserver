@@ -153,6 +153,10 @@
 				, 176 => 'Invalid eventId given.'
 				, 177 => 'Invalid eventTypeId given.'
 				, 178 => 'Unable to create set value.'
+				, 179 => 'Name and collectionCode should be specified.'
+				, 180 => 'imageId and collectionCode should be provided.'
+				, 181 => 'collectionCode does not exist.'
+				, 182 => 'ImageId and barcode should be provided.'
 			);
 			return $ar[$error_code];
 		}

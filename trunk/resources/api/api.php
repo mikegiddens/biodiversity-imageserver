@@ -684,6 +684,42 @@
 				print_c( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'message' => $si->getError($code)) ) ));
 			}
 			break;
+			
+		case 'addCollection':
+			if($name == '' || $collectionCode == '') {
+				$valid = false;
+				$code = 179;
+			}
+			if($valid) {
+				$si->collection->set('name', $name);
+				$si->collection->set('code', $collectionCode);
+				$si->collection->save();
+				print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start ) ) );
+			} else {
+				print_c( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'msg' => $si->getError($code)) ) ));
+			}
+			break;
+			
+		case 'addImageToCollection':
+			if($imageId == '' || $collectionCode =='') {
+				$valid = false;
+				$code = 180;
+			} elseif(!$si->collection->exist_collectionCode($collectionCode)) {
+				$valid = false;
+				$code = 181;
+			} elseif(!$si->image->field_exists($imageId)) {
+				$valid = false;
+				$code = 116;
+			}
+			if($valid) {
+				$si->image->load_by_id($imageId);
+				$si->image->set('CollectionCode', $collectionCode);
+				$si->image->save();
+				print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start ) ) );
+			} else {
+				print_c( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'msg' => $si->getError($code)) ) ));
+			}
+			break;
 
 		case 'image_sequence_cache':
 
@@ -2726,6 +2762,24 @@
 				}
 			} else {
 				print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($code) , 'code' => $code ) ) ) );
+			}
+			break;
+			
+		case 'addBarcodeToImage':
+			if($imageId == '' || $barcode =='') {
+				$valid = false;
+				$code = 182;
+			} elseif(!$si->image->field_exists($imageId)) {
+				$valid = false;
+				$code = 116;
+			}
+			if($valid) {
+				$si->image->load_by_id($imageId);
+				$si->image->set('barcode', $barcode);
+				$si->image->save();
+				print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start ) ) );
+			} else {
+				print_c( json_encode( array( 'success' => false,  'error' => array('code' => $code, 'msg' => $si->getError($code)) ) ));
 			}
 			break;
 			
