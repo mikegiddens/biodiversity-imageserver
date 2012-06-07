@@ -604,6 +604,48 @@ class phpBIS
 			return false;
 		}
 	}
+	public function addCollection($name, $collectionCode) {
+		$data['name'] = $name;
+		$data['collectionCode'] = $collectionCode;
+		$data['cmd'] = 'addCollection';
+		$result = $this->CURL($this->server . '/api.php', $data);
+		$result = json_decode($result, true);
+		if($result['success'] == true) {
+			return $result;
+		} else {
+			$this->lastError['code'] = $result['error']['code'];
+			$this->lastError['msg'] = $result['error']['msg'];
+			return false;
+		}
+	}
+	public function addImageToCollection($imageId, $collectionCode) {
+		$data['imageId'] = $imageId;
+		$data['collectionCode'] = $collectionCode;
+		$data['cmd'] = 'addImageToCollection';
+		$result = $this->CURL($this->server . '/api.php', $data);
+		$result = json_decode($result, true);
+		if($result['success'] == true) {
+			return $result;
+		} else {
+			$this->lastError['code'] = $result['error']['code'];
+			$this->lastError['msg'] = $result['error']['msg'];
+			return false;
+		}
+	}
+	public function addBarcodeToImage($imageId, $barcode) {
+		$data['imageId'] = $imageId;
+		$data['barcode'] = $barcode;
+		$data['cmd'] = 'addBarcodeToImage';
+		$result = $this->CURL($this->server . '/api.php', $data);
+		$result = json_decode($result, true);
+		if($result['success'] == true) {
+			return $result;
+		} else {
+			$this->lastError['code'] = $result['error']['code'];
+			$this->lastError['msg'] = $result['error']['msg'];
+			return false;
+		}
+	}
 	public function getLastError() {
 		return $this->lastError;
 	}

@@ -154,6 +154,17 @@ Class Collection {
 		return $output;
 	}
 
+	public function exist_collectionCode($collectionCode) {
+		if($collectionCode == '' || is_null($collectionCode)) return false;
+        	$query = sprintf("SELECT `code` FROM `collection` WHERE `code` = '%s';",  $collectionCode);
+        	$ret = $this->db->query_one( $query );
+        	if ($ret == NULL) {
+        	    	return false;
+       	 	} else {
+			return true;
+       		 }
+  	}
+
 }
 
 ?>
