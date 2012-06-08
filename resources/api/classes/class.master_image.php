@@ -1005,7 +1005,7 @@ Class Image {
 			$where = " AND " . $where;
 		}
 		if($this->data['code'] != '') {
-			$where .= sprintf(" AND I.`barcode` LIKE '%s%%' ", mysql_escape_string($this->data['code']));
+			$where .= sprintf(" AND I.`CollectionCode` LIKE '%s%%' ", mysql_escape_string($this->data['code']));
 		}
 
 		if($this->data['image_id'] != '') {
