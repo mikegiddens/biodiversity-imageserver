@@ -64,6 +64,7 @@ ImagePortal.Image = function(config) {
 				, fields: [
 							{name: 'image_id'}
 						,	{name: 'filename'}
+						,	'ext'
 						,	{name: 'timestamp_modified'}
 						,	{name: 'barcode'}								
 						,	{name: 'Family'}
@@ -142,8 +143,8 @@ ImagePortal.Image = function(config) {
 	
 	this.search_value = new Ext.ux.TwinComboBox({
 			fieldLabel: 'Collections'
-		, 	name: 'Collections'
-		, 	triggerAction: 'all'
+		, name: 'Collections'
+		, triggerAction: 'all'
 		,	store: this.comboStore
 		,	displayField: 'name'
 		,	typeAhead: false
@@ -152,48 +153,48 @@ ImagePortal.Image = function(config) {
 		,	editable:false
 		,	value: ''
 		,	width: 250
-		, 	listeners: {
+		, listeners: {
 					select: function(combo, record) {
-						Ext.getCmp('imageGrid').store.baseParams.code = record.data.code;
+						Ext.getCmp('imageGrid').store.baseParams.collectionCode = record.data.code;
 						Ext.getCmp('imageGrid').store.load({params:{start:0, limit:100}});
 					}
 				,	clear: function() {
-						Ext.getCmp('imageGrid').store.baseParams.code = '';
+						Ext.getCmp('imageGrid').store.baseParams.collectionCode = '';
 						Ext.getCmp('imageGrid').store.load({params:{start:0, limit:100}});
 					}
 			}
 	});
 	
 	this.search_evernote = new Ext.ux.form.SearchField({
-				store: this.store
-			,	width: 250
-			,	paramName: 'value'
-			,	onTrigger1Click : function(){
-					if(this.hasSearch){
-						this.el.dom.value = '';
-						var o = {start:0, limit:100};
-						this.store.baseParams = this.store.baseParams || {};
-						this.store.baseParams.cmd = 'images';
-						this.store.baseParams[this.paramName] = '';
-						this.store.reload({params:o});
-						this.triggers[0].hide();
-						this.hasSearch = false;
-					}
-				}
-			,	onTrigger2Click : function(){
-					var v = this.getRawValue();
-					if(v.length < 1){
-						this.onTrigger1Click();
-						return;
-					}
+			store: this.store
+		,	width: 250
+		,	paramName: 'value'
+		,	onTrigger1Click : function(){
+				if(this.hasSearch){
+					this.el.dom.value = '';
 					var o = {start:0, limit:100};
 					this.store.baseParams = this.store.baseParams || {};
-					this.store.baseParams.cmd = 'searchEnLabels';
-					this.store.baseParams[this.paramName] = v;
+					this.store.baseParams.cmd = 'images';
+					this.store.baseParams[this.paramName] = '';
 					this.store.reload({params:o});
-					this.hasSearch = true;
-					this.triggers[0].show();
+					this.triggers[0].hide();
+					this.hasSearch = false;
 				}
+			}
+		,	onTrigger2Click : function(){
+				var v = this.getRawValue();
+				if(v.length < 1){
+					this.onTrigger1Click();
+					return;
+				}
+				var o = {start:0, limit:100};
+				this.store.baseParams = this.store.baseParams || {};
+				this.store.baseParams.cmd = 'searchEnLabels';
+				this.store.baseParams[this.paramName] = v;
+				this.store.reload({params:o});
+				this.hasSearch = true;
+				this.triggers[0].show();
+			}
 	});
 	
 	this.both = new Ext.ux.XTemplate(
@@ -201,7 +202,7 @@ ImagePortal.Image = function(config) {
 			'<tpl if="gTileProcessed == 1">'+
 				'<div class="divZoom bothIconZoomIn"  title="Double click to view large image.">&nbsp;</div>'+
 			'</tpl>'+
-			'<div class="ux-explorerview-icon"><img onerror="this.src=\'http://images.cyberfloralouisiana.com/portal/resources/images/no-image.gif\'" src="{path:this.testMirror}{barcode}_s.jpg"></div>'+
+			'<div class="ux-explorerview-icon"><img onerror="this.src=\'resources/images/no-image.gif\'" src="{path:this.testMirror}{[values.filename.replace("." + values.ext, "")]}_s.{ext}"></div>'+
 				'<div class="ux-explorerview-text"><div class="x-grid3-cell x-grid3-td-name" unselectable="on">{barcode} {Family}<br/>{Genus} {SpecificEpithet}<br/>'+
 				'<tpl if="barcode != 0">'+
 					'<span>Barcode: {barcode}</span><br>'+
@@ -220,11 +221,11 @@ ImagePortal.Image = function(config) {
 		'</tpl>'+	
 		'<div class="ux-explorerview-icon"><img  ' +
 		  	'<tpl if="Family != \'\' || Genus != \'\' || SpecificEpithet != \'\' ">'+
-				' qtip="' +
+				' ext:qtip="' +
 				'<tpl if="Family != \'\' " >{Family}<br></tpl>'+
 				'<tpl if="Genus != \'\' " >{Genus} {SpecificEpithet}"</tpl>'+
 			'</tpl>' +
-			'src="{path:this.testMirror}{barcode}_s.jpg" onerror="this.src=\'http://images.cyberfloralouisiana.com/portal/resources/images/no-image.gif\'" /></div>'+
+			'src="{path:this.testMirror}{[values.filename.replace("." + values.ext, "")]}_s.{ext}" onerror="this.src=\'resources/images/no-image.gif\'" /></div>'+
 		'</div>'
 	);
 
@@ -234,7 +235,7 @@ ImagePortal.Image = function(config) {
 		'<tpl if="gTileProcessed == 1">'+
 			'<div class="divZoom largeIconZoomIn" title="Double click to view large image.">&nbsp;</div>'+
 		'</tpl>'+
-		'<div class="ux-explorerview-icon"><img onerror="this.src=\'http://images.cyberfloralouisiana.com/portal/resources/images/no-image.gif\'" src="{path:this.testMirror}{barcode}_m.jpg"></div>'+
+		'<div class="ux-explorerview-icon"><img onerror="this.src=\'resources/images/no-image.gif\'" src="{path:this.testMirror}{[values.filename.replace("." + values.ext, "")]}_m.{ext}"></div>'+
 		'<div class="ux-explorerview-text"><div class="x-grid3-cell x-grid3-td-name" unselectable="on">{barcode}<br/> {Family}<span>{Genus} {SpecificEpithet}</span></div></div></div>'
 	);
 	this.tileIcons.setMirror(Config.mirrors);
@@ -419,7 +420,7 @@ ImagePortal.Image = function(config) {
 		,	viewConfig: {
 					rowTemplate: this.smallIcons
 				,	multiSelect: false
-				, 	singleSelect: true	
+				, singleSelect: true	
 				,	emptyText: 'No images available.'
 				,	deferEmptyText: false
 				,	forceFit: true

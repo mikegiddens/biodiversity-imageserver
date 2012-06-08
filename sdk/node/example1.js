@@ -1,17 +1,46 @@
 var nodeBIS = require('node_bis');
 
-var bis = new nodeBIS("mygWjFcGitqfQ", "http://bis.silverbiology.com/dev/resources/api/");
-
+var bis = new nodeBIS("mygWjFcGitqfQ", "bis.silverbiology.com", "/dev/resources/api/");
 /*
-bis.addImage('C:/xampp/htdocs/bis/dev/sdk/node/no-image.gif', function(err, data) {
-	if (err) {
-		console.log(err);
-	} else {
+bis.addImage('C:/xampp/htdocs/bis/dev/sdk/node/no-image.gif', function(data, err) {
+	if (data) {
 		console.log("Success", data);
+	} else {
+		console.log(err);
 	}
 });
 */
 
-bis.listStorage(function(data) {
-	console.log("Data: " , data);
+var params = {
+	barcode: 'USMS000018153'
+}
+
+
+bis.getImageInfo(params, function(data, err) {
+	if (data) {
+		console.log("Data: " , data);
+	} else {
+		console.log(err);
+	}
 });
+
+
+/*
+bis.getImageUrl(params, function(data, err) {
+	if (data) {
+		console.log("Data: " , data);
+	} else {
+		console.log(err);
+	}
+});
+*/
+
+/*
+bis.listStorage(function(data, err) {
+	if (data) {
+		console.log("Data: " , data);
+	} else {
+		console.log(err);
+	}
+});
+*/
