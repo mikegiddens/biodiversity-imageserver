@@ -890,12 +890,11 @@
 
 			$data['obj'] = $si->amazon;
 
-			header('Content-type: application/json');
 			if($valid) {
 				$si->image->setData($data);
 				$ret = $si->image->deleteImage();
 				if($ret['success']) {
-					print_c( json_encode( array( 'success' => true ) ) );
+					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time ) ) );
 				} else {
 					print_c( json_encode( array( 'success' => false, 'error' => array('code' => $ret['code'], 'message' => $si->getError($ret['code']))) ) );
 				}
@@ -2726,9 +2725,6 @@
 					$si->pqueue->set('image_id', $response['image_id']);
 					$si->pqueue->set('process_type','all');
 					$si->pqueue->save();
-					/*$si->pqueue->set('image_id', $response['image_id']);
-					$si->pqueue->set('process_type','ocr_add');
-					$si->pqueue->save();*/
 					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start, 'image_id' => $response['image_id'] ) ) );
 				} else {
 					$errorCode = 151;
@@ -2785,6 +2781,7 @@
 				print_c( json_encode( array( 'success' => false,  'error' => array('code' => $errorCode, 'msg' => $si->getError($errorCode)) ) ));
 			}
 			break;
+			
 			
 		
 

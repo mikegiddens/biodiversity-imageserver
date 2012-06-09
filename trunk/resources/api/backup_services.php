@@ -170,8 +170,8 @@ ini_set('display_errors', '1');
 							$loadFlag = $si->image->load_by_id($imageId);
 						}
 						if($loadFlag) {
-							if(!$si->pqueue->field_exists($si->image->get('barcode'),'ocr_add')) {
-								$si->pqueue->set('image_id', $si->image->get('barcode'));
+							if(!$si->pqueue->field_exists($si->image->get('image_id'),'ocr_add')) {
+								$si->pqueue->set('image_id', $si->image->get('image_id'));
 								$si->pqueue->set('process_type', 'ocr_add');
 								$si->pqueue->save();
 								$count++;
@@ -183,8 +183,8 @@ ini_set('display_errors', '1');
 				$ret = $si->image->getOcrRecords($filter);
 				$countFlag = true;
 				while(($record = $ret->fetch_object()) && ($countFlag)) {
-					if(!$si->pqueue->field_exists($record->barcode,'ocr_add')) {
-						$si->pqueue->set('image_id', $record->barcode);
+					if(!$si->pqueue->field_exists($record->image_id,'ocr_add')) {
+						$si->pqueue->set('image_id', $record->image_id);
 						$si->pqueue->set('process_type', 'ocr_add');
 						$si->pqueue->save();
 						$count++;
@@ -331,16 +331,21 @@ ini_set('display_errors', '1');
 				if($record === false) {
 					$loop_flag = false;
 				} else {
-					if($config['mode'] == 's3') {
-						$tmpFileName = 'Img_' . microtime();
-						$tmpFilePath = $_TMP . $tmpFileName;
-						$tmpFile = $tmpFilePath . '.jpg';
-						$key = $si->image->barcode_path($record->image_id) . $record->image_id . '.jpg';
-	
-						$si->amazon->get_object($config['s3']['bucket'], $key, array('fileDownload' => $tmpFile));
-					} else {
-						$tmpFilePath = $config['path']['images'] . $si->image->barcode_path($record->image_id) . $record->image_id;
-						$tmpFile = $tmpFilePath . '.jpg';
+					$si->image->load_by_id($record->image_id);
+					$device = $si->storage->get($si->image->get('storage_id'));
+					switch(strtolower($device['type'])) {
+						case 's3':
+							$tmpFileName = 'Img_' . microtime();
+							$tmpFilePath = $_TMP . $tmpFileName;
+							$tmpFile = $tmpFilePath . '.jpg';
+							$key = $si->image->get('path') . '/' . $si->image->get('filename');
+							$key = (substr($key, 0, 1)=='/') ? (substr($key, 1, strlen($key)-1)) : ($key);
+							$si->amazon->get_object($device['basePath'], $key, array('fileDownload' => $tmpFile));
+							break;
+						case 'local':
+							$tmpFilePath = $device['basePath'] . $si->image->get('path') . '/' . $si->image->get('filename');
+							$tmpFile = $tmpFilePath;
+							break;
 					}
 	
 					if($config['image_processing'] == 1) {
@@ -357,7 +362,7 @@ ini_set('display_errors', '1');
 	
 					if(@file_exists($tmpFilePath . '.txt')){
 						$value = file_get_contents($tmpFilePath . '.txt');
-						$si->image->load_by_barcode($record->image_id);
+						//$si->image->load_by_barcode($record->image_id);
 						$images_array[] = array('image_id' => $si->image->get('image_id'), 'barcode' => $si->image->get('barcode'));
 						$image_count++;
 	
@@ -366,7 +371,7 @@ ini_set('display_errors', '1');
 						$si->image->save();
 					}
 	
-					if($config['mode'] == 's3') {
+					if(strtolower($device['type']) == 's3') {
 						@unlink($tmpFile);
 						@unlink($tmpFilePath . '.txt');
 					}
@@ -642,7 +647,7 @@ ini_set('display_errors', '1');
 		case 'populateEnLabels':
 			$time_start = microtime(true);
 			$start_date = $si->s2l->getLatestDate();
-	
+
 			$url = $config['hsUrl'] . '?task=getEnLabels&start_date=' . $start_date;
 			$jsonObject = @stripslashes(@file_get_contents($url));
 	

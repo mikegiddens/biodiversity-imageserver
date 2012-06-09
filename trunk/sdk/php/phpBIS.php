@@ -646,6 +646,19 @@ class phpBIS
 			return false;
 		}
 	}
+	public function populateOcrProcessQueue($imageIds) {
+		$data['image_id'] = json_encode($imageIds);
+		$data['cmd'] = 'populateOcrProcessQueue';
+		$result = $this->CURL($this->server . '/backup_services.php', $data);
+		$result = json_decode($result, true);
+		if($result['success'] == true) {
+			return $result;
+		} else {
+			$this->lastError['code'] = $result['error']['code'];
+			$this->lastError['msg'] = $result['error']['msg'];
+			return false;
+		}
+	}
 	public function getLastError() {
 		return $this->lastError;
 	}
