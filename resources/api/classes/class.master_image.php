@@ -1190,27 +1190,35 @@ Class Image {
 	public function deleteImage() {
 		global $config;
 		$imageId = $this->data['image_id'];
+		$storage = new Storage($this->db);
 		if($imageId != '' && $this->field_exists($imageId)) {
 			$this->load_by_id($imageId);
-			$barcode = $this->get('barcode');
-			if($config['mode'] == 's3') {
-				foreach(array('_s','_m','_l','') as $postfix) {
-					$response = $image['obj']->delete_object($config['s3']['bucket'], $this->barcode_path($barcode) . $barcode . $postfix . '.jpg');
-				}
-			} else {
-				$imagePath = $config['path']['images'] . $this->barcode_path( $barcode );
-				# deleting related images
-				if(is_dir($imagePath)) {
-					$handle = opendir($imagePath);
-					while (false !== ($file = readdir($handle))) {
-						if( $file == '.' || $file == '..' /* || $file == $this->get('filename') */ ) continue;
-						if (is_dir($imagePath.$file)) {
-							$this->rrmdir($imagePath.$file);
-						} else if(is_file($imagePath.$file)) {
-							@unlink($imagePath.$file);
+			$device = $storage->get($this->get('storage_id'));
+			$filenameParts = explode('.', $this->get('filename'));
+			switch(strtolower($device['type'])) {
+				case 's3':
+					$tmp = $this->get('path');
+					$tmp = (substr($tmp, 0, 1)=='/') ? (substr($tmp, 1, strlen($tmp)-1)) : ($tmp);
+					$tmp = (substr($tmp, strlen($tmp)-1, 1)=='/') ? (substr($tmp, 0, strlen($tmp)-1)) : ($tmp);
+					foreach(array('_s','_m','_l','') as $postfix) {
+						$response = $this->data['obj']->delete_object($device['basePath'], $tmp .'/'. $filenameParts[0] . $postfix .'.'. $filenameParts[1]);
+					}
+					break;
+				case 'local':
+					$imagePath = $device['basePath'] . $this->get('path') . '/';
+					# deleting related images
+					if(is_dir($imagePath)) {
+						$handle = opendir($imagePath);
+						while (false !== ($file = readdir($handle))) {
+							if( $file == '.' || $file == '..' /* || $file == $this->get('filename') */ ) continue;
+							if (is_dir($imagePath.$file)) {
+								$this->rrmdir($imagePath.$file);
+							} else if(is_file($imagePath.$file)) {
+								@unlink($imagePath.$file);
+							}
 						}
 					}
-				}
+					break;
 			}
 			$delquery = sprintf("DELETE FROM `image` WHERE `image_id` = '%s' ", mysql_escape_string($imageId));
 			if($this->db->query($delquery)) {
