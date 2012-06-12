@@ -1103,69 +1103,73 @@
 					$fl = @pathinfo($file);
 					$barcode = $fl['filename'];
 					if($barcode == '') {continue;}
+					
+					if(!$si->image->load_by_barcode($barcode)) continue;
+					$device = $si->storage->get($si->image->get('storage_id'));
 
-					switch($config['mode']) {
+					switch(strtolower($device['type'])) {
 						case 's3':
-							$prefix = $si->image->barcode_path($barcode);
-							$response = $si->amazon->list_objects($config['s3']['bucket'],array('prefix' => $prefix));
+							$prefix = $si->image->get('path');
+							$prefix = (substr($prefix, 0, 1)=='/') ? (substr($prefix, 1, strlen($prefix)-1)) : ($prefix);
+							$response = $si->amazon->list_objects($device['basePath'],array('prefix' => $prefix));
 							if($response->isOK()) {
-							$ar = array_fill_keys($tplArray,false);
-							$opArray = array('small','medium','large','google_tile');
-							$body = $response->body;
+								$ar = array_fill_keys($tplArray,false);
+								$opArray = array('small','medium','large','google_tile');
+								$body = $response->body;
 						
-							for($i=0;$i<count($body->Contents);$i++){
-								$ky = $body->Contents[$i];
-								$filePath = $ky->Key;
-								$fileDetails = @pathinfo($filePath);
-								$bcode = $fileDetails['filename'];
-								if(count($opArray)) {
-									foreach($opArray as $op) {
-										if(@strpos($bcode,$linkArray[$op]) !== false) {
-											$ar[$op] = true;
-											$ky = @array_search($op,$opArray);
-											if($ky !== false) {
-												unset($opArray[$ky]);
+								for($i=0;$i<count($body->Contents);$i++){
+									$ky = $body->Contents[$i];
+									$filePath = $ky->Key;
+									$fileDetails = @pathinfo($filePath);
+									$bcode = $fileDetails['filename'];
+									if(count($opArray)) {
+										foreach($opArray as $op) {
+											if(@strpos($bcode,$linkArray[$op]) !== false) {
+												$ar[$op] = true;
+												$ky = @array_search($op,$opArray);
+												if($ky !== false) {
+													unset($opArray[$ky]);
+												}
+												break;
 											}
-											break;
-										}
-									} # foreach
-								}
-							} # for contents
-							$displayAr = array();
-							$displayAr = $ar;
-							if($ar['small'] == false && $ar['medium'] == false && $ar['large'] == false && $autoProcess['small'] == true && $autoProcess['medium'] == true && $autoProcess['large'] == true) {
-								unset($ar['small']);
-								unset($ar['medium']);
-								unset($ar['large']);
-								if(!$si->pqueue->field_exists($barcode,'all')) {
-									$si->pqueue->set('image_id', $barcode);
-									$si->pqueue->set('process_type', 'all');
-									$si->pqueue->save();
-								}
-							}
-							if( is_array($autoProcess) && count($autoProcess) ) {
-								foreach($autoProcess as $key => $value ) {
-									if($value === true) {
-										if(@in_array($key,$tplArray) && $ar[$key] === false) {
-											if(!$si->pqueue->field_exists($barcode,$key)) {
-												$si->pqueue->set('image_id', $barcode);
-												$si->pqueue->set('process_type', $key);
-												$si->pqueue->save();
-											}
-										}
+										} # foreach
 									}
-								} # foreach auto-process
+								} # for contents
+								$displayAr = array();
+								$displayAr = $ar;
+								if($ar['small'] == false && $ar['medium'] == false && $ar['large'] == false && $autoProcess['small'] == true && $autoProcess['medium'] == true && $autoProcess['large'] == true) {
+									unset($ar['small']);
+									unset($ar['medium']);
+									unset($ar['large']);
+									if(!$si->pqueue->field_exists($si->image->get('image_id'),'all')) {
+										$si->pqueue->set('image_id', $si->image->get('image_id'));
+										$si->pqueue->set('process_type', 'all');
+										$si->pqueue->save();
+									}
+								}
+								if( is_array($autoProcess) && count($autoProcess) ) {
+									foreach($autoProcess as $key => $value ) {
+										if($value === true) {
+											if(@in_array($key,$tplArray) && $ar[$key] === false) {
+												if(!$si->pqueue->field_exists($si->image->get('image_id'),$key)) {
+													$si->pqueue->set('image_id', $si->image->get('image_id'));
+													$si->pqueue->set('process_type', $key);
+													$si->pqueue->save();
+												}
+											}
+										}
+									} # foreach auto-process
 	
-							} # if autoprocess
+								} # if autoprocess
 	
-						} # response ok
-						$statsArray[] = array('file' => $fl['basename'], 'barcode' => $fl['filename'], 'details' => $displayAr);
-						break;
+							} # response ok
+							$statsArray[] = array('file' => $fl['basename'], 'barcode' => $fl['filename'], 'details' => $displayAr);
+							break;
 
 						default:
 						# config mode local
 	
-						$imagePath = $config['path']['images'] . $si->image->barcode_path( $barcode );
+						$imagePath = $device['basePath'] . $si->image->get('path') .'/';
 						clearstatcache();
 						if(@file_exists($imagePath)) {
 							$ar = array_fill_keys($tplArray,false);
@@ -1196,8 +1200,8 @@
 							unset($ar['small']);
 							unset($ar['medium']);
 							unset($ar['large']);
-							if(!$si->pqueue->field_exists($barcode,'all')) {
-								$si->pqueue->set('image_id', $barcode);
+							if(!$si->pqueue->field_exists($si->image->get('image_id'),'all')) {
+								$si->pqueue->set('image_id', $si->image->get('image_id'));
 								$si->pqueue->set('process_type', 'all');
 								$si->pqueue->save();
 							}
@@ -1206,8 +1210,8 @@
 							foreach($autoProcess as $key => $value ) {
 								if($value === true) {
 									if(@in_array($key,$tplArray) && $ar[$key] === false) {
-										if(!$si->pqueue->field_exists($barcode,$key)) {
-											$si->pqueue->set('image_id', $barcode);
+										if(!$si->pqueue->field_exists($si->image->get('image_id'),$key)) {
+											$si->pqueue->set('image_id', $si->image->get('image_id'));
 											$si->pqueue->set('process_type', $key);
 											$si->pqueue->save();
 										}
@@ -1257,11 +1261,11 @@
 								$si->image->setdata(array('field' => 'barcode', 'value' =>$si->s2l->get('barcode') ));
 								$ar = $si->image->listImages();
 								$ar = $ar[0];
-								if($config['mode'] == 's3') {
-									$ar->path = $config['s3']['url'] . $si->image->barcode_path($si->s2l->get('barcode'));
-								} else {
-									$ar->path =  str_replace($config['doc_root'],$config['base_url'] . '/', $config['path']['images'] . $si->image->barcode_path($si->s2l->get('barcode')));
-								}
+								$si->image->load_by_barcode($si->s2l->get('barcode'));
+								$device = $si->storage->get($si->image->get('storage_id'));
+								$path = $si->image->get('path');
+								$path = (substr($path, 0, 1)=='/') ? substr($path, 1, strlen($path)-1) : $path;
+								$ar->path = $device['baseUrl'] . $si->image->get('path').'/';
 								$data[$label] = $ar;
 							}
 						}
