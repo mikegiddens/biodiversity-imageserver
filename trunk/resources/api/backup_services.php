@@ -335,9 +335,9 @@ ini_set('display_errors', '1');
 					$device = $si->storage->get($si->image->get('storage_id'));
 					switch(strtolower($device['type'])) {
 						case 's3':
-							$tmpFileName = 'Img_' . microtime();
-							$tmpFilePath = $_TMP . $tmpFileName;
-							$tmpFile = $tmpFilePath . '.jpg';
+							$tmpFileName = 'Img_' . uniqid();
+							$tmpFilePath = $_TMP . $tmpFileName . '.jpg';
+							$tmpFile = $tmpFilePath;
 							$key = $si->image->get('path') . '/' . $si->image->get('filename');
 							$key = (substr($key, 0, 1)=='/') ? (substr($key, 1, strlen($key)-1)) : ($key);
 							$si->amazon->get_object($device['basePath'], $key, array('fileDownload' => $tmpFile));
@@ -362,7 +362,6 @@ ini_set('display_errors', '1');
 	
 					if(@file_exists($tmpFilePath . '.txt')){
 						$value = file_get_contents($tmpFilePath . '.txt');
-						//$si->image->load_by_barcode($record->image_id);
 						$images_array[] = array('image_id' => $si->image->get('image_id'), 'barcode' => $si->image->get('barcode'));
 						$image_count++;
 	
