@@ -40,6 +40,8 @@
     * [WS_BarcodeDetect  Barcode Detection]
   * Queue
     * [WS_ChecklistSearch  Checklist Search]
+    * [WS_ProcessQueue Process Queue]
+    * [WS_PopulateOcrProcessQueue Populate Ocr Process Queue]
   * Events
     * [WS_AddEvent Add Event]
     * [WS_ListEvents List Events]
