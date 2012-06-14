@@ -5,8 +5,8 @@
  */
 
 require_once('./config.php');
-require_once(BASE_PATH . 'classes/class.evernote.php');
-require_once(BASE_PATH . 'classes/class.xml2json.php');
+require_once('classes/class.evernote.php');
+require_once('classes/class.xml2json.php');
 
 $expected=array(
 	  'cmd'
@@ -156,6 +156,19 @@ switch($cmd) {
 			print json_encode( array( 'success' => false, 'error' => array( 'msg' => getError($code), 'code' => $code ) ) );
 		}
 
+		break;
+		
+	case 'listNotebooks':
+		if(trim($auth) == '') {
+			$valid = false;
+			$code = 101;
+		} else {
+			$auth = json_decode(stripslashes(trim($auth)),true);
+		}
+		$evernote->authenticate($auth);
+		$ret = $evernote->listNotebooks();
+		echo '<pre>';
+		var_dump($ret);
 		break;
 
 	default:
