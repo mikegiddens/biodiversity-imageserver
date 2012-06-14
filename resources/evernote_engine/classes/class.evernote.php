@@ -1,7 +1,7 @@
 <?php
-require_once( BASE_PATH . 'classes/evernote' . DIRECTORY_SEPARATOR . "bootstrap.php");
-if ( is_file( BASE_PATH . 'classes/evernote' . DIRECTORY_SEPARATOR . "localDefines.php"))
-	require_once( BASE_PATH . 'classes/evernote' . DIRECTORY_SEPARATOR . "localDefines.php");
+require_once( 'evernote' . DIRECTORY_SEPARATOR . "bootstrap.php");
+if ( is_file( 'evernote' . DIRECTORY_SEPARATOR . "localDefines.php"))
+	require_once( 'classes/evernote' . DIRECTORY_SEPARATOR . "localDefines.php");
 
 Class EverNote {
 
@@ -18,7 +18,8 @@ Class EverNote {
 			$userStoreHttpClient = new THttpClient($this->evernote_data['evernoteHost'], $this->evernote_data['evernotePort'], "/edam/user", $this->evernote_data['evernoteScheme']);
 			$userStoreProtocol = new TBinaryProtocol($userStoreHttpClient);
 			$userStore = new UserStoreClient($userStoreProtocol, $userStoreProtocol);
-	
+
+			$evernote_array = (is_array($evernote_array[0])) ? $evernote_array[0] : $evernote_array;
 			$authResult = $userStore->authenticate($evernote_array['username'], $evernote_array['password'], $evernote_array['consumerKey'], $evernote_array['consumerSecret']);
 
 			$this->evernote_account['user'] = $authResult->user;
