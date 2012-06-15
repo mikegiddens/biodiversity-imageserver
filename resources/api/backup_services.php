@@ -14,6 +14,8 @@ ini_set('display_errors', '1');
 		, 'image_id'
 		, 'limit'
 		, 'stop' # stop is the number of seconds that the loop should run
+		, 'collection'
+		, 'enId'
 	);
 
 	// Initialize allowed variables
@@ -647,7 +649,7 @@ ini_set('display_errors', '1');
 			$time_start = microtime(true);
 			$start_date = $si->s2l->getLatestDate();
 
-			$url = $config['hsUrl'] . '?task=getEnLabels&start_date=' . $start_date;
+			$url = $config['hsUrl'] . '?task=getEnLabels&start_date=' . $start_date; echo $url; exit;
 			$jsonObject = @stripslashes(@file_get_contents($url));
 	
 			$jsonObject = json_decode($jsonObject,true);
@@ -815,6 +817,91 @@ ini_set('display_errors', '1');
 			$time_taken = microtime(true) - $time_start;
 			header('Content-type: application/json');
 			print json_encode(array('success' => true, 'process_time' => $time_taken, 'total' => $image_count, 'images' => $images_array));
+			break;
+			
+		case 'populateEvernoteProcessQueue':
+			$time_start = microtime(true);
+			$count = 0;
+			$filter['start'] = 0;
+			$filter['limit'] = $limit;
+			$filter['collection'] = (trim($collection!='')) ? $collection : '';
+			if(trim($image_id) != '') {
+				$imageIds = json_decode(stripslashes($image_id),true);
+				if(is_array($imageIds) && count($imageIds)) {
+					foreach($imageIds as $imageId) {
+						$loadFlag = false;
+						if(!is_numeric($imageId)) {
+							$loadFlag = $si->image->load_by_barcode($imageId);
+						} else {
+							$loadFlag = $si->image->load_by_id($imageId);
+						}
+						if($loadFlag) {
+							if(!$si->pqueue->field_exists($si->image->get('image_id'),'evernote')) {
+								$si->pqueue->set('image_id', $si->image->get('image_id'));
+								$si->pqueue->set('process_type', 'evernote');
+								$si->pqueue->save();
+								$count++;
+							}
+						}
+					}
+				}
+			} else {
+				$ret = $si->image->getNonENProcessedRecords($filter);
+				$countFlag = true;
+				while(($record = $ret->fetch_object()) && $countFlag) {
+					if(!$si->pqueue->field_exists($record->image_id,'evernote')) {
+						$si->pqueue->set('image_id', $record->image_id);
+						$si->pqueue->set('process_type', 'evernote');
+						$si->pqueue->save();
+						$count++;
+						if($limit != '' && $count >= $limit) {
+							$countFlag = false;
+						}
+					}
+				}
+			}
+			$time = microtime(true) - $time_start;
+			header('Content-type: application/json');
+			print json_encode(array('success' => true, 'process_time' => $time, 'total_records_added' => $count));
+			break;
+			
+		case 'processEvernoteProcessQueue':
+			$time_start = microtime(true);
+			$tStart = time();
+			$loop_flag = true;
+			$image_count = 0;
+			if(!$si->en->load_by_enId( $enId )) {
+				print json_encode(array('success' => false, 'message' => 'No valid evernote account id given'));
+				exit;
+			}
+			while($loop_flag) {
+				$tDiff = time() - $tStart;
+				if( ($stop != '') && ( $tDiff > $stop) ) $loop_flag = false;
+				if($limit != '' && $image_count >= $limit) $loop_flag = false;
+				$record = $si->pqueue->popQueue('evernote');
+				if($record === false) {
+					$loop_flag = false;
+				} else {
+					$si->image->load_by_id($record->image_id);
+					
+					$url = "http://bis.silverbiology.com/dev/resources/evernote_engine/evernote.php?cmd=add_note";
+					$url .= "&title=".$si->image->get('barcode');
+					$label = $si->image->getUrl($record->image_id);
+					$url .= "&label=".$label['url'];
+					$url .= "&auth=[".json_encode($si->en->getEvernoteDetails()).']';
+					$result = file_get_contents($url);
+					$result = json_decode($result, true);
+					if($result['success']) {
+						$si->s2l->set('labelId',$result['noteRet']['noteRet']['updateSequenceNum']);
+						$si->s2l->set('evernoteAccountId',$enId);
+						$si->s2l->set('barcode',$si->image->get('barcode'));
+						$si->s2l->save();
+						$image_count++;
+					}
+				}
+			}
+			$time_taken = microtime(true) - $time_start;
+			print json_encode(array('success' => true, 'process_time' => $time_taken, 'total' => $image_count));
 			break;
 	
 	# Test Tasks

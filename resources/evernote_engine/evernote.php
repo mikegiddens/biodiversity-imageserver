@@ -25,6 +25,7 @@ foreach ($expected as $formvar)
 	$$formvar = (isset(${"_$_SERVER[REQUEST_METHOD]"}[$formvar])) ? ${"_$_SERVER[REQUEST_METHOD]"}[$formvar]:NULL;
 
 
+$EverNoteValues['notebookGuid'] = 'd0f50fae-cc9c-4edf-a124-d675b2ca126d';
 $evernote = new EverNote($EverNoteValues);
 
 $valid = true;
@@ -134,7 +135,7 @@ switch($cmd) {
 			$filter = array('order' => null
 					, 'ascending' => null
 					, 'words' => $searchWord
-					, 'notebookGuid' => null
+					, 'notebookGuid' => $EverNoteValues['notebookGuid']
 					, 'tagGuids' => null
 					, 'timeZone' => null
 					, 'inactive' => null);
@@ -145,8 +146,7 @@ switch($cmd) {
 				$notes = $ret['noteRet']->notes;
 				if(is_array($notes) && count($notes)) {
 					foreach($notes as $note) {
-						$ar = @explode(':',$note->title);
-						(!in_array($ar[2],$labelArray)) ? $labelArray[] = $ar[2] : '';
+						$labelArray[] = $note->updateSequenceNum;
 					}
 				}
 			}

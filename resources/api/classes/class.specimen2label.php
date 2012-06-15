@@ -66,12 +66,24 @@ Class Specimen2label {
 		return(false);
 	}
 
+	public function load_by_barcode( $barcode ) {
+		if($barcode == '') return false;
+		$query = sprintf("SELECT * FROM `specimen2label` WHERE `barcode` = '%s'", mysql_escape_string($barcode) );
+		$ret = $this->db->query_one( $query );
+		if ($ret != NULL) {
+			foreach( $ret as $field => $value ) {
+				$this->set($field, $value);
+			}
+			return(true);
+		}
+		return(false);
+	}
+
 	public function save() {
-		$query = sprintf("INSERT IGNORE INTO `specimen2label` SET `labelId` = '%s', `evernoteAccountId` = '%s', `barcode` = '%s', `dateAdded` = '%s';"
+		$query = sprintf("INSERT IGNORE INTO `specimen2label` SET `labelId` = '%s', `evernoteAccountId` = '%s', `barcode` = '%s', `dateAdded` = now();"
 		, mysql_escape_string($this->get('labelId'))
 		, mysql_escape_string($this->get('evernoteAccountId'))
 		, mysql_escape_string($this->get('barcode'))
-		, mysql_escape_string($this->get('dateAdded'))
 		);
 		if( $this->db->query($query) ) {
 			return( true );

@@ -617,6 +617,7 @@
 						$dt->path = $tmpPath['baseUrl'];
 						$fname = explode(".", $dt->filename);
 						$dt->ext = $fname[1];
+						$dt->EN_flag = ($si->s2l->load_by_barcode($dt->barcode)) ? 1 : 0;
 
 					}
 				}
@@ -1247,25 +1248,25 @@
 				foreach($accounts as $account) {
 				$evernote_details_json = json_encode($account);
 
-				$url = $config['evernoteUrl'] . '?cmd=findNotes&auth=' . $evernote_details_json . '&start=' . $start . '&limit=' . $limit . '&searchWord=' . urlencode($searchWord);
+				$url = "http://bis.silverbiology.com/dev/resources/evernote_engine/evernote.php";
+				$url .= '?cmd=findNotes&auth=[' . $evernote_details_json . ']&start=' . $start . '&limit=' . $limit . '&searchWord=' . urlencode($searchWord);
 				$rr = json_decode(@file_get_contents($url),true);
 				if($rr['success']) {
-					$totalNotes += $rr['totalNotes'];
+					//$totalNotes += $rr['totalNotes'];
 					$labels = $rr['data'];
 					if(is_array($labels) && count($labels)) {
 						foreach($labels as $label) {
 							if(!array_key_exists($label,$data)) {
 								$ar = array();
-								$si->s2l->load_by_labelId($label);
-
-								$si->image->setdata(array('field' => 'barcode', 'value' =>$si->s2l->get('barcode') ));
+								if(!$si->s2l->load_by_labelId($label)) continue;
+								$totalNotes++;
+								$si->image->setData(array("field"=>"barcode", "value"=>$si->s2l->get('barcode'), "start"=>0, "limit"=>$limit));
 								$ar = $si->image->listImages();
 								$ar = $ar[0];
-								$si->image->load_by_barcode($si->s2l->get('barcode'));
-								$device = $si->storage->get($si->image->get('storage_id'));
-								$path = $si->image->get('path');
-								$path = (substr($path, 0, 1)=='/') ? substr($path, 1, strlen($path)-1) : $path;
-								$ar->path = $device['baseUrl'] . $si->image->get('path').'/';
+								$tmpPath = $si->image->getUrl($ar->image_id);
+								$ar->path = $tmpPath['baseUrl'];
+								$fname = explode(".", $ar->filename);
+								$ar->ext = $fname[1];	
 								$data[$label] = $ar;
 							}
 						}

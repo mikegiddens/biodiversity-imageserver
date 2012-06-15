@@ -221,6 +221,9 @@ Class ProcessQueue {
 			case 'name_add':
 				$query = "SELECT * FROM `process_queue` WHERE `process_type` = 'name_add' ORDER BY `date_added` LIMIT 1";
 				break;
+			case 'evernote':
+				$query = "SELECT * FROM `process_queue` WHERE `process_type` = 'evernote' ORDER BY `date_added` LIMIT 1";
+				break;
 			case 'all':
 				$query = "SELECT * FROM `process_queue` WHERE `process_type` = 'all' ORDER BY `date_added` LIMIT 1";
 				break;
