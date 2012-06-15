@@ -28,7 +28,7 @@ Class EverNote {
 			$noteStoreHttpClient = new THttpClient($this->evernote_data['evernoteHost'], $this->evernote_data['evernotePort'], '/edam/note/' . $this->evernote_account['user']->shardId, $this->evernote_data['evernoteScheme']);
 			$noteStoreProtocol = new TBinaryProtocol($noteStoreHttpClient);
 			$this->evernote_account['noteStore'] = new NoteStoreClient($noteStoreProtocol, $noteStoreProtocol);
-			$this->evernote_account['notebookGuid'] = $this->getDefaultNoteBookId();
+			$this->evernote_account['notebookGuid'] = $this->evernote_data['notebookGuid'];
 		
 		} catch (edam_error_EDAMSystemException $e) {
 			if (isset(edam_error_EDAMErrorCode::$__names[$e->errorCode])) {

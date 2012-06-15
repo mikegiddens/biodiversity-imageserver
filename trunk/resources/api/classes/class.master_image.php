@@ -2173,5 +2173,16 @@ Class Image {
 			return false;
 		}
 	}
+
+	public function getNonENProcessedRecords($filter='') {
+		if($filter['collection']=='')
+			$query = " SELECT * FROM `image` WHERE `barcode` NOT IN (SELECT `barcode` from `specimen2label`) ";
+		else
+			$query = sprintf(" SELECT * FROM `image` WHERE `barcode` NOT IN (SELECT `barcode` from `specimen2label`) AND `CollectionCode` = '%s' ", mysql_escape_string($filter['collection']) );
+		if(trim($filter['start']) != '' && trim($filter['limit']) != '') {
+			$query .= build_limit(trim($filter['start']),trim($filter['limit']));
+		}
+		return ($this->db->query($query));
+	}
 }
 ?>
