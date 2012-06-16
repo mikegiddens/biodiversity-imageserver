@@ -617,7 +617,7 @@
 						$dt->path = $tmpPath['baseUrl'];
 						$fname = explode(".", $dt->filename);
 						$dt->ext = $fname[1];
-						$dt->EN_flag = ($si->s2l->load_by_barcode($dt->barcode)) ? 1 : 0;
+						$dt->en_flag = ($si->s2l->load_by_barcode($dt->barcode)) ? 1 : 0;
 
 					}
 				}
@@ -1238,6 +1238,15 @@
 				$errorCode = 118;
 			}
 			if($valid) {
+				$tag = (trim($tag)!='') ? $tag : '';
+				if($tag != '') {
+					$tagRecord = $si->en->load_by_tagName($tag);
+					if($tagRecord) {
+						$tag = $tagRecord['tagGuid'];
+					} else {
+						$tag = '';
+					}
+				}
 				$start = (trim($start) == '') ? 0 : trim($start);
 				$limit = (trim($limit) == '') ? 25 : trim($limit);
 				$data = array();
@@ -1248,8 +1257,9 @@
 				foreach($accounts as $account) {
 				$evernote_details_json = json_encode($account);
 
-				$url = "http://bis.silverbiology.com/dev/resources/evernote_engine/evernote.php";
-				$url .= '?cmd=findNotes&auth=[' . $evernote_details_json . ']&start=' . $start . '&limit=' . $limit . '&searchWord=' . urlencode($searchWord);
+				$url = "http://bis.silverbiology.com/dev/resources/evernote_engine/evernote.php?";
+				$url .= 'cmd=findNotes&auth=[' . $evernote_details_json . ']&start=' . $start . '&limit=' . $limit . '&searchWord=' . urlencode($searchWord);
+				if($tag != '') $url .= '&tag=[\"'.$tag.'\"]';
 				$rr = json_decode(@file_get_contents($url),true);
 				if($rr['success']) {
 					//$totalNotes += $rr['totalNotes'];
@@ -1268,6 +1278,7 @@
 								$fname = explode(".", $ar->filename);
 								$ar->ext = $fname[1];	
 								$data[$label] = $ar;
+								$ar->en_flag = ($si->s2l->load_by_barcode($ar->barcode)) ? 1 : 0;
 							}
 						}
 					}
