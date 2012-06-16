@@ -28,7 +28,7 @@ Class EverNote {
 			$noteStoreHttpClient = new THttpClient($this->evernote_data['evernoteHost'], $this->evernote_data['evernotePort'], '/edam/note/' . $this->evernote_account['user']->shardId, $this->evernote_data['evernoteScheme']);
 			$noteStoreProtocol = new TBinaryProtocol($noteStoreHttpClient);
 			$this->evernote_account['noteStore'] = new NoteStoreClient($noteStoreProtocol, $noteStoreProtocol);
-			$this->evernote_account['notebookGuid'] = $this->evernote_data['notebookGuid'];
+			$this->evernote_account['notebookGuid'] = $evernote_array['notebookGuid'];
 		
 		} catch (edam_error_EDAMSystemException $e) {
 			if (isset(edam_error_EDAMErrorCode::$__names[$e->errorCode])) {
@@ -69,7 +69,7 @@ Class EverNote {
  * @param string $title : title of the note
  * @return mixed $note
  */
-	public function createNote($label,$title) {
+	public function createNote($label,$title,$tag) {
 
 		$image = file_get_contents($label);
 		$hash = md5($image);
@@ -99,7 +99,7 @@ Class EverNote {
 		$note->tagGuids = null;
 		$note->resources = array($resource);
 		$note->attributes = null;
-		$note->tagNames = null;
+		$note->tagNames = $tag;
 
 		return $note;
 	}

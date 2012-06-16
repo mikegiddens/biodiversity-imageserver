@@ -886,6 +886,10 @@ ini_set('display_errors', '1');
 					
 					$url = "http://bis.silverbiology.com/dev/resources/evernote_engine/evernote.php?cmd=add_note";
 					$url .= "&title=".$si->image->get('barcode');
+					if($si->image->get('CollectionCode') != '') {
+						$tagName = "CollectionCode:".$si->image->get('CollectionCode');
+						$url .= "&tag=[\"".$tagName."\"]";
+					}
 					$label = $si->image->getUrl($record->image_id);
 					$url .= "&label=".$label['url'];
 					$url .= "&auth=[".json_encode($si->en->getEvernoteDetails()).']';
@@ -896,6 +900,8 @@ ini_set('display_errors', '1');
 						$si->s2l->set('evernoteAccountId',$enId);
 						$si->s2l->set('barcode',$si->image->get('barcode'));
 						$si->s2l->save();
+						if($si->image->get('CollectionCode') != '')
+						$si->en->addTag($tagName, $result['noteRet']['noteRet']['tagGuids'][0]);
 						$image_count++;
 					}
 				}

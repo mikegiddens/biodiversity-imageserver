@@ -74,6 +74,7 @@ Class EvernoteAccounts {
 			, 'password' => $this->get('password')
 			, 'consumerKey' => $this->get('consumerKey')
 			, 'consumerSecret' => $this->get('consumerSecret')
+			, 'notebookGuid' => $this->get('notebookGuid')
 			);
 	}
 
@@ -87,10 +88,71 @@ Class EvernoteAccounts {
 						, 'password' => $acnt->password
 						, 'consumerKey' => $acnt->consumerKey
 						, 'consumerSecret' => $acnt->consumerSecret
+						, 'notebookGuid' => $acnt->notebookGuid
 						);
 			}
 		}
 		return $accounts;
+	}
+
+/**
+ *  Functions related to Evernote tags
+ */
+
+	public function getAllTags() {
+		$query = "SELECT * FROM `evernote_tags` ORDER BY `tagName`";
+		$tags = $this->db->query_all($query);
+		if(is_array($tags) && count($tags)) {
+			foreach($tags as $tag) {
+				$tagList[] = array('tagName' => $tag->$tagName, 'tagGuid' => $tag->$tagGuid);
+			}
+		}
+		return $tagList;
+	}
+	
+	public function existTagGuid($tagGuid) {
+		if($tagGuid=='') return false;
+		$query = sprintf("SELECT * FROM `evernote_tags` WHERE `tagGuid` = '%s'", mysql_escape_string($tagGuid));
+		$ret = $this->db->query_one( $query );
+		if ($ret != NULL)
+			return(true);
+		else
+			return(false);
+	}
+	
+	public function existTagName($tagName) {
+		if($tagName=='') return false;
+		$query = sprintf("SELECT * FROM `evernote_tags` WHERE `tagName` = '%s'", mysql_escape_string($tagName));
+		$ret = $this->db->query_one( $query );
+		if ($ret != NULL)
+			return(true);
+		else
+			return(false);
+	}
+	
+	public function addTag($tagName, $tagGuid) {
+		if($tagName=='' || $tagGuid=='') return false;
+		if(!$this->existTagGuid($tagGuid)) {
+			$query = sprintf("INSERT INTO `evernote_tags` SET `tagName` = '%s', `tagGuid` = '%s'"
+					, mysql_escape_string($tagName)
+					, mysql_escape_string($tagGuid)
+					);
+			$this->db->query($query);
+		}
+		return true;
+	}
+	
+	public function load_by_tagName($tagName) {
+		if($tagName == '') return false;
+		$query = sprintf("SELECT * FROM `evernote_tags` WHERE `tagName` = '%s'", mysql_escape_string($tagName) );
+		$ret = $this->db->query_one( $query );
+		if ($ret != NULL) {
+			foreach( $ret as $field => $value ) {
+				$tag[$field] = $value;
+			}
+			return($tag);
+		}
+		return(false);
 	}
 }	
 ?>

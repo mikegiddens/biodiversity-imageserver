@@ -18,6 +18,7 @@ $expected=array(
 	, 'searchWord'
 	, 'start'
 	, 'limit'
+	, 'tag'
 );
 
 // Initialize allowed variables
@@ -25,7 +26,6 @@ foreach ($expected as $formvar)
 	$$formvar = (isset(${"_$_SERVER[REQUEST_METHOD]"}[$formvar])) ? ${"_$_SERVER[REQUEST_METHOD]"}[$formvar]:NULL;
 
 
-$EverNoteValues['notebookGuid'] = 'd0f50fae-cc9c-4edf-a124-d675b2ca126d';
 $evernote = new EverNote($EverNoteValues);
 
 $valid = true;
@@ -53,8 +53,10 @@ switch($cmd) {
 
 		header('Content-type: application/json');
 		if($valid) {
+
+			$tag = (trim($tag)!='') ? json_decode(stripslashes(trim($tag)), true) : null;
 			$evernote->authenticate($auth);
-			$note = $evernote->createNote($label,$title);
+			$note = $evernote->createNote($label,$title, $tag);
 			$noteRet = $evernote->addNote($note);
 			print json_encode( array( 'success' => true, 'noteRet' => $noteRet ) );
 		} else {
@@ -132,11 +134,12 @@ switch($cmd) {
 		header('Content-type: application/json');
 		if($valid) {
 			$evernote->authenticate($auth);
+			$tag = (trim($tag)!='') ? json_decode(stripslashes(trim($tag)), true) : null;
 			$filter = array('order' => null
 					, 'ascending' => null
 					, 'words' => $searchWord
-					, 'notebookGuid' => $EverNoteValues['notebookGuid']
-					, 'tagGuids' => null
+					, 'notebookGuid' => $auth[0]['notebookGuid']
+					, 'tagGuids' => $tag
 					, 'timeZone' => null
 					, 'inactive' => null);
 			$filter = new edam_notestore_NoteFilter($filter);
