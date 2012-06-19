@@ -34,6 +34,12 @@ Class EvernoteAccounts {
 		$this->record[$field] = $value;
 		return( true );
 	}
+	
+	public function setAllData ($data) {
+		foreach($data as $field => $value) {
+			$this->record[$field] = $value;
+		}
+	}
 
 	public function setData ($data) {
 		$this->data = $data;
@@ -94,6 +100,64 @@ Class EvernoteAccounts {
 		}
 		return $accounts;
 	}
+	
+	public function addAccount() {
+		$query = sprintf("INSERT IGNORE INTO `evenote_accounts` SET `accountName` = '%s', `username` = '%s', `password` = '%s', `consumerKey` = '%s', `consumerSecret` = '%s', `notebookGuid` = '%s', `rank` = '%s', `dateAdded` = now(), `dateModified` = now();"
+				, mysql_escape_string($this->get('accountName'))
+				, mysql_escape_string($this->get('username'))
+				, mysql_escape_string($this->get('password'))
+				, mysql_escape_string($this->get('consumerKey'))
+				, mysql_escape_string($this->get('consumerSecret'))
+				, mysql_escape_string($this->get('notebookGuid'))
+				, mysql_escape_string($this->get('rank'))
+			);
+		if($this->db->query($query)) {
+			return(true);
+		} else {
+			return (false);
+		}
+	}
+	
+	public function field_exists ($enAccountId){
+		if($enAccountId == '' || is_null($enAccountId)) return(false);
+
+		$query = sprintf("SELECT `enAccountId` FROM `evenote_accounts` WHERE `enAccountId` = %s;", $enAccountId);
+		$ret = $this->db->query_one( $query );
+		if ($ret == NULL) {
+			return false;
+		} else {
+			return true;
+		}
+	}
+	
+	
+	public function editAccount() {
+		$query = sprintf("UPDATE `evenote_accounts` SET `accountName` = '%s', `username` = '%s', `password` = '%s', `consumerKey` = '%s', `consumerSecret` = '%s', `notebookGuid` = '%s', `rank` = '%s', `dateModified` = now() WHERE `enAccountId` = '%s';"
+				, mysql_escape_string($this->get('accountName'))
+				, mysql_escape_string($this->get('username'))
+				, mysql_escape_string($this->get('password'))
+				, mysql_escape_string($this->get('consumerKey'))
+				, mysql_escape_string($this->get('consumerSecret'))
+				, mysql_escape_string($this->get('notebookGuid'))
+				, mysql_escape_string($this->get('rank'))
+				, mysql_escape_string($this->get('enAccountId'))
+				);
+		if($this->db->query($query)) {
+			return(true);
+		} else {
+			return (false);
+		}
+	}
+	
+	public function deleteAccount($enAccountId) {
+		$query = sprintf("DELETE FROM `evenote_accounts` WHERE `enAccountId` = '%s'", mysql_escape_string($enAccountId));
+		if($this->db->query($query)) {
+			return(true);
+		} else {
+			return (false);
+		}
+	}
+	
 
 /**
  *  Functions related to Evernote tags
