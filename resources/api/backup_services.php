@@ -884,7 +884,7 @@ ini_set('display_errors', '1');
 				} else {
 					$si->image->load_by_id($record->image_id);
 					
-					$url = "http://bis.silverbiology.com/dev/resources/evernote_engine/evernote.php?cmd=add_note";
+					$url = $config['evernoteUrl']."?cmd=add_note";
 					$url .= "&title=".$si->image->get('barcode');
 					if($si->image->get('CollectionCode') != '') {
 						$tagName = "CollectionCode:".$si->image->get('CollectionCode');

@@ -14,6 +14,7 @@
 
 	$expected = array (
 			'cmd'
+		,	'accountName'
 		,	'active'
 		,	'api'
 		,	'attributes'
@@ -30,6 +31,8 @@
 		,	'code1'
 		,	'collectionCode'
 		,	'collection_id'
+		,	'consumerKey'
+		,	'consumerSecret'
 		,	'country'
 		,	'country_iso'
 		,	'date'
@@ -67,8 +70,10 @@
 		,	'newStorageId'
 		,	'nodeApi'
 		,	'nodeValue'
+		,	'notebookGuid'
 		,	'order'
 		,	'output'
+		,	'password'
 		,	'photo_summary'
 		,	'photo_tags'
 		,	'photo_title'
@@ -99,6 +104,7 @@
 		,	'types'
 		,	'url'
 		,	'user'
+		,	'username'
 		,	'user_id'
 		,	'users'
 		,	'value'
@@ -877,9 +883,7 @@
 
 
 		case 'delete-image':
-			if(trim($image_id) != '') {
-				$data['image_id'] = trim($image_id);
-			} else {
+			if(trim($image_id) == '') {
 				$valid = false;
 				$errorCode = 107;
 			}
@@ -890,19 +894,32 @@
 			}
 
 			$data['obj'] = $si->amazon;
+			$image_id = json_decode(stripslashes(trim($image_id)), true);
 
 			if($valid) {
-				$si->image->setData($data);
-				$ret = $si->image->deleteImage();
-				if($ret['success']) {
-					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time ) ) );
+				$items = array();
+				if(is_array($image_id)) {
+					foreach($image_id as $imid) {
+						$data['image_id'] = $imid;
+						$si->image->setData($data);
+						$ret = $si->image->deleteImage();
+						if($ret['success']) $items[] = $imid;
+					}
+				} else {
+					$data['image_id'] = $image_id;
+					$si->image->setData($data);
+					$ret = $si->image->deleteImage();
+					if($ret['success']) $items[] = $image_id;
+				}
+				
+				if(count($items)) {
+					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start, 'total' => count($items), 'data' => $items ) ) );
 				} else {
 					print_c( json_encode( array( 'success' => false, 'error' => array('code' => $ret['code'], 'message' => $si->getError($ret['code']))) ) );
 				}
 			} else {
 				print_c( json_encode( array( 'success' => false,  'error' => array('code' => $errorCode, 'message' => $si->getError($errorCode)) ) ) );
 			}
-
 			break;
 
 		case 'generateMissingImages':
@@ -1257,8 +1274,8 @@
 				foreach($accounts as $account) {
 				$evernote_details_json = json_encode($account);
 
-				$url = "http://bis.silverbiology.com/dev/resources/evernote_engine/evernote.php?";
-				$url .= 'cmd=findNotes&auth=[' . $evernote_details_json . ']&start=' . $start . '&limit=' . $limit . '&searchWord=' . urlencode($searchWord);
+				$url = $config['evernoteUrl'];
+				$url .= '?cmd=findNotes&auth=[' . $evernote_details_json . ']&start=' . $start . '&limit=' . $limit . '&searchWord=' . urlencode($searchWord);
 				if($tag != '') $url .= '&tag=[\"'.$tag.'\"]';
 				$rr = json_decode(@file_get_contents($url),true);
 				if($rr['success']) {
@@ -2798,6 +2815,114 @@
 			}
 			break;
 			
+		case 'addEvernoteAccount':
+			switch($si->authMode) {
+				case 'key':
+					if(!$si->remoteAccess->checkRemoteAccess(ip2long($_SERVER['REMOTE_ADDR']), $key)) {
+						print_c (json_encode( array( 'success' => false, 'error' => array('msg' => $si->getError(145), 'code' => 145 )) ));
+						exit;
+					}
+					break;
+				
+				case 'session':
+				default:
+					if(!($user_access->is_logged_in() && $user_access->get_access_level() == 10)) {
+						print_c (json_encode( array( 'success' => false, 'error' => array('msg' => $si->getError(113), 'code' => 113 )) ));
+						exit;
+					}
+					break;
+			}
+			if($valid) {
+				$data['accountName'] = $accountName;
+				$data['username'] = $username;
+				$data['password'] = $password;
+				$data['consumerKey'] = $consumerKey;
+				$data['consumerSecret'] = $consumerSecret;
+				$data['notebookGuid'] = $notebookGuid;
+				$data['rank'] = $rank;
+				$si->en->setAllData($data);
+				$si->en->addAccount();
+			}	
+			break;
+			
+		case 'editEvernoteAccount':
+			switch($si->authMode) {
+				case 'key':
+					if(!$si->remoteAccess->checkRemoteAccess(ip2long($_SERVER['REMOTE_ADDR']), $key)) {
+						print_c (json_encode( array( 'success' => false, 'error' => array('msg' => $si->getError(145), 'code' => 145 )) ));
+						exit;
+					}
+					break;
+				
+				case 'session':
+				default:
+					if(!($user_access->is_logged_in() && $user_access->get_access_level() == 10)) {
+						print_c (json_encode( array( 'success' => false, 'error' => array('msg' => $si->getError(113), 'code' => 113 )) ));
+						exit;
+					}
+					break;
+			}
+			if(!$si->en->load_by_enId($enAccountId)) {
+				$valid = false;
+			}
+			if($valid) {
+				$data['accountName'] = $accountName;
+				$data['username'] = $username;
+				$data['password'] = $password;
+				$data['consumerKey'] = $consumerKey;
+				$data['consumerSecret'] = $consumerSecret;
+				$data['notebookGuid'] = $notebookGuid;
+				$data['rank'] = $rank;
+				$si->en->setAllData($data);
+				$si->en->editAccount();
+			}	
+			break;
+			
+		case 'deleteEvernoteAccount':
+			switch($si->authMode) {
+				case 'key':
+					if(!$si->remoteAccess->checkRemoteAccess(ip2long($_SERVER['REMOTE_ADDR']), $key)) {
+						print_c (json_encode( array( 'success' => false, 'error' => array('msg' => $si->getError(145), 'code' => 145 )) ));
+						exit;
+					}
+					break;
+				
+				case 'session':
+				default:
+					if(!($user_access->is_logged_in() && $user_access->get_access_level() == 10)) {
+						print_c (json_encode( array( 'success' => false, 'error' => array('msg' => $si->getError(113), 'code' => 113 )) ));
+						exit;
+					}
+					break;
+			}
+			if(!$si->en->load_by_enId($enAccountId)) {
+				$valid = false;
+			} else {
+				$si->en->deleteAccount($enAccountId);
+			}
+			
+			break;
+			
+		case 'listEvernoteAccount':
+			switch($si->authMode) {
+				case 'key':
+					if(!$si->remoteAccess->checkRemoteAccess(ip2long($_SERVER['REMOTE_ADDR']), $key)) {
+						print_c (json_encode( array( 'success' => false, 'error' => array('msg' => $si->getError(145), 'code' => 145 )) ));
+						exit;
+					}
+					break;
+				
+				case 'session':
+				default:
+					if(!($user_access->is_logged_in() && $user_access->get_access_level() == 10)) {
+						print_c (json_encode( array( 'success' => false, 'error' => array('msg' => $si->getError(113), 'code' => 113 )) ));
+						exit;
+					}
+					break;
+			}
+			
+			
+			break;
 			
 		
 
