@@ -101,8 +101,18 @@ Class EvernoteAccounts {
 		return $accounts;
 	}
 	
+	public function accountNameExist($accountName) {
+		$accounts = $this->listAccounts();
+		for($i=0; $i<count($accounts); $i++) {
+			if($accounts[$i]['accountName'] == $accountName) {
+				return $accounts[$i]['enAccountId'];
+			}
+		}
+		return false;
+	}
+	
 	public function addAccount() {
-		$query = sprintf("INSERT IGNORE INTO `evenote_accounts` SET `accountName` = '%s', `username` = '%s', `password` = '%s', `consumerKey` = '%s', `consumerSecret` = '%s', `notebookGuid` = '%s', `rank` = '%s', `dateAdded` = now(), `dateModified` = now();"
+		$query = sprintf("INSERT INTO `evenote_accounts` SET `accountName` = '%s', `username` = '%s', `password` = '%s', `consumerKey` = '%s', `consumerSecret` = '%s', `notebookGuid` = '%s', `rank` = '%s', `dateAdded` = now(), `dateModified` = now();"
 				, mysql_escape_string($this->get('accountName'))
 				, mysql_escape_string($this->get('username'))
 				, mysql_escape_string($this->get('password'))
@@ -112,7 +122,7 @@ Class EvernoteAccounts {
 				, mysql_escape_string($this->get('rank'))
 			);
 		if($this->db->query($query)) {
-			return(true);
+			return($this->db->insert_id);
 		} else {
 			return (false);
 		}
@@ -158,6 +168,25 @@ Class EvernoteAccounts {
 		}
 	}
 	
+	public function listAccounts() {
+		$accounts = array();
+		$query = 'SELECT * FROM `evenote_accounts`;';
+		$acnts = $this->db->query_all($query);
+		if(is_array($acnts) && count($acnts)) {
+			foreach($acnts as $acnt) {
+				$accounts[] = array(
+						'enAccountId' => $acnt->enAccountId
+						,'accountName' => $acnt->accountName
+						,'username' => $acnt->username
+						, 'password' => $acnt->password
+						, 'consumerKey' => $acnt->consumerKey
+						, 'consumerSecret' => $acnt->consumerSecret
+						, 'notebookGuid' => $acnt->notebookGuid
+						   );
+			}
+		}
+		return $accounts;
+	}
 
 /**
  *  Functions related to Evernote tags

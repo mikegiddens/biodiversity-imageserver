@@ -157,6 +157,11 @@
 				, 180 => 'imageId and collectionCode should be provided.'
 				, 181 => 'collectionCode does not exist.'
 				, 182 => 'ImageId and barcode should be provided.'
+				, 183 => 'Unable to list Evernote accounts.'
+				, 184 => 'accountName, username, password, consumerKey, consumerSecret and notebookGuid should be provided.'
+				, 185 => 'Evernote accountName already exist.'
+				, 186 => 'enAccountId does not exist.'
+				, 187 => 'No images for the specified event.'
 			);
 			return $ar[$error_code];
 		}
