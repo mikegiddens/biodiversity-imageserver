@@ -171,6 +171,19 @@ class Event
 		}
 	}
 	
+	public function listImagesByEvent($eventId) {
+		$query = sprintf("SELECT imageId FROM `event_images` WHERE `eventId` = '%s';", mysql_escape_string($eventId));
+		$records = $this->db->query_all($query);
+		if(count($records)) {
+			foreach($records as $record) {
+				$imageId = $record->imageId;
+				$array[] = $imageId;
+			}
+			return $array;
+		}
+		return false;
+	}
+	
 	public function get_all_events($imageId) {
 		$query = sprintf("SELECT eventId FROM `event_images` WHERE `imageId` = '%s';", mysql_escape_string($imageId));
 		$records = $this->db->query_all($query);

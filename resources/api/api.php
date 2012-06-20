@@ -1889,6 +1889,11 @@
 				if($valid) {
 					$si->event->setData($data);
 					$ret = $si->event->listRecords();
+					foreach($ret as &$r) {
+						$si->geography->load_by_id($r->geoId);
+						$r->country = $si->geography->get('country');
+						$r->admin_0 = $si->geography->get('admin_0');
+					}
 					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start, 'results' => $ret ) ) );
 				} else {
 					print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($errorCode) , 'code' => $errorCode ) ) ) );
@@ -2001,6 +2006,27 @@
 					$si->event->lg->set('lastModifiedBy', $_SESSION['user_id']);
 					$si->event->deleteImageEvent($imageId, $eventId);
 					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start ) ) );
+				} else {
+					print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($errorCode) , 'code' => $errorCode ) ) ) );
+				}
+				break;
+				
+			case 'listImagesByEvent':
+				if($eventId == '') {
+					$valid = false;
+					$errorCode = 133;
+				} elseif(!$si->event->recordExists($eventId)) {
+					$valid = false;
+					$errorCode = 176;
+				}
+				if($valid) {
+					$imageIds = $si->event->listImagesByEvent($eventId);
+					if($imageIds) {
+						print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start, 'imageIds' => $imageIds ) ) );
+					} else {
+						$errorCode = 187;
+						print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($errorCode) , 'code' => $errorCode ) ) ) );
+					}
 				} else {
 					print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($errorCode) , 'code' => $errorCode ) ) ) );
 				}
@@ -2832,6 +2858,13 @@
 					}
 					break;
 			}
+			if($accountName=='' || $username=='' || $password=='' || $consumerKey=='' || $consumerSecret=='' || $notebookGuid=='') {
+				$valid = false;
+				$errorCode = 184;
+			} elseif ($si->en->accountNameExist($accountName)) {
+				$valid = false;
+				$errorCode = 185;
+			}
 			if($valid) {
 				$data['accountName'] = $accountName;
 				$data['username'] = $username;
@@ -2839,10 +2872,13 @@
 				$data['consumerKey'] = $consumerKey;
 				$data['consumerSecret'] = $consumerSecret;
 				$data['notebookGuid'] = $notebookGuid;
-				$data['rank'] = $rank;
+				$data['rank'] = (trim($rank)!='') ? $rank : 0;
 				$si->en->setAllData($data);
-				$si->en->addAccount();
-			}	
+				$id = $si->en->addAccount();
+				print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start, 'enAccountId' => $id ) ) );
+			} else {
+				print_c (json_encode( array( 'success' => false, 'error' => array('msg' => $si->getError($errorCode), 'code' => $errorCode )) ));
+			}
 			break;
 			
 		case 'editEvernoteAccount':
@@ -2862,20 +2898,30 @@
 					}
 					break;
 			}
-			if(!$si->en->load_by_enId($enAccountId)) {
+			if($enAccountId==''){
 				$valid = false;
+				$errorCode = 119;
+			} elseif(!$si->en->load_by_enId($enAccountId)) {
+				$valid = false;
+				$errorCode = 186;
+			} elseif ($accountName!='' && $si->en->accountNameExist($accountName)) {
+				$valid = false;
+				$errorCode = 185;
 			}
 			if($valid) {
-				$data['accountName'] = $accountName;
-				$data['username'] = $username;
-				$data['password'] = $password;
-				$data['consumerKey'] = $consumerKey;
-				$data['consumerSecret'] = $consumerSecret;
-				$data['notebookGuid'] = $notebookGuid;
-				$data['rank'] = $rank;
+				if($accountName!='') $data['accountName'] = $accountName;
+				if($username!='') $data['username'] = $username;
+				if($password!='') $data['password'] = $password;
+				if($consumerKey!='') $data['consumerKey'] = $consumerKey;
+				if($consumerSecret!='') $data['consumerSecret'] = $consumerSecret;
+				if($notebookGuid!='') $data['notebookGuid'] = $notebookGuid;
+				if($rank!='') $data['rank'] = $rank;
 				$si->en->setAllData($data);
 				$si->en->editAccount();
-			}	
+				print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start ) ) );
+			} else {
+				print_c (json_encode( array( 'success' => false, 'error' => array('msg' => $si->getError($errorCode), 'code' => $errorCode )) ));
+			}
 			break;
 			
 		case 'deleteEvernoteAccount':
@@ -2895,15 +2941,23 @@
 					}
 					break;
 			}
-			if(!$si->en->load_by_enId($enAccountId)) {
+			if($enAccountId==''){
 				$valid = false;
-			} else {
+				$errorCode = 119;
+			} elseif(!$si->en->load_by_enId($enAccountId)) {
+				$valid = false;
+				$errorCode = 186;
+			}
+			if($valid) {
 				$si->en->deleteAccount($enAccountId);
+				print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start ) ) );
+			} else {
+				print_c (json_encode( array( 'success' => false, 'error' => array('msg' => $si->getError($errorCode), 'code' => $errorCode )) ));
 			}
 			
 			break;
 			
-		case 'listEvernoteAccount':
+		case 'listEvernoteAccounts':
 			switch($si->authMode) {
 				case 'key':
 					if(!$si->remoteAccess->checkRemoteAccess(ip2long($_SERVER['REMOTE_ADDR']), $key)) {
@@ -2920,7 +2974,12 @@
 					}
 					break;
 			}
-			
+			$accounts = $si->en->listAccounts();
+			if($accounts) {
+				print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start, 'totalCount' => count($accounts), 'data' => $accounts ) ) );
+			} else {
+				print_c (json_encode( array( 'success' => false, 'error' => array('msg' => $si->getError(183), 'code' => 183 )) ));
+			}
 			
 			break;
 			
