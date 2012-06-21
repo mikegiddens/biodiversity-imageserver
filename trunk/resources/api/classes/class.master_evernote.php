@@ -84,9 +84,13 @@ Class EvernoteAccounts {
 			);
 	}
 
-	public function getAccounts() {
+	public function getAccounts($enAccountId='') {
 		$accounts = array();
-		$query = 'SELECT * FROM `evenote_accounts`;';
+		if($enAccountId=='') {
+			$query = 'SELECT * FROM `evenote_accounts`;';
+		} else {
+			$query = sprintf("SELECT * FROM `evenote_accounts` WHERE `enAccountId` = '%s';", mysql_escape_string($enAccountId));
+		}
 		$acnts = $this->db->query_all($query);
 		if(is_array($acnts) && count($acnts)) {
 			foreach($acnts as $acnt) {
