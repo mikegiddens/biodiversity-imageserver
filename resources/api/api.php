@@ -1253,6 +1253,9 @@
 			if($searchWord == '') {
 				$valid = false;
 				$errorCode = 118;
+			} elseif($enAccountId!='' && !$si->en->field_exists($enAccountId)) {
+				$valid = false;
+				$errorCode = 186;
 			}
 			if($valid) {
 				$tag = (trim($tag)!='') ? $tag : '';
@@ -1267,7 +1270,7 @@
 				$start = (trim($start) == '') ? 0 : trim($start);
 				$limit = (trim($limit) == '') ? 25 : trim($limit);
 				$data = array();
-				$accounts = $si->en->getAccounts();
+				$accounts = $si->en->getAccounts($enAccountId);
 				$totalNotes = 0;
 				if(is_array($accounts) && count($accounts)) {
 				$limit = ceil($limit/(count($accounts)));
@@ -1293,9 +1296,9 @@
 								$tmpPath = $si->image->getUrl($ar->image_id);
 								$ar->path = $tmpPath['baseUrl'];
 								$fname = explode(".", $ar->filename);
-								$ar->ext = $fname[1];	
-								$data[$label] = $ar;
+								$ar->ext = $fname[1];
 								$ar->en_flag = ($si->s2l->load_by_barcode($ar->barcode)) ? 1 : 0;
+								$data[$label] = $ar;
 							}
 						}
 					}
