@@ -247,6 +247,52 @@ class Set
 			return false;
 		}
 	}
+	
+	public function listImageBySetValue($key, $value) {
+		$query = sprintf("SELECT s.id sID, s.name sNAME, s.description sDESCRIPTION, sv.id svID, iav.valueID iavID, iav.name iavNAME, sv.rank svRANK FROM `set` s LEFT OUTER JOIN set_values sv ON (sv.sId = s.id) JOIN image_attrib_value iav on (iav.valueID = sv.valueID) JOIN image_attrib_type iat ON (iav.typeID = iat.typeID) WHERE iat.title = '%s' AND iav.name = '%s'  ORDER BY s.name, sv.rank", mysql_escape_string($key), mysql_escape_string($value));
+		$records = $this->db->query_all($query);
+		if(count($records)) {
+			$prevID = 0;
+			foreach($records as $record) {
+				if($prevID != $record->sID) {
+					$prevID = $record->sID;
+					if(isset($tmpArray3)) {
+						$tmpArray1['values'] = $tmpArray3;
+						$array['data'][] = $tmpArray1;
+						unset($tmpArray3);
+					}
+					$tmpArray1['id'] = $record->sID;
+					$tmpArray1['name'] = $record->sNAME;
+					$tmpArray1['description'] = $record->sDESCRIPTION;
+				}
+				$tmpArray2['id'] = $record->svID;
+				$tmpArray2['value'] = $record->iavNAME;
+				$tmpArray2['rank'] = $record->svRANK;
+				$query = sprintf("SELECT imageID FROM `image_attrib` WHERE `valueID` = '%s'"
+						, mysql_escape_string($record->iavID)
+						);
+				$results = $this->db->query_all($query);
+				if(count($results)) {
+					$image = new Image($this->db);
+					foreach($results as $result) {
+						$details = $image->getUrl($result->imageID);
+						$tmpArray4['id'] = $result->imageID;
+						$tmpArray4['filename'] = $details['filename'];
+						$tmpArray4['url'] = $details['url'];
+						$tmpArray5[] = $tmpArray4;
+					}
+					$tmpArray2['images'] = $tmpArray5;
+					unset($tmpArray5);
+				}
+				$tmpArray3[] = $tmpArray2;
+			}
+			$tmpArray1['values'] = $tmpArray3;
+			$array['data'][] = $tmpArray1;
+			return $array;
+		} else {
+			return false;
+		}
+	}
 }
 
 ?>

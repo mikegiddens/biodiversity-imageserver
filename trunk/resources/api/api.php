@@ -2532,7 +2532,7 @@
 				$description = isset($description)?$description:'';
 				$si->set->addSet($name, $description);
 				$si->set->load_by_set_name($name);
-				print_c(json_encode(array('success' => true, 'processTime' => microtime(true) - $time_start, setID => $si->set->get('id'))));
+				print_c(json_encode(array('success' => true, 'processTime' => microtime(true) - $time_start, 'setID' => $si->set->get('id'))));
 			}
 			break;
 			
