@@ -589,20 +589,6 @@ class phpBIS
 			return false;
 		}
 	}
-	public function listImageBySetKeyValue($category, $value) {
-		$data['category'] = (trim($category) != '') ? $category : '';
-		$data['value'] = (trim($value) != '') ? $value : '';
-		$data['cmd'] = 'listImageBySetKeyValue';
-		$result = $this->CURL($this->server . '/api.php', $data);
-		$result = json_decode($result, true);
-		if($result['success'] == true) {
-			return $result;
-		} else {
-			$this->lastError['code'] = $result['error']['code'];
-			$this->lastError['msg'] = $result['error']['msg'];
-			return false;
-		}
-	}
 	public function listImages($start, $limit, $order, $showOCR, $filter, $image_id, $field, $value, $sort, $dir, $code1, $characters, $browse, $search_value, $search_type) {
 		$data['start'] = (trim($start) != '') ? $start : 0;
 		$data['limit'] = (trim($limit) != '') ? $limit : 100;

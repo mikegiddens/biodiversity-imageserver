@@ -162,6 +162,7 @@
 				, 185 => 'Evernote accountName already exist.'
 				, 186 => 'enAccountId does not exist.'
 				, 187 => 'No images for the specified event.'
+				, 188 => 'Category and value should be provided.'
 			);
 			return $ar[$error_code];
 		}
