@@ -25,6 +25,7 @@
 		,	'baseUrl'
 		,	'browse'
 		,	'callback'
+		,	'category'
 		,	'categoryID'
 		,	'characters'
 		,	'code'
@@ -472,10 +473,13 @@
 			if($image_id == "") {
 				$valid = false;
 				$errorCode = 107;
+			} elseif(!$si->image->load_by_id($image_id)) {
+				$valid = false;
+				$errorCode = 116;
 			}
 
 			if($valid) {
-				$si->image->load_by_id($image_id);
+				
 				$barcode = $si->image->getName();
 				$filename = $si->image->get('filename');
 
@@ -529,7 +533,9 @@
 				}
 				header('Content-type: application/json');
 				
-				print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start, 'url' => $config['tileUrl'] . strtolower($t3[0])) ) );
+				$url = $config['tileUrl'] . strtolower($t3[0]).'/';
+				$tpl = $url . '{z}/tile_{i}.jpg';
+				print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start, 'url' => $url, 'tpl' => $tpl, 'maxZoomLevel' => $res->zoomLevel) ) );
 			} else {
 				header('Content-type: application/json');
 				print_c( json_encode( array( 'success' => false,  'error' => array('code' => $errorCode, 'message' => $si->getError($errorCode)) ) ) );
@@ -2742,6 +2748,24 @@
 			if($valid) {
 				$data = $si->set->listImageBySet($sId);
 				print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start, 'data' => $data['data'] ) ) );
+			} else {
+				print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($errorCode) , 'code' => $errorCode ) ) ) );
+			}
+			break;
+			
+		case 'listImageBySetKeyValue':
+			if($category=='' || $value=='')	{
+				$valid = false;
+				$errorCode = 188;
+			}
+			if($valid) {
+				$data = $si->set->listImageBySetKeyValue($category, $value);
+				if($data) {
+					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start, 'data' => $data ) ) );
+				} else {
+					$errorCode = 170;
+					print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($errorCode) , 'code' => $errorCode ) ) ) );	
+				}
 			} else {
 				print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($errorCode) , 'code' => $errorCode ) ) ) );
 			}
