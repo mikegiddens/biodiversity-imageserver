@@ -498,7 +498,8 @@
 						break;
 				}*/
 				//New code starts
-				$tmpPath = $si->storage->fileDownload($si->image->get('storage_id'), ($si->image->get('path').'/'.$si->image->get('filename')));
+				$imgPath = $si->image->get('path');
+				$tmpPath = $si->storage->fileDownload($si->image->get('storage_id'), ($imgPath.'/'.$si->image->get('filename')));
 				$t1 = explode("/", $tmpPath);
 				$t2 = $t1[count($t1)-1];
 				unset($t1[count($t1)-1]);
@@ -2764,7 +2765,7 @@
 					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start, 'data' => $data ) ) );
 				} else {
 					$errorCode = 170;
-					print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($errorCode) , 'code' => $errorCode ) ) ) );	
+					print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($errorCode) , 'code' => $errorCode ) ) ) );
 				}
 			} else {
 				print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($errorCode) , 'code' => $errorCode ) ) ) );

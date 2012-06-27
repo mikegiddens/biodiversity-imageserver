@@ -194,7 +194,7 @@ class Set
 		}
 	}
 	
-	public function listImageBySet($sId = '') {
+	public function listImageBySet($sId = '', $imageIds = '') {
 		if($sId == '') {
 			$query = "SELECT s.id sID, s.name sNAME, s.description sDESCRIPTION, sv.id svID, iav.valueID iavID, iav.name iavNAME, sv.rank svRANK FROM `set` s LEFT OUTER JOIN set_values sv ON (sv.sId = s.id) JOIN image_attrib_value iav on (iav.valueID = sv.valueID) ORDER BY s.name, sv.rank";
 		} else {
@@ -222,9 +222,16 @@ class Set
 				$tmpArray2['id'] = $record->svID;
 				$tmpArray2['value'] = $record->iavNAME;
 				$tmpArray2['rank'] = $record->svRANK;
-				$query = sprintf("SELECT imageID FROM `image_attrib` WHERE `valueID` = '%s'"
-						, mysql_escape_string($record->iavID)
-						);
+				if($imageIds == '') {
+					$query = sprintf("SELECT imageID FROM `image_attrib` WHERE `valueID` = '%s'"
+							, mysql_escape_string($record->iavID)
+							);
+				} else {
+					$query = sprintf("SELECT imageID FROM `image_attrib` WHERE `valueID` = '%s' AND imageID IN (%s)"
+							, mysql_escape_string($record->iavID)
+							, implode(',', $imageIds)
+							);
+				}
 				$results = $this->db->query_all($query);
 				if(count($results)) {
 					$image = new Image($this->db);
@@ -249,11 +256,20 @@ class Set
 	}
 	
 	public function listImageBySetKeyValue($key, $value) {
-		$query = sprintf("SELECT distinct sv.sId FROM set_values sv, image_attrib ia WHERE sv.valueId=ia.valueID AND ia.imageID IN (SELECT DISTINCT ia.imageID FROM image_attrib ia, image_attrib_value iav, image_attrib_type iat WHERE ia.typeID=iat.typeID AND ia.valueID=iav.valueID AND iat.title='%s' AND iav.name='%s')", mysql_escape_string($key), mysql_escape_string($value));
+		$query = sprintf("SELECT DISTINCT ia.imageID FROM image_attrib ia, image_attrib_value iav, image_attrib_type iat WHERE ia.typeID=iat.typeID AND ia.valueID=iav.valueID AND iat.title='%s' AND iav.name='%s'", mysql_escape_string($key), mysql_escape_string($value));
+		$records = $this->db->query_all($query);
+		$imageIds = array();
+		if(count($records)) {
+			foreach($records as $record) {
+				$imageIds[] = $record->imageID;
+			}
+		}
+			
+		$query = sprintf("SELECT distinct sv.sId FROM set_values sv, image_attrib ia WHERE sv.valueId=ia.valueID AND ia.imageID IN (%s)", implode(',', $imageIds));
 		$records = $this->db->query_all($query);
 		if(count($records)) {
 			foreach($records as $record) {
-				$data = $this->listImageBySet($record->sId);
+				$data = $this->listImageBySet($record->sId, $imageIds);
 				$result[] = $data['data'];
 			}
 			return $result;

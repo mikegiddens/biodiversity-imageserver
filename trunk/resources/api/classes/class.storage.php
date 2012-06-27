@@ -387,7 +387,7 @@ class Storage {
 				} else {
 					$tmp1 = $tmp;
 				}
-				$tmpPath = '/tmp/'.uniqid('d').$tmp1;
+				$tmpPath = '/tmp/'.$tmp1;
 				$fp = fopen($tmpPath, "w+b");
 				$response = $amazon->get_object($device['basePath'], $key, array('fileDownload' => $tmpPath));
 				fclose($fp);
