@@ -3011,6 +3011,51 @@
 			
 			break;
 			
+		case 'addImageByForm':
+			if(!$si->remoteAccess->checkRemoteAccess(ip2long($_SERVER['REMOTE_ADDR']), $key)) {
+				$errorCode = 145;
+				$valid = false;
+			}
+			if($valid) {
+				$results = array();
+				$totalCount = 0;
+				for($i=0;$i<count($_FILES["filename"]["name"]);$i++) {
+					$imagePath[$i] = (isset($imagePath[$i]))?$imagePath[$i]:'';
+					if($storage_id[$i]=='' || !$si->storage->exists($storage_id[$i])) {
+						$errorCode = 150;
+						$results[$i] = array( 'success' => false,  'error' => array('msg' => $si->getError($errorCode) , 'code' => $errorCode ) );
+						continue;
+					}
+					if ($_FILES["filename"]["error"][$i] > 0) {
+						$results[$i] = array( 'success' => false,  'error' => $_FILES["filename"]["error"][$i] );
+						continue;
+					}
+					$config["allowedImportTypes"] = array(1,2,3); //GIF, JPEG, PNG
+					//http://www.php.net/manual/en/function.exif-imagetype.php
+					$size = getimagesize($_FILES["filename"]["tmp_name"][$i]);
+					if(in_array($size[2],$config["allowedImportTypes"])) {
+						$response = $si->storage->store($_FILES["filename"]["tmp_name"][$i],$storage_id[$i],$_FILES["filename"]["name"][$i], $imagePath[$i]);
+						if($response['success']) {
+							$si->pqueue->set('image_id', $response['image_id']);
+							$si->pqueue->set('process_type','all');
+							$si->pqueue->save();
+							$results[$i] =  array( 'success' => true, 'processTime' => microtime(true) - $time_start, 'image_id' => $response['image_id'] );
+							$totalCount++;
+						} else {
+							$errorCode = 151;
+							$results[$i] = array( 'success' => false,  'error' => array('msg' => $si->getError($errorCode) , 'code' => $errorCode ) );
+						}
+					} else {
+						$errorCode = 146;
+						$results[$i] = array( 'success' => false,  'error' => array('msg' => $si->getError($errorCode) , 'code' => $errorCode ) );
+					}
+				
+				}
+				print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start, 'total' => $totalCount, 'data' => $results ) ) );
+			} else {
+				print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($errorCode) , 'code' => $errorCode ) ) ) );
+			}
+			break;
 		
 
 # Test Tasks
