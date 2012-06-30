@@ -2312,6 +2312,7 @@
 			
 		case 'addImage':
 			$imagePath = (isset($imagePath))?$imagePath:'';
+			$storage_id = (trim($storage_id)!='') ? $storage_id : $si->storage->getDefault();
 			if(!$si->remoteAccess->checkRemoteAccess(ip2long($_SERVER['REMOTE_ADDR']), $key)) {
 				$errorCode = 145;
 				$valid = false;
@@ -3052,6 +3053,53 @@
 				
 				}
 				print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start, 'total' => $totalCount, 'data' => $results ) ) );
+			} else {
+				print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($errorCode) , 'code' => $errorCode ) ) ) );
+			}
+			break;
+			
+		case 'addImageByDND':
+			$imagePath = (isset($imagePath))?$imagePath:'';
+			$storage_id = (trim($storage_id)!='') ? $storage_id : $si->storage->getDefault();
+			if(!$si->remoteAccess->checkRemoteAccess(ip2long($_SERVER['REMOTE_ADDR']), $key)) {
+				$errorCode = 145;
+				$valid = false;
+			} elseif($storage_id=='' || !$si->storage->exists($storage_id)) {
+				$errorCode = 150;
+				$valid = false;
+			} elseif($filename=='') {
+				$errorCode = 106;
+				$valid = false;
+			} else {
+				$config["allowedImportTypes"] = array(1,2,3); //GIF, JPEG, PNG
+				//http://www.php.net/manual/en/function.exif-imagetype.php
+				$stream = ($stream != '') ? $stream : '';
+				$stream = str_replace(' ','+',$stream);
+				$stream = base64_decode($stream);
+				if((strpos($filename,'/')) !== false) {
+					$tmpFilename = explode('/', $filename);
+					$filename = $tmpFilename[count($tmpFilename)-1];
+				}
+				file_put_contents($filename, $stream);
+				$size = getimagesize($filename);
+				if(!in_array($size[2],$config["allowedImportTypes"])) {
+					$errorCode = 146;
+					$valid = false;
+				}
+			}
+			if($valid) {
+				$response = $si->storage->store($filename,$storage_id,$filename, $imagePath);
+				unlink($filename);
+				if($response['success']) {
+					$si->pqueue->set('image_id', $response['image_id']);
+					$si->pqueue->set('process_type','all');
+					$si->pqueue->save();
+					$url = $si->image->getUrl($response['image_id']);
+					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start, 'image_id' => $response['image_id'] ) ) );
+				} else {
+					$errorCode = 151;
+					print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($errorCode) , 'code' => $errorCode ) ) ) );
+				}
 			} else {
 				print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($errorCode) , 'code' => $errorCode ) ) ) );
 			}
