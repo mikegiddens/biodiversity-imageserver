@@ -1193,6 +1193,7 @@ Class Image {
 		$storage = new Storage($this->db);
 		if($imageId != '' && $this->field_exists($imageId)) {
 			$this->load_by_id($imageId);
+			$barcode = $this->get('barcode');
 			$device = $storage->get($this->get('storage_id'));
 			$filenameParts = explode('.', $this->get('filename'));
 			switch(strtolower($device['type'])) {
@@ -1220,6 +1221,19 @@ Class Image {
 					}
 					break;
 			}
+			
+			$query = sprintf("DELETE FROM `image_attrib` WHERE `imageID` = '%s' ", mysql_escape_string($imageId));
+			$this->db->query($query);
+			
+			$query = sprintf("DELETE FROM `event_images` WHERE `imageId` = '%s' ", mysql_escape_string($imageId));
+			$this->db->query($query);
+			
+			$query = sprintf("DELETE FROM `process_queue` WHERE `image_id` = '%s' ", mysql_escape_string($imageId));
+			$this->db->query($query);
+			
+			$query = sprintf("DELETE FROM `specimen2label` WHERE `barcode` = '%s' ", mysql_escape_string($barcode));
+			$this->db->query($query);
+			
 			$delquery = sprintf("DELETE FROM `image` WHERE `image_id` = '%s' ", mysql_escape_string($imageId));
 			if($this->db->query($delquery)) {
 				return  array('success' => true);

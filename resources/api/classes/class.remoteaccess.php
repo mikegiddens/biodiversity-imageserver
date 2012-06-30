@@ -46,6 +46,7 @@ Class RemoteAccess {
 	}
 	
 	public function checkRemoteAccess($ip, $tmpKey) {
+		return true; //To temporarly disable this check and always validate
 		$query = sprintf("SELECT count(*) AS cnt FROM `remoteaccess` WHERE `ip` = '%s' AND `key` = '%s' AND `active` = '%s' ;"
 		, mysql_escape_string($ip)
 		, mysql_escape_string($tmpKey)
