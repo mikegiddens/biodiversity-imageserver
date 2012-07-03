@@ -894,10 +894,21 @@
 				$valid = false;
 				$errorCode = 107;
 			}
-
-			if(!($user_access->is_logged_in() && $user_access->get_access_level() == 10)){
-				$errorCode = 113;
-				$valid = false;
+			
+			switch($si->authMode) {
+				case 'key':
+					if(!$si->remoteAccess->checkRemoteAccess(ip2long($_SERVER['REMOTE_ADDR']), $key)) {
+						$errorCode = 145;
+						$valid = false;
+					}
+					break;
+				case 'session':
+				default:
+					if(!($user_access->is_logged_in() && $user_access->get_access_level() == 10)) {
+						$errorCode = 113;
+						$valid = false;
+					}
+					break;
 			}
 
 			$data['obj'] = $si->amazon;
@@ -909,14 +920,34 @@
 					foreach($image_id as $imid) {
 						$data['image_id'] = $imid;
 						$si->image->setData($data);
-						$ret = $si->image->deleteImage();
-						if($ret['success']) $items[] = $imid;
+						if($si->image->load_by_id($data['image_id'])) {
+							if($si->image->get('remoteAccessKey') == $key) {
+								$ret = $si->image->deleteImage();
+								if($ret['success']) $items[] = $imid;
+							} else {
+								$ret['success'] = false;
+								$ret['code'] = 189;
+							}
+						} else {
+							$ret['success'] = false;
+							$ret['code'] = 116;
+						}
 					}
 				} else {
 					$data['image_id'] = $image_id;
 					$si->image->setData($data);
-					$ret = $si->image->deleteImage();
-					if($ret['success']) $items[] = $image_id;
+					if($si->image->load_by_id($data['image_id'])) {
+						if($si->image->get('remoteAccessKey') == $key) {
+							$ret = $si->image->deleteImage();
+							if($ret['success']) $items[] = $image_id;
+						} else {
+							$ret['success'] = false;
+							$ret['code'] = 189;
+						}
+					} else {
+						$ret['success'] = false;
+						$ret['code'] = 116;
+					}
 				}
 				
 				if(count($items)) {
@@ -2338,7 +2369,7 @@
 				}
 			}
 			if($valid) {
-				$response = $si->storage->store($filename,$storage_id,$filename, $imagePath);
+				$response = $si->storage->store($filename,$storage_id,$filename, $imagePath, $key);
 				unlink($filename);
 				if($response['success']) {
 					$si->pqueue->set('image_id', $response['image_id']);
@@ -2807,7 +2838,7 @@
 				$filename = $temp[count($temp)-1];
 				$data = file_get_contents($url);
 				file_put_contents($filename, $data);
-				$response = $si->storage->store($filename,$storage_id,$filename, $imagePath);
+				$response = $si->storage->store($filename,$storage_id,$filename, $imagePath, $key);
 				unlink($filename);
 				if($response['success']) {
 					$si->pqueue->set('image_id', $response['image_id']);
@@ -3035,7 +3066,7 @@
 					//http://www.php.net/manual/en/function.exif-imagetype.php
 					$size = getimagesize($_FILES["filename"]["tmp_name"][$i]);
 					if(in_array($size[2],$config["allowedImportTypes"])) {
-						$response = $si->storage->store($_FILES["filename"]["tmp_name"][$i],$storage_id[$i],$_FILES["filename"]["name"][$i], $imagePath[$i]);
+						$response = $si->storage->store($_FILES["filename"]["tmp_name"][$i],$storage_id[$i],$_FILES["filename"]["name"][$i], $imagePath[$i], $key);
 						if($response['success']) {
 							$si->pqueue->set('image_id', $response['image_id']);
 							$si->pqueue->set('process_type','all');
@@ -3088,7 +3119,7 @@
 				}
 			}
 			if($valid) {
-				$response = $si->storage->store($filename,$storage_id,$filename, $imagePath);
+				$response = $si->storage->store($filename,$storage_id,$filename, $imagePath, $key);
 				unlink($filename);
 				if($response['success']) {
 					$si->pqueue->set('image_id', $response['image_id']);

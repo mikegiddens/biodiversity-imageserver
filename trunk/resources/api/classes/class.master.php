@@ -163,6 +163,7 @@
 				, 186 => 'enAccountId does not exist.'
 				, 187 => 'No images for the specified event.'
 				, 188 => 'Category and value should be provided.'
+				, 189 => 'The key provided cannot be used to perform this action.'
 			);
 			return $ar[$error_code];
 		}
