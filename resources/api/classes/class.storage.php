@@ -135,7 +135,7 @@ class Storage {
 		}
 	}
 	
-	public function store($tmpFile, $storage_id, $storageFileName, $storageFilePath='') {
+	public function store($tmpFile, $storage_id, $storageFileName, $storageFilePath='', $remoteAccesskey=0) {
 		$img = new Image($this->db);
 		if($tmpFile!='' && $storage_id!='' && $storageFileName!='' && $this->exists($storage_id)) {
 			$device = $this->get($storage_id);
@@ -151,6 +151,7 @@ class Storage {
 							$img->set('storage_id', 1);
 							$img->set('path', $storageFilePath);
 							$img->set('originalFilename', $storageFileName);
+							$img->set('remoteAccessKey', $remoteAccesskey);
 							$img->save();
 							$result['image_id'] = $img->getImageId($storageFileName, $storageFilePath, 1);
 						}
@@ -173,6 +174,7 @@ class Storage {
 							$img->set('storage_id', 2);
 							$img->set('path', $storageFilePath);
 							$img->set('originalFilename', $storageFileName);
+							$img->set('remoteAccessKey', $remoteAccesskey);
 							$img->save();
 							$result['image_id'] = $img->getImageId($storageFileName, $storageFilePath, 2);
 						}
