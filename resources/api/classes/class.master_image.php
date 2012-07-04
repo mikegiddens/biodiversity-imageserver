@@ -1588,7 +1588,7 @@ Class Image {
 		if(count($imageIDs)) {
 			foreach($imageIDs as $id) {
 				if($this->load_by_id($id)) {
-					$query = sprintf("INSERT INTO image_attrib(imageID, typeID, valueID) VALUES(%s, %s, %s);"
+					$query = sprintf("INSERT IGNORE INTO image_attrib(imageID, typeID, valueID) VALUES(%s, %s, %s);"
 						, mysql_escape_string($id)
 						, mysql_escape_string($categoryID)
 						, mysql_escape_string($valueID)
