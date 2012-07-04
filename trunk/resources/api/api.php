@@ -908,6 +908,7 @@
 						$errorCode = 113;
 						$valid = false;
 					}
+					$key = 0;
 					break;
 			}
 
