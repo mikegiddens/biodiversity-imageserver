@@ -1,10 +1,6 @@
 #summary Master Table of Contents for this project
  * *User Guide*
    * [Overview  Overview]
-   * [Admin Admin Features]
-   * [Screenshots  Screen shots]
-   * [Quickstart Quickstart]
-   * [Demos Demos]
  * *Web Services*
   * Storage
     * [WS_AddStorageDevice Add Storage Device]
@@ -64,9 +60,3 @@
    * [Carousel  Carousel]
    * [CarouselLightbox  Carousel + Lightbox]
    * [DataviewLightbox  Dataview + Lightbox]
- * *Videos*
-   * [InstructionalVideos  Instructional Videos]
- * [Timeline Timeline]
- * [ReleaseNotes Release Notes]
- * [Resources Resources]
- * [Issues Known Issues]
