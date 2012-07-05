@@ -1215,6 +1215,15 @@ Class Image {
 							@unlink($imagePath.$filenameParts[0].$postfix.'.'.$filenameParts[1]);
 						}
 					}
+					# Remove empty directories
+					$path = $this->get('path');
+					$parts = explode('/', $path);
+					while(count($parts)>0) {
+						if(!rmdir($device['basePath'] . $path . '/')) break;
+						$parts = explode('/', $path);
+						unset($parts[count($parts)-1]);
+						$path = implode('/', $parts);
+					}
 					break;
 			}
 			
