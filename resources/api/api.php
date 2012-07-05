@@ -907,8 +907,9 @@
 					if(!($user_access->is_logged_in() && $user_access->get_access_level() == 10)) {
 						$errorCode = 113;
 						$valid = false;
+					} else {
+						$key = 0;
 					}
-					$key = 0;
 					break;
 			}
 
@@ -922,7 +923,7 @@
 						$data['image_id'] = $imid;
 						$si->image->setData($data);
 						if($si->image->load_by_id($data['image_id'])) {
-							if($si->image->get('remoteAccessKey') == $key) {
+							if(($si->image->get('remoteAccessKey') == $key) || ($key==0)) {
 								$ret = $si->image->deleteImage();
 								if($ret['success']) $items[] = $imid;
 							} else {
