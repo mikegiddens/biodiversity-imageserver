@@ -4,7 +4,29 @@ require_once('phpBIS.php');
 $sdk = new phpBIS('{yourkey}', 'http://bis.silverbiology.com/dev/resources/api');
 
 $category = $_REQUEST['category'];
-$values = json_decode($_REQUEST['value'], true);
+//$values = json_decode($_REQUEST['value'], true);
+
+$result1 = $sdk->listCategories();
+$cat_flag = 0;
+if(isset($result1['data']) && is_array($result1['data'])) {
+	foreach($result1['data'] as $res1) {
+		if(strtolower($res1['title']) == strtolower($category)) {
+			$cat_flag = $res1['typeID'];
+			break;
+		}
+	}
+}
+if($cat_flag) {
+	$result2 = $sdk->list_attributes($cat_flag);
+	$val_flag = 0;
+	if(isset($result2['data']) && is_array($result2['data'])) {
+		foreach($result2['data'] as $res2) {
+			$values[] = $res2['name'];
+			$val_flag = 1;
+		}
+	}
+}
+if(!$val_flag) exit;
 
 foreach($values as $value) {
 	$result[] =$sdk->listImageBySetKeyValue($category, $value);
