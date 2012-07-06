@@ -48,6 +48,7 @@ $listEventTypes = $sdk->listEventTypes(0, 1, $listEvents['results'][0]['eventTyp
 		<img src='<?php echo $url[$i];  ?>' width="600" height="400" >
 		<span>
 		<?php
+		if(is_array($imgAttr['data'])) {
 		foreach($imgAttr['data'] as $attr) {
 			echo $attr['key']. ' : ';
 			$cflag = 0;
@@ -57,7 +58,7 @@ $listEventTypes = $sdk->listEventTypes(0, 1, $listEvents['results'][0]['eventTyp
 				$cflag++;
 			}
 			echo '<br />';
-		}
+		}}
 		//echo 'Image Id : '.$imid[$i];
 		?>
 		</span>
