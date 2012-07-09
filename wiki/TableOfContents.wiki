@@ -24,6 +24,7 @@
     * [WS_AddImage Add Image]
     * [WS_AddExistingImage Add Existing Image]
     * [WS_AddImageFromURL Add Image from URL]
+    * [WS_AddImageByForm Add Image By Form]
     * [WS_MoveExistingImage Move Existing Image]
     * [WS_GetImage Get Image]
     * [WS_GetImageInfo Get Image Info]
