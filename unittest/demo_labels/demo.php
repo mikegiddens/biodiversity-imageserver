@@ -24,8 +24,8 @@ if(is_array($result['data'])) {
 			foreach($set[0]['values'] as $value) {
 				if(is_array($value['images'])) {
 					foreach($value['images'] as $image) {
-						$urls[$label] = $image['url'];
 						$imageIds[$label] = $image['id'];
+						$urls[$label] = $sdk->getURL('ID', $image['id'], 'm');
 						$details[$label] = $set[0]['name'] . ', ' . $value['value'];
 						$label++;
 					}

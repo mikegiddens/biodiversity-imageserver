@@ -5,6 +5,10 @@ $sdk = new phpBIS('{yourKey}', 'http://bis.silverbiology.com/dev/resources/api')
 
 $category = $_REQUEST['category'];
 $value = $_REQUEST['value'];
+$setids = $_REQUEST['sets'];
+
+$setids = json_decode($setids, true);
+if(!is_array($setids)) exit;
 
 $result = $sdk->listImageBySetKeyValue($category, $value);
 
@@ -24,6 +28,7 @@ if(!$result) {
 <?php
 if(is_array($result['data'])) {
 foreach($result['data'] as $set) {
+	if(!(in_array($set[0]['id'], $setids))) continue;
 ?>
 <h3><?php echo $set[0]['name']; ?></h3>
 <table>
