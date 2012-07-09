@@ -939,7 +939,7 @@
 					$data['image_id'] = $image_id;
 					$si->image->setData($data);
 					if($si->image->load_by_id($data['image_id'])) {
-						if($si->image->get('remoteAccessKey') == $key) {
+						if(($si->image->get('remoteAccessKey') == $key) || ($key==0)) {
 							$ret = $si->image->deleteImage();
 							if($ret['success']) $items[] = $image_id;
 						} else {

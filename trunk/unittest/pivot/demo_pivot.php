@@ -72,7 +72,7 @@ foreach($sets as $set) {
 	$flag = 0;
 	foreach($res['data'] as $r) {
 		if($r[0]['name']==$set) {
-			?> <td> <img src="<?php echo $r[0]['values'][0]['images'][0]['url'];  ?>" width="192" height="120" /> </td> <?php
+			?> <td> <img src="<?php echo $sdk->getURL('ID', $r[0]['values'][0]['images'][0]['id'], 'm');  ?>" width="192" height="120" /> </td> <?php
 			$flag = 1;
 			break;
 		} 
