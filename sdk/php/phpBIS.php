@@ -31,6 +31,9 @@ class phpBIS
 		if((strpos($source, '/')) !== false) {
 			$source = explode('/', $source);
 			$filename = $source[count($source)-1];
+		} else if((strpos($source, '\\')) !== false) {
+			$source = explode('\\', $source);
+			$filename = $source[count($source)-1];
 		} else {
 			$filename = $source;
 		}

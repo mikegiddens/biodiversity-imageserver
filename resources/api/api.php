@@ -2362,6 +2362,9 @@
 				if((strpos($filename,'/')) !== false) {
 					$tmpFilename = explode('/', $filename);
 					$filename = $tmpFilename[count($tmpFilename)-1];
+				} else if((strpos($filename,'\\')) !== false) {
+					$tmpFilename = explode('\\', $filename);
+					$filename = $tmpFilename[count($tmpFilename)-1];
 				}
 				file_put_contents($filename, $stream);
 				$size = getimagesize($filename);
