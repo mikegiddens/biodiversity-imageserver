@@ -16,6 +16,8 @@ if(!$result) {
 	echo $sdk->lastError['code']. ' : ' . $sdk->lastError['msg'];
 	exit;
 }
+
+$processTime = $result['processTime'];
 ?>
 
 <HTML>
@@ -23,6 +25,8 @@ if(!$result) {
 <TITLE>Sets - Demo</TITLE>
 </HEAD>
 <BODY>
+Load Time : <span id="loadTime"></span>
+<br />
 <h2><?php echo $value; ?></h2>
 <br />
 <?php
@@ -45,7 +49,7 @@ foreach($set[0]['values'] as $value) {
 if(is_array($value['images'])) {
 foreach($value['images'] as $image) {
 ?>
-<TD><a href="demo_sets_details.php?imageId=<?php echo $image['id'];  ?>&url=<?php echo $sdk->getURL('ID', $image['id'], 'm');  ?>"><img src="<?php echo $sdk->getURL('ID', $image['id'], 'm');  ?>" width="256" height="160" /></a></TD>
+<TD><a href="demo_sets_details.php?imageId=<?php echo $image['id'];  ?>&url=<?php echo $sdk->getURL('ID', $image['id'], 'l');  ?>"><img src="<?php echo $sdk->getURL('ID', $image['id'], 'm');  ?>" width="256" height="160" /></a></TD>
 <?php
 } }
 ?>
@@ -61,5 +65,8 @@ foreach($value['images'] as $image) {
 <?php
 } }
 ?>
+<script type="text/javascript">
+	document.getElementById("loadTime").innerHTML = '<?php printf("%.5f", $processTime ); ?>' + ' s';
+</script>
 </BODY>
 </HTML>
