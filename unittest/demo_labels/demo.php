@@ -1,7 +1,7 @@
 <?php
 require_once('phpBIS.php');
 
-$sdk = new phpBIS('{YourKey}', '{URL_to_api_folder}');
+$sdk = new phpBIS('{yourKey}', 'http://bis.silverbiology.com/dev/resources/api');
 
 $category = $_REQUEST['category'];
 $value = $_REQUEST['value'];
@@ -12,6 +12,8 @@ if(!$result) {
 	echo $sdk->lastError['code']. ' : ' . $sdk->lastError['msg'];
 	exit;
 }
+
+$processTime = $result['processTime'];
 
 $urls = array();
 $imageIds = array();
@@ -41,6 +43,7 @@ if(is_array($result['data'])) {
 <TITLE>Demo Image - Labels</TITLE>
 </HEAD>
 <BODY bgcolor="#CFCFCF">
+Load Time : <span id="loadTime"></span>
 <div>
 <h2 style="text-align:center;"><?php echo $_REQUEST['value']; ?></h2>
 <div style="width:785px; margin:0 auto;">
@@ -49,7 +52,7 @@ if(is_array($result['data'])) {
 	foreach($urls as $key=>$value) {
 	?>
 		<div style="float:left; width:194px; padding:1px;">
-		<a href="demo_details.php?imageId=<?php echo $imageIds[$key];  ?>&url=<?php echo $value;  ?>">
+		<a href="demo_details.php?imageId=<?php echo $imageIds[$key];  ?>">
 		<img src="<?php echo $value; ?>" width="192" height="120" />
 		<span><?php echo $key; ?></span>
 		</a>
@@ -66,5 +69,8 @@ if(is_array($result['data'])) {
 	?>
 </div>
 </div>
+<script type="text/javascript">
+	document.getElementById("loadTime").innerHTML = '<?php printf("%.5f", $processTime ); ?>' + ' s';
+</script>
 </BODY>
 </HTML>

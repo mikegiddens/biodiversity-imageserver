@@ -1,12 +1,15 @@
 <?php
 require_once('phpBIS.php');
 
-$sdk = new phpBIS('{yourkey}', 'http://bis.silverbiology.com/dev/resources/api');
+$sdk = new phpBIS('{yourKey}', 'http://bis.silverbiology.com/dev/resources/api');
 
 $category = $_REQUEST['category'];
 //$values = json_decode($_REQUEST['value'], true);
 
 $result1 = $sdk->listCategories();
+
+$processTime = $result1['processTime'];
+
 $cat_flag = 0;
 if(isset($result1['data']) && is_array($result1['data'])) {
 	foreach($result1['data'] as $res1) {
@@ -18,6 +21,7 @@ if(isset($result1['data']) && is_array($result1['data'])) {
 }
 if($cat_flag) {
 	$result2 = $sdk->list_attributes($cat_flag);
+	$processTime += $result2['processTime'];
 	$val_flag = 0;
 	if(isset($result2['data']) && is_array($result2['data'])) {
 		foreach($result2['data'] as $res2) {
@@ -29,7 +33,9 @@ if($cat_flag) {
 if(!$val_flag) exit;
 
 foreach($values as $value) {
-	$result[] =$sdk->listImageBySetKeyValue($category, $value);
+	$temp = $sdk->listImageBySetKeyValue($category, $value);
+	$result[] = $temp;
+	$processTime += $temp['processTime'];
 }
 
 if(!$result) {
@@ -52,6 +58,8 @@ foreach($result as $res) {
 <TITLE>Demo</TITLE>
 </HEAD>
 <BODY>
+Load Time : <span id="loadTime"></span>
+<br />
 <h2><?php echo $category; ?></h2>
 <table bgcolor="#CFCFCF">
 <tr><th></th>
@@ -87,5 +95,8 @@ foreach($sets as $set) {
 }
 ?>
 </table>
+<script type="text/javascript">
+	document.getElementById("loadTime").innerHTML = '<?php printf("%.5f", $processTime ); ?>' + ' s';
+</script>
 </BODY>
 </HTML>

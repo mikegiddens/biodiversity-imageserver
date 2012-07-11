@@ -512,7 +512,17 @@
 				if(strtolower($si->storage->getType($si->image->get('storage_id'))) == 's3') {
 					@unlink($tmpPath);
 				}
-
+				
+				if(!$res->zoomLevel) {
+					$zoomlevel = 0;
+					$handles = @opendir($config['path']['tiles'] . strtolower($t3[0]));
+					while (false !== ($zooml = @readdir($handles))) {
+						if( $zooml == '.' || $zooml == '..') continue;
+						$zoomlevel++;
+					}
+				} else {
+					$zoomlevel = $res->zoomLevel;
+				}
 				
 				if(in_array(@strtolower($tiles),array('create','createclear'))) {
 					$si->image->mkdir_recursive( $config['path']['imgTiles'] );
@@ -536,7 +546,7 @@
 				
 				$url = $config['tileUrl'] . strtolower($t3[0]).'/';
 				$tpl = $url . '{z}/tile_{i}.jpg';
-				print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start, 'url' => $url, 'tpl' => $tpl, 'maxZoomLevel' => $res->zoomLevel) ) );
+				print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start, 'url' => $url, 'tpl' => $tpl, 'maxZoomLevel' => $zoomlevel) ) );
 			} else {
 				header('Content-type: application/json');
 				print_c( json_encode( array( 'success' => false,  'error' => array('code' => $errorCode, 'message' => $si->getError($errorCode)) ) ) );

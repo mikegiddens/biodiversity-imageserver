@@ -1,7 +1,7 @@
 <?php
 require_once('phpBIS.php');
 
-$sdk = new phpBIS('{yourkey}', 'http://bis.silverbiology.com/dev/resources/api');
+$sdk = new phpBIS('{yourKey}', 'http://bis.silverbiology.com/dev/resources/api');
 
 $eventId = $_REQUEST['eventId'];
 
@@ -11,6 +11,9 @@ if(!$imageList) {
 	echo $sdk->lastError['code']. ' : ' . $sdk->lastError['msg'];
 	exit;
 }
+
+$processTime = $imageList['processTime'];
+
 $url = array();
 $imid = array();
 if(is_array($imageList['imageIds']) && count($imageList['imageIds'])) {
@@ -20,7 +23,10 @@ if(is_array($imageList['imageIds']) && count($imageList['imageIds'])) {
 	}
 }
 $listEvents = $sdk->listEvents(0, 1, $eventId, null, null, null, null);
+$processTime += $listEvents['processTime'];
 $listEventTypes = $sdk->listEventTypes(0, 1, $listEvents['results'][0]['eventTypeId'], null, null, null, null);
+$processTime += $listEventTypes['processTime'];
+
 ?>
 <HTML>
 <HEAD>
@@ -36,6 +42,8 @@ $listEventTypes = $sdk->listEventTypes(0, 1, $listEvents['results'][0]['eventTyp
 
 </HEAD>
 <BODY>
+Load Time : <span id="loadTime"></span>
+<br />
 <H3 align="center"><?php echo $listEvents['results'][0]['title']; ?></H3>
 <BR />
 <div style="text-align:center;"><?php echo 'Geo Location : '.$listEvents['results'][0]['admin_0'].', '.$listEvents['results'][0]['country']; ?></div>
@@ -43,6 +51,7 @@ $listEventTypes = $sdk->listEventTypes(0, 1, $listEvents['results'][0]['eventTyp
 	<?php
 	for($i=0;$i<count($url);$i++) {
 	$imgAttr = $sdk->listImageAttributes($imid[$i]);
+	$processTime += $imgAttr['processTime'];
 	?>
 	<a href="#">
 		<img src='<?php echo $url[$i];  ?>' width="600" height="400" >
@@ -59,7 +68,7 @@ $listEventTypes = $sdk->listEventTypes(0, 1, $listEvents['results'][0]['eventTyp
 			}
 			echo '<br />';
 		}}
-		//echo 'Image Id : '.$imid[$i];
+		//echo '<br />Image Id : '.$imid[$i];
 		?>
 		</span>
 	</a>
@@ -67,6 +76,8 @@ $listEventTypes = $sdk->listEventTypes(0, 1, $listEvents['results'][0]['eventTyp
 	}
 	?>
 </div>
-
+<script type="text/javascript">
+	document.getElementById("loadTime").innerHTML = '<?php printf("%.5f", $processTime ); ?>' + ' s';
+</script>
 </BODY>
 </HTML>
