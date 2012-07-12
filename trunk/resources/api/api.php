@@ -2385,11 +2385,91 @@
 			}
 			if($valid) {
 				$response = $si->storage->store($filename,$storage_id,$filename, $imagePath, $key);
+				$iEXd = new EXIFread($filename);
 				unlink($filename);
 				if($response['success']) {
 					$si->pqueue->set('image_id', $response['image_id']);
 					$si->pqueue->set('process_type','all');
 					$si->pqueue->save();
+					
+					//Add latitude and longitude - Start
+					if($gps = $iEXd->getGPS()) {
+						$catId = 0;
+						$atrId = 0;
+						$catArray = $si->image->list_categories();
+						if(is_array($catArray)) {
+							foreach($catArray as $cat) {
+								if($cat['title'] == 'Latitude') {
+									$catId = $cat['typeID'];
+									break;
+								}
+							}
+						}
+						if(!$catId) {
+							$data['value'] = 'Latitude';
+							$si->image->setData($data);
+							$catId = $si->image->addCategory();
+						}
+						$atrArray = $si->image->list_attributes($catId);
+						if(is_array($atrArray)) {
+							foreach($atrArray as $atr) {
+								if($atr['name'] == $gps['Latitude']) {
+									$atrId = $atr['valueID'];
+									break;
+								}
+							}
+						}
+						if(!$atrId) {
+							$data['categoryID'] = $catId;
+							$data['value'] = $gps['Latitude'];
+							$si->image->setData($data);
+							$atrId = $si->image->addAttribute();
+						}
+						$data['imageID'] = $response['image_id'];
+						$data['valueID'] = $atrId;
+						$data['categoryID'] = $catId;
+						$si->image->setData($data);
+						$si->image->addImageAttribute();
+						
+						$catId = 0;
+						$atrId = 0;
+						$catArray = $si->image->list_categories();
+						if(is_array($catArray)) {
+							foreach($catArray as $cat) {
+								if($cat['title'] == 'Longitude') {
+									$catId = $cat['typeID'];
+									break;
+								}
+							}
+						}
+						if(!$catId) {
+							$data['value'] = 'Longitude';
+							$si->image->setData($data);
+							$catId = $si->image->addCategory();
+						}
+						$atrArray = $si->image->list_attributes($catId);
+						if(is_array($atrArray)) {
+							foreach($atrArray as $atr) {
+								if($atr['name'] == $gps['Longitude']) {
+									$atrId = $atr['valueID'];
+									break;
+								}
+							}
+						}
+						if(!$atrId) {
+							$data['categoryID'] = $catId;
+							$data['value'] = $gps['Longitude'];
+							$si->image->setData($data);
+							$atrId = $si->image->addAttribute();
+						}
+						$data['imageID'] = $response['image_id'];
+						$data['valueID'] = $atrId;
+						$data['categoryID'] = $catId;
+						$si->image->setData($data);
+						$si->image->addImageAttribute();
+					}
+					//Add latitude and longitude - End
+					
 					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start, 'image_id' => $response['image_id'] ) ) );
 				} else {
 					$errorCode = 151;
@@ -2854,11 +2934,91 @@
 				$data = file_get_contents($url);
 				file_put_contents($filename, $data);
 				$response = $si->storage->store($filename,$storage_id,$filename, $imagePath, $key);
+				$iEXd = new EXIFread($filename);
 				unlink($filename);
 				if($response['success']) {
 					$si->pqueue->set('image_id', $response['image_id']);
 					$si->pqueue->set('process_type','all');
 					$si->pqueue->save();
+					
+					//Add latitude and longitude - Start
+					if($gps = $iEXd->getGPS()) {
+						$catId = 0;
+						$atrId = 0;
+						$catArray = $si->image->list_categories();
+						if(is_array($catArray)) {
+							foreach($catArray as $cat) {
+								if($cat['title'] == 'Latitude') {
+									$catId = $cat['typeID'];
+									break;
+								}
+							}
+						}
+						if(!$catId) {
+							$data['value'] = 'Latitude';
+							$si->image->setData($data);
+							$catId = $si->image->addCategory();
+						}
+						$atrArray = $si->image->list_attributes($catId);
+						if(is_array($atrArray)) {
+							foreach($atrArray as $atr) {
+								if($atr['name'] == $gps['Latitude']) {
+									$atrId = $atr['valueID'];
+									break;
+								}
+							}
+						}
+						if(!$atrId) {
+							$data['categoryID'] = $catId;
+							$data['value'] = $gps['Latitude'];
+							$si->image->setData($data);
+							$atrId = $si->image->addAttribute();
+						}
+						$data['imageID'] = $response['image_id'];
+						$data['valueID'] = $atrId;
+						$data['categoryID'] = $catId;
+						$si->image->setData($data);
+						$si->image->addImageAttribute();
+						
+						$catId = 0;
+						$atrId = 0;
+						$catArray = $si->image->list_categories();
+						if(is_array($catArray)) {
+							foreach($catArray as $cat) {
+								if($cat['title'] == 'Longitude') {
+									$catId = $cat['typeID'];
+									break;
+								}
+							}
+						}
+						if(!$catId) {
+							$data['value'] = 'Longitude';
+							$si->image->setData($data);
+							$catId = $si->image->addCategory();
+						}
+						$atrArray = $si->image->list_attributes($catId);
+						if(is_array($atrArray)) {
+							foreach($atrArray as $atr) {
+								if($atr['name'] == $gps['Longitude']) {
+									$atrId = $atr['valueID'];
+									break;
+								}
+							}
+						}
+						if(!$atrId) {
+							$data['categoryID'] = $catId;
+							$data['value'] = $gps['Longitude'];
+							$si->image->setData($data);
+							$atrId = $si->image->addAttribute();
+						}
+						$data['imageID'] = $response['image_id'];
+						$data['valueID'] = $atrId;
+						$data['categoryID'] = $catId;
+						$si->image->setData($data);
+						$si->image->addImageAttribute();
+					}
+					//Add latitude and longitude - End
+					
 					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start, 'image_id' => $response['image_id'] ) ) );
 				} else {
 					$errorCode = 151;
@@ -3082,10 +3242,90 @@
 					$size = getimagesize($_FILES["filename"]["tmp_name"][$i]);
 					if(in_array($size[2],$config["allowedImportTypes"])) {
 						$response = $si->storage->store($_FILES["filename"]["tmp_name"][$i],$storage_id[$i],$_FILES["filename"]["name"][$i], $imagePath[$i], $key);
+						$iEXd = new EXIFread($_FILES["filename"]["tmp_name"][$i]);
 						if($response['success']) {
 							$si->pqueue->set('image_id', $response['image_id']);
 							$si->pqueue->set('process_type','all');
 							$si->pqueue->save();
+							
+							//Add latitude and longitude - Start
+							if($gps = $iEXd->getGPS()) {
+								$catId = 0;
+								$atrId = 0;
+								$catArray = $si->image->list_categories();
+								if(is_array($catArray)) {
+									foreach($catArray as $cat) {
+										if($cat['title'] == 'Latitude') {
+										$catId = $cat['typeID'];
+										break;
+										}
+									}
+								}
+								if(!$catId) {
+									$data['value'] = 'Latitude';
+									$si->image->setData($data);
+									$catId = $si->image->addCategory();
+								}
+								$atrArray = $si->image->list_attributes($catId);
+								if(is_array($atrArray)) {
+									foreach($atrArray as $atr) {
+										if($atr['name'] == $gps['Latitude']) {
+										$atrId = $atr['valueID'];
+										break;
+										}
+									}
+								}
+								if(!$atrId) {
+									$data['categoryID'] = $catId;
+									$data['value'] = $gps['Latitude'];
+									$si->image->setData($data);
+									$atrId = $si->image->addAttribute();
+								}
+								$data['imageID'] = $response['image_id'];
+								$data['valueID'] = $atrId;
+								$data['categoryID'] = $catId;
+								$si->image->setData($data);
+								$si->image->addImageAttribute();
+						
+								$catId = 0;
+								$atrId = 0;
+								$catArray = $si->image->list_categories();
+								if(is_array($catArray)) {
+									foreach($catArray as $cat) {
+										if($cat['title'] == 'Longitude') {
+										$catId = $cat['typeID'];
+										break;
+										}
+									}
+								}
+								if(!$catId) {
+									$data['value'] = 'Longitude';
+									$si->image->setData($data);
+									$catId = $si->image->addCategory();
+								}
+								$atrArray = $si->image->list_attributes($catId);
+								if(is_array($atrArray)) {
+									foreach($atrArray as $atr) {
+										if($atr['name'] == $gps['Longitude']) {
+										$atrId = $atr['valueID'];
+										break;
+										}
+									}
+								}
+								if(!$atrId) {
+									$data['categoryID'] = $catId;
+									$data['value'] = $gps['Longitude'];
+									$si->image->setData($data);
+									$atrId = $si->image->addAttribute();
+								}
+								$data['imageID'] = $response['image_id'];
+								$data['valueID'] = $atrId;
+								$data['categoryID'] = $catId;
+								$si->image->setData($data);
+								$si->image->addImageAttribute();
+							}
+							//Add latitude and longitude - End
+							
 							$results[$i] =  array( 'success' => true, 'processTime' => microtime(true) - $time_start, 'image_id' => $response['image_id'] );
 							$totalCount++;
 						} else {
@@ -3135,11 +3375,91 @@
 			}
 			if($valid) {
 				$response = $si->storage->store($filename,$storage_id,$filename, $imagePath, $key);
+				$iEXd = new EXIFread($filename);
 				unlink($filename);
 				if($response['success']) {
 					$si->pqueue->set('image_id', $response['image_id']);
 					$si->pqueue->set('process_type','all');
 					$si->pqueue->save();
+					
+					//Add latitude and longitude - Start
+					if($gps = $iEXd->getGPS()) {
+						$catId = 0;
+						$atrId = 0;
+						$catArray = $si->image->list_categories();
+						if(is_array($catArray)) {
+							foreach($catArray as $cat) {
+								if($cat['title'] == 'Latitude') {
+									$catId = $cat['typeID'];
+									break;
+								}
+							}
+						}
+						if(!$catId) {
+							$data['value'] = 'Latitude';
+							$si->image->setData($data);
+							$catId = $si->image->addCategory();
+						}
+						$atrArray = $si->image->list_attributes($catId);
+						if(is_array($atrArray)) {
+							foreach($atrArray as $atr) {
+								if($atr['name'] == $gps['Latitude']) {
+									$atrId = $atr['valueID'];
+									break;
+								}
+							}
+						}
+						if(!$atrId) {
+							$data['categoryID'] = $catId;
+							$data['value'] = $gps['Latitude'];
+							$si->image->setData($data);
+							$atrId = $si->image->addAttribute();
+						}
+						$data['imageID'] = $response['image_id'];
+						$data['valueID'] = $atrId;
+						$data['categoryID'] = $catId;
+						$si->image->setData($data);
+						$si->image->addImageAttribute();
+						
+						$catId = 0;
+						$atrId = 0;
+						$catArray = $si->image->list_categories();
+						if(is_array($catArray)) {
+							foreach($catArray as $cat) {
+								if($cat['title'] == 'Longitude') {
+									$catId = $cat['typeID'];
+									break;
+								}
+							}
+						}
+						if(!$catId) {
+							$data['value'] = 'Longitude';
+							$si->image->setData($data);
+							$catId = $si->image->addCategory();
+						}
+						$atrArray = $si->image->list_attributes($catId);
+						if(is_array($atrArray)) {
+							foreach($atrArray as $atr) {
+								if($atr['name'] == $gps['Longitude']) {
+									$atrId = $atr['valueID'];
+									break;
+								}
+							}
+						}
+						if(!$atrId) {
+							$data['categoryID'] = $catId;
+							$data['value'] = $gps['Longitude'];
+							$si->image->setData($data);
+							$atrId = $si->image->addAttribute();
+						}
+						$data['imageID'] = $response['image_id'];
+						$data['valueID'] = $atrId;
+						$data['categoryID'] = $catId;
+						$si->image->setData($data);
+						$si->image->addImageAttribute();
+					}
+					//Add latitude and longitude - End
+					
 					$url = $si->image->getUrl($response['image_id']);
 					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start, 'image_id' => $response['image_id'] ) ) );
 				} else {
