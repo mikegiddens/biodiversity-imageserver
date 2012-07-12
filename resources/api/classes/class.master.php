@@ -25,6 +25,7 @@
 	require_once( $config['path']['base'] . 'resources/api/classes/class.remoteaccess.php');
 	require_once( $config['path']['base'] . 'resources/api/classes/class.storage.php');
 	require_once( $config['path']['base'] . 'resources/api/classes/class.set.php');
+	require_once( $config['path']['base'] . 'resources/api/classes/class.EXIFread.php');
 
 	Class SilverImage {
 
