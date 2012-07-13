@@ -2933,6 +2933,7 @@
 				$filename = $temp[count($temp)-1];
 				$data = file_get_contents($url);
 				file_put_contents($filename, $data);
+				unset($data);
 				$response = $si->storage->store($filename,$storage_id,$filename, $imagePath, $key);
 				$iEXd = new EXIFread($filename);
 				unlink($filename);
