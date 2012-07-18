@@ -12,7 +12,6 @@ var express =  require('express'),
 	// jobs = kue.createQueue();
 var app = module.exports = express.createServer();
 var silverTiles = require('silvertiles');
-var st = new silverTiles();
 
 
 // Configuration
@@ -38,9 +37,19 @@ function encodeCallback(str,callback) {
 }
 
 // Routes
-
 console.log('Testing');
-st.generateTiles();
+app.all('/test', function(request, response){
+	var st = new silverTiles({tileSize : 256, sourcePath : 'G:\\wamp\\www\\bis\\resources\\node\\cacheFolder\\',image : 'NLU0000002.jpg'});
+	// st.getOriginalDimensions(function(dimensions){
+		// console.log(dimensions);
+	// });
+	// st.createTiles();
+
+	st.generateTiles();
+	
+	response.writeHead(200, { 'Content-Type': 'application/json' });
+	response.end(JSON.stringify ({ success : true}));
+});
 
 app.listen(8888, function(){
 
