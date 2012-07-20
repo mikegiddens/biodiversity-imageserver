@@ -79,7 +79,7 @@ app.all('/get_image_tiles', function(request, response){
 	var imageId = request.query['image_id'] || request.param("image_id") || '';
 	var tileSize = 256;
 	var sourcePath = 'G:\\wamp\\www\\bis\\resources\\node\\cacheFolder\\';
-	var image = 'NLU0000002.jpg';
+	var image = 'LSU00082052.jpg';
 
 	var st = new silverTiles({tileSize : tileSize, sourcePath : sourcePath, image : image});
 	
