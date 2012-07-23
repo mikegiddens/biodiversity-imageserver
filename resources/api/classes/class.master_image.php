@@ -1126,7 +1126,7 @@ Class Image {
 			$ret['success'] = false;
 			return $ret;
 		}
-		$pqueue = new ProcessQueue();
+		$pqueue = new ProcessQueue($this->db);
 		$pqueue->db = &$this->db;
 		$this->load_by_id($image['image_id']);
 		$barcode = $this->get('barcode');
@@ -1181,7 +1181,8 @@ Class Image {
 		$this->set('processed', 0);
 		$this->save();
 
-		$pqueue->set('image_id', $barcode);
+		// $pqueue->set('image_id', $barcode);
+		$pqueue->set('image_id', $image['image_id']);
 		$pqueue->set('process_type', 'all');
 		$pqueue->save();
 
@@ -1767,6 +1768,31 @@ Class Image {
 	
 	public function list_attributes ($typeID) {
 		$query = sprintf("SELECT * FROM `image_attrib_value` WHERE `typeID` = '%s'", mysql_escape_string($typeID));
+		$records = $this->db->query_all($query);
+		if(count($records)) {
+			foreach($records as $record) {
+				$tmpArray['valueID'] = $record->valueID;
+				$tmpArray['name'] = $record->name;
+				$data[] = $tmpArray;
+			}
+			return $data;
+		} else {
+			return false;
+		}
+	}
+	
+	public function get_attributes ($typeID,$type = 'ID') {
+		$type = (in_array(strtoupper($type), array('ID','TITLE'))) ? strtoupper($type) : 'ID';
+		switch($type) {
+			case 'TITLE':
+				$query = sprintf("SELECT ia.* FROM `image_attrib_value` ia, `image_attrib_type` it  WHERE ia.`typeID` = it.`typeID` AND LOWER(it.`title`) = '%s'", mysql_escape_string(strtolower($typeID)));
+				break;
+			case 'ID':
+			default:
+				$query = sprintf("SELECT * FROM `image_attrib_value` WHERE `typeID` = '%s'", mysql_escape_string($typeID));
+				break;
+		}
+		
 		$records = $this->db->query_all($query);
 		if(count($records)) {
 			foreach($records as $record) {

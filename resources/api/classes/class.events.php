@@ -54,7 +54,7 @@ class Event
 		}
 	}
 
-	public function listRecords($queryFlag = true) {
+	public function listRecords($queryFlag = true, $geoFlag = true) {
 		$where = buildWhere($this->data['filter']);
 		if ($where != '') {
 			$where = " WHERE " . $where;
@@ -75,7 +75,11 @@ class Event
 		$where .= build_order( $this->data['order']);
 		$where .= build_limit($this->data['start'], $this->data['limit']);
 
-		$query = "SELECT SQL_CALC_FOUND_ROWS `eventId`, `geoId`, `eventDate`, `eventTypeId`, `title`, `description` FROM `events` " . $where;
+		if($geoFlag) {
+			$query = "SELECT SQL_CALC_FOUND_ROWS `eventId`, `geoId`, `eventDate`, `eventTypeId`, `title`, `description`, `country`,	`country_iso`, `admin_0` FROM `events` LEFT OUTER JOIN `geography` ON `events`.`geoId` = `geography`.`id` " . $where;
+		} else {
+			$query = "SELECT SQL_CALC_FOUND_ROWS `eventId`, `geoId`, `eventDate`, `eventTypeId`, `title`, `description` FROM `events` " . $where;
+		}
 
 		if($queryFlag) {
 			$ret = $this->db->query_all( $query );
@@ -170,8 +174,9 @@ class Event
 			return false;
 		}
 	}
-	
-	public function listImagesByEvent($eventId) {
+
+/*	
+	public function listImagesByEvent($eventId,$attributesFlag = true) {
 		$query = sprintf("SELECT imageId FROM `event_images` WHERE `eventId` = '%s';", mysql_escape_string($eventId));
 		$records = $this->db->query_all($query);
 		if(count($records)) {
@@ -180,6 +185,52 @@ class Event
 				$array[] = $imageId;
 			}
 			return $array;
+		}
+		return false;
+	}
+*/
+	
+	public function listImagesByEvent($eventId,$size = 'l',$attributesFlag = true) {
+		$query = sprintf("SELECT e.`imageId`, i.`filename`, i.`barcode`, i.`storage_id`, i.`path`  FROM `event_images` e LEFT OUTER JOIN image i ON e.`imageId` = i.`image_id` WHERE e.`eventId` = '%s';", mysql_escape_string($eventId));
+		$records = $this->db->query_all($query);
+		if(count($records)) {
+			$storage = new Storage($this->db);
+			if($attributesFlag) {
+				$image = new Image($this->db);
+			}
+			
+			if(isset($size) && in_array($size, array('s','m','l'))) {
+				$size = "_".$size;
+			} else {
+				$size = "";
+			}
+			
+			foreach($records as &$record) {
+				$device = $storage->get($record->storage_id);
+				$tmpFilename = explode(".",$record->filename);
+				$tmpFilename[0] .= $size;
+				$record->filename = implode(".", $tmpFilename);
+
+				$record->url = $device['baseUrl'];
+				switch(strtolower($device['type'])) {
+					case 's3':
+						$record->path = substr($record->path, 0, 1) == '/' ? substr($record->path, 1, strlen($record->path)-1) : $record->path;
+						$record->baseUrl = $device['baseUrl'] . $record->path . '/';
+						$record->url = $device['baseUrl'] . $record->path . '/' . $record->filename;
+						break;
+					case 'local':
+						if(substr($device['baseUrl'], strlen($url['url'])-1, 1) == '/') {
+							$record->url = substr($device['baseUrl'],0,strlen($device['baseUrl'])-1);
+						}
+						$record->baseUrl = $record->url . $record->path . '/';
+						$record->url .= $record->path . '/' . $record->filename;
+						break;
+				}
+				if($attributesFlag) {
+					$record->attributes = $image->get_all_attributes($record->image_id);
+				}
+			}
+			return $records;
 		}
 		return false;
 	}

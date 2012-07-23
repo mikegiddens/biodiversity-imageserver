@@ -18,6 +18,7 @@
 		,	'active'
 		,	'api'
 		,	'attributes'
+		,	'attributesFlag'
 		,	'authMode'
 		,	'autoProcess'
 		,	'barcode'
@@ -1746,6 +1747,22 @@
 					}
 				}
 				break;
+			
+			case 'get_attributes':
+				if($categoryID == '') {
+					$errorCode = 173;
+					print_c( json_encode( array( 'success' => false, 'error' => array ( 'code' => $errorCode, 'msg' => $si->getError($errorCode) ) ) ) );
+				} else {
+					$type = (in_array(strtoupper($type), array('ID','TITLE'))) ? strtoupper($type) : 'ID';
+					$result = $si->image->get_attributes($categoryID,$type);
+					if($result) {
+						print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start , 'data' => $result ) ) );
+					} else {
+						$errorCode = 174;
+						print_c( json_encode( array( 'success' => false, 'error' => array ( 'code' => $errorCode, 'msg' => $si->getError($errorCode) ) ) ) );
+					}
+				}
+				break;
 
 # Image Tasks
 
@@ -1942,11 +1959,11 @@
 				if($valid) {
 					$si->event->setData($data);
 					$ret = $si->event->listRecords();
-					foreach($ret as &$r) {
-						$si->geography->load_by_id($r->geoId);
-						$r->country = $si->geography->get('country');
-						$r->admin_0 = $si->geography->get('admin_0');
-					}
+					// foreach($ret as &$r) {
+						// $si->geography->load_by_id($r->geoId);
+						// $r->country = $si->geography->get('country');
+						// $r->admin_0 = $si->geography->get('admin_0');
+					// }
 					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start, 'results' => $ret ) ) );
 				} else {
 					print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($errorCode) , 'code' => $errorCode ) ) ) );
@@ -2072,8 +2089,10 @@
 					$valid = false;
 					$errorCode = 176;
 				}
+				$attributesFlag = ($attributesFlag != 'false') ? true : false;
+				$size = (in_array($size, array('s','m','l'))) ? $size : 'l';
 				if($valid) {
-					$imageIds = $si->event->listImagesByEvent($eventId);
+					$imageIds = $si->event->listImagesByEvent($eventId,$size,$attributesFlag);
 					if($imageIds) {
 						print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start, 'imageIds' => $imageIds ) ) );
 					} else {
