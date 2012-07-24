@@ -241,7 +241,7 @@ class Set
 						$tmpArray4['filename'] = $details['filename'];
 						$tmpArray4['url'] = $details['url'];
 						$tmpArray4['baseUrl'] = $details['baseUrl'];
-						$tmpArray4['urlDetails'] = $details;
+						// $tmpArray4['urlDetails'] = $details;
 						$tmpArray5[] = $tmpArray4;
 					}
 					$tmpArray2['images'] = $tmpArray5;
