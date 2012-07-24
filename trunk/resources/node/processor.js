@@ -50,7 +50,7 @@ app.all('/mysqlTest', function(request, response){
 	  host     : 'localhost',
 	  user     : 'root',
 	  password : '',
-	  database : 'bis',
+	  database : 'bis_demo',
 	});
 
 	connection.connect();
@@ -65,6 +65,14 @@ app.all('/mysqlTest', function(request, response){
 
 });
 
+
+app.all('/dirTest', function(request, response){
+	var barPath = bis.barcodePath('LSU00082053');
+	var dirPath = path.normalize('G:\\wamp\\www\\bis-demo\\images_demo\\' + barPath);
+	mkdirp.sync(dirPath);
+	response.writeHead(200, { 'Content-Type': 'application/json' });
+	response.end(JSON.stringify ({ success : true, path : dirPath}));
+});
 
 app.all('/tiles/generate', function(request, response){
 	var st = new silverTiles({tileSize : 256, sourcePath : 'G:\\wamp\\www\\bis\\resources\\node\\cacheFolder\\',image : 'NLU0000002.jpg'});
@@ -103,7 +111,6 @@ app.all('/get_image_tiles', function(request, response){
 
 app.all('/process_queue/start', function(request, response){
 	var callback = request.query['callback'] || request.param("callback") || '';
-	
 	if(processQueueFlag) {
 		bis.getPQueueCount({},function(count) {
 			response.writeHead(200, { 'Content-Type': 'application/json' });
@@ -111,6 +118,7 @@ app.all('/process_queue/start', function(request, response){
 		});
 	} else {
 		processQueueFlag = true;
+		bis.processQueue();
 		response.writeHead(200, { 'Content-Type': 'application/json' });
 		response.end(encodeCallback(JSON.stringify ({ success : true}),callback));
 	}
@@ -128,7 +136,7 @@ app.all('/process_queue/status', function(request, response){
 app.all('/process_queue/stop', function(request, response){
 	var callback = request.query['callback'] || request.param("callback") || '';
 	processQueueFlag = false;
-	
+	bis.stopQueue();
 	response.writeHead(200, { 'Content-Type': 'application/json' });
 	response.end(encodeCallback(JSON.stringify ({ success : true}),callback));
 });
