@@ -404,7 +404,7 @@ Class ProcessQueue {
 		}
 		$where .= build_order( $this->data['order']);
 
-		$query = "SELECT * FROM `process_queue` " . $where; # query for paging
+		$query = "SELECT SQL_CALC_FOUND_ROWS * FROM `process_queue` " . $where; # query for paging
 
 		$page = ($this->data['limit'] != 0) ? floor($this->data['start']/$this->data['limit']) : 1;
 

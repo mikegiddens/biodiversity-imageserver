@@ -989,17 +989,24 @@ Class Image {
 		}
 		$this->query .= ",I.namefinder_flag,I.namefinder_value,I.ScientificName, I.CollectionCode, I.GlobalUniqueIdentifier FROM `image` I ";
 
+		$this->queryCount = ' SELECT count(*) AS sz FROM `image` I ';
+		
 		if (($characters != '') && ($characters != '[]')) {
 			$this->query .= ", image_attrib ia ";
+			$this->queryCount .= ", image_attrib ia ";
 		}
 
 		$this->query .= " WHERE 1=1 AND (";
+		$this->queryCount .= " WHERE 1=1 AND (";
+		
 		$this->setBrowseFilter();
 		$this->query .= " AND I.image_id != '' ";
+		$this->queryCount .= " AND I.image_id != '' ";
 		$this->setAdminCharacterFilter();
 
 		if ($this->data['search_value'] != '') {
 			$this->query .= sprintf(" AND %s LIKE '%s%%' ", $this->data['search_type'], $this->data['search_value']);
+			$this->queryCount .= sprintf(" AND %s LIKE '%s%%' ", $this->data['search_type'], $this->data['search_value']);
 		}
 
 		$where = buildWhere($this->data['filter']);
@@ -1019,6 +1026,7 @@ Class Image {
 		}
 
 		$this->query .= $where;
+		$this->queryCount .= $where;
 
 		$this->setGroupFilter();
 		if(($this->data['sort']!='') && ($this->data['dir']!='')) {
@@ -1027,8 +1035,14 @@ Class Image {
 			$this->setOrderFilter();
 		}
 		$this->setLimitFilter();
+// echo $this->query;
+		// $this->total = $this->db->query_total();
 
-		$this->total = $this->db->query_total();
+		$countRet = $this->db->query_one( $this->queryCount );
+		if ($countRet != NULL) {
+			$this->total = $countRet->sz;
+		}
+
 		if($queryFlag) {
 			$ret = $this->db->query_all($this->query);
 			return is_null($ret) ? array() : $ret;

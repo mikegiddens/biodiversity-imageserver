@@ -626,7 +626,8 @@
 			if($valid) {
 				$si->image->setData($data);
 				$data = $si->image->listImages();
-				$total = $si->image->db->query_total();
+				// $total = $si->image->db->query_total();
+				$total = $si->image->total;
 				if(is_array($data) && count($data)) {
 					foreach($data as &$dt) {
 						/*switch($config['mode']) {
@@ -685,7 +686,7 @@
 			break;
 
 		case 'collections':
-
+			$time = microtime(true);
 			$data['start'] = (trim($start) != '') ? trim($start) : 0;
 			$data['limit'] = (trim($limit) != '') ? trim($limit) : 100;
 
@@ -704,7 +705,7 @@
 				$si->collection->setData($data);
 				$data = $si->collection->listCollection();
 				$total = $si->collection->db->query_total();
-				print_c( json_encode( array( 'success' => true, 'totalCount' => $total, 'records' => $data ) ));
+				print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time, 'totalCount' => $total, 'records' => $data ) ));
 			} else {
 				print_c( json_encode( array( 'success' => false,  'error' => array('code' => $errorCode, 'message' => $si->getError($errorCode)) ) ));
 			}

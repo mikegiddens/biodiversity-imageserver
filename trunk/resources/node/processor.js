@@ -46,13 +46,25 @@ console.log('Testing');
 
 app.all('/mysqlTest', function(request, response){
 	var mysql      = require('mysql');
+
+	var config = require('./config');
+	
+	// var connection = mysql.createConnection({
+	  // host     : 'localhost',
+	  // user     : 'root',
+	  // password : '',
+	  // database : 'bis_demo',
+	// });
+	
 	var connection = mysql.createConnection({
-	  host     : 'localhost',
-	  user     : 'root',
-	  password : '',
-	  database : 'bis_demo',
+	  host     : config.db.host,
+	  user     : config.db.user,
+	  password : config.db.password,
+	  database : config.db.database
 	});
 
+	console.log(config);
+	
 	connection.connect();
 	connection.query('SELECT * FROM users', function(err, rows, fields) {
 		if (err) throw err;
