@@ -13,14 +13,14 @@ Features of the the web portal are:
 
 = Reasons for Using the Software =
 
- * Provide a easy way to serve specimen images online
+ * Provide an easy way to serve specimen images online
  * Combine your scientific data with specimen images
 
-= Why this Software was Developed =
+= Why this software was developed =
 
 The original goal for developing this software was to provide a way to easily manage the [http://www.cyberfloralouisiana.com Cyberflora Louisiana] 1 million+ specimen sheets.
 
-If this sounds like something that would be good to have for your image collection we suggest you try for yourself by following our [Quickstart Quickstart Guide].
+If this sounds like something that would be good to have for your image collection, we suggest you try for yourself by following our [Quickstart Quickstart Guide].
 
 = General Diagram of Software and Image Server =
 
