@@ -26,6 +26,7 @@
 	require_once( $config['path']['base'] . 'resources/api/classes/class.storage.php');
 	require_once( $config['path']['base'] . 'resources/api/classes/class.set.php');
 	require_once( $config['path']['base'] . 'resources/api/classes/class.EXIFread.php');
+	require_once( $config['path']['base'] . 'resources/api/classes/class.imageRating.php');
 
 	Class SilverImage {
 
@@ -56,6 +57,7 @@
 			$this->remoteAccess = new RemoteAccess($this->db);
 			$this->storage = new Storage($this->db);
 			$this->set = new Set($this->db);
+			$this->imageRating = new ImageRating($this->db);
 			$this->authMode = 'session';
 		}
 
@@ -165,6 +167,8 @@
 				, 187 => 'No images for the specified event.'
 				, 188 => 'Category and value should be provided.'
 				, 189 => 'The key provided cannot be used to perform this action.'
+				, 190 => 'User Id should be given.'
+				, 191 => 'Rating out of range.'
 			);
 			return $ar[$error_code];
 		}

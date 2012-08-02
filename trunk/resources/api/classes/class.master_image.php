@@ -521,7 +521,7 @@ Class Image {
 
 	public function save() {
 		if($this->field_exists($this->get('image_id'))) {
-			$query = sprintf("UPDATE `image` SET  `filename` = '%s', `timestamp_modified` = now(), `barcode` = '%s', `width` = '%s', `height` = '%s', `Family` = '%s', `Genus` = '%s', `SpecificEpithet` = '%s', `rank` = '%s', `author` = '%s', `title` = '%s', `description` = '%s', `GlobalUniqueIdentifier` = '%s', `creative_commons` = '%s', `characters` = '%s', `flickr_PlantID` = '%s', `flickr_modified` = '%s', `flickr_details` = '%s', `picassa_PlantID` = '%s', `picassa_modified` = '%s', `gTileProcessed` = '%s', `zoomEnabled` = '%s', `processed` = '%s', `box_flag` = '%s', `ocr_flag` = '%s', `ocr_value` = '%s', `namefinder_flag` = '%s', `namefinder_value` = '%s', `ScientificName` = '%s', `CollectionCode` = '%s', `tmpFamily` = '%s', `tmpFamilyAccepted` = '%s', `tmpGenus` = '%s', `tmpGenusAccepted` = '%s', `guess_flag` = '%s', `storage_id` = '%s', `path` = '%s', `originalFilename` = '%s', `remoteAccessKey` = '%s' WHERE image_id = '%s' ;"
+			$query = sprintf("UPDATE `image` SET  `filename` = '%s', `timestamp_modified` = now(), `barcode` = '%s', `width` = '%s', `height` = '%s', `Family` = '%s', `Genus` = '%s', `SpecificEpithet` = '%s', `rank` = '%s', `author` = '%s', `title` = '%s', `description` = '%s', `GlobalUniqueIdentifier` = '%s', `creative_commons` = '%s', `characters` = '%s', `flickr_PlantID` = '%s', `flickr_modified` = '%s', `flickr_details` = '%s', `picassa_PlantID` = '%s', `picassa_modified` = '%s', `gTileProcessed` = '%s', `zoomEnabled` = '%s', `processed` = '%s', `box_flag` = '%s', `ocr_flag` = '%s', `ocr_value` = '%s', `namefinder_flag` = '%s', `namefinder_value` = '%s', `ScientificName` = '%s', `CollectionCode` = '%s', `tmpFamily` = '%s', `tmpFamilyAccepted` = '%s', `tmpGenus` = '%s', `tmpGenusAccepted` = '%s', `guess_flag` = '%s', `storage_id` = '%s', `path` = '%s', `originalFilename` = '%s', `remoteAccessKey` = '%s', `statusType` = '%s', `rating` = '%s'  WHERE image_id = '%s' ;"
 				, mysql_escape_string($this->get('filename'))
 				, mysql_escape_string($this->get('barcode'))
 				, mysql_escape_string($this->get('width'))
@@ -560,10 +560,12 @@ Class Image {
 				, mysql_escape_string($this->get('path'))
 				, mysql_escape_string($this->get('originalFilename'))
 				, mysql_escape_string($this->get('remoteAccessKey'))
+				, mysql_escape_string($this->get('statusType'))
+				, mysql_escape_string($this->get('rating'))
 				, mysql_escape_string($this->get('image_id'))
 			);
 		} else {
-			$query = sprintf("INSERT IGNORE INTO `image` SET `filename` = '%s', `timestamp_modified` = now(), `barcode` = '%s', `width` = '%s', `height` = '%s', `Family` = '%s', `Genus` = '%s', `SpecificEpithet` = '%s', `rank` = '%s', `author` = '%s', `title` = '%s', `description` = '%s', `GlobalUniqueIdentifier` = '%s', `creative_commons` = '%s', `characters` = '%s', `flickr_PlantID` = '%s', `flickr_modified` = '%s', `flickr_details` = '%s', `picassa_PlantID` = '%s', `picassa_modified` = '%s', `gTileProcessed` = '%s', `zoomEnabled` = '%s', `processed` = '%s', `box_flag` = '%s', `ocr_flag` = '%s', `ocr_value` = '%s', `namefinder_flag` = '%s', `namefinder_value` = '%s', `ScientificName` = '%s', `CollectionCode` = '%s', `tmpFamily` = '%s', `tmpFamilyAccepted` = '%s', `tmpGenus` = '%s', `tmpGenusAccepted` = '%s', `guess_flag` = '%s', `storage_id` = '%s', `path` = '%s', `originalFilename` = '%s', `remoteAccessKey` = '%s' ;"
+			$query = sprintf("INSERT IGNORE INTO `image` SET `filename` = '%s', `timestamp_modified` = now(), `barcode` = '%s', `width` = '%s', `height` = '%s', `Family` = '%s', `Genus` = '%s', `SpecificEpithet` = '%s', `rank` = '%s', `author` = '%s', `title` = '%s', `description` = '%s', `GlobalUniqueIdentifier` = '%s', `creative_commons` = '%s', `characters` = '%s', `flickr_PlantID` = '%s', `flickr_modified` = '%s', `flickr_details` = '%s', `picassa_PlantID` = '%s', `picassa_modified` = '%s', `gTileProcessed` = '%s', `zoomEnabled` = '%s', `processed` = '%s', `box_flag` = '%s', `ocr_flag` = '%s', `ocr_value` = '%s', `namefinder_flag` = '%s', `namefinder_value` = '%s', `ScientificName` = '%s', `CollectionCode` = '%s', `tmpFamily` = '%s', `tmpFamilyAccepted` = '%s', `tmpGenus` = '%s', `tmpGenusAccepted` = '%s', `guess_flag` = '%s', `storage_id` = '%s', `path` = '%s', `originalFilename` = '%s', `remoteAccessKey` = '%s', `statusType` = '%s', `rating` = '%s' ;"
 				, mysql_escape_string($this->get('filename'))
 				, mysql_escape_string($this->get('barcode'))
 				, mysql_escape_string($this->get('width'))
@@ -602,6 +604,8 @@ Class Image {
 				, mysql_escape_string($this->get('path'))
 				, mysql_escape_string($this->get('originalFilename'))
 				, mysql_escape_string($this->get('remoteAccessKey'))
+				, mysql_escape_string($this->get('statusType'))
+				, mysql_escape_string($this->get('rating'))
 			);
 		}
 // echo '<br> Query : ' . $query;
@@ -2245,6 +2249,12 @@ Class Image {
 			$query .= build_limit(trim($filter['start']),trim($filter['limit']));
 		}
 		return ($this->db->query($query));
+	}
+	
+	public function updateImageRating($image_id = '', $rating = '') {
+		if($image_id == '' ||  $rating == '') return false;
+		$query = sprintf(" UPDATE `image` SET `rating` = '%s' WHERE `image_id` = '%s'; ", mysql_escape_string($rating), mysql_escape_string($image_id));
+		return ($this->db->query($query)) ? true : false;
 	}
 }
 ?>

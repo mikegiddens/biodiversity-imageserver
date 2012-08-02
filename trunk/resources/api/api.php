@@ -82,6 +82,7 @@
 		,	'picassa_PlantID'
 		,	'pw'
 		,	'rank'
+		,	'rating'
 		,	'report_type'
 		,	'sc'
 		,	'sc_id'
@@ -95,6 +96,7 @@
 		,	'start'
 		,	'station'
 		,	'station_id'
+		,	'statusType'
 		,	'stop'
 		,	'storage_id'
 		,	'stream'
@@ -1762,6 +1764,70 @@
 						$errorCode = 174;
 						print_c( json_encode( array( 'success' => false, 'error' => array ( 'code' => $errorCode, 'msg' => $si->getError($errorCode) ) ) ) );
 					}
+				}
+				break;
+
+# Trusted and Image Rating Tasks
+
+			case 'setUserTrusted':
+				if(!($user_access->is_logged_in() && $user_access->get_access_level() == 10)){
+					$errorCode = 113;
+					$valid = false;
+				}
+				if($user_id == '') {
+					$errorCode = 190;
+					$valid = false;
+				}
+				if($valid) {
+					$statusType = ($statusType == 'false') ? 0 : 1;
+					$query = sprintf(" UPDATE `users` SET `statusType` = %d WHERE `id` = '%s' ", $statusType, $user_id);
+					if($si->db->query($query)) {
+						$si->imageRating->updateTrustedUserImages($user_id,$statusType);
+					}
+					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start ) ) );
+				} else {
+					print_c( json_encode( array( 'success' => false, 'error' => array ( 'code' => $errorCode, 'msg' => $si->getError($errorCode) ) ) ) );
+				}
+				break;
+
+			case 'updateImageRating':
+				$count = 0;
+				$ret = $si->imageRating->getAvgRating();
+				if(is_object($ret) && !is_null($ret)) {
+					while ($row = $ret->fetch_object()) {
+						if($si->image->updateImageRating($row->image_id,$row->rating)) {
+							$si->imageRating->updateCalc($row->image_id);
+							$count++;
+						}
+					}
+				}
+				print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start, 'totalCount' => $count ) ) );
+				break;
+
+			case 'setImageRating':
+				if($image_id == "") {
+					$valid = false;
+					$errorCode = 107;
+				} elseif(!$si->image->load_by_id($image_id)) {
+					$valid = false;
+					$errorCode = 116;
+				}
+				if( !(is_numeric($rating) && $rating >= 0 && $rating <= 5)) {
+					$valid = false;
+					$errorCode = 191;
+				}
+
+				if($valid) {
+					$user_id = ($user_access->is_logged_in()) ? $_SESSION['user_id'] : 0;
+					$si->imageRating->set('image_id',$image_id);
+					$si->imageRating->set('user_id',$user_id);
+					$si->imageRating->set('ip_address',str_replace('.', '', $_SERVER['REMOTE_ADDR']));
+					$si->imageRating->set('rating',$rating);
+					$si->imageRating->saveRating();
+					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start ) ) );
+
+				} else {
+					print_c( json_encode( array( 'success' => false, 'error' => array ( 'code' => $errorCode, 'msg' => $si->getError($errorCode) ) ) ) );
 				}
 				break;
 
