@@ -1556,7 +1556,8 @@ Class Image {
 		$characters = $this->data['characters'];
 		if (($characters != '') && ($characters != '[]')) {
 			$this->char_list = '';
-			foreach($json->decode($characters) as $character) {
+			// foreach($json->decode($characters) as $character) {
+			foreach(json_decode($characters) as $character) {
 				$this->char_list .= $character->node_value . ",";
 			}
 			$this->char_list = substr($this->char_list, 0, -1);
@@ -1572,12 +1573,45 @@ Class Image {
 		}
 	}
 
+	// private function setOrderFilter($mode = 'view_images') {
+		// if($mode == 'view_images') {
+			// $this->query .= " ORDER BY I.`Family`, I.`Genus`, I.`SpecificEpithet` ";
+		// } else {
+			// $this->query .= sprintf(" ORDER BY I.%s %s", mysql_escape_string($this->data['sort']),  $this->data['dir']);
+		// }
+	// }
+
 	private function setOrderFilter($mode = 'view_images') {
-		if($mode == 'view_images') {
-			$this->query .= " ORDER BY I.`Family`, I.`Genus`, I.`SpecificEpithet` ";
-		} else {
-			$this->query .= sprintf(" ORDER BY I.%s %s", mysql_escape_string($this->data['sort']),  $this->data['dir']);
+		$orderBy = '';
+		switch($mode) {
+			case 'view_images':
+				$orderBy .= ' ORDER BY I.`Family`, I.`Genus`, I.`SpecificEpithet` ';
+				break;
+			case 'manual':
+				$orderBy .= sprintf(" ORDER BY I.%s %s ", mysql_escape_string($this->data['sort']),  $this->data['dir']);
+				break;
+			default:
+				if(($this->data['sort']!='') && ($this->data['dir']!='')) {
+					$orderBy .= sprintf(" ORDER BY I.%s %s ", mysql_escape_string($this->data['sort']),  $this->data['dir']);
+				} else if($this->data['order'] != '' && is_array($this->data['order'])) {
+					$orderBy .= ' ORDER BY ';
+					if(count($this->data['order'])) {
+						$ordArray = array();
+						foreach($this->data['order'] as $order) {
+							$ordArray[] = " I.{$order['field']} {$order['dir']} ";
+						}
+						$orderBy .= implode(',',$ordArray);
+					}
+				}
+				break;
 		}
+		if($this->data['useRating']) {
+			$orderBy .= ($orderBy == '') ? ' ORDER BY I.`rating` DESC ' : ', I.`rating` DESC ';
+		}
+		if($this->data['useStatus']) {
+			$orderBy .= ($orderBy == '') ? ' ORDER BY I.`statusType` DESC ' : ', I.`statusType` DESC ';
+		}
+		$this->query .= $orderBy;
 	}
 
 	private function setLimitFilter() {

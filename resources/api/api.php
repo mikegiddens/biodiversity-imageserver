@@ -108,9 +108,11 @@
 		,	'types'
 		,	'url'
 		,	'user'
+		,	'useRating'
 		,	'username'
 		,	'user_id'
 		,	'users'
+		,	'useStatus'
 		,	'value'
 		,	'valueId'
 		,	'valueID'
@@ -624,6 +626,8 @@
 			$data['search_value'] = $search_value;
 			$data['search_type'] = $search_type;
 
+			$data['useRating'] = (trim($useRating) == 'true') ? true : false;
+			$data['useStatus'] = (trim($useStatus) == 'true') ? true : false;
 
 			if($valid) {
 				$si->image->setData($data);
@@ -722,7 +726,7 @@
 				$si->collection->set('name', $name);
 				$si->collection->set('code', $collectionCode);
 				$si->collection->save();
-				print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start ) ) );
+				print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start, 'new_id' => $si->collection->insert_id ) ) );
 			} else {
 				print_c( json_encode( array( 'success' => false,  'error' => array('code' => $errorCode, 'msg' => $si->getError($errorCode)) ) ));
 			}
@@ -1398,22 +1402,22 @@
 			break;
 
 		case 'add_image_attribute':
-			switch($si->authMode) {
-				case 'key':
-					if(!$si->remoteAccess->checkRemoteAccess(ip2long($_SERVER['REMOTE_ADDR']), $key)) {
-						print_c (json_encode( array( 'success' => false, 'error' => array('msg' => $si->getError(145), 'code' => 145 )) ));
-						exit;
-					}
-					break;
+			// switch($si->authMode) {
+				// case 'key':
+					// if(!$si->remoteAccess->checkRemoteAccess(ip2long($_SERVER['REMOTE_ADDR']), $key)) {
+						// print_c (json_encode( array( 'success' => false, 'error' => array('msg' => $si->getError(145), 'code' => 145 )) ));
+						// exit;
+					// }
+					// break;
 				
-				case 'session':
-				default:
-					if(!$user_access->is_logged_in()) {
-						print_c (json_encode( array( 'success' => false, 'error' => array('msg' => $si->getError(113), 'code' => 113 )) ));
-						exit;
-					}
-					break;
-			}
+				// case 'session':
+				// default:
+					// if(!$user_access->is_logged_in()) {
+						// print_c (json_encode( array( 'success' => false, 'error' => array('msg' => $si->getError(113), 'code' => 113 )) ));
+						// exit;
+					// }
+					// break;
+			// }
 
 			$data['imageID'] = $imageID;
 			$data['valueID'] = $valueID;
@@ -1447,22 +1451,22 @@
 			break;
 
 		case 'delete_image_attribute':
-			switch($si->authMode) {
-				case 'key':
-					if(!$si->remoteAccess->checkRemoteAccess(ip2long($_SERVER['REMOTE_ADDR']), $key)) {
-						print_c (json_encode( array( 'success' => false, 'error' => array('msg' => $si->getError(145), 'code' => 145 )) ));
-						exit;
-					}
-					break;
+			// switch($si->authMode) {
+				// case 'key':
+					// if(!$si->remoteAccess->checkRemoteAccess(ip2long($_SERVER['REMOTE_ADDR']), $key)) {
+						// print_c (json_encode( array( 'success' => false, 'error' => array('msg' => $si->getError(145), 'code' => 145 )) ));
+						// exit;
+					// }
+					// break;
 				
-				case 'session':
-				default:
-					if(!$user_access->is_logged_in()) {
-						print_c (json_encode( array( 'success' => false, 'error' => array('msg' => $si->getError(113), 'code' => 113 )) ));
-						exit;
-					}
-					break;
-			}
+				// case 'session':
+				// default:
+					// if(!$user_access->is_logged_in()) {
+						// print_c (json_encode( array( 'success' => false, 'error' => array('msg' => $si->getError(113), 'code' => 113 )) ));
+						// exit;
+					// }
+					// break;
+			// }
 
 			$data['imageID'] = $imageID;
 			if($data['imageID'] == "") {
@@ -1627,22 +1631,22 @@
 				break;
 
 			case 'add_attribute':
-				switch($si->authMode) {
-					case 'key':
-						if(!$si->remoteAccess->checkRemoteAccess(ip2long($_SERVER['REMOTE_ADDR']), $key)) {
-							print_c (json_encode( array( 'success' => false, 'error' => array('msg' => $si->getError(145), 'code' => 145 )) ));
-							exit;
-						}
-						break;
+				// switch($si->authMode) {
+					// case 'key':
+						// if(!$si->remoteAccess->checkRemoteAccess(ip2long($_SERVER['REMOTE_ADDR']), $key)) {
+							// print_c (json_encode( array( 'success' => false, 'error' => array('msg' => $si->getError(145), 'code' => 145 )) ));
+							// exit;
+						// }
+						// break;
 				
-					case 'session':
-					default:
-						if(!$user_access->is_logged_in()) {
-							print_c (json_encode( array( 'success' => false, 'error' => array('msg' => $si->getError(113), 'code' => 113 )) ));
-							exit;
-						}
-						break;
-				}
+					// case 'session':
+					// default:
+						// if(!$user_access->is_logged_in()) {
+							// print_c (json_encode( array( 'success' => false, 'error' => array('msg' => $si->getError(113), 'code' => 113 )) ));
+							// exit;
+						// }
+						// break;
+				// }
 
 				$data['categoryID'] = $categoryID;
 				if($data['categoryID'] == "") {
