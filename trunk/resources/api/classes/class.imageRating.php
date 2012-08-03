@@ -53,13 +53,13 @@ class ImageRating
 	
 	public function getAvgRatingById($image_id = '') {
 		if($image_id == '') return false;
-		$query = sprintf("SELECT avg( `rating` ) AS `rating` FROM `image_rating` WHERE `calc` =0 AND `image_id` = '%s'", mysql_escape_string($image_id));
+		$query = sprintf("SELECT avg( `rating` ) AS `rating` FROM `image_rating` WHERE `image_id` = '%s'", mysql_escape_string($image_id));
 		$ret = $this->db->query_one($query);
 		return is_null($ret) ? false : $ret->rating;
 	}
 	
 	public function getAvgRating($resultFlag = true) {
-		$query = 'SELECT `image_id`, avg( `rating` ) AS rating FROM `image_rating` WHERE `calc` = 0 GROUP BY `image_id` ';
+		$query = 'SELECT `image_id`, avg( `rating` ) AS rating FROM `image_rating` WHERE `image_id` IN ( SELECT DISTINCT `image_id` FROM `image_rating` WHERE `calc` = 0 ) GROUP BY `image_id` ';
 		return ($resultFlag) ? $this->db->query($query) : $this->db->query_all($query);
 	}
 	
