@@ -66,6 +66,7 @@
 		,	'index'
 		,	'key'
 		,	'limit'
+		,	'loadFlag'
 		,	'month'
 		,	'name'
 		,	'newImagePath'
@@ -2668,7 +2669,72 @@
 				print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($errorCode) , 'code' => $errorCode ) ) ) );
 			}
 			break;
-		
+
+		case 'loadFromServer':
+			$flag = false;
+			$loadFlag =  (@strtolower($loadFlag) == 'move') ?'move' : 'copy';
+			$imgPath = '/serverimages/'; // imgPath : stored imagePath, imagePath : absolute path of the image
+			if($storage_id == '' || $imagePath == '' || $filename == '') {
+				$valid = false;
+				$errorCode = 152;
+			} elseif(!$si->storage->exists($storage_id)) {
+				$valid = false;
+				$errorCode = 150;
+			}
+			
+			if(!@file_exists($imagePath . $filename)) {
+				$valid = false;
+				$errorCode = 147;
+			}
+			
+			// elseif(!$si->image->image_exists($storage_id, $imagePath, $filename)) {
+				// $valid = false;
+				// $errorCode = 147;
+			// } else {
+				// $valid = true;
+			// }
+			
+			if($valid) {
+				$device = $si->storage->get($storage_id);
+				$image_id = $si->image->getImageId($filename, $imgPath, $storage_id);
+				if(!$image_id) {
+					$si->image->mkdir_recursive($device['basePath'] . $imgPath);
+					switch($loadFlag) {
+						case 'move':
+							if(rename($imagePath . $filename, $device['basePath'] . $imgPath . $filename)) $flag = true;
+							break;
+						case 'copy':
+						default:
+							if(copy($imagePath . $filename, $device['basePath'] . $imgPath . $filename)) $flag = true;
+							break;
+					}
+					if($flag) {
+						$imgPath = rtrim($imgPath,'/');
+						$si->image->set('filename',$filename);
+						$si->image->set('storage_id', $storage_id);
+						$si->image->set('path', $imgPath);
+						$si->image->set('originalFilename', $filename);
+						$si->image->save();
+						$image_id = $si->image->getImageId($filename, $imgPath, $storage_id);
+						$si->pqueue->set('image_id', $image_id);
+						$si->pqueue->set('process_type','all');
+						$si->pqueue->save();
+						print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start, 'image_id' => $image_id ) ) );
+					} else {
+						$errorCode = 192;
+						print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($errorCode) , 'code' => $errorCode ) ) ) );
+					}
+				} else {
+					$errorCode = 162;
+					print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($errorCode) , 'code' => $errorCode ) ) ) );
+				}
+				
+			} else {
+				print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($errorCode) , 'code' => $errorCode ) ) ) );
+			}
+			break;
+
+			
 		case 'addExistingImage':
 			if($storage_id == '' || $imagePath == '' || $filename == '') {
 				$valid = false;

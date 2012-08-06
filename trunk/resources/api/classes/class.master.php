@@ -169,6 +169,7 @@
 				, 189 => 'The key provided cannot be used to perform this action.'
 				, 190 => 'User Id should be given.'
 				, 191 => 'Rating out of range.'
+				, 192 => 'Image could not be moved or copied.'
 			);
 			return $ar[$error_code];
 		}
