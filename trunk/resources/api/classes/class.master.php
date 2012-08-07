@@ -170,6 +170,7 @@
 				, 190 => 'User Id should be given.'
 				, 191 => 'Rating out of range.'
 				, 192 => 'Image could not be moved or copied.'
+				, 193 => 'Attribute should be given.'
 			);
 			return $ar[$error_code];
 		}

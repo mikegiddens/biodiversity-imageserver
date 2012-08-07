@@ -1643,6 +1643,28 @@ Class Image {
 		}
 	}
 
+	
+# Attribute Functions
+
+		public function getAttributeBy($attribute, $attribType) {
+			if(!@in_array($attribType,array('typeID','title','term'))) return false;
+			if($attribType == 'typeID') {
+				return $this->category_exist($attribute) ? $attribute : false; 
+			}
+			$ret = $this->db->query_one( sprintf(" SELECT `typeID` FROM `image_attrib_type` WHERE `%s` = '%s' ", mysql_escape_string($attribType), mysql_escape_string($attribute)) );
+			return ($ret == NULL) ? false : $ret->typeID;
+		}
+
+		public function getValueBy($value, $valueType) {
+			if(!@in_array($valueType,array('valueID','name'))) return false;
+			if($valueType == 'valueID') {
+				return $this->attribute_exist($value) ? $value : false; 
+			}
+
+			$ret = $this->db->query_one( sprintf(" SELECT `valueID` FROM `image_attrib_value` WHERE `name` = '%s' ", mysql_escape_string($value)) );
+			return ($ret == NULL) ? false : $ret->valueID;
+		}
+	
 	public function addImageAttribute() {
 		$imageIDs = @explode(',', $this->data['imageID']);
 		$categoryID = $this->data['categoryID'];
@@ -2260,12 +2282,13 @@ Class Image {
 	}
 	
 	public function importMetaDataPackage($data) {
-		if((!is_array($data)) || (count($data)!=4)) return false;
+		// if((!is_array($data)) || (count($data)!=4)) return false;
+		if(!is_array($data)) return false;
 		$query = sprintf("INSERT IGNORE INTO `image_attrib_type` SET `title` = '%s', `description` = '%s', `elementSet` = '%s', `term` = '%s'"
-				, mysql_escape_string($data[0])
-				, mysql_escape_string($data[1])
 				, mysql_escape_string($data[2])
 				, mysql_escape_string($data[3])
+				, mysql_escape_string($data[0])
+				, mysql_escape_string($data[1])
 				);
 		if($this->db->query($query)) {
 			return true;

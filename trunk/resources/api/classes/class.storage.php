@@ -65,6 +65,7 @@ class Storage {
 		, mysql_escape_string($this->fetch('extra2'))
 		);
 		if($this->db->query($query)) {
+			$this->getAllDevices();
 			return($this->db->insert_id);
 		} else {
 			return (false);
