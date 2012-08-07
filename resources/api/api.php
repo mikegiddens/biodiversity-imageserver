@@ -2693,7 +2693,7 @@
 			$data['pw'] = trim($pw);
 			$data['key'] = trim($key);
 			$data['active'] = (trim($active) == 'false') ? 'false' : 'true';
-			$default = (trim($default) == 'false') ? false : true;
+			$default = (trim($default) == 'true') ? true : false;
 			if($name=='' || $type=='' || $baseUrl=='') {
 				$errorCode = 148;
 				print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($errorCode) , 'code' => $errorCode ) ) ) );
