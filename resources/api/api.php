@@ -17,6 +17,8 @@
 		,	'accountName'
 		,	'active'
 		,	'api'
+		,	'attribType'
+		,	'attribute'
 		,	'attributes'
 		,	'attributesFlag'
 		,	'authMode'
@@ -39,8 +41,10 @@
 		,	'country_iso'
 		,	'date'
 		,	'day'
+		,	'default'
 		,	'degree'
 		,	'description'
+		,	'destinationPath'
 		,	'dir'
 		,	'enAccountId'
 		,	'errorCode'
@@ -117,6 +121,7 @@
 		,	'value'
 		,	'valueId'
 		,	'valueID'
+		,	'valueType'
 		,	'week'
 		,	'width'
 		,	'year'
@@ -727,7 +732,7 @@
 				$si->collection->set('name', $name);
 				$si->collection->set('code', $collectionCode);
 				$si->collection->save();
-				print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start, 'new_id' => $si->collection->insert_id ) ) );
+				print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start, 'collection_id' => $si->collection->db->insert_id ) ) );
 			} else {
 				print_c( json_encode( array( 'success' => false,  'error' => array('code' => $errorCode, 'msg' => $si->getError($errorCode)) ) ));
 			}
@@ -1421,6 +1426,58 @@
 			// }
 
 			$data['imageID'] = $imageID;
+			$attribType = in_array(trim($attribType),array('typeID','title','term')) ? trim($attribType) : 'typeID';
+			$valueType = in_array(trim($valueType),array('valueID','name')) ? trim($valueType) : 'valueID';
+			
+			if($data['imageID'] == "") {
+				$valid = false;
+				$errorCode = 107;
+			} elseif(trim($attribute) == '') {
+				$valid = false;
+				$errorCode = 193;
+			} elseif(trim($value) == "") {
+				$valid = false;
+				$errorCode = 118;
+			} else {
+				if(false === ($data['categoryID'] = $si->image->getAttributeBy($attribute,$attribType))) {
+					$valid = false;
+					$errorCode = 175;
+				} elseif(false === ($data['valueID'] = $si->image->getValueBy($value,$valueType))) {
+					$valid = false;
+					$errorCode = 164;
+				}
+			}
+			if($valid) {
+				$si->image->setData($data);
+				if($si->image->addImageAttribute()) {
+					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start ) ) );
+				} else {
+					print_c( json_encode( array( 'success' => false, 'error' => array ( 'code' => 121, 'msg' => $si->error(121) ) ) ) );
+				}
+			} else {
+				print_c( json_encode( array( 'success' => false, 'error' => array ( 'code' => $errorCode, 'msg' => $si->getError($errorCode) ) ) ) );
+			}
+			break;
+/*
+		case 'add_image_attribute':
+			// switch($si->authMode) {
+				// case 'key':
+					// if(!$si->remoteAccess->checkRemoteAccess(ip2long($_SERVER['REMOTE_ADDR']), $key)) {
+						// print_c (json_encode( array( 'success' => false, 'error' => array('msg' => $si->getError(145), 'code' => 145 )) ));
+						// exit;
+					// }
+					// break;
+				
+				// case 'session':
+				// default:
+					// if(!$user_access->is_logged_in()) {
+						// print_c (json_encode( array( 'success' => false, 'error' => array('msg' => $si->getError(113), 'code' => 113 )) ));
+						// exit;
+					// }
+					// break;
+			// }
+
+			$data['imageID'] = $imageID;
 			$data['valueID'] = $valueID;
 			$data['categoryID'] = $categoryID;
 			if($data['imageID'] == "") {
@@ -1450,7 +1507,7 @@
 				print_c( json_encode( array( 'success' => false, 'error' => array ( 'code' => $errorCode, 'msg' => $si->getError($errorCode) ) ) ) );
 			}
 			break;
-
+*/
 		case 'delete_image_attribute':
 			// switch($si->authMode) {
 				// case 'key':
@@ -1539,7 +1596,7 @@
 					$si->image->setData($data);
 					$id = $si->image->addCategory();
 					if($id) {
-						print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start, 'new_id' => $id ) ) );
+						print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start, 'categoryID' => $id ) ) );
 					} else {
 						print_c( json_encode( array( 'success' => false, 'error' => array ( 'code' => 124, 'msg' => $si->getError(124) ) ) ) );
 					}
@@ -1663,7 +1720,7 @@
 					$si->image->setData($data);
 					$id = $si->image->addAttribute();
 					if($id) {
-						print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start, 'new_id' => $id ) ) );
+						print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start, 'valueID' => $id ) ) );
 					}
 				} else {
 					print_c( json_encode( array( 'success' => false, 'error' => array ( 'code' => $errorCode, 'msg' => $si->getError($errorCode) ) ) ) );
@@ -2013,7 +2070,7 @@
 					$si->event->set('lastModifiedBy', $_SESSION['user_id']);
 					$si->event->save();
 
-					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start, 'new_id' => $si->event->insert_id ) ) );
+					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start, 'eventId' => $si->event->db->insert_id ) ) );
 				} else {
 					print_c( json_encode( array( 'success' => false, 'error' => array ( 'code' => $errorCode, 'msg' => $si->getError($errorCode) ) ) ) );
 				}
@@ -2112,7 +2169,7 @@
 					$si->event->lg->set('action', 'addImageEvent');
 					$si->event->lg->set('lastModifiedBy', $_SESSION['user_id']);
 					$id = $si->event->addImageEvent($imageId, $eventId);
-					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start, 'new_id' => $id ) ) );
+					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start, 'eventImageId' => $id ) ) );
 				} else {
 					print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($errorCode) , 'code' => $errorCode ) ) ) );
 				}
@@ -2210,7 +2267,7 @@
 					$si->eventType->set('lastModifiedBy', $_SESSION['user_id']);
 					$si->eventType->save();
 
-					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start, 'new_id' => $si->eventType->insert_id ) ) );
+					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start, 'eventTypeId' => $si->eventType->db->insert_id ) ) );
 				} else {
 					print_c( json_encode( array( 'success' => false, 'error' => array ( 'code' => $errorCode, 'msg' => $si->getError($errorCode) ) ) ) );
 				}
@@ -2635,20 +2692,24 @@
 			$data['user'] = trim($user);
 			$data['pw'] = trim($pw);
 			$data['key'] = trim($key);
-			$data['active'] = trim($active)!=''?trim($active):'true';
+			$data['active'] = (trim($active) == 'false') ? 'false' : 'true';
+			$default = (trim($default) == 'false') ? false : true;
 			if($name=='' || $type=='' || $baseUrl=='') {
 				$errorCode = 148;
 				print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($errorCode) , 'code' => $errorCode ) ) ) );
 			} else {
 				$si->storage->set_all($data);
 				$id = $si->storage->save();
-				print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start, 'new_id' => $id ) ) );
+				if($default) {
+					$si->storage->setDefault($id);
+				}
+				print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start, 'storage_id' => $id ) ) );
 			}
 			break;
 		
 		case 'listStorageDevices':
 			if(is_array($si->storage->devices)) {
-				print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start, 'data' => $si->storage->devices ) ) );
+				print_c( json_encode( array( 'success' => true, 'totalCount' => count($si->storage->devices), 'processTime' => microtime(true) - $time_start, 'data' => $si->storage->devices ) ) );
 			} else {
 				$errorCode = 149;
 				print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($errorCode) , 'code' => $errorCode ) ) ) );
@@ -2673,7 +2734,9 @@
 		case 'loadFromServer':
 			$flag = false;
 			$loadFlag =  (@strtolower($loadFlag) == 'move') ?'move' : 'copy';
-			$imgPath = '/serverimages/'; // imgPath : stored imagePath, imagePath : absolute path of the image
+			# destinationPath and imagePath relative to the storage path
+			$destinationPath = ($destinationPath == '') ? '/serverimages/' : $destinationPath; 
+			$imgPath = $destinationPath;
 			if($storage_id == '' || $imagePath == '' || $filename == '') {
 				$valid = false;
 				$errorCode = 152;
@@ -2681,35 +2744,35 @@
 				$valid = false;
 				$errorCode = 150;
 			}
-			
-			if(!@file_exists($imagePath . $filename)) {
+			$imgPath = rtrim($imgPath,'/') . '/';
+			$imagePath = '/' . ltrim($imagePath,'/');
+			$imagePath = rtrim($imagePath,'/') . '/';
+			if(!$si->image->image_exists($storage_id, $imagePath, $filename)) {
 				$valid = false;
 				$errorCode = 147;
 			}
-			
-			// elseif(!$si->image->image_exists($storage_id, $imagePath, $filename)) {
-				// $valid = false;
-				// $errorCode = 147;
-			// } else {
-				// $valid = true;
-			// }
-			
+
 			if($valid) {
 				$device = $si->storage->get($storage_id);
+				$basePath = rtrim($device['basePath'],'/') . '/';
 				$image_id = $si->image->getImageId($filename, $imgPath, $storage_id);
 				if(!$image_id) {
-					$si->image->mkdir_recursive($device['basePath'] . $imgPath);
+					$si->image->mkdir_recursive($basePath . $imgPath);
 					switch($loadFlag) {
 						case 'move':
-							if(rename($imagePath . $filename, $device['basePath'] . $imgPath . $filename)) $flag = true;
+							if(rename($basePath . $imagePath . $filename, $basePath . $imgPath . $filename)) $flag = true;
 							break;
 						case 'copy':
 						default:
-							if(copy($imagePath . $filename, $device['basePath'] . $imgPath . $filename)) $flag = true;
+							if(copy($basePath . $imagePath . $filename, $basePath . $imgPath . $filename)) $flag = true;
 							break;
 					}
 					if($flag) {
+						$ar = @getimagesize($basePath . $imgPath . $filename);
+						$imgPath = '/' . ltrim($imgPath,'/');
 						$imgPath = rtrim($imgPath,'/');
+						$si->image->set('width',$ar[0]);
+						$si->image->set('height',$ar[1]);
 						$si->image->set('filename',$filename);
 						$si->image->set('storage_id', $storage_id);
 						$si->image->set('path', $imgPath);
@@ -2751,6 +2814,9 @@
 			if($valid) {
 				$image_id = $si->image->getImageId($filename, $imagePath, $storage_id);
 				if(!$image_id) {
+					$device = $si->storage->get($storage_id);
+					$ar = @getimagesize($device['basePath'] . '/' . $imagePath . '/' . $filename);
+					
 					$si->image->set('filename',$filename);
 					$si->image->set('storage_id', $storage_id);
 					$si->image->set('path', $imagePath);
@@ -2822,7 +2888,7 @@
 				$description = isset($description)?$description:'';
 				$si->set->addSet($name, $description);
 				$si->set->load_by_set_name($name);
-				print_c(json_encode(array('success' => true, 'processTime' => microtime(true) - $time_start, 'setID' => $si->set->get('id'))));
+				print_c(json_encode(array('success' => true, 'processTime' => microtime(true) - $time_start, 'sId' => $si->set->get('id'))));
 			}
 			break;
 			
@@ -2939,7 +3005,7 @@
 				$rank = isset($rank)?$rank:0;
 				$id = $si->set->addSetValue($sId, $valueId, $rank);
 				if($id) {
-					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start, 'new_id' => $id ) ) );
+					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start, 'id' => $id ) ) );
 				} else {
 					$errorCode = 178;
 					print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($errorCode) , 'code' => $errorCode ) ) ) );
