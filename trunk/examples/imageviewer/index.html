@@ -1,0 +1,24 @@
+<html>
+<head>
+  <title>California Academy of Science</title>
+  <link rel='stylesheet' href='/resources/css/style.css'>
+  <script type="application/javascript">
+    function init() {
+      program = new BIS.ImageViewer({
+        webportal: 'http://',
+        containerId: 'container'
+      });
+    }
+  </script>
+</head>
+<body onload="init()">
+  <div id="container"></div>
+
+
+
+  <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+  <script src='/resources/js/eventtarget.js'></script>
+  <script src='/resources/js/jsonToSql.js'></script>
+  <script src='/resources/app/imageviewer.js'></script>
+</body>
+</html>
