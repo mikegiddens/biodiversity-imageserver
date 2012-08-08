@@ -1,0 +1,11 @@
+sudo yum install ImageMagick-devel python-devel
+
+cd /tmp/
+wget http://downloads.sourceforge.net/project/zbar/zbar/0.10/zbar-0.10.tar.bz2
+tar xvf zbar-0.10.tar.bz2
+cd zbar-0.10
+./configure --disable-video --without-qt --without-gtk
+make
+sudo make install
+
+# To use 'zbarimg barcode.jpg'

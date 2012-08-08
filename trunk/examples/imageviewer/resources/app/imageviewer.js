@@ -9,7 +9,7 @@ BIS.ImageViewer = function( config ) {
 	// main functions
     this.loadCollections = function( callback ) {
         $.ajax({
-            url: this.webportal + 'resources/api/api.php?cmd=collections&filter=[{"data":{"type":"list","value":"27,28,29"},"field":"collection_id"}]',
+            url: this.webportal + 'resources/api/api.php?cmd=collections&filter=[{"data":{"type":"list","value":"27,28,29"},"field":"collection_id"}]&sort=code&dir=desc',
             dataType: 'jsonp',
             success: function( collections ) {
                 var threshold = collections.records.length;
