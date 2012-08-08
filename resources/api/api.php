@@ -1428,7 +1428,7 @@
 			$data['imageID'] = $imageID;
 			$attribType = in_array(trim($attribType),array('typeID','title','term')) ? trim($attribType) : 'typeID';
 			$valueType = in_array(trim($valueType),array('valueID','name')) ? trim($valueType) : 'valueID';
-			
+
 			if($data['imageID'] == "") {
 				$valid = false;
 				$errorCode = 107;
@@ -1439,12 +1439,22 @@
 				$valid = false;
 				$errorCode = 118;
 			} else {
+				
 				if(false === ($data['categoryID'] = $si->image->getAttributeBy($attribute,$attribType))) {
 					$valid = false;
 					$errorCode = 175;
 				} elseif(false === ($data['valueID'] = $si->image->getValueBy($value,$valueType))) {
-					$valid = false;
-					$errorCode = 164;
+					$tmpData = $data;
+					if ($force && $valueType == 'name') {
+						$data['value'] = $value;
+						$si->image->setData($data);
+						$id = $si->image->addAttribute();
+						$data = $tmpData;
+						$data['valueID'] = $id;
+					} else {
+						$valid = false;
+						$errorCode = 164;
+					}
 				}
 			}
 			if($valid) {
@@ -2744,17 +2754,27 @@
 				$valid = false;
 				$errorCode = 150;
 			}
+
+			$device = $si->storage->get($storage_id);
+			$basePath = rtrim($device['basePath'],'/') . '/';
+
 			$imgPath = rtrim($imgPath,'/') . '/';
 			$imagePath = '/' . ltrim($imagePath,'/');
 			$imagePath = rtrim($imagePath,'/') . '/';
+
+			// Relative to the store root NOT the system.
+			if(!@file_exists($basePath . $imagePath . $filename)) {
+				$valid = false;
+				$errorCode = 147;
+			}
+/*
+this is using a URL and not a local fileexist
 			if(!$si->image->image_exists($storage_id, $imagePath, $filename)) {
 				$valid = false;
 				$errorCode = 147;
 			}
-
+*/
 			if($valid) {
-				$device = $si->storage->get($storage_id);
-				$basePath = rtrim($device['basePath'],'/') . '/';
 				$image_id = $si->image->getImageId($filename, $imgPath, $storage_id);
 				if(!$image_id) {
 					$si->image->mkdir_recursive($basePath . $imgPath);
@@ -2821,6 +2841,7 @@
 					$si->image->set('storage_id', $storage_id);
 					$si->image->set('path', $imagePath);
 					$si->image->set('originalFilename', $filename);
+					
 					$si->image->save();
 					$image_id = $si->image->getImageId($filename, $imagePath, $storage_id);
 					$si->pqueue->set('image_id', $image_id);

@@ -987,7 +987,7 @@ Class Image {
 		$characters = $this->data['characters'];
 		$browse = $this->data['browse'];
 
-		$this->query = "SELECT SQL_CALC_FOUND_ROWS  I.image_id,I.filename,I.timestamp_modified, I.barcode, I.width,I.height,I.Family,I.Genus,I.SpecificEpithet,I.flickr_PlantID, I.flickr_modified,I.flickr_details,I.picassa_PlantID,I.picassa_modified, I.gTileProcessed,I.zoomEnabled,I.processed,I.box_flag,I.ocr_flag";
+		$this->query = "SELECT SQL_CALC_FOUND_ROWS  I.image_id,I.filename,I.timestamp_modified, I.barcode, I.width,I.height,I.Family,I.Genus,I.SpecificEpithet,I.flickr_PlantID, I.flickr_modified,I.flickr_details,I.picassa_PlantID,I.picassa_modified, I.gTileProcessed,I.zoomEnabled,I.processed,I.box_flag,I.ocr_flag,I.rating";
 		if($this->data['showOCR']) {
 			$this->query .= ',I.ocr_value';
 		}
@@ -1564,6 +1564,7 @@ Class Image {
 
 			$this->query .= " AND ia.imageID = I.image_id AND ia.valueID IN (".$this->char_list.") ";
 		}
+//	print $this->query;
 	}
 
 	private function setGroupFilter() {
