@@ -1,7 +1,68 @@
 body {
-	bgimage: url(/resources/img/bg_home.png);
+	background-image: url(/resources/img/bg_home.jpg);
+	background-size: 100%;
+    font-family: arial,sans-serif;
+    font-size: 13px;
 }
-
+#imagecollectionview {
+	clear: both;
+	height: 220px;
+}
+#imagedataview {
+	clear: both;
+}
+.imageDataViewContainer {
+	height: 240px;
+	float: left;
+}
+.imageDataViewBox {
+	width: 198px;
+	height: 198px;
+	overflow: hidden;
+	border: 1px solid black;
+	margin: 5px;
+	position: relative;
+}
+.imageDataViewBox:hover {
+	-webkit-box-shadow: 0 0 15px #ffffff; 
+	-moz-box-shadow: 0 0 15px #ffffff; 
+	box-shadow: 0 0 15px #ffffff; 
+}
+.collectionBox {
+	width: 198px;
+	height: 198px;
+	overflow: hidden;
+	border: 1px solid black;
+	float: left;
+	margin: 5px;
+	position: relative;
+}
+.collectionBoxMask {
+	width: 190px;
+	height: 40px;
+	background: black;
+	opacity: 0.6;
+	margin-top: 150px;
+	text-align: center;
+	color: white;
+	padding: 5px;
+	position: absolute;
+}
+.squished {
+	position: absolute;
+	min-width: 200px;
+	min-height: 200px;
+}
+.glow {
+	-webkit-box-shadow: 0 0 15px #ffffff; 
+	-moz-box-shadow: 0 0 15px #ffffff; 
+	box-shadow: 0 0 15px #ffffff; 
+}
+#container {
+	float: left;
+	width: 1050px;
+	margin: 10px;
+}
 /* Some styles missed in central :( */
 table {font:normal 15px "Helvetica Neue","Helvetica",Arial; color:#666666;}  
 table tr {border-top: 1px solid #CCC; background-color:white; margin: 0; padding: 0;}
