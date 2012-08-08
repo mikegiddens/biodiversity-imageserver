@@ -220,7 +220,7 @@ BIS.ImageDataView = function( config ) {
                                 'class="fancybox-thumb" '+
                                 'rel="'+record.code+'" '+
                                 'href="'+this.composeImagePath(record.path,record.filename,record.ext)+'" '+
-                                'title="'+record.filename+'">'+
+                                'title="<img style=\'display: inline; padding-left: 10px; position: absolute; left: -120px; top: -60px;\' src=\'http://chart.googleapis.com/chart?chs=75x75&cht=qr&chl='+this.composeImagePath(record.path,record.filename,record.ext)+'&chld=L|1&choe=UTF-8\'><span>'+record.filename+'</span>">'+
                             '<img '+
                                 'class="squished" '+
                                 'src="'+this.composeThumbnailPath(record.path,record.filename,record.ext)+'" '+
