@@ -1,16 +1,17 @@
 Ext.define('BIS.view.CtxMnuEvent', {
     extend: 'Ext.menu.Menu',
+    requires: ['BIS.view.FormCreateEvent'],
     scope: this,
     listeners: {
         click: function( menu, item ) {
             switch( item.identifier ) {
-                case 'do':
-                    Ext.Msg.prompt('Do Something', 'This menu allows you to do something.', function( btnTextClicked, val, promptCmp ) {
-                        alert(val);
-                    });
+                case 'update':
+                    this.update();
                     break;
-                case 'hi':
-                    alert('hola!');
+                case 'delete':
+                    Ext.Msg.confirm('Remove ' + this.record.data.title + '?', 'Are you sure you want remove ' + this.record.data.title + '?', function( btn, nothing, item ) {
+                        this.remove();
+                    }, this);
                     break;
             }
         }
@@ -21,15 +22,37 @@ Ext.define('BIS.view.CtxMnuEvent', {
         Ext.applyIf(me, {
             items: [
                 {
-                    text: 'Do something',
-                    identifier: 'do'
+                    text: 'Edit Event',
+                    iconCls: 'icon_editEvent',
+                    identifier: 'update'
                 },
                 {
-                    text: 'Diga hola',
-                    identifier: 'hi'
+                    text: 'Remove Event',
+                    iconCls: 'icon_removeEvent',
+                    identifier: 'delete'
                 }
             ]
         });
         me.callParent(arguments);
+    },
+    remove: function() {
+        var cmd = 'deleteEvent'
+            params = { eventTypeId: this.record.eventTypeId }
+    },
+    update: function() {
+        Ext.create('Ext.window.Window', {
+            title: 'Edit Event ' + this.record.data.title,
+            iconCls: 'icon_editEvent',
+            modal: true,
+            height: 500,
+            width: 800,
+            layout: 'fit',
+            items: [
+                Ext.create('widget.formcreateevent', {
+                    record: this.record,
+                    mode: 'edit'
+                })
+            ]
+        }).show();
     }
 });

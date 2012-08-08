@@ -22,10 +22,12 @@ Ext.define('BIS.view.CtxMnuAttribute', {
             items: [
                 {
                     text: 'Edit',
+                    iconCls: 'icon_editAttribute',
                     identifier: 'update'
                 },
                 {
                     text: 'Remove',
+                    iconCls: 'icon_removeAttribute',
                     identifier: 'delete'
                 }
             ]
@@ -39,6 +41,7 @@ Ext.define('BIS.view.CtxMnuAttribute', {
     update: function() {
         Ext.create('Ext.window.Window', {
             title: 'Edit Attribute ' + this.record.data.title,
+            iconCls: 'icon_editAttribute',
             modal: true,
             height: 500,
             width: 800,

@@ -60,6 +60,7 @@ Ext.define('BIS.view.MainViewport', {
                         },
                         {
                             xtype: 'treepanel',
+                            border: false,
                             id: 'categoryTreePanel',
                             store: 'CategoryTreeStore',
                             rootVisible: false,
@@ -106,6 +107,7 @@ Ext.define('BIS.view.MainViewport', {
                                     items: [
                                         {
                                             text: 'New Category',
+                                            iconCls: 'icon_newCategory',
                                             scope: this,
                                             handler: this.createCategory
                                         }
@@ -163,6 +165,7 @@ Ext.define('BIS.view.MainViewport', {
                                     items: [
                                         {
                                             text: 'New Collection',
+                                            iconCls: 'icon_newCollection',
                                             scope: this,
                                             handler: this.createCollection
                                         }
@@ -297,6 +300,7 @@ Ext.define('BIS.view.MainViewport', {
                     items: [
                         {
                             xtype: 'gridpanel',
+                            border: false,
                             id: 'imagesGrid',
                             autoScroll: true,
                             store: 'ImagesStore',
@@ -359,6 +363,7 @@ Ext.define('BIS.view.MainViewport', {
                         {
                             xtype: 'button',
                             text: 'View',
+                            iconCls: 'icon_view',
                             menu: {
                                 xtype: 'menu',
                                 id: 'viewMenu',
@@ -367,42 +372,49 @@ Ext.define('BIS.view.MainViewport', {
                                     {
                                         xtype: 'menuitem',
                                         text: 'Sets',
+                                        iconCls: 'icon_sets',
                                         scope: this,
                                         handler: this.switchViewToSets
                                     },
                                     {
                                         xtype: 'menuitem',
                                         text: 'Metadata',
+                                        iconCls: 'icon_metadata',
                                         scope: this,
                                         handler: this.switchViewToMetadata
                                     },
                                     {
                                         xtype: 'menuitem',
                                         text: 'Collections',
+                                        iconCls: 'icon_collections',
                                         scope: this,
                                         handler: this.switchViewToCollections
                                     },
                                     {
                                         xtype: 'menuitem',
                                         text: 'Tools',
+                                        iconCls: 'icon_tools',
                                         scope: this,
                                         handler: this.switchViewToTools
                                     },
                                     {
                                         xtype: 'menuitem',
                                         text: 'Queue',
+                                        iconCls: 'icon_queue',
                                         scope: this,
                                         handler: this.switchViewToQueue
                                     },
                                     {
                                         xtype: 'menuitem',
                                         text: 'Geography',
+                                        iconCls: 'icon_geography',
                                         scope: this,
                                         handler: this.switchViewToGeography
                                     },
                                     {
                                         xtype: 'menuitem',
                                         text: 'Events',
+                                        iconCls: 'icon_eventTypes',
                                         scope: this,
                                         handler: this.switchViewToEvents
                                     }
@@ -415,6 +427,7 @@ Ext.define('BIS.view.MainViewport', {
                         {
                             xtype: 'button',
                             text: 'Tools',
+                            iconCls: 'icon_toolbar',
                             menu: {
                                 xtype: 'menu',
                                 id: 'toolsMenu',
@@ -423,12 +436,14 @@ Ext.define('BIS.view.MainViewport', {
                                     {
                                         xtype: 'menuitem',
                                         text: 'Storage Settings',
+                                        iconCls: 'icon_devices',
                                         scope: this,
                                         handler: this.openStorageSettings
                                     },
                                     {
                                         xtype: 'menuitem',
                                         text: 'User Manager',
+                                        iconCls: 'icon_users',
                                         scope: this,
                                         handler: this.openUserManager
                                     }
@@ -492,6 +507,7 @@ Ext.define('BIS.view.MainViewport', {
         loadMask.show();
         Ext.create('Ext.window.Window', {
             title: 'Storage Settings',
+            iconCls: 'icon_devices',
             modal: true,
             height: 500,
             width: 800,
@@ -507,6 +523,7 @@ Ext.define('BIS.view.MainViewport', {
         loadMask.show();
         Ext.create('Ext.window.Window', {
             title: 'User Management',
+            iconCls: 'icon_users',
             modal: true,
             height: 500,
             width: 800,
@@ -520,24 +537,26 @@ Ext.define('BIS.view.MainViewport', {
     createCategory: function() {
         Ext.create('Ext.window.Window', {
             title: 'Create Category',
+            iconCls: 'icon_newCategory',
             modal: true,
             height: 500,
             width: 800,
             layout: 'fit',
             items: [
-                { xtype: 'formcreatecategory' } 
+                { xtype: 'formcreatecategory', mode: 'add' } 
             ]
         }).show();
     },
     createCollection: function() {
         Ext.create('Ext.window.Window', {
             title: 'Create Collection',
+            iconCls: 'icon_newCollection',
             modal: true,
             height: 500,
             width: 800,
             layout: 'fit',
             items: [
-                { xtype: 'formcreatecollection' } 
+                { xtype: 'formcreatecollection', mode: 'add' } 
             ]
         }).show();
     }

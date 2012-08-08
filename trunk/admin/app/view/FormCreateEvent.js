@@ -1,9 +1,9 @@
-Ext.define('BIS.view.FormCreateCollection', {
+Ext.define('BIS.view.FormCreateEvent', {
     extend: 'Ext.panel.Panel',
-    alias: ['widget.formcreatecollection'],
+    alias: ['widget.formcreateevent'],
 
-    id: 'createCollectionPanel',
-    border: false,
+    id: 'createEventPanel',
+
     initComponent: function() {
         var me = this;
 
@@ -11,21 +11,21 @@ Ext.define('BIS.view.FormCreateCollection', {
             items: [
                 {
                     xtype: 'form',
+                    id: 'formCreateEvent',
                     border: false,
-                    id: 'formCreateCollection',
                     bodyPadding: 10,
                     items: [
                         {
                             xtype: 'textfield',
-                            name: 'name',
-                            fieldLabel: 'Name',
+                            name: 'title',
+                            fieldLabel: 'Title',
                             labelAlign: 'right',
                             anchor: '100%'
                         },
                         {
-                            xtype: 'textfield',
-                            name: 'collectionCode',
-                            fieldLabel: 'Code',
+                            xtype: 'textarea',
+                            name: 'description',
+                            fieldLabel: 'Description',
                             labelAlign: 'right',
                             anchor: '100%'
                         }
@@ -39,32 +39,29 @@ Ext.define('BIS.view.FormCreateCollection', {
             ]
         });
 
-        me.callParent(arguments);
+        me.callParent(arguments)
     },
     listeners: {
         afterrender: function() {
             if ( this.mode != 'add' ) {
                 // edit
-                Ext.getCmp('formCreateCollection').getForm().setValues({
-                    name: this.record.data.name,
-                    collectionCode: this.record.data.code
-                });
+                Ext.getCmp('formCreateEvent').loadRecord( this.record );
             }
         }
     },
     submit: function() {
-        var values = Ext.getCmp('formCreateCollection').getValues();
-        var route;
+        var values = Ext.getCmp('formCreateEvent').getValues();
+        var route, params = { title: values.title, description: values.description };
         if ( this.mode == 'add' ) {
-            route = 'addCollection';
+            route = 'addEvent';
         } else {
             // edit
-            route = 'renameCollection';
+            route = 'renameEvent';
         }
         Ext.Ajax.request({
             method: 'POST',
             url: Config.baseUrl + route,
-            params: values,
+            params: params,
             scope: this,
             success: function( resObj ) {
                 var res = Ext.decode( resObj.responseText );

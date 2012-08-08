@@ -1,6 +1,5 @@
-Ext.define('BIS.view.CtxMnuEventType', {
+Ext.define('BIS.view.CtxMnuDevice', {
     extend: 'Ext.menu.Menu',
-    requires: ['BIS.view.FormCreateEventType'],
     scope: this,
     listeners: {
         click: function( menu, item ) {
@@ -9,7 +8,7 @@ Ext.define('BIS.view.CtxMnuEventType', {
                     this.update();
                     break;
                 case 'delete':
-                    Ext.Msg.confirm('Remove ' + this.record.data.title + '?', 'Are you sure you want remove ' + this.record.data.title + '?', function( btn, nothing, item ) {
+                    Ext.Msg.confirm('Remove ' + this.record.data.name + '?', 'Are you sure you want remove ' + this.record.data.name + '?', function( btn, nothing, item ) {
                         this.remove();
                     }, this);
                     break;
@@ -22,13 +21,13 @@ Ext.define('BIS.view.CtxMnuEventType', {
         Ext.applyIf(me, {
             items: [
                 {
-                    text: 'Edit Event Type',
-                    iconCls: 'icon_editEventType',
+                    text: 'Edit',
+                    iconCls: 'icon_editDevice',
                     identifier: 'update'
                 },
                 {
-                    text: 'Remove Event Type',
-                    iconCls: 'icon_removeEventType',
+                    text: 'Remove',
+                    iconCls: 'icon_removeDevice',
                     identifier: 'delete'
                 }
             ]
@@ -36,21 +35,20 @@ Ext.define('BIS.view.CtxMnuEventType', {
         me.callParent(arguments);
     },
     remove: function() {
-        var cmd = 'deleteEventType'
-            params = { eventTypeId: this.record.eventTypeId }
+        var cmd = 'deleteStorageDevice'
+            params = { storage_id: this.record.storage_id }
     },
     update: function() {
         Ext.create('Ext.window.Window', {
-            title: 'Edit Event Type ' + this.record.data.title,
-            iconCls: 'icon_editEventType',
+            title: 'Edit Device ' + this.record.data.name,
+            iconCls: 'icon_editDevice',
             modal: true,
             height: 500,
             width: 800,
             layout: 'fit',
             items: [
-                Ext.create('widget.formcreateeventtype', {
-                    record: this.record,
-                    mode: 'edit'
+                Ext.create('widget.formcreatedevice', {
+                    record: this.record
                 })
             ]
         }).show();

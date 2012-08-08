@@ -33,11 +33,26 @@ Ext.define('BIS.view.FormCreateCategory', {
 
         me.callParent(arguments);
     },
+    listeners: {
+        afterrender: function() {
+            if ( this.mode != 'add' ) {
+                // edit
+                Ext.getCmp('formCreateCategory').loadRecord( this.record );
+            }
+        }
+    },
     submit: function() {
         var values = Ext.getCmp('formCreateCategory').getValues();
+        var route;
+        if ( this.mode == 'add' ) {
+            route = 'add_category';
+        } else {
+            // edit
+            route = 'rename_category';
+        }
         Ext.Ajax.request({
             method: 'POST',
-            url: Config.baseUrl + 'add_category',
+            url: Config.baseUrl + route,
             params: values,
             scope: this,
             success: function( resObj ) {

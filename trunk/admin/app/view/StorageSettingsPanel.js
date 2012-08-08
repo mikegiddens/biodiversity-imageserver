@@ -12,15 +12,19 @@ Ext.define('BIS.view.StorageSettingsPanel', {
                 {
                     xtype: 'tabpanel',
                     id: 'storageDevicesTabPanel',
+                    border: false,
                     activeTab: 0,
                     items: [
                         {
                             xtype: 'panel',
                             title: 'Devices',
+                            border: false,
+                            iconCls: 'icon_devices',
                             items: [
                                 {
                                     xtype: 'gridpanel',
                                     id: 'storageDevicesGrid',
+                                    border: false,
                                     store: 'StorageDevicesStore',
                                     bodyPadding: 10,
                                     columns: [
@@ -93,6 +97,7 @@ Ext.define('BIS.view.StorageSettingsPanel', {
                                         itemdblclick: function( grid, record, el, ind, e, opts ) {
                                             Ext.create('Ext.window.Window', {
                                                 title: 'Edit Storage Device',
+                                                iconCls: 'icon_editDevice',
                                                 modal: true,
                                                 height: 500,
                                                 width: 800,
@@ -101,18 +106,14 @@ Ext.define('BIS.view.StorageSettingsPanel', {
                                                     { xtype: 'formcreatedevice', device: record }
                                                 ]
                                             }).show();
+                                        },
+                                        itemcontextmenu: function(view, record, item, index, e) {
+                                            e.stopEvent();
+                                            Ext.create('BIS.view.CtxMnuDevice', {record: record}).showAt( e.getXY() );
                                         }
                                     }
                                 }
                             ]
-                        },
-                        {
-                            xtype: 'panel',
-                            title: 'Settings 2'
-                        },
-                        {
-                            xtype: 'panel',
-                            title: 'Settings 3'
                         }
                     ],
                     dockedItems: [
@@ -122,6 +123,7 @@ Ext.define('BIS.view.StorageSettingsPanel', {
                             items: [
                                 {
                                     text: 'Add Device',
+                                    iconCls: 'icon_addDevice',
                                     scope: this,
                                     handler: this.createDevice
                                 }
@@ -137,6 +139,7 @@ Ext.define('BIS.view.StorageSettingsPanel', {
     createDevice: function() {
         Ext.create('Ext.window.Window', {
             title: 'Add Storage Device',
+            iconCls: 'icon_addDevice',
             modal: true,
             height: 500,
             width: 800,
