@@ -80,6 +80,7 @@
 		,	'notebookGuid'
 		,	'order'
 		,	'output'
+		,	'params'
 		,	'password'
 		,	'photo_summary'
 		,	'photo_tags'
@@ -91,6 +92,7 @@
 		,	'report_type'
 		,	'sc'
 		,	'sc_id'
+		,	'searchFormat'
 		,	'search_type'
 		,	'search_value'
 		,	'showOCR'
@@ -642,20 +644,29 @@
 				$total = $si->image->total;
 				if(is_array($data) && count($data)) {
 					foreach($data as &$dt) {
-						/*switch($config['mode']) {
+						$device = $si->storage->get($dt->storage_id);
+						$url = $device['baseUrl'];
+						switch(strtolower($device['type'])) {
 							case 's3':
-								$dt->path = $config['s3']['url'] . $si->image->barcode_path($dt->barcode);
+								$tmp = $dt->path;
+								$tmp = substr($tmp, 0, 1)=='/' ? substr($tmp, 1, strlen($tmp)-1) : $tmp;
+								$url .= $tmp . '/' . $dt->filename;
 								break;
-							default:
-								$dt->path = str_replace($config['doc_root'],rtrim($config['base_url'],'/') . '/', $config['path']['images'] . $si->image->barcode_path($dt->barcode));
+							case 'local':
+								if(substr($url, strlen($url)-1, 1) == '/') {
+									$url = substr($url,0,strlen($url)-1);
+								}
+								$url .= $dt->path . '/' .$dt->filename;
 								break;
-						}*/
-						$tmpPath = $si->image->getUrl($dt->image_id);
-						$dt->path = $tmpPath['baseUrl'];
+						}
+						unset($dt->storage_id);
+						unset($dt->path);
+						// $tmpPath = $si->image->getUrl($dt->image_id);
+						// $dt->path = $tmpPath['baseUrl'];
+						$dt->path = $url;
 						$fname = explode(".", $dt->filename);
 						$dt->ext = $fname[1];
 						$dt->en_flag = ($si->s2l->load_by_barcode($dt->barcode)) ? 1 : 0;
-
 					}
 				}
 
@@ -1822,6 +1833,46 @@
 					}
 				}
 				break;
+				
+			case 'listAttributes':
+				$type = (in_array($type,array('simple','complex'))) ? $type : 'complex';
+				$data['start'] = (is_numeric($start)) ? $start : 0;
+				$data['limit'] = (is_numeric($limit)) ? $limit : 10;
+				// $data['code'] = $code;
+				$data['searchFormat'] = in_array(strtolower(trim($searchFormat)),array('exact','left','right','both')) ? strtolower(trim($searchFormat)) : 'both';
+				$data['value'] = str_replace('%','%%',trim($value));
+				
+				if($type == 'simple' && $categoryID == ''){
+					$errorCode = 173;
+					print_c( json_encode( array( 'success' => false, 'error' => array ( 'code' => $errorCode, 'msg' => $si->getError($errorCode) ) ) ) );
+				}
+				if($valid) {
+					if($type == 'simple') {
+						$result = $si->image->list_attributes($categoryID);
+						if($result) {
+							print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start , 'data' => $result ) ) );
+						} else {
+							$errorCode = 174;
+							print_c( json_encode( array( 'success' => false, 'error' => array ( 'code' => $errorCode, 'msg' => $si->getError($errorCode) ) ) ) );
+						}
+					} else {
+						$data['categoryID'] = json_decode(stripslashes(trim($categoryID)),true);
+						$si->image->setData($data);
+						$ret = $si->image->listAttributes();
+						$names = $obj = array();
+						if(!is_null($ret)) {
+							while($row = $ret->fetch_object()) {
+								$names[] = $row->name;
+								$obj[] = $row;
+							}
+						}
+						print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start , 'name' => $names, 'obj' => $obj ) ) );
+					
+					}
+				} else {
+					print_c( json_encode( array( 'success' => false, 'error' => array ( 'code' => $errorCode, 'msg' => $si->getError($errorCode) ) ) ) );
+				}
+				break;
 			
 			case 'get_attributes':
 				if($categoryID == '') {
@@ -1904,6 +1955,32 @@
 				break;
 
 # Image Tasks
+
+			case 'updateImage':
+				if($image_id == "") {
+					$valid = false;
+					$errorCode = 107;
+				} elseif(!$si->image->load_by_id($image_id)) {
+					$valid = false;
+					$errorCode = 116;
+				}
+				if($valid) {
+					$fieldsArray = array('filename','barcode','width','height','Family','Genus','SpecificEpithet','rank','author','title','description','GlobalUniqueIdentifier','creative_commons','characters','flickr_PlantID','flickr_details','picassa_PlantID','zoomEnabled','ScientificName','CollectionCode','CatalogueNumber','tmpFamily','tmpFamilyAccepted','tmpGenus','tmpGenusAccepted','storage_id','path','originalFilename','remoteAccessKey','statusType','rating');
+					$params = @json_decode(@stripslashes(trim($params)),true);
+					if(is_array($params) && count($params)) {
+						foreach($params as $key => $value) {
+							if(@in_array($key,$fieldsArray)) {
+								$si->image->set($key,$value);
+							}
+						}
+						$si->image->save();
+					}
+					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start)));
+				} else {
+					print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($errorCode) , 'code' => $errorCode ) ) ) );
+				}
+			
+				break;
 
 			case 'image-nodes-characters':
 				$nodeApi = ($nodeApi != '') ? @strtolower($nodeApi) : 'root';

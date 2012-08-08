@@ -171,6 +171,7 @@
 				, 191 => 'Rating out of range.'
 				, 192 => 'Image could not be moved or copied.'
 				, 193 => 'Attribute should be given.'
+				, 194 => 'No Attributes Found.'
 			);
 			return $ar[$error_code];
 		}

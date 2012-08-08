@@ -991,13 +991,17 @@ Class Image {
 		if($this->data['showOCR']) {
 			$this->query .= ',I.ocr_value';
 		}
+		
+		# fields for url computation
+		$this->query .= ',I.storage_id,I.path';
+		
 		$this->query .= ",I.namefinder_flag,I.namefinder_value,I.ScientificName, I.CollectionCode, I.GlobalUniqueIdentifier FROM `image` I ";
 
 		$this->queryCount = ' SELECT count(*) AS sz FROM `image` I ';
 		
 		if (($characters != '') && ($characters != '[]')) {
-			$this->query .= ", image_attrib ia ";
-			$this->queryCount .= ", image_attrib ia ";
+			$this->query .= ", image_attrib ia, image_attrib_value iav ";
+			$this->queryCount .= ", image_attrib ia, image_attrib_value iav ";
 		}
 
 		$this->query .= " WHERE 1=1 AND (";
@@ -1039,7 +1043,7 @@ Class Image {
 			$this->setOrderFilter();
 		}
 		$this->setLimitFilter();
-// echo $this->query;
+// die($this->query);
 		// $this->total = $this->db->query_total();
 
 		$countRet = $this->db->query_one( $this->queryCount );
@@ -1552,19 +1556,26 @@ Class Image {
 
 	}
 
-	private function setAdminCharacterFilter() {
-		$characters = $this->data['characters'];
-		if (($characters != '') && ($characters != '[]')) {
-			$this->char_list = '';
-			// foreach($json->decode($characters) as $character) {
-			foreach(json_decode($characters) as $character) {
-				$this->char_list .= $character->node_value . ",";
-			}
-			$this->char_list = substr($this->char_list, 0, -1);
+	// private function setAdminCharacterFilter() {
+		// $characters = $this->data['characters'];
+		// if (($characters != '') && ($characters != '[]')) {
+			// $this->char_list = '';
+			// // foreach($json->decode($characters) as $character) {
+			// foreach(json_decode($characters) as $character) {
+				// $this->char_list .= $character->node_value . ",";
+			// }
+			// $this->char_list = substr($this->char_list, 0, -1);
 
-			$this->query .= " AND ia.imageID = I.image_id AND ia.valueID IN (".$this->char_list.") ";
+			// $this->query .= " AND ia.imageID = I.image_id AND ia.valueID IN (".$this->char_list.") ";
+		// }
+// //	print $this->query;
+	// }
+
+	private function setAdminCharacterFilter() {
+		$characters = json_decode($this->data['characters'],true);
+		if(is_array($characters) && count($characters)) {
+			$this->query .= " AND ia.`imageID` = I.`image_id` AND ia.`valueID` = iav.`valueID` AND iav.`name` IN ('".implode("','",$characters)."') ";
 		}
-//	print $this->query;
 	}
 
 	private function setGroupFilter() {
@@ -1839,6 +1850,45 @@ Class Image {
 		$query = sprintf("INSERT INTO `image_log` (action, after_desc, query, date_created) VALUES (9, 'Attrib ID: %s', '%s', NOW())", mysql_escape_string($valueID), mysql_escape_string($query));
 		$this->db->query($query);
 		return true;
+	}
+	
+	public function listAttributes($queryFlag = true) {
+		if($this->data['code'] != '') {
+			$query = sprintf(" SELECT iav.* FROM `image_attrib_value` iav, `image` i, `image_attrib` ia WHERE 1=1 AND i.`image_id` = ia.`imageID` AND ia.`valueID` = iav.`valueID` AND i.`CollectionCode` LIKE '%s%%' ", mysql_escape_string($this->data['code']));
+		} else {
+			$query = ' SELECT iav.* FROM `image_attrib_value` iav WHERE 1=1 ';
+		}
+		if(is_array($this->data['categoryID']) && count($this->data['categoryID'])) {
+			$query .= sprintf(" AND iav.`typeID` IN (%s) ", implode(',',$this->data['categoryID']));
+		}
+		
+		if($this->data['value'] != '') {
+			switch($this->data['searchFormat']) {
+				case 'exact':
+					$query .= sprintf(" AND iav.`name` = '%s' ", mysql_escape_string($this->data['value']));
+					break;
+				case 'left':
+					$query .= sprintf(" AND iav.`name` LIKE '%s%%' ", mysql_escape_string($this->data['value']));
+					break;
+				case 'right':
+					$query .= sprintf(" AND iav.`name` LIKE '%%%s' ", mysql_escape_string($this->data['value']));
+					break;
+				case 'both':
+				default:
+					$query .= sprintf(" AND iav.`name` LIKE '%%%s%%' ", mysql_escape_string($this->data['value']));
+					break;
+			}
+		}
+		$query .= " ORDER BY iav.`typeID`, iav.`name` ";
+		if($this->data['start'] != '' && $this->data['limit'] != '') {
+			$query .= sprintf(" LIMIT %s, %s ", $this->data['start'], $this->data['limit']);
+		}
+		// die($query);
+		if($queryFlag) {
+			return $this->db->query($query);
+		} else {
+			return $this->db->query_all($query);
+		}
 	}
 	
 	public function list_attributes ($typeID) {
