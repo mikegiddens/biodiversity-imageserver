@@ -35,10 +35,13 @@ Ext.application({
         'CtxMnuAttribute',
         'CtxMnuEventType',
         'CtxMnuEvent',
+        'CtxMnuDevice',
         'FormCreateCategory',
         'FormCreateAttribute',
         'FormCreateCollection',
-        'FormCreateDevice'
+        'FormCreateDevice',
+        'FormCreateEventType',
+        'FormCreateEvent'
     ],
     autoCreateViewport: true,
     name: 'BIS'

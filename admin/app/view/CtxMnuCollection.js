@@ -4,13 +4,21 @@ Ext.define('BIS.view.CtxMnuCollection', {
     listeners: {
         click: function( menu, item ) {
             switch( item.identifier ) {
-                case 'do':
-                    Ext.Msg.prompt('Do Something', 'This menu allows you to do something.', function( btnTextClicked, val, promptCmp ) {
-                        alert(val);
-                    });
-                    break;
-                case 'hi':
-                    alert('hola!');
+                case 'update':
+                    Ext.create('Ext.window.Window', {
+                        title: 'Edit ' + this.record.data.name,
+                        iconCls: 'icon_editCollection',
+                        modal: true,
+                        height: 500,
+                        width: 800,
+                        layout: 'fit',
+                        items: [
+                            Ext.create('widget.formcreatecollection', {
+                                record: this.record,
+                                mode: 'edit'
+                            })
+                        ]
+                    }).show();
                     break;
             }
         }
@@ -21,12 +29,9 @@ Ext.define('BIS.view.CtxMnuCollection', {
         Ext.applyIf(me, {
             items: [
                 {
-                    text: 'Do something',
-                    identifier: 'do'
-                },
-                {
-                    text: 'Diga hola',
-                    identifier: 'hi'
+                    text: 'Edit Collection',
+                    iconCls: 'icon_editCollection',
+                    identifier: 'update'
                 }
             ]
         });

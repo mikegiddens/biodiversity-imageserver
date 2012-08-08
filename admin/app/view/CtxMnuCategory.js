@@ -7,6 +7,7 @@ Ext.define('BIS.view.CtxMnuCategory', {
                 case 'create':
                     Ext.create('Ext.window.Window', {
                         title: 'Add Attribute to ' + this.record.data.title,
+                        iconCls: 'icon_newAttribute',
                         modal: true,
                         height: 500,
                         width: 800,
@@ -15,6 +16,22 @@ Ext.define('BIS.view.CtxMnuCategory', {
                             Ext.create('widget.formcreateattribute', {
                                 record: this.record,
                                 mode: 'add'
+                            })
+                        ]
+                    }).show();
+                    break;
+                case 'update':
+                    Ext.create('Ext.window.Window', {
+                        title: 'Edit ' + this.record.data.title,
+                        iconCls: 'icon_editCategory',
+                        modal: true,
+                        height: 500,
+                        width: 800,
+                        layout: 'fit',
+                        items: [
+                            Ext.create('widget.formcreatecategory', {
+                                record: this.record,
+                                mode: 'edit'
                             })
                         ]
                     }).show();
@@ -29,7 +46,13 @@ Ext.define('BIS.view.CtxMnuCategory', {
             items: [
                 {
                     text: 'Add Attribute',
+                    iconCls: 'icon_newAttribute',
                     identifier: 'create'
+                },
+                {
+                    text: 'Edit Category',
+                    iconCls: 'icon_editCategory',
+                    identifier: 'update'
                 }
             ]
         });

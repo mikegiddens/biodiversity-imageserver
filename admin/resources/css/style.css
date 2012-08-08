@@ -1,3 +1,105 @@
 .imageRowSelected {
 	background-color: lightblue;
 }
+
+
+
+/* ==========
+    ICONS
+========== */
+.icon_view {
+	background-image:url(../img/ico/application_put.png) !important;
+}
+.icon_toolbar {
+	background-image:url(../img/ico/wrench.png) !important;
+}
+.icon_sets {
+	background-image:url(../img/ico/note.png) !important;
+}
+.icon_tools {
+	background-image:url(../img/ico/controller.png) !important;
+}
+.icon_metadata {
+	background-image:url(../img/ico/table_relationship.png) !important;
+}
+.icon_collections {
+	background-image:url(../img/ico/folder.png) !important;
+}
+.icon_queue {
+	background-image:url(../img/ico/server.png) !important;
+}
+.icon_geography {
+	background-image:url(../img/ico/map.png) !important;
+}
+.icon_eventTypes {
+	background-image:url(../img/ico/world.png) !important;
+}
+.icon_users {
+	background-image:url(../img/ico/group.png) !important;
+}
+.icon_devices {
+	background-image:url(../img/ico/drive.png) !important;
+}
+.icon_addDevice {
+	background-image:url(../img/ico/drive_add.png) !important;
+}
+.icon_editDevice {
+	background-image:url(../img/ico/drive_edit.png) !important;
+}
+.icon_removeDevice {
+	background-image:url(../img/ico/drive_delete.png) !important;
+}
+.icon_newCategory {
+	background-image:url(../img/ico/table_add.png) !important;
+}
+.icon_editCategory {
+	background-image:url(../img/ico/table_edit.png) !important;
+}
+.icon_removeCategory {
+	background-image:url(../img/ico/table_delete.png) !important;
+}
+.icon_newCollection {
+	background-image:url(../img/ico/folder_add.png) !important;
+}
+.icon_editCollection {
+	background-image:url(../img/ico/folder_edit.png) !important;
+}
+.icon_removeCollection {
+	background-image:url(../img/ico/folder_delete.png) !important;
+}
+.icon_newEventType {
+	background-image:url(../img/ico/world_add.png) !important;
+}
+.icon_editEventType {
+	background-image:url(../img/ico/world_edit.png) !important;
+}
+.icon_removeEventType {
+	background-image:url(../img/ico/world_delete.png) !important;
+}
+.icon_newEvent {
+	background-image:url(../img/ico/calendar_add.png) !important;
+}
+.icon_editEvent {
+	background-image:url(../img/ico/calendar_edit.png) !important;
+}
+.icon_removeEvent {
+	background-image:url(../img/ico/calendar_delete.png) !important;
+}
+.icon_newSet {
+	background-image:url(../img/ico/note_add.png) !important;
+}
+.icon_editSet {
+	background-image:url(../img/ico/note_edit.png) !important;
+}
+.icon_removeSet {
+	background-image:url(../img/ico/note_delete.png) !important;
+}
+.icon_newAttribute {
+	background-image:url(../img/ico/tag_blue_add.png) !important;
+}
+.icon_editAttribute {
+	background-image:url(../img/ico/tag_blue_edit.png) !important;
+}
+.icon_removeAttribute {
+	background-image:url(../img/ico/tag_blue_delete.png) !important;
+}
