@@ -63,6 +63,9 @@ body {
 	width: 1050px;
 	margin: 10px;
 }
+.disabled {
+	display: none ! important;
+}
 /* Some styles missed in central :( */
 table {font:normal 15px "Helvetica Neue","Helvetica",Arial; color:#666666;}  
 table tr {border-top: 1px solid #CCC; background-color:white; margin: 0; padding: 0;}
