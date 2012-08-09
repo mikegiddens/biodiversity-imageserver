@@ -987,7 +987,7 @@ Class Image {
 		$characters = $this->data['characters'];
 		$browse = $this->data['browse'];
 
-		$this->query = "SELECT SQL_CALC_FOUND_ROWS  I.image_id,I.filename,I.timestamp_modified, I.barcode, I.width,I.height,I.Family,I.Genus,I.SpecificEpithet,I.flickr_PlantID, I.flickr_modified,I.flickr_details,I.picassa_PlantID,I.picassa_modified, I.gTileProcessed,I.zoomEnabled,I.processed,I.box_flag,I.ocr_flag,I.rating";
+		$this->query = "SELECT I.image_id,I.filename,I.timestamp_modified, I.barcode, I.width,I.height,I.Family,I.Genus,I.SpecificEpithet,I.flickr_PlantID, I.flickr_modified,I.flickr_details,I.picassa_PlantID,I.picassa_modified, I.gTileProcessed,I.zoomEnabled,I.processed,I.box_flag,I.ocr_flag,I.rating";
 		if($this->data['showOCR']) {
 			$this->query .= ',I.ocr_value';
 		}
@@ -1002,6 +1002,9 @@ Class Image {
 		if (($characters != '') && ($characters != '[]')) {
 			$this->query .= ", image_attrib ia, image_attrib_value iav ";
 			$this->queryCount .= ", image_attrib ia, image_attrib_value iav ";
+			
+			// $this->query .= " LEFT OUTER JOIN image_attrib ia ON ia.`imageID` = I.`image_id` LEFT OUTER JOIN image_attrib_value iav ON  ia.`valueID` = iav.`valueID` ";
+			// $this->queryCount .= " LEFT OUTER JOIN image_attrib ia ON ia.`imageID` = I.`image_id` LEFT OUTER JOIN image_attrib_value iav ON  ia.`valueID` = iav.`valueID` ";
 		}
 
 		$this->query .= " WHERE 1=1 AND (";
@@ -1573,8 +1576,23 @@ Class Image {
 
 	private function setAdminCharacterFilter() {
 		$characters = json_decode($this->data['characters'],true);
+		$char_list = '';
 		if(is_array($characters) && count($characters)) {
-			$this->query .= " AND ia.`imageID` = I.`image_id` AND ia.`valueID` = iav.`valueID` AND iav.`name` IN ('".implode("','",$characters)."') ";
+			switch($this->data['characterType']) {
+				case 'ids':
+					foreach($characters as $character) {
+						$char_list .= $character->node_value . ",";
+					}
+					$char_list = substr($this->char_list, 0, -1);
+					$this->query .= " AND ia.imageID = I.image_id AND ia.valueID IN (".$char_list.") ";
+					// $this->query .= " AND ia.valueID IN (".$char_list.") ";
+					break;
+				case 'string':
+				default:
+					$this->query .= " AND ia.`imageID` = I.`image_id` AND ia.`valueID` = iav.`valueID` AND iav.`name` IN ('".implode("','",$characters)."') ";
+					// $this->query .= " AND iav.`name` IN ('".implode("','",$characters)."') ";
+					break;
+			}
 		}
 	}
 
