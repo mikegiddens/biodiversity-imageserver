@@ -31,6 +31,7 @@
 		,	'category'
 		,	'categoryID'
 		,	'characters'
+		,	'characterType'
 		,	'code'
 		,	'code1'
 		,	'collectionCode'
@@ -630,6 +631,7 @@
 			$data['code'] = ($collectionCode != '') ? $collectionCode : '';
 
 			$data['characters'] = $characters;
+			$data['characterType'] = in_array(strtolower(trim($characterType)), array('ids','string')) ? strtolower(trim($characterType)) : 'string';
 			$data['browse'] = $browse;
 			$data['search_value'] = $search_value;
 			$data['search_type'] = $search_type;
@@ -650,13 +652,13 @@
 							case 's3':
 								$tmp = $dt->path;
 								$tmp = substr($tmp, 0, 1)=='/' ? substr($tmp, 1, strlen($tmp)-1) : $tmp;
-								$url .= $tmp . '/' . $dt->filename;
+								$url .= $tmp . '/';
 								break;
 							case 'local':
 								if(substr($url, strlen($url)-1, 1) == '/') {
 									$url = substr($url,0,strlen($url)-1);
 								}
-								$url .= $dt->path . '/' .$dt->filename;
+								$url .= $dt->path . '/';
 								break;
 						}
 						unset($dt->storage_id);
