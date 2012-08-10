@@ -36,12 +36,15 @@ Ext.application({
         'CtxMnuEventType',
         'CtxMnuEvent',
         'CtxMnuDevice',
+        'CtxMnuUser',
         'FormCreateCategory',
         'FormCreateAttribute',
         'FormCreateCollection',
         'FormCreateDevice',
+        'FormCreateUser',
         'FormCreateEventType',
-        'FormCreateEvent'
+        'FormCreateEvent',
+        'ImagesPanel'
     ],
     autoCreateViewport: true,
     name: 'BIS'

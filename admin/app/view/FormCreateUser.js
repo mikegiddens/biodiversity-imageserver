@@ -1,8 +1,8 @@
-Ext.define('BIS.view.FormCreateDevice', {
+Ext.define('BIS.view.FormCreateUser', {
     extend: 'Ext.panel.Panel',
-    alias: ['widget.formcreatedevice'],
+    alias: ['widget.formcreateuser'],
 
-    id: 'createDevicePanel',
+    id: 'createUserPanel',
 
     initComponent: function() {
         var me = this;
@@ -11,7 +11,7 @@ Ext.define('BIS.view.FormCreateDevice', {
             items: [
                 {
                     xtype: 'form',
-                    id: 'formCreateDevice',
+                    id: 'formCreateUser',
                     bodyPadding: 10,
                     items: [
                         {
@@ -91,7 +91,7 @@ Ext.define('BIS.view.FormCreateDevice', {
                 },
                 {
                     xtype: 'button',
-                    text: ( this.device ) ? 'Update Settings' : 'Add Device',
+                    text: ( this.user ) ? 'Update User' : 'Add User',
                     handler: this.submit
                 }
             ]
@@ -101,15 +101,14 @@ Ext.define('BIS.view.FormCreateDevice', {
     },
     listeners: {
         afterrender: function() {
-            if ( this.device ) {
-                Ext.getCmp('formCreateDevice').loadRecord( this.device );
+            if ( this.user ) {
+                Ext.getCmp('formCreateUser').loadRecord( this.user );
             }
         }
     },
     submit: function() {
-        // required fields: name, type, baseUrl
-        var values = Ext.getCmp('formCreateDevice').getValues();
-        var route = ( this.device ) ? 'updateDevice!!!!!!!!' : 'addStorageDevice';
+        var values = Ext.getCmp('formCreateUser').getValues();
+        var route = ( this.user ) ? 'updateUser!!!!!!!!' : 'addUser!!!!!!!!!!!';
         Ext.Ajax.request({
             method: 'POST',
             url: Config.baseUrl + route,

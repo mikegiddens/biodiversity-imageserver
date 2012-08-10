@@ -1,4 +1,4 @@
-Ext.define('BIS.view.CtxMnuDevice', {
+Ext.define('BIS.view.CtxMnuUser', {
     extend: 'Ext.menu.Menu',
     scope: this,
     listeners: {
@@ -22,12 +22,12 @@ Ext.define('BIS.view.CtxMnuDevice', {
             items: [
                 {
                     text: 'Edit',
-                    iconCls: 'icon_editDevice',
+                    iconCls: 'icon_editUser',
                     identifier: 'update'
                 },
                 {
                     text: 'Remove',
-                    iconCls: 'icon_removeDevice',
+                    iconCls: 'icon_removeUser',
                     identifier: 'delete'
                 }
             ]
@@ -35,20 +35,20 @@ Ext.define('BIS.view.CtxMnuDevice', {
         me.callParent(arguments);
     },
     remove: function() {
-        var cmd = 'deleteStorageDevice'
+        var cmd = 'deleteUser!!!!!!!!!!!'
             params = { storage_id: this.record.storage_id }
     },
     update: function() {
         Ext.create('Ext.window.Window', {
-            title: 'Edit Device ' + this.record.data.name,
-            iconCls: 'icon_editDevice',
+            title: 'Edit User ' + this.record.data.name,
+            iconCls: 'icon_editUser',
             modal: true,
             height: 500,
             width: 800,
             layout: 'fit',
             items: [
-                Ext.create('widget.formcreatedevice', {
-                    device: this.record
+                Ext.create('widget.formcreateuser', {
+                    record: this.record
                 })
             ]
         }).show();

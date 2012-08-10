@@ -33,7 +33,7 @@ Ext.define('BIS.view.FormCreateEventType', {
                 },
                 {
                     xtype: 'button',
-                    text: 'Create',
+                    text: ( this.mode == 'add' ) ? 'Add' : 'Update',
                     handler: this.submit
                 }
             ]

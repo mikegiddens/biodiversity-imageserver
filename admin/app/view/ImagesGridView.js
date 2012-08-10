@@ -7,6 +7,7 @@ Ext.define('BIS.view.ImagesGridView', {
     selectedItemCls: 'imageRowSelected',
     stripeRows: true,
     autoScroll: true,
+    multiSelect: true,
     listeners: {
         afterrender: function( gridview, e ) {
             gridview.setTpl('both');
@@ -23,18 +24,17 @@ Ext.define('BIS.view.ImagesGridView', {
     constructor: function( config ) {
         this.tplBoth = new Ext.XTemplate(
             '<tpl for=".">'+
-            '<div class="x-grid3-row ux-explorerview-item ux-explorerview-mixed-item">' +
-                '<tpl if="gTileProcessed == 1">'+
-                    '<div class="divZoom bothIconZoomIn"  title="Double click to view large image.">&nbsp;</div>'+
-                '</tpl>'+
-                '<div class="ux-explorerview-icon"><img src="{[this.renderThumbnail(values.path,values.filename,values.ext)]}"></div>'+
-                    '<div class="ux-explorerview-text"><div class="x-grid3-cell x-grid3-td-name" unselectable="on">{barcode} {Family}<br/>{Genus} {SpecificEpithet}<br/>'+
+            '<div>' +
+                '<div style="float:left;width:100px;margin:5px 10px 5px 5px;"><img src="{[this.renderThumbnail(values.path,values.filename,values.ext)]}"></div>'+
+                    '<div style="float:left"><div unselectable="on">{barcode} {Family}<br/>{Genus} {SpecificEpithet}<br/>'+
                     '<tpl if="barcode != 0">'+
                         '<span>Barcode: {barcode}</span><br>'+
                     '</tpl>'+
                     '<span>Date Added: {timestamp_modified:this.convDate}</span></div>'+
                 '</div>'+
-            '</div></tpl>', {
+            '</div>'+
+            '<div style="clear:both"></div>'+
+            '</tpl>', {
                 convDate: function( date ) {
                     //console.log( date );
                     return date;
@@ -46,18 +46,14 @@ Ext.define('BIS.view.ImagesGridView', {
         );
         this.tplSmallIcons = new Ext.XTemplate(
             '<tpl for=".">'+
-            '<div class="x-grid3-row ux-explorerview-item ux-explorerview-small-item">'+
-            '<tpl if="gTileProcessed == 1">'+
-                '<div class="divZoom smallIconZoomIn"  title="Double click to view large image.">&nbsp;</div>'+
-            '</tpl>'+	
-            '<div class="ux-explorerview-icon"><img  ' +
+            '<div style="float: left; width:100px;height:100px"><img ' +
                 '<tpl if="Family != \'\' || Genus != \'\' || SpecificEpithet != \'\' ">'+
                     ' ext:qtip="' +
                     '<tpl if="Family != \'\' " >{Family}<br></tpl>'+
                     '<tpl if="Genus != \'\' " >{Genus} {SpecificEpithet}"</tpl>'+
                 '</tpl>' +
                 'src="{[this.renderThumbnail(values.path,values.filename,values.ext)]}" /></div>'+
-            '</div></tpl>', {
+            '</tpl>', {
                 renderThumbnail: function( path, filename, ext ) {
                     return path + filename.substr( 0, filename.indexOf('.') ) + '_s.' + ext;
                 }
@@ -65,12 +61,10 @@ Ext.define('BIS.view.ImagesGridView', {
         );
         this.tplTileIcons = new Ext.XTemplate(
             '<tpl for=".">'+
-            '<div class="x-grid3-row ux-explorerview-item ux-explorerview-tiles-item">'+
-            '<tpl if="gTileProcessed == 1">'+
-                '<div class="divZoom largeIconZoomIn" title="Double click to view large image.">&nbsp;</div>'+
-            '</tpl>'+
-            '<div class="ux-explorerview-icon"><img src="{[this.renderThumbnail(values.path,values.filename,values.ext)]}"></div>'+
-            '<div class="ux-explorerview-text"><div class="x-grid3-cell x-grid3-td-name" unselectable="on">{barcode}<br/> {Family}<span>{Genus} {SpecificEpithet}</span></div></div></div>'+
+            '<div style="float: left; padding: 5px;">'+
+                '<div unselectable="on">{barcode}<br/> {Family}<span>{Genus} {SpecificEpithet}</span></div>'+
+                '<div style="border-bottom: solid thin #9F9F9F; width: 275px; height: 276px;"><img src="{[this.renderThumbnail(values.path,values.filename,values.ext)]}"></div>'+
+            '</div>'+
             '</tpl>', {
                 renderThumbnail: function( path, filename, ext ) {
                     return path + filename.substr( 0, filename.indexOf('.') ) + '_m.' + ext;

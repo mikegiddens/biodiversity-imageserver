@@ -37,6 +37,15 @@
 .icon_users {
 	background-image:url(../img/ico/group.png) !important;
 }
+.icon_addUser {
+	background-image:url(../img/ico/user_add.png) !important;
+}
+.icon_editUser {
+	background-image:url(../img/ico/user_edit.png) !important;
+}
+.icon_removeUser {
+	background-image:url(../img/ico/user_delete.png) !important;
+}
 .icon_devices {
 	background-image:url(../img/ico/drive.png) !important;
 }
@@ -102,4 +111,28 @@
 }
 .icon_removeAttribute {
 	background-image:url(../img/ico/tag_blue_delete.png) !important;
+}
+.icon_viewBoth {
+	background-image:url(../img/ico/application_view_list.png) !important;
+}
+.icon_viewList {
+	background-image:url(../img/ico/application_view_columns.png) !important;
+}
+.icon_viewSmall {
+	background-image:url(../img/ico/application_view_icons.png) !important;
+}
+.icon_viewLarge {
+	background-image:url(../img/ico/application_view_tile.png) !important;
+}
+.icon_arrowCW {
+	background-image:url(../img/ico/arrow_rotate_clockwise.png) !important;
+}
+.icon_arrowCCW {
+	background-image:url(../img/ico/arrow_rotate_anticlockwise.png) !important;
+}
+.icon_arrowAlternating {
+	background-image:url(../img/ico/arrow_refresh.png) !important;
+}
+.icon_cancel {
+	background-image:url(../img/ico/cancel.png) !important;
 }

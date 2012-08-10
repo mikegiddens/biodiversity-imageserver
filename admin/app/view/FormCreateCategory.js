@@ -25,7 +25,7 @@ Ext.define('BIS.view.FormCreateCategory', {
                 },
                 {
                     xtype: 'button',
-                    text: 'Create',
+                    text: ( this.mode == 'add' ) ? 'Add' : 'Update',
                     handler: this.submit
                 }
             ]
@@ -37,7 +37,7 @@ Ext.define('BIS.view.FormCreateCategory', {
         afterrender: function() {
             if ( this.mode != 'add' ) {
                 // edit
-                Ext.getCmp('formCreateCategory').loadRecord( this.record );
+                Ext.getCmp('formCreateCategory').getForm().setValues({value:this.record.data.title});
             }
         }
     },

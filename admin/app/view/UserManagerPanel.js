@@ -1,7 +1,7 @@
 Ext.define('BIS.view.UserManagerPanel', {
     extend: 'Ext.panel.Panel',
     alias: ['widget.usermanagerpanel'],
-
+    requires: ['BIS.view.FormCreateUser'],
     id: 'userManagerPanel',
 
     initComponent: function() {
@@ -12,31 +12,14 @@ Ext.define('BIS.view.UserManagerPanel', {
                 {
                     xtype: 'tabpanel',
                     id: 'userManagerTabPanel',
+                    border: false,
                     activeTab: 1,
                     items: [
                         {
                             xtype: 'panel',
-                            title: 'Add User',
-                            items: [
-                                {
-                                    xtype: 'form',
-                                    id: 'addUserForm',
-                                    bodyPadding: 10,
-                                    items: [
-                                        {
-                                            xtype: 'textfield',
-                                            name: 'deviceName',
-                                            fieldLabel: 'Device',
-                                            labelAlign: 'right',
-                                            anchor: '100%'
-                                        }
-                                    ]
-                                }
-                            ]
-                        },
-                        {
-                            xtype: 'panel',
                             title: 'Users',
+                            border: false,
+                            iconCls: 'icon_users',
                             items: [
                                 {
                                     xtype: 'gridpanel',
@@ -52,9 +35,39 @@ Ext.define('BIS.view.UserManagerPanel', {
                                             undefinedText: 'n/a'
                                         }
                                     ],
-                                    viewConfig: {
-
+                                    listeners: {
+                                        itemdblclick: function( grid, record, el, ind, e, opts ) {
+                                            Ext.create('Ext.window.Window', {
+                                                title: 'Edit User',
+                                                iconCls: 'icon_editUser',
+                                                modal: true,
+                                                height: 500,
+                                                width: 800,
+                                                layout: 'fit',
+                                                items: [
+                                                    { xtype: 'formcreateuser', user: record }
+                                                ]
+                                            }).show();
+                                        },
+                                        itemcontextmenu: function(view, record, item, index, e) {
+                                            e.stopEvent();
+                                            Ext.create('BIS.view.CtxMnuUser', {record: record}).showAt( e.getXY() );
+                                        }
                                     }
+                                }
+                            ],
+                            dockedItems: [
+                                {
+                                    xtype: 'toolbar',
+                                    dock: 'top',
+                                    items: [
+                                        {
+                                            text: 'Add User',
+                                            iconCls: 'icon_addUser',
+                                            scope: this,
+                                            handler: this.createUser
+                                        }
+                                    ]
                                 }
                             ]
                         }
@@ -64,6 +77,19 @@ Ext.define('BIS.view.UserManagerPanel', {
         });
 
         me.callParent(arguments);
+    },
+    createUser: function() {
+        Ext.create('Ext.window.Window', {
+            title: 'Add New User',
+            iconCls: 'icon_addUser',
+            modal: true,
+            height: 500,
+            width: 800,
+            layout: 'fit',
+            items: [
+                { xtype: 'formcreateuser' }
+            ]
+        }).show();
     }
 
 });

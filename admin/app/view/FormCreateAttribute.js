@@ -34,7 +34,7 @@ Ext.define('BIS.view.FormCreateAttribute', {
                 },
                 {
                     xtype: 'button',
-                    text: 'Create',
+                    text: ( this.mode == 'add' ) ? 'Add' : 'Update',
                     handler: this.submit
                 }
             ]
@@ -49,7 +49,7 @@ Ext.define('BIS.view.FormCreateAttribute', {
                 form.setValues( {identifier:this.record.data.typeID} );
             } else {
                 // edit
-                form.setValues( {identifier:this.record.data.valueID} );
+                form.setValues( {value:this.record.data.title,identifier:this.record.data.valueID} );
             }
         }
     },
