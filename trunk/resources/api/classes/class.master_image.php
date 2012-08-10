@@ -1000,9 +1000,10 @@ Class Image {
 		$this->queryCount = ' SELECT count(*) AS sz FROM `image` I ';
 		
 		if (($characters != '') && ($characters != '[]')) {
-			$this->query .= ", image_attrib ia, image_attrib_value iav ";
-			$this->queryCount .= ", image_attrib ia, image_attrib_value iav ";
-			
+			if($this->data['characterType'] == 'ids') {
+				$this->query .= ", image_attrib ia ";
+				$this->queryCount .= ", image_attrib ia ";
+			} 
 			// $this->query .= " LEFT OUTER JOIN image_attrib ia ON ia.`imageID` = I.`image_id` LEFT OUTER JOIN image_attrib_value iav ON  ia.`valueID` = iav.`valueID` ";
 			// $this->queryCount .= " LEFT OUTER JOIN image_attrib ia ON ia.`imageID` = I.`image_id` LEFT OUTER JOIN image_attrib_value iav ON  ia.`valueID` = iav.`valueID` ";
 		}
@@ -1585,11 +1586,14 @@ Class Image {
 					}
 					$char_list = substr($this->char_list, 0, -1);
 					$this->query .= " AND ia.imageID = I.image_id AND ia.valueID IN (".$char_list.") ";
+					$this->queryCount .= " AND ia.imageID = I.image_id AND ia.valueID IN (".$char_list.") ";
 					// $this->query .= " AND ia.valueID IN (".$char_list.") ";
 					break;
 				case 'string':
 				default:
-					$this->query .= " AND ia.`imageID` = I.`image_id` AND ia.`valueID` = iav.`valueID` AND iav.`name` IN ('".implode("','",$characters)."') ";
+					$this->query .= " AND I.`image_id` IN ( SELECT DISTINCT ia.`imageID` FROM `image_attrib` ia, `image_attrib_value` iav WHERE ia.`valueID` = iav.`valueID` AND iav.`name` IN ('".implode("','",$characters)."') ) ";
+					$this->queryCount .= " AND I.`image_id` IN ( SELECT DISTINCT ia.`imageID` FROM `image_attrib` ia, `image_attrib_value` iav WHERE ia.`valueID` = iav.`valueID` AND iav.`name` IN ('".implode("','",$characters)."') ) ";
+					// $this->query .= " AND ia.`imageID` = I.`image_id` AND ia.`valueID` = iav.`valueID` AND iav.`name` IN ('".implode("','",$characters)."') ";
 					// $this->query .= " AND iav.`name` IN ('".implode("','",$characters)."') ";
 					break;
 			}
