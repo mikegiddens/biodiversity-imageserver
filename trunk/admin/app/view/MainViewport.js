@@ -6,10 +6,10 @@ Ext.define('BIS.view.MainViewport', {
         'BIS.view.CtxMnuCollection',
         'BIS.view.CtxMnuEvent',
         'BIS.view.CtxMnuEventType',
-        'BIS.view.ImagesGridView',
         'BIS.view.FormCreateCategory',
         'BIS.view.FormCreateAttribute',
-        'BIS.view.FormCreateCollection'
+        'BIS.view.FormCreateCollection',
+        'BIS.view.ImagesPanel'
     ],
     layout: {
         type: 'border'
@@ -26,6 +26,11 @@ Ext.define('BIS.view.MainViewport', {
                     activeItem: 0,
                     layout: {
                         type: 'card'
+                    },
+                    defaults: {
+                        border: false,
+                        autoScroll: true,
+                        maxHeight: 600
                     },
                     titleCollapse: false,
                     region: 'west',
@@ -53,6 +58,7 @@ Ext.define('BIS.view.MainViewport', {
                                 }
                             ],
                             listeners: {
+                                scope: this,
                                 show: function( el, opts ) {
                                     Ext.getCmp('viewsPagingTitle').setText('Sets');
                                 }
@@ -60,11 +66,11 @@ Ext.define('BIS.view.MainViewport', {
                         },
                         {
                             xtype: 'treepanel',
-                            border: false,
                             id: 'categoryTreePanel',
                             store: 'CategoryTreeStore',
                             rootVisible: false,
                             useArrows: true,
+                            multiSelect: true,
                             columns: [
                                 {
                                     xtype: 'treecolumn',
@@ -139,7 +145,10 @@ Ext.define('BIS.view.MainViewport', {
                                     text: 'Size',
                                     flex: 1,
                                     dataIndex: 'collectionSize',
-                                    sortable: true
+                                    sortable: true,
+                                    renderer: function( value ) {
+                                        return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+                                    }
                                 }
                             ],
                             scope: this,
@@ -153,9 +162,7 @@ Ext.define('BIS.view.MainViewport', {
                                     ctx.showAt(e.getXY());
                                 },
                                 itemclick: function( tree, record, el, ind, e, opts ) {
-                                    var store = Ext.data.StoreManager.lookup('ImagesStore');
-                                    store.clearFilter();
-                                    store.filter('CollectionCode', record.data.code);
+                                    Ext.getCmp('imagesPanel').setFilter({CollectionCode: record.data.code}, true);
                                 }
                             },
                             dockedItems: [
@@ -290,54 +297,7 @@ Ext.define('BIS.view.MainViewport', {
                     ]
                 },
                 {
-                    xtype: 'panel',
-                    id: 'imagesPanel',
-                    layout: {
-                        type: 'fit'
-                    },
-                    region: 'center',
-                    flex: 6,
-                    items: [
-                        {
-                            xtype: 'gridpanel',
-                            border: false,
-                            id: 'imagesGrid',
-                            autoScroll: true,
-                            store: 'ImagesStore',
-                            viewType: 'imagesgridview',
-                            columns: [
-                                {
-                                    xtype: 'gridcolumn',
-                                    dataIndex: 'image_id',
-                                    text: 'Identifier'
-                                },
-                                {
-                                    xtype: 'gridcolumn',
-                                    dataIndex: 'filename',
-                                    text: 'Filename'
-                                },
-                                {
-                                    xtype: 'gridcolumn',
-                                    dataIndex: 'path',
-                                    text: 'File Path'
-                                },
-                                {
-                                    xtype: 'datecolumn',
-                                    dataIndex: 'timestamp_modified',
-                                    text: 'Last Modified'
-                                }
-                            ],
-                            dockedItems: [
-                                {
-                                    xtype: 'pagingtoolbar',
-                                    displayInfo: true,
-                                    store: 'ImagesStore',
-                                    displayMsg: 'Displaying {0} - {1} of {2}',
-                                    dock: 'bottom'
-                                }
-                            ]
-                        }
-                    ]
+                    xtype: 'imagespanel'
                 },
                 {
                     xtype: 'panel',
