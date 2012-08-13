@@ -1,0 +1,19 @@
+Test Urls - New Bis api:
+
+attributeAdd:
+http://bis.silverbiology.com/dev/resources/api/api.php?cmd=attributeAdd&value=Mike&categoryId=2
+
+attributeDelete:
+bis.silverbiology.com/dev/resources/api/api.php?cmd=attributeDelete&valueId=
+
+attributeList:
+http://bis.silverbiology.com/dev/resources/api/api.php?cmd=attributeList&searchFormat=left&value=M&showNames=false&categoryId=[1,2]
+
+attributeUpdate:
+http://bis.silverbiology.com/dev/resources/api/api.php?cmd=attributeUpdate&valueId=1&value=Robert
+
+categoryAdd:
+http://bis.silverbiology.com/dev/resources/api/api.php?cmd=categoryAdd&value=Test%20Category
+
+metadataPackageImport:
+http://bis.silverbiology.com/dev/resources/api/api.php?cmd=metadataPackageImport&url=http://bis.silverbiology.com/dev/resources/metadatapackages/dublincore.csv

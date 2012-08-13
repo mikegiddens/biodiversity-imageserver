@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Host: localhost
--- Generation Time: Aug 07, 2012 at 08:13 AM
+-- Generation Time: Aug 13, 2012 at 04:47 AM
 -- Server version: 5.5.24
 -- PHP Version: 5.3.14
 
@@ -23,18 +23,18 @@ SET time_zone = "+00:00";
 -- --------------------------------------------------------
 
 --
--- Table structure for table `bis2hs`
+-- Table structure for table `bis2Hs`
 --
 
-CREATE TABLE IF NOT EXISTS `bis2hs` (
-  `image_id` int(11) NOT NULL,
-  `filename` varchar(60) NOT NULL,
+CREATE TABLE IF NOT EXISTS `bis2Hs` (
+  `imageId` int(11) NOT NULL,
+  `fileName` varchar(60) NOT NULL,
   `barcode` varchar(20) NOT NULL,
-  `client_id` int(11) DEFAULT NULL,
-  `collection_id` int(11) DEFAULT NULL,
-  `imageserver_id` int(11) DEFAULT NULL,
-  `timestamp_modified` datetime DEFAULT NULL,
-  PRIMARY KEY (`image_id`)
+  `clientId` int(11) DEFAULT NULL,
+  `collectionId` int(11) DEFAULT NULL,
+  `imageServerId` int(11) DEFAULT NULL,
+  `timestampModified` datetime DEFAULT NULL,
+  PRIMARY KEY (`imageId`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 PACK_KEYS=0 ROW_FORMAT=COMPACT;
 
 -- --------------------------------------------------------
@@ -44,23 +44,23 @@ CREATE TABLE IF NOT EXISTS `bis2hs` (
 --
 
 CREATE TABLE IF NOT EXISTS `collection` (
-  `collection_id` int(11) NOT NULL AUTO_INCREMENT,
+  `collectionId` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL,
   `code` varchar(10) NOT NULL,
   `collectionSize` int(11) NOT NULL,
-  PRIMARY KEY (`collection_id`)
+  PRIMARY KEY (`collectionId`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `evenote_accounts`
+-- Table structure for table `evenoteAccounts`
 --
 
-CREATE TABLE IF NOT EXISTS `evenote_accounts` (
+CREATE TABLE IF NOT EXISTS `evenoteAccounts` (
   `enAccountId` int(11) NOT NULL AUTO_INCREMENT,
   `accountName` varchar(50) NOT NULL,
-  `username` varchar(60) CHARACTER SET latin1 NOT NULL,
+  `userName` varchar(60) CHARACTER SET latin1 NOT NULL,
   `password` varchar(60) CHARACTER SET latin1 NOT NULL,
   `consumerKey` varchar(100) CHARACTER SET latin1 NOT NULL,
   `consumerSecret` varchar(100) CHARACTER SET latin1 NOT NULL,
@@ -70,7 +70,7 @@ CREATE TABLE IF NOT EXISTS `evenote_accounts` (
   `dateModified` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`enAccountId`),
   UNIQUE KEY `accountName` (`accountName`)
-) ENGINE=MyISAM  DEFAULT CHARSET=utf8 PACK_KEYS=0 ROW_FORMAT=DYNAMIC AUTO_INCREMENT=1 ;
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8 PACK_KEYS=0 ROW_FORMAT=DYNAMIC AUTO_INCREMENT=1;
 
 -- --------------------------------------------------------
 
@@ -93,23 +93,23 @@ CREATE TABLE IF NOT EXISTS `events` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `event_images`
+-- Table structure for table `eventImages`
 --
 
-CREATE TABLE IF NOT EXISTS `event_images` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
+CREATE TABLE IF NOT EXISTS `eventImages` (
+  `eventImageId` int(11) NOT NULL AUTO_INCREMENT,
   `imageId` int(11) NOT NULL,
   `eventId` int(11) NOT NULL,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`eventImageId`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `event_types`
+-- Table structure for table `eventTypes`
 --
 
-CREATE TABLE IF NOT EXISTS `event_types` (
+CREATE TABLE IF NOT EXISTS `eventTypes` (
   `eventTypeId` int(11) NOT NULL AUTO_INCREMENT,
   `title` varchar(50) NOT NULL,
   `description` varchar(255) NOT NULL,
@@ -121,14 +121,14 @@ CREATE TABLE IF NOT EXISTS `event_types` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `evernote_tags`
+-- Table structure for table `evernoteTags`
 --
 
-CREATE TABLE IF NOT EXISTS `evernote_tags` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
+CREATE TABLE IF NOT EXISTS `evernoteTags` (
+  `evernoteTagId` int(11) NOT NULL AUTO_INCREMENT,
   `tagName` varchar(100) NOT NULL,
   `tagGuid` varchar(100) NOT NULL,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`evernoteTagId`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
 
 -- --------------------------------------------------------
@@ -138,15 +138,15 @@ CREATE TABLE IF NOT EXISTS `evernote_tags` (
 --
 
 CREATE TABLE IF NOT EXISTS `geography` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `geographyId` int(11) NOT NULL AUTO_INCREMENT,
   `country` varchar(40) NOT NULL,
-  `country_iso` varchar(3) NOT NULL,
-  `admin_0` varchar(255) NOT NULL,
-  `admin_1` varchar(255) NOT NULL,
-  `admin_2` varchar(255) NOT NULL,
-  `admin_3` varchar(255) NOT NULL,
-  PRIMARY KEY (`id`),
-  KEY `country` (`country`,`country_iso`)
+  `countryIso` varchar(3) NOT NULL,
+  `admin0` varchar(255) NOT NULL,
+  `admin1` varchar(255) NOT NULL,
+  `admin2` varchar(255) NOT NULL,
+  `admin3` varchar(255) NOT NULL,
+  PRIMARY KEY (`geographyId`),
+  KEY `country` (`country`,`countryIso`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
 
 -- --------------------------------------------------------
@@ -156,150 +156,133 @@ CREATE TABLE IF NOT EXISTS `geography` (
 --
 
 CREATE TABLE IF NOT EXISTS `image` (
-  `image_id` int(11) NOT NULL AUTO_INCREMENT,
-  `filename` varchar(60) NOT NULL,
-  `timestamp_modified` datetime DEFAULT NULL,
+  `imageId` int(11) NOT NULL AUTO_INCREMENT,
+  `fileName` varchar(60) NOT NULL,
+  `timestampModified` datetime DEFAULT NULL,
   `barcode` varchar(20) DEFAULT NULL,
   `width` int(11) NOT NULL DEFAULT '0',
   `height` int(11) NOT NULL DEFAULT '0',
-  `Family` varchar(20) DEFAULT NULL,
-  `Genus` varchar(20) DEFAULT NULL,
-  `SpecificEpithet` varchar(20) DEFAULT NULL,
+  `family` varchar(20) DEFAULT NULL,
+  `genus` varchar(20) DEFAULT NULL,
+  `specificEpithet` varchar(20) DEFAULT NULL,
   `rank` tinyint(4) NOT NULL DEFAULT '0',
   `author` varchar(255) DEFAULT NULL,
   `title` varchar(255) DEFAULT NULL,
   `description` text,
-  `GlobalUniqueIdentifier` char(30) DEFAULT NULL,
-  `creative_commons` varchar(10) NOT NULL DEFAULT 'by-nc',
+  `globalUniqueIdentifier` char(30) DEFAULT NULL,
+  `creativeCommons` varchar(10) NOT NULL DEFAULT 'by-nc',
   `characters` text,
-  `flickr_PlantID` bigint(20) DEFAULT NULL,
-  `flickr_modified` datetime DEFAULT NULL,
-  `flickr_details` varchar(60) DEFAULT NULL,
-  `picassa_PlantID` bigint(30) DEFAULT NULL,
-  `picassa_modified` datetime DEFAULT NULL,
+  `flickrPlantId` bigint(20) DEFAULT NULL,
+  `flickrModified` datetime DEFAULT NULL,
+  `flickrDetails` varchar(60) DEFAULT NULL,
+  `picassaPlantId` bigint(30) DEFAULT NULL,
+  `picassaModified` datetime DEFAULT NULL,
   `gTileProcessed` tinyint(4) NOT NULL DEFAULT '0',
   `zoomEnabled` tinyint(4) NOT NULL DEFAULT '0',
   `processed` tinyint(4) NOT NULL DEFAULT '0',
-  `box_flag` tinyint(4) NOT NULL DEFAULT '0',
-  `ocr_flag` tinyint(4) NOT NULL DEFAULT '0',
-  `ocr_value` text,
-  `namefinder_flag` tinyint(4) NOT NULL DEFAULT '0',
-  `namefinder_value` text,
-  `ScientificName` varchar(30) DEFAULT NULL,
-  `CollectionCode` varchar(10) DEFAULT NULL,
-  `CatalogueNumber` int(11) DEFAULT NULL,
-  `guess_flag` tinyint(4) NOT NULL DEFAULT '0',
+  `boxFlag` tinyint(4) NOT NULL DEFAULT '0',
+  `ocrFlag` tinyint(4) NOT NULL DEFAULT '0',
+  `ocrValue` text,
+  `nameFinderFlag` tinyint(4) NOT NULL DEFAULT '0',
+  `nameFinderValue` text,
+  `scientificName` varchar(30) DEFAULT NULL,
+  `collectionCode` varchar(10) DEFAULT NULL,
+  `catalogueNumber` int(11) DEFAULT NULL,
+  `guessFlag` tinyint(4) NOT NULL DEFAULT '0',
   `tmpFamily` varchar(20) DEFAULT NULL,
   `tmpFamilyAccepted` varchar(20) DEFAULT NULL,
   `tmpGenus` varchar(20) DEFAULT NULL,
   `tmpGenusAccepted` varchar(20) DEFAULT NULL,
-  `storage_id` int(11) NOT NULL DEFAULT '1',
+  `storageId` int(11) NOT NULL DEFAULT '1',
   `path` varchar(256) NOT NULL,
-  `originalFilename` varchar(60) NOT NULL,
+  `originalFileName` varchar(60) NOT NULL,
   `remoteAccessKey` varchar(100) NOT NULL DEFAULT '0',
   `statusType` tinyint(4) NOT NULL DEFAULT '0',
   `rating` float NOT NULL,
-  PRIMARY KEY (`image_id`),
-  KEY `Family` (`Family`),
-  KEY `Genus` (`Genus`),
-  KEY `ScientificName` (`ScientificName`),
-  KEY `Barcode` (`barcode`),
-  KEY `CatalogueNumber` (`CatalogueNumber`),
-  KEY `CollectionCode` (`CollectionCode`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 PACK_KEYS=0 ROW_FORMAT=COMPACT AUTO_INCREMENT=1 ;
+  PRIMARY KEY (`imageId`),
+  KEY `family` (`family`),
+  KEY `genus` (`genus`),
+  KEY `scientificName` (`scientificName`),
+  KEY `barcode` (`barcode`),
+  KEY `catalogueNumber` (`catalogueNumber`),
+  KEY `collectionCode` (`collectionCode`)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 PACK_KEYS=0 ROW_FORMAT=COMPACT AUTO_INCREMENT=1;
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `image_attrib`
+-- Table structure for table `imageAttrib`
 --
 
-CREATE TABLE IF NOT EXISTS `image_attrib` (
-  `imageID` int(11) NOT NULL DEFAULT '0',
-  `typeID` int(11) NOT NULL DEFAULT '0',
-  `valueID` int(11) NOT NULL DEFAULT '0',
-  UNIQUE KEY `u_index` (`imageID`,`typeID`,`valueID`),
-  KEY `imageID` (`imageID`)
+CREATE TABLE IF NOT EXISTS `imageAttrib` (
+  `imageId` int(11) NOT NULL DEFAULT '0',
+  `typeId` int(11) NOT NULL DEFAULT '0',
+  `valueId` int(11) NOT NULL DEFAULT '0',
+  UNIQUE KEY `uIndex` (`imageId`,`typeId`,`valueId`),
+  KEY `imageId` (`imageId`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=FIXED;
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `image_attrib_type`
+-- Table structure for table `imageAttribType`
 --
 
-CREATE TABLE IF NOT EXISTS `image_attrib_type` (
-  `typeID` int(11) NOT NULL AUTO_INCREMENT,
+CREATE TABLE IF NOT EXISTS `imageAttribType` (
+  `typeId` int(11) NOT NULL AUTO_INCREMENT,
   `title` varchar(60) DEFAULT NULL,
   `description` varchar(255) DEFAULT NULL,
   `elementSet` varchar(255) DEFAULT NULL,
   `term` varchar(255) DEFAULT NULL,
-  PRIMARY KEY (`typeID`),
-  UNIQUE KEY `attribID` (`typeID`)
+  PRIMARY KEY (`typeId`),
+  UNIQUE KEY `attribId` (`typeId`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC AUTO_INCREMENT=1 ;
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `image_attrib_value`
+-- Table structure for table `imageAttribValue`
 --
 
-CREATE TABLE IF NOT EXISTS `image_attrib_value` (
-  `valueID` int(11) NOT NULL AUTO_INCREMENT,
+CREATE TABLE IF NOT EXISTS `imageAttribValue` (
+  `valueId` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(60) DEFAULT NULL,
-  `typeID` int(11) DEFAULT NULL,
-  PRIMARY KEY (`valueID`),
-  UNIQUE KEY `valueID` (`valueID`)
+  `typeId` int(11) DEFAULT NULL,
+  PRIMARY KEY (`valueId`),
+  UNIQUE KEY `valueId` (`valueId`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC AUTO_INCREMENT=1 ;
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `image_log`
+-- Table structure for table `imageLog`
 --
 
-CREATE TABLE IF NOT EXISTS `image_log` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
+CREATE TABLE IF NOT EXISTS `imageLog` (
+  `imageLogId` int(11) NOT NULL AUTO_INCREMENT,
   `action` int(11) DEFAULT NULL,
-  `before_desc` varchar(255) DEFAULT NULL,
-  `after_desc` varchar(255) DEFAULT NULL,
+  `beforeDesc` varchar(255) DEFAULT NULL,
+  `afterDesc` varchar(255) DEFAULT NULL,
   `query` varchar(255) DEFAULT NULL,
-  `date_created` datetime DEFAULT NULL,
-  `image_id` int(11) DEFAULT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC AUTO_INCREMENT=1 ;
+  `dateCreated` datetime DEFAULT NULL,
+  `imageId` int(11) DEFAULT NULL,
+  PRIMARY KEY (`imageLogId`)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC AUTO_INCREMENT=1;
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `image_rating`
+-- Table structure for table `imageRating`
 --
 
-CREATE TABLE IF NOT EXISTS `image_rating` (
-  `image_id` int(11) NOT NULL,
-  `user_id` int(11) NOT NULL DEFAULT '0',
-  `ip_address` int(11) NOT NULL,
+CREATE TABLE IF NOT EXISTS `imageRating` (
+  `imageId` int(11) NOT NULL,
+  `userId` int(11) NOT NULL DEFAULT '0',
+  `ipAddress` int(11) NOT NULL,
   `rating` tinyint(4) NOT NULL DEFAULT '0',
   `calc` tinyint(4) NOT NULL DEFAULT '0',
-  UNIQUE KEY `ukey` (`image_id`,`user_id`,`ip_address`)
+  UNIQUE KEY `uKey` (`imageId`,`userId`,`ipAddress`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 PACK_KEYS=0 ROW_FORMAT=COMPACT;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `im_log`
---
-
-CREATE TABLE IF NOT EXISTS `im_log` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `action` int(11) DEFAULT NULL,
-  `before_desc` varchar(255) DEFAULT NULL,
-  `after_desc` varchar(255) DEFAULT NULL,
-  `query` varchar(255) DEFAULT NULL,
-  `date_created` datetime NOT NULL,
-  `image_id` int(11) DEFAULT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='InnoDB free: 33792 kB' AUTO_INCREMENT=1 ;
 
 -- --------------------------------------------------------
 
@@ -308,68 +291,68 @@ CREATE TABLE IF NOT EXISTS `im_log` (
 --
 
 CREATE TABLE IF NOT EXISTS `log` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `logId` int(11) NOT NULL AUTO_INCREMENT,
   `action` varchar(20) NOT NULL,
   `table` varchar(40) NOT NULL,
   `query` text NOT NULL,
   `lastModifiedBy` int(11) NOT NULL,
   `modifiedTime` datetime NOT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
+  PRIMARY KEY (`logId`)
+) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1;
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `master_log`
+-- Table structure for table `masterLog`
 --
 
-CREATE TABLE IF NOT EXISTS `master_log` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `sc_id` varchar(20) NOT NULL,
-  `log_id` int(11) NOT NULL,
-  `station_id` int(11) NOT NULL,
-  `image_id` int(11) NOT NULL,
+CREATE TABLE IF NOT EXISTS `masterLog` (
+  `masterLogId` int(11) NOT NULL AUTO_INCREMENT,
+  `scId` varchar(20) NOT NULL,
+  `logId` int(11) NOT NULL,
+  `stationId` int(11) NOT NULL,
+  `imageId` int(11) NOT NULL,
   `barcode` varchar(20) NOT NULL,
   `before` blob,
   `after` blob,
   `task` varchar(40) NOT NULL,
-  `timestamp_modified` datetime DEFAULT NULL,
-  `user` int(11) NOT NULL,
-  PRIMARY KEY (`sc_id`,`log_id`,`station_id`),
-  UNIQUE KEY `id` (`id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+  `timestampModified` datetime DEFAULT NULL,
+  `userId` int(11) NOT NULL,
+  PRIMARY KEY (`scId`,`logId`,`stationId`),
+  UNIQUE KEY `masterLogId` (`masterLogId`)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `process_queue`
+-- Table structure for table `processQueue`
 --
 
-CREATE TABLE IF NOT EXISTS `process_queue` (
-  `image_id` varchar(40) NOT NULL DEFAULT '',
-  `process_type` varchar(20) NOT NULL,
+CREATE TABLE IF NOT EXISTS `processQueue` (
+  `imageId` varchar(40) NOT NULL DEFAULT '',
+  `processType` varchar(20) NOT NULL,
   `extra` text,
-  `date_added` datetime DEFAULT NULL,
+  `dateAdded` datetime DEFAULT NULL,
   `processed` datetime DEFAULT NULL,
   `errors` tinyint(4) DEFAULT '0',
-  `error_details` blob,
-  PRIMARY KEY (`image_id`,`process_type`),
-  KEY `Barcode` (`image_id`(20))
+  `errorDetails` blob,
+  PRIMARY KEY (`imageId`,`processType`),
+  KEY `barcode` (`imageId`(20))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `remoteaccess`
+-- Table structure for table `remoteAccess`
 --
 
-CREATE TABLE IF NOT EXISTS `remoteaccess` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
+CREATE TABLE IF NOT EXISTS `remoteAccess` (
+  `remoteAccessId` int(11) NOT NULL AUTO_INCREMENT,
   `ip` int(11) NOT NULL,
   `key` varchar(100) NOT NULL,
   `active` varchar(10) NOT NULL DEFAULT 'true',
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
+  PRIMARY KEY (`remoteAccessId`)
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1;
 
 -- --------------------------------------------------------
 
@@ -378,33 +361,33 @@ CREATE TABLE IF NOT EXISTS `remoteaccess` (
 --
 
 CREATE TABLE IF NOT EXISTS `set` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `setId` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(80) NOT NULL,
   `description` text NOT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
+  PRIMARY KEY (`setId`)
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1;
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `set_values`
+-- Table structure for table `setValues`
 --
 
-CREATE TABLE IF NOT EXISTS `set_values` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
+CREATE TABLE IF NOT EXISTS `setValues` (
+  `setValueId` int(11) NOT NULL AUTO_INCREMENT,
   `sId` int(11) NOT NULL,
   `valueId` int(11) NOT NULL,
   `rank` int(11) NOT NULL,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`setValueId`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `specimen2label`
+-- Table structure for table `specimen2Label`
 --
 
-CREATE TABLE IF NOT EXISTS `specimen2label` (
+CREATE TABLE IF NOT EXISTS `specimen2Label` (
   `labelId` int(11) NOT NULL,
   `evernoteAccountId` int(11) NOT NULL,
   `barcode` varchar(20) NOT NULL,
@@ -415,11 +398,11 @@ CREATE TABLE IF NOT EXISTS `specimen2label` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `storage_device`
+-- Table structure for table `storageDevice`
 --
 
-CREATE TABLE IF NOT EXISTS `storage_device` (
-  `storage_id` int(11) NOT NULL AUTO_INCREMENT,
+CREATE TABLE IF NOT EXISTS `storageDevice` (
+  `storageDeviceId` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(50) NOT NULL,
   `description` varchar(100) DEFAULT NULL,
   `type` varchar(10) NOT NULL,
@@ -429,9 +412,9 @@ CREATE TABLE IF NOT EXISTS `storage_device` (
   `pw` varchar(50) DEFAULT NULL,
   `key` varchar(50) DEFAULT NULL,
   `active` varchar(10) NOT NULL DEFAULT 'true',
-  `default_storage` int(11) DEFAULT '0',
+  `defaultStorage` int(11) DEFAULT '0',
   `extra2` varchar(100) DEFAULT NULL,
-  PRIMARY KEY (`storage_id`)
+  PRIMARY KEY (`storageDeviceId`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
 
 -- --------------------------------------------------------
@@ -441,17 +424,17 @@ CREATE TABLE IF NOT EXISTS `storage_device` (
 --
 
 CREATE TABLE IF NOT EXISTS `users` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `userId` int(11) NOT NULL AUTO_INCREMENT,
   `login` varchar(25) NOT NULL DEFAULT '',
   `pw` varchar(32) NOT NULL DEFAULT '',
-  `real_name` varchar(32) NOT NULL DEFAULT '',
-  `extra_info` varchar(100) NOT NULL DEFAULT '',
+  `realName` varchar(32) NOT NULL DEFAULT '',
+  `extraInfo` varchar(100) NOT NULL DEFAULT '',
   `email` varchar(50) NOT NULL DEFAULT '',
-  `tmp_mail` varchar(50) NOT NULL DEFAULT '',
-  `access_level` tinyint(4) NOT NULL DEFAULT '0',
+  `tmpMail` varchar(50) NOT NULL DEFAULT '',
+  `accessLevel` tinyint(4) NOT NULL DEFAULT '0',
   `active` enum('y','n') NOT NULL DEFAULT 'n',
   `statusType` tinyint(4) NOT NULL DEFAULT '0',
-  PRIMARY KEY (`id`),
+  PRIMARY KEY (`userId`),
   UNIQUE KEY `user` (`login`),
   UNIQUE KEY `mail` (`email`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
@@ -459,10 +442,10 @@ CREATE TABLE IF NOT EXISTS `users` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `user_permissions`
+-- Table structure for table `userPermissions`
 --
 
-CREATE TABLE IF NOT EXISTS `user_permissions` (
+CREATE TABLE IF NOT EXISTS `userPermissions` (
   `userId` int(11) NOT NULL,
   `event` varchar(50) NOT NULL,
   `C` tinyint(4) NOT NULL,

@@ -9,6 +9,7 @@
 	$config['mysql']['pass'] = '';
 	
 	# Flicker values
+	$config['flkr']['enabled'] = true; // true/false
 	$config['flkr']['key'] = '';
 	$config['flkr']['secret'] = '';
 	$config['flkr']['email'] = '';
