@@ -34,7 +34,7 @@ class Access_user {
 	
 	var $user;
 	var $user_pw;
-	var $access_level;
+	var $accessLevel;
 	var $user_full_name;
 	var $user_info;
 	var $user_email;
@@ -90,7 +90,7 @@ class Access_user {
 			$sql = sprintf("SELECT COUNT(*) AS test FROM %s WHERE id = %d AND active = 'n'", $this->table_name, $this->id);
 			break;
 			case "validate":
-			$sql = sprintf("SELECT COUNT(*) AS test FROM %s WHERE id = %d AND tmp_mail <> ''", $this->table_name, $this->id);
+			$sql = sprintf("SELECT COUNT(*) AS test FROM %s WHERE id = %d AND tmpMail <> ''", $this->table_name, $this->id);
 			break;
 			default:
 			$password = (strlen($this->user_pw) < 32) ? md5($this->user_pw) : $this->user_pw;
@@ -104,15 +104,15 @@ class Access_user {
 		}
 	}
 	// New methods to handle the access level	
-	function get_access_level() {
+	function get_accessLevel() {
 		$this->user = (!isset($this->user)) ? $_SESSION['user'] : $this->user;
-		$sql = sprintf("SELECT access_level FROM %s WHERE login = '%s' AND active = 'y'", $this->table_name, $this->user);
+		$sql = sprintf("SELECT accessLevel FROM %s WHERE login = '%s' AND active = 'y'", $this->table_name, $this->user);
 		if (!$result = mysql_query($sql)) {
 		   $this->the_msg = $this->messages(14);
 		} else {
-			$this->access_level = mysql_result($result, 0, "access_level");
+			$this->accessLevel = mysql_result($result, 0, "accessLevel");
 		}
-		return $this->access_level;
+		return $this->accessLevel;
 	}
 	function set_user() {
 		$_SESSION['user'] = $this->user;
@@ -186,7 +186,7 @@ class Access_user {
 		}			 
 	}
 	function reg_visit($login, $pass) {
-		$visit_sql = sprintf("UPDATE %s SET extra_info = '%s' WHERE login = '%s' AND pw = '%s'", $this->table_name, date("Y-m-d H:i:s"), $login, md5($pass));
+		$visit_sql = sprintf("UPDATE %s SET extraInfo = '%s' WHERE login = '%s' AND pw = '%s'", $this->table_name, date("Y-m-d H:i:s"), $login, md5($pass));
 		mysql_query($visit_sql);
 	}
 	function log_out() {
@@ -201,13 +201,13 @@ class Access_user {
 		if (isset($_SESSION['user'])/* && isset($_SESSION['pw'])*/) {
 			$this->user = $_SESSION['user'];
 			# $this->user_pw = $_SESSION['pw'];
-			$this->get_access_level();
+			$this->get_accessLevel();
 			if (!$this->check_user()) {
 				$_SESSION['referer'] = $refer_qs;
 				return( false );
 // 				header("Location: ".$this->login_page);
 			}
-			if ($this->access_level < $level) {
+			if ($this->accessLevel < $level) {
 				return( false );
 // 				header("Location: ".$this->deny_access_page);
 			}
@@ -220,11 +220,11 @@ class Access_user {
 		return( true );
 	}
 	function get_user_info() {
-		$sql_info = sprintf("SELECT real_name, extra_info, email, id FROM %s WHERE login = '%s' AND pw = '%s'", $this->table_name, $this->user, md5($this->user_pw));
+		$sql_info = sprintf("SELECT realName, extraInfo, email, userId FROM %s WHERE login = '%s' AND pw = '%s'", $this->table_name, $this->user, md5($this->user_pw));
 		$res_info = mysql_query($sql_info);
-		$this->id = mysql_result($res_info, 0, "id");
-		$this->user_full_name = mysql_result($res_info, 0, "real_name");
-		$this->user_info = mysql_result($res_info, 0, "extra_info");
+		$this->id = mysql_result($res_info, 0, "userId");
+		$this->user_full_name = mysql_result($res_info, 0, "realName");
+		$this->user_info = mysql_result($res_info, 0, "extraInfo");
 		$this->user_email = mysql_result($res_info, 0, "email");
 	}
 	function update_user($new_password, $new_confirm, $new_name, $new_info, $new_mail) {
@@ -256,7 +256,7 @@ class Access_user {
 			$update_email = false;
 			$new_mail = "";
 		}
-		$upd_sql = sprintf("UPDATE %s SET pw = %s, real_name = %s, extra_info = %s, tmp_mail = %s WHERE id = %d", 
+		$upd_sql = sprintf("UPDATE %s SET pw = %s, realName = %s, extraInfo = %s, tmpMail = %s WHERE userId = %d", 
 			$this->table_name,
 			$this->ins_string(md5($ins_password)),
 			$this->ins_string($new_name),
@@ -277,7 +277,7 @@ class Access_user {
 				if ($this->send_mail($new_mail, 33)) {
 					$this->the_msg = $this->messages(27);
 				} else {
-					mysql_query(sprintf("UPDATE %s SET tmp_mail = ''", $this->table_name));
+					mysql_query(sprintf("UPDATE %s SET tmpMail = ''", $this->table_name));
 					$this->the_msg = $this->messages(14);
 				} 
 			}
@@ -325,7 +325,7 @@ class Access_user {
 					if ($this->check_user("new")) {
 						$this->the_msg = $this->messages(12);
 					} else {
-						$sql = sprintf("INSERT INTO %s (id, login, pw, real_name, extra_info, email, access_level, active) VALUES (NULL, %s, %s, %s, %s, %s, %d, 'n')", 
+						$sql = sprintf("INSERT INTO %s (id, login, pw, realName, extraInfo, email, accessLevel, active) VALUES (NULL, %s, %s, %s, %s, %s, %d, 'n')", 
 							$this->table_name,
 							$this->ins_string($first_login),
 							$this->ins_string(md5($first_password)),
@@ -340,7 +340,7 @@ class Access_user {
 							if ($this->send_mail($this->user_email)) {
 								$this->the_msg = $this->messages(13);
 							} else {
-								mysql_query(sprintf("DELETE FROM %s WHERE id = %s", $this->table_name, $this->id));
+								mysql_query(sprintf("DELETE FROM %s WHERE userId = %s", $this->table_name, $this->id));
 								$this->the_msg = $this->messages(14);
 							}
 						} else {
@@ -359,7 +359,7 @@ class Access_user {
 		if ($validation_key != "" && strlen($validation_key) == 32 && $key_id > 0) {
 			$this->id = $key_id;
 			if ($this->check_user("validate")) {
-				$upd_sql = sprintf("UPDATE %s SET email = tmp_mail, tmp_mail = '' WHERE id = %d AND pw = '%s'", $this->table_name, $key_id, $validation_key);
+				$upd_sql = sprintf("UPDATE %s SET email = tmpMail, tmpMail = '' WHERE userId = %d AND pw = '%s'", $this->table_name, $key_id, $validation_key);
 				if (mysql_query($upd_sql)) {
 					$this->the_msg = $this->messages(18);
 				} else {
@@ -377,7 +377,7 @@ class Access_user {
 			$this->id = $key_id;
 			if ($this->check_user("active")) {
 				if ($this->auto_activation) {
-					$upd_sql = sprintf("UPDATE %s SET active = 'y' WHERE id = %s AND pw = '%s'", $this->table_name, $key_id, $activate_key);
+					$upd_sql = sprintf("UPDATE %s SET active = 'y' WHERE userId = %s AND pw = '%s'", $this->table_name, $key_id, $activate_key);
 					if (mysql_query($upd_sql)) {
 						if ($this->send_confirmation($key_id)) {
 							$this->the_msg = $this->messages(18);
@@ -402,7 +402,7 @@ class Access_user {
 		}
 	}
 	function send_confirmation($id) {
-		$sql = sprintf("SELECT email FROM %s WHERE id = %d", $this->table_name, $id);
+		$sql = sprintf("SELECT email FROM %s WHERE userId = %d", $this->table_name, $id);
 		$user_email = mysql_result(mysql_query($sql), 0, "email");
 		if ($this->send_mail($user_email, 37)) {
 			return true;
@@ -435,9 +435,9 @@ class Access_user {
 			if (!$this->check_user("lost")) {
 				$this->the_msg = $this->messages(22);
 			} else {
-				$forgot_sql = sprintf("SELECT id, pw FROM %s WHERE email = '%s'", $this->table_name, $this->user_email);
+				$forgot_sql = sprintf("SELECT userId, pw FROM %s WHERE email = '%s'", $this->table_name, $this->user_email);
 				if ($forgot_result = mysql_query($forgot_sql)) {
-					$this->id = mysql_result($forgot_result, 0, "id");
+					$this->id = mysql_result($forgot_result, 0, "userId");
 					$this->user_pw = mysql_result($forgot_result, 0, "pw");
 					if ($this->send_mail($this->user_email, 35)) {
 						$this->the_msg = $this->messages(23);
@@ -458,7 +458,7 @@ class Access_user {
 			$this->id = $id;
 			if ($this->check_user("new_pass")) {
 				// this is a fix for version 1.76
-				$sql_get_user = sprintf("SELECT login FROM %s WHERE pw = '%s' AND id = %d", $this->table_name, $this->user_pw, $this->id);
+				$sql_get_user = sprintf("SELECT login FROM %s WHERE pw = '%s' AND userId = %d", $this->table_name, $this->user_pw, $this->id);
 				$get_user = mysql_query($sql_get_user);
 				$this->user = mysql_result($get_user, 0, "login"); // end fix
 				return true;
@@ -473,7 +473,7 @@ class Access_user {
 	}
 	function activate_new_password($new_pass, $new_confirm, $old_pass, $user_id) {
 		if ($this->check_new_password($new_pass, $new_confirm)) {
-			$sql_new_pass = sprintf("UPDATE %s SET pw = '%s' WHERE pw = '%s' AND id = %d", $this->table_name, md5($new_pass), $old_pass, $user_id);
+			$sql_new_pass = sprintf("UPDATE %s SET pw = '%s' WHERE pw = '%s' AND userId = %d", $this->table_name, md5($new_pass), $old_pass, $user_id);
 			if (mysql_query($sql_new_pass)) {
 				$this->the_msg = $this->messages(30);
 				return true;
@@ -627,7 +627,7 @@ class Access_user {
 	}
 
 	public function setUserPermissions() {
-		$query = sprintf(" SELECT * FROM `user_permissions` WHERE `userId` = %s", mysql_escape_string($this->id));
+		$query = sprintf(" SELECT * FROM `userPermissions` WHERE `userId` = %s", mysql_escape_string($this->id));
 		$ret = $this->db->query_all($query);
 		$_SESSION['user_permissions'] = $ret;
 		return true;

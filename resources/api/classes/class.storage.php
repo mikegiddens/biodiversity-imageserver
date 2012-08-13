@@ -7,15 +7,15 @@ class Storage {
 	public function __construct($db = null) {
 		$this->db = $db;
 		$this->getAllDevices();
-		$this->record['default_storage'] = 0;
+		$this->record['defaultStorage'] = 0;
 	}
 	
 	public function getAllDevices() {
-		$query = "SELECT * FROM `storage_device`";
+		$query = "SELECT * FROM `storageDevice`";
 		$array = $this->db->query($query);
 		$cnt = 0;
 		while($item = $array->fetch_object()) {
-			$this->devices[$cnt]['storage_id']  =  $item->storage_id;
+			$this->devices[$cnt]['storageDeviceId']  =  $item->storageDeviceId;
 			$this->devices[$cnt]['name']  =  $item->name;
 			$this->devices[$cnt]['description']  =  $item->description;
 			$this->devices[$cnt]['type']  =  $item->type;
@@ -25,7 +25,7 @@ class Storage {
 			$this->devices[$cnt]['pw']  =  $item->pw;
 			$this->devices[$cnt]['key']  =  $item->key;
 			$this->devices[$cnt]['active']  =  $item->active;
-			$this->devices[$cnt]['default_storage']  =  $item->default_storage;
+			$this->devices[$cnt]['defaultStorage']  =  $item->defaultStorage;
 			$this->devices[$cnt]['extra2']  =  $item->extra2;
 			$cnt++;
 		}
@@ -51,7 +51,7 @@ class Storage {
 	}
 	
 	public function save() {
-		$query = sprintf("INSERT IGNORE INTO `storage_device` SET `name` = '%s', `description` = '%s', `type` = '%s', `baseUrl` = '%s', `basePath` = '%s', `user` = '%s', `pw` = '%s', `key` = '%s', `active` = '%s', `default_storage` = '%s', `extra2` = '%s' ;"
+		$query = sprintf("INSERT IGNORE INTO `storageDevice` SET `name` = '%s', `description` = '%s', `type` = '%s', `baseUrl` = '%s', `basePath` = '%s', `user` = '%s', `pw` = '%s', `key` = '%s', `active` = '%s', `defaultStorage` = '%s', `extra2` = '%s' ;"
 		, mysql_escape_string($this->fetch('name'))
 		, mysql_escape_string($this->fetch('description'))
 		, mysql_escape_string($this->fetch('type'))
@@ -61,7 +61,7 @@ class Storage {
 		, mysql_escape_string($this->fetch('pw'))
 		, mysql_escape_string($this->fetch('key'))
 		, mysql_escape_string($this->fetch('active'))
-		, mysql_escape_string($this->fetch('default_storage'))
+		, mysql_escape_string($this->fetch('defaultStorage'))
 		, mysql_escape_string($this->fetch('extra2'))
 		);
 		if($this->db->query($query)) {
@@ -72,10 +72,10 @@ class Storage {
 		}
 	}
 	
-	public function exists($storage_id) {
+	public function exists($storageDeviceId) {
 		if(is_array($this->devices)) {
 			foreach($this->devices as $device) {
-				if($device['storage_id'] == $storage_id) {
+				if($device['storageDeviceId'] == $storageDeviceId) {
 					return true;
 				}
 			}
@@ -85,10 +85,10 @@ class Storage {
 		}
 	}
 	
-	public function get($storage_id) {
+	public function get($storageDeviceId) {
 		if(is_array($this->devices)) {
 			foreach($this->devices as $device) {
-				if($device['storage_id'] == $storage_id) {
+				if($device['storageDeviceId'] == $storageDeviceId) {
 					return $device;
 				}
 			}
@@ -98,10 +98,10 @@ class Storage {
 		}
 	}
 	
-	public function getType($storage_id) {
+	public function getType($storageDeviceId) {
 		if(is_array($this->devices)) {
 			foreach($this->devices as $device) {
-				if($device['storage_id'] == $storage_id) {
+				if($device['storageDeviceId'] == $storageDeviceId) {
 					return $device['type'];
 				}
 			}
@@ -114,8 +114,8 @@ class Storage {
 	public function getDefault() {
 		if(is_array($this->devices)) {
 			foreach($this->devices as $device) {
-				if($device['default_storage'] == 1) {
-					return $device['storage_id'];
+				if($device['defaultStorage'] == 1) {
+					return $device['storageDeviceId'];
 				}
 			}
 			return false;
@@ -124,11 +124,11 @@ class Storage {
 		}
 	}
 	
-	public function setDefault($storage_id) {
-		if(($storage_id != '') && ($this->exists($storage_id))) {
-			$query = "UPDATE `storage_device` SET `default_storage` = 0";
+	public function setDefault($storageDeviceId) {
+		if(($storageDeviceId != '') && ($this->exists($storageDeviceId))) {
+			$query = "UPDATE `storageDevice` SET `defaultStorage` = 0";
 			$this->db->query($query);
-			$query = sprintf("UPDATE `storage_device` SET `default_storage` = 1 WHERE `storage_id` = '%s'", mysql_escape_string($storage_id));
+			$query = sprintf("UPDATE `storageDevice` SET `defaultStorage` = 1 WHERE `storageDeviceId` = '%s'", mysql_escape_string($storageDeviceId));
 			$this->db->query($query);
 			return true;
 		} else {
@@ -136,25 +136,25 @@ class Storage {
 		}
 	}
 	
-	public function store($tmpFile, $storage_id, $storageFileName, $storageFilePath='', $remoteAccesskey=0) {
+	public function store($tmpFile, $storageDeviceId, $storageFileName, $storageFilePath='', $remoteAccesskey=0) {
 		$img = new Image($this->db);
-		if($tmpFile!='' && $storage_id!='' && $storageFileName!='' && $this->exists($storage_id)) {
-			$device = $this->get($storage_id);
-			switch(strtolower($this->getType($storage_id))) {
+		if($tmpFile!='' && $storageDeviceId!='' && $storageFileName!='' && $this->exists($storageDeviceId)) {
+			$device = $this->get($storageDeviceId);
+			switch(strtolower($this->getType($storageDeviceId))) {
 				case 's3':
 					$amazon = new AmazonS3(array('key' => $device['pw'],'secret' => $device['key']));
 					$storageFilePath1 = substr($storageFilePath,0,1)=='/' ? substr($storageFilePath,1,strlen($storageFilePath)-1) : $storageFilePath;
 					$response = $amazon->create_object ($device['basePath'], $storageFilePath1 . '/' .  $storageFileName, array('fileUpload' => $tmpFile,'acl' => AmazonS3::ACL_PUBLIC,'storage' => AmazonS3::STORAGE_REDUCED) );
 					if($response->isOK()) {
-						$result['image_id'] = $img->getImageId($storageFileName, $storageFilePath, 1);
-						if(!$result['image_id']) {
+						$result['imageId'] = $img->imageGetId($storageFileName, $storageFilePath, 1);
+						if(!$result['imageId']) {
 							$img->set('filename',$storageFileName);
-							$img->set('storage_id', 1);
+							$img->set('storageDeviceId', 1);
 							$img->set('path', $storageFilePath);
 							$img->set('originalFilename', $storageFileName);
 							$img->set('remoteAccessKey', $remoteAccesskey);
 							$img->save();
-							$result['image_id'] = $img->getImageId($storageFileName, $storageFilePath, 1);
+							$result['imageId'] = $img->imageGetId($storageFileName, $storageFilePath, 1);
 						}
 						$result['success'] = true;
 						return $result;
@@ -169,15 +169,15 @@ class Storage {
 					$response = file_put_contents($device['basePath'].$storageFilePath . '/' .  $storageFileName, $fp);
 					fclose($fp);
 					if($response) {
-						$result['image_id'] = $img->getImageId($storageFileName, $storageFilePath, 2);
-						if(!$result['image_id']) {
+						$result['imageId'] = $img->imageGetId($storageFileName, $storageFilePath, 2);
+						if(!$result['imageId']) {
 							$img->set('filename',$storageFileName);
-							$img->set('storage_id', 2);
+							$img->set('storageDeviceId', 2);
 							$img->set('path', $storageFilePath);
 							$img->set('originalFilename', $storageFileName);
 							$img->set('remoteAccessKey', $remoteAccesskey);
 							$img->save();
-							$result['image_id'] = $img->getImageId($storageFileName, $storageFilePath, 2);
+							$result['imageId'] = $img->imageGetId($storageFileName, $storageFilePath, 2);
 						}
 						$result['success'] = true;
 						return $result;
@@ -197,12 +197,12 @@ class Storage {
 		}
 	}
 		
-	public function delete($storage_id, $storageFileName, $storageFilePath='') {
-		if($storage_id == '' || $storageFileName == '') {
+	public function delete($storageDeviceId, $storageFileName, $storageFilePath='') {
+		if($storageDeviceId == '' || $storageFileName == '') {
 			return false;
 		} else {
-			$device = $this->get($storage_id);
-			switch(strtolower($this->getType($storage_id))) {
+			$device = $this->get($storageDeviceId);
+			switch(strtolower($this->getType($storageDeviceId))) {
 				case 's3':
 					$amazon = new AmazonS3(array('key' => $device['pw'],'secret' => $device['key']));
 					$storageFilePath1 = substr($storageFilePath,0,1)=='/' ? substr($storageFilePath,1,strlen($storageFilePath)-1) : $storageFilePath;
@@ -221,16 +221,16 @@ class Storage {
 		}
 	}
 	
-	public function moveExistingImage($image_id, $newStorageId, $newImagePath) {
+	public function moveExistingImage($imageId, $newStorageId, $newImagePath) {
 		$img = new Image($this->db);
-		if($image_id == '' || $newStorageId == '' || $newImagePath == '' || !$img->field_exists($image_id) || !$this->exists($newStorageId)) {
+		if($imageId == '' || $newStorageId == '' || $newImagePath == '' || !$img->field_exists($imageId) || !$this->exists($newStorageId)) {
 			return false;
 		}
-		if($img->load_by_id($image_id)) {
-			if(($img->get('storage_id') == $newStorageId) && ($img->get('path') == $newImagePath)) {
+		if($img->load_by_id($imageId)) {
+			if(($img->get('storageDeviceId') == $newStorageId) && ($img->get('path') == $newImagePath)) {
 				return true;
 			} else {
-				$device1 = $this->get($img->get('storage_id'));
+				$device1 = $this->get($img->get('storageDeviceId'));
 				$device2 = $this->get($newStorageId);
 				
 				switch(strtolower($device2['type'])) {
@@ -259,8 +259,8 @@ class Storage {
 								break;
 						}
 						if($response->isOK()) {
-							$this->delete($img->get('storage_id'), $img->get('filename'), $img->get('path'));
-							$img->set('storage_id', $newStorageId);
+							$this->delete($img->get('storageDeviceId'), $img->get('filename'), $img->get('path'));
+							$img->set('storageDeviceId', $newStorageId);
 							$img->set('path', $newImagePath);
 							$img->save();
 							return true;
@@ -295,8 +295,8 @@ class Storage {
 								fclose($fp);
 								break;
 						}
-						$this->delete($img->get('storage_id'), $img->get('filename'), $img->get('path'));
-						$img->set('storage_id', $newStorageId);
+						$this->delete($img->get('storageDeviceId'), $img->get('filename'), $img->get('path'));
+						$img->set('storageDeviceId', $newStorageId);
 						$img->set('path', $newImagePath);
 						$img->save();
 						return true;
@@ -308,9 +308,9 @@ class Storage {
 		}
 	}
 	
-	public function fileExists($storage_id, $key) {
-		if($storage_id == '' || $key == '') return false;
-		$device = $this->get($storage_id);
+	public function fileExists($storageDeviceId, $key) {
+		if($storageDeviceId == '' || $key == '') return false;
+		$device = $this->get($storageDeviceId);
 		if(!$device) return false;
 		switch(strtolower($device['type'])) {
 			case 's3':
@@ -338,9 +338,9 @@ class Storage {
 		}
 	}
 	
-	public function fileGetContents($storage_id, $key) {
-		if($storage_id == '' || $key == '') return false;
-		$device = $this->get($storage_id);
+	public function fileGetContents($storageDeviceId, $key) {
+		if($storageDeviceId == '' || $key == '') return false;
+		$device = $this->get($storageDeviceId);
 		if(!$device) return false;
 		switch(strtolower($device['type'])) {
 			case 's3':
@@ -376,9 +376,9 @@ class Storage {
 		}
 	}
 	
-	public function fileDownload($storage_id , $key) {
-		if($storage_id == '' || $key == '') return false;
-		$device = $this->get($storage_id);
+	public function fileDownload($storageDeviceId , $key) {
+		if($storageDeviceId == '' || $key == '') return false;
+		$device = $this->get($storageDeviceId);
 		if(!$device) return false;
 		switch(strtolower($device['type'])) {
 			case 's3':
@@ -412,9 +412,9 @@ class Storage {
 		}
 	}
 	
-	public function createFile_Data($storage_id, $key, $data) {
-		if($storage_id == '' || $key == '' || $data == '') return false;
-		$device = $this->get($storage_id);
+	public function createFile_Data($storageDeviceId, $key, $data) {
+		if($storageDeviceId == '' || $key == '' || $data == '') return false;
+		$device = $this->get($storageDeviceId);
 		if(!$device) return false;
 		switch(strtolower($device['type'])) {
 			case 's3':
