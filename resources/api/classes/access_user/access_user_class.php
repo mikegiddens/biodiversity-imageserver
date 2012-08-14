@@ -26,7 +26,7 @@ http://olederer.users.phpclasses.org/discuss/package/1906/
 // error_reporting (E_ALL); // I use this only for testing
 require("db_config.php"); // this path works for me...
 
-require_once( $config['path']['base'] . "resources/api/classes/class.mysqli_database.php");
+require_once( $config['path']['base'] . "resources/api/classes/bis.mysqliDatabase.php");
 
 class Access_user {
 	
