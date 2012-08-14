@@ -115,7 +115,8 @@ CREATE TABLE IF NOT EXISTS `eventTypes` (
   `description` varchar(255) NOT NULL,
   `lastModifiedBy` int(11) NOT NULL,
   `modifiedTime` datetime NOT NULL,
-  PRIMARY KEY (`eventTypeId`)
+  PRIMARY KEY (`eventTypeId`),
+  UNIQUE KEY `title` (`title`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
 
 -- --------------------------------------------------------
@@ -216,9 +217,9 @@ CREATE TABLE IF NOT EXISTS `image` (
 
 CREATE TABLE IF NOT EXISTS `imageAttrib` (
   `imageId` int(11) NOT NULL DEFAULT '0',
-  `typeId` int(11) NOT NULL DEFAULT '0',
-  `valueId` int(11) NOT NULL DEFAULT '0',
-  UNIQUE KEY `uIndex` (`imageId`,`typeId`,`valueId`),
+  `categoryId` int(11) NOT NULL DEFAULT '0',
+  `attributeId` int(11) NOT NULL DEFAULT '0',
+  UNIQUE KEY `uIndex` (`imageId`,`categoryId`,`attributeId`),
   KEY `imageId` (`imageId`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=FIXED;
 
@@ -229,13 +230,13 @@ CREATE TABLE IF NOT EXISTS `imageAttrib` (
 --
 
 CREATE TABLE IF NOT EXISTS `imageAttribType` (
-  `typeId` int(11) NOT NULL AUTO_INCREMENT,
+  `categoryId` int(11) NOT NULL AUTO_INCREMENT,
   `title` varchar(60) DEFAULT NULL,
   `description` varchar(255) DEFAULT NULL,
   `elementSet` varchar(255) DEFAULT NULL,
   `term` varchar(255) DEFAULT NULL,
-  PRIMARY KEY (`typeId`),
-  UNIQUE KEY `attribId` (`typeId`)
+  PRIMARY KEY (`categoryId`),
+  UNIQUE KEY `categoryId` (`categoryId`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC AUTO_INCREMENT=1 ;
 
 -- --------------------------------------------------------
@@ -245,11 +246,11 @@ CREATE TABLE IF NOT EXISTS `imageAttribType` (
 --
 
 CREATE TABLE IF NOT EXISTS `imageAttribValue` (
-  `valueId` int(11) NOT NULL AUTO_INCREMENT,
+  `attributeId` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(60) DEFAULT NULL,
-  `typeId` int(11) DEFAULT NULL,
-  PRIMARY KEY (`valueId`),
-  UNIQUE KEY `valueId` (`valueId`)
+  `categoryId` int(11) DEFAULT NULL,
+  PRIMARY KEY (`attributeId`),
+  UNIQUE KEY `attributeId` (`attributeId`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC AUTO_INCREMENT=1 ;
 
 -- --------------------------------------------------------

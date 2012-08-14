@@ -965,8 +965,8 @@ Class Image {
 				$this->query .= ", imageAttrib ia ";
 				$this->queryCount .= ", imageAttrib ia ";
 			} 
-			// $this->query .= " LEFT OUTER JOIN imageAttrib ia ON ia.`imageId` = I.`imageId` LEFT OUTER JOIN imageAttribValue iav ON  ia.`valueId` = iav.`valueId` ";
-			// $this->queryCount .= " LEFT OUTER JOIN imageAttrib ia ON ia.`imageId` = I.`imageId` LEFT OUTER JOIN imageAttribValue iav ON  ia.`valueId` = iav.`valueId` ";
+			// $this->query .= " LEFT OUTER JOIN imageAttrib ia ON ia.`imageId` = I.`imageId` LEFT OUTER JOIN imageAttribValue iav ON  ia.`attributeId` = iav.`attributeId` ";
+			// $this->queryCount .= " LEFT OUTER JOIN imageAttrib ia ON ia.`imageId` = I.`imageId` LEFT OUTER JOIN imageAttribValue iav ON  ia.`attributeId` = iav.`attributeId` ";
 		}
 
 		$this->query .= " WHERE 1=1 AND (";
@@ -1218,10 +1218,10 @@ Class Image {
 			$query = sprintf("DELETE FROM `imageAttrib` WHERE `imageId` = '%s' ", mysql_escape_string($imageId));
 			$this->db->query($query);
 			
-			$query = sprintf("DELETE FROM `event_images` WHERE `imageId` = '%s' ", mysql_escape_string($imageId));
+			$query = sprintf("DELETE FROM `eventImages` WHERE `imageId` = '%s' ", mysql_escape_string($imageId));
 			$this->db->query($query);
 			
-			$query = sprintf("DELETE FROM `process_queue` WHERE `imageId` = '%s' ", mysql_escape_string($imageId));
+			$query = sprintf("DELETE FROM `processQueue` WHERE `imageId` = '%s' ", mysql_escape_string($imageId));
 			$this->db->query($query);
 			
 			$query = sprintf("DELETE FROM `specimen2label` WHERE `barcode` = '%s' ", mysql_escape_string($barcode));
@@ -1469,7 +1469,7 @@ Class Image {
 				$this->char_count++;
 			}
 			$this->char_list = substr($this->char_list, 0, -1);
-			$tstr = " AND ia.imageId = I.imageId AND ia.valueId IN ( " . $this->char_list . " ) ";
+			$tstr = " AND ia.imageId = I.imageId AND ia.attributeId IN ( " . $this->char_list . " ) ";
 			$this->query .= $tstr;
 			$this->queryCount .= $tstr;
 		}
@@ -1531,7 +1531,7 @@ Class Image {
 			// }
 			// $this->char_list = substr($this->char_list, 0, -1);
 
-			// $this->query .= " AND ia.imageId = I.imageId AND ia.valueId IN (".$this->char_list.") ";
+			// $this->query .= " AND ia.imageId = I.imageId AND ia.attributeId IN (".$this->char_list.") ";
 		// }
 // //	print $this->query;
 	// }
@@ -1546,15 +1546,15 @@ Class Image {
 						$char_list .= $character->node_value . ",";
 					}
 					$char_list = substr($this->char_list, 0, -1);
-					$this->query .= " AND ia.imageId = I.imageId AND ia.valueId IN (".$char_list.") ";
-					$this->queryCount .= " AND ia.imageId = I.imageId AND ia.valueId IN (".$char_list.") ";
-					// $this->query .= " AND ia.valueId IN (".$char_list.") ";
+					$this->query .= " AND ia.imageId = I.imageId AND ia.attributeId IN (".$char_list.") ";
+					$this->queryCount .= " AND ia.imageId = I.imageId AND ia.attributeId IN (".$char_list.") ";
+					// $this->query .= " AND ia.attributeId IN (".$char_list.") ";
 					break;
 				case 'string':
 				default:
-					$this->query .= " AND I.`imageId` IN ( SELECT DISTINCT ia.`imageId` FROM `imageAttrib` ia, `imageAttribValue` iav WHERE ia.`valueId` = iav.`valueId` AND iav.`name` IN ('".implode("','",$characters)."') ) ";
-					$this->queryCount .= " AND I.`imageId` IN ( SELECT DISTINCT ia.`imageId` FROM `imageAttrib` ia, `imageAttribValue` iav WHERE ia.`valueId` = iav.`valueId` AND iav.`name` IN ('".implode("','",$characters)."') ) ";
-					// $this->query .= " AND ia.`imageId` = I.`imageId` AND ia.`valueId` = iav.`valueId` AND iav.`name` IN ('".implode("','",$characters)."') ";
+					$this->query .= " AND I.`imageId` IN ( SELECT DISTINCT ia.`imageId` FROM `imageAttrib` ia, `imageAttribValue` iav WHERE ia.`attributeId` = iav.`attributeId` AND iav.`name` IN ('".implode("','",$characters)."') ) ";
+					$this->queryCount .= " AND I.`imageId` IN ( SELECT DISTINCT ia.`imageId` FROM `imageAttrib` ia, `imageAttribValue` iav WHERE ia.`attributeId` = iav.`attributeId` AND iav.`name` IN ('".implode("','",$characters)."') ) ";
+					// $this->query .= " AND ia.`imageId` = I.`imageId` AND ia.`attributeId` = iav.`attributeId` AND iav.`name` IN ('".implode("','",$characters)."') ";
 					// $this->query .= " AND iav.`name` IN ('".implode("','",$characters)."') ";
 					break;
 			}
@@ -1622,7 +1622,7 @@ Class Image {
 			return array('success' => false, 'recordCount' => 0);
 		} else {
 
-			$query = sprintf("SELECT SQL_CALC_FOUND_ROWS ia.imageId, iat.typeId, iav.valueId, iat.title, iav.name FROM imageAttribType iat, imageAttribValue iav, imageAttrib ia WHERE ia.typeId=iat.typeId AND ia.valueId=iav.valueId AND ia.imageId IN (%s) ORDER BY iat.title, name", mysql_escape_string($this->data['attributes']));
+			$query = sprintf("SELECT SQL_CALC_FOUND_ROWS ia.imageId, iat.categoryId, iav.attributeId, iat.title, iav.name FROM imageAttribType iat, imageAttribValue iav, imageAttrib ia WHERE ia.categoryId=iat.categoryId AND ia.attributeId=iav.attributeId AND ia.imageId IN (%s) ORDER BY iat.title, name", mysql_escape_string($this->data['attributes']));
 			$records = $this->db->query_all($query);
 			$this->total = $this->db->query_total();
 
@@ -1630,7 +1630,7 @@ Class Image {
 				if(count($records)) {
 					foreach($records as $record) {
 						$collected = @mktime(0,0,0,$record->tmonth,$record->tday,$record->tyear);
-						$nodes[] = array('imageId'=>$record->imageId, 'typeId'=>$record->typeId, 'valueId'=>$record->valueId, 'title'=>$record->title, 'name'=>$record->name);
+						$nodes[] = array('imageId'=>$record->imageId, 'categoryId'=>$record->categoryId, 'attributeId'=>$record->attributeId, 'title'=>$record->title, 'name'=>$record->name);
 					}
 				}
 			}
@@ -1642,35 +1642,35 @@ Class Image {
 # Attribute Functions
 
 		public function getAttributeBy($attribute, $attribType) {
-			if(!@in_array($attribType,array('typeId','title','term'))) return false;
-			if($attribType == 'typeId') {
+			if(!@in_array($attribType,array('categoryId','title','term'))) return false;
+			if($attribType == 'categoryId') {
 				return $this->category_exist($attribute) ? $attribute : false; 
 			}
-			$ret = $this->db->query_one( sprintf(" SELECT `typeId` FROM `imageAttribType` WHERE `%s` = '%s' ", mysql_escape_string($attribType), mysql_escape_string($attribute)) );
-			return ($ret == NULL) ? false : $ret->typeId;
+			$ret = $this->db->query_one( sprintf(" SELECT `categoryId` FROM `imageAttribType` WHERE `%s` = '%s' ", mysql_escape_string($attribType), mysql_escape_string($attribute)) );
+			return ($ret == NULL) ? false : $ret->categoryId;
 		}
 
 		public function getValueBy($value, $valueType) {
-			if(!@in_array($valueType,array('valueId','name'))) return false;
-			if($valueType == 'valueId') {
+			if(!@in_array($valueType,array('attributeId','name'))) return false;
+			if($valueType == 'attributeId') {
 				return $this->attribute_exist($value) ? $value : false; 
 			}
 
-			$ret = $this->db->query_one( sprintf(" SELECT `valueId` FROM `imageAttribValue` WHERE `name` = '%s' ", mysql_escape_string($value)) );
-			return ($ret == NULL) ? false : $ret->valueId;
+			$ret = $this->db->query_one( sprintf(" SELECT `attributeId` FROM `imageAttribValue` WHERE `name` = '%s' ", mysql_escape_string($value)) );
+			return ($ret == NULL) ? false : $ret->attributeId;
 		}
 	
 	public function addImageAttribute() {
 		$imageIds = @explode(',', $this->data['imageId']);
 		$categoryId = $this->data['categoryId'];
-		$valueId = $this->data['valueId'];
+		$attributeId = $this->data['attributeId'];
 		if(count($imageIds)) {
 			foreach($imageIds as $id) {
 				if($this->imageLoadById($id)) {
-					$query = sprintf("INSERT IGNORE INTO imageAttrib(imageId, typeId, valueId) VALUES(%s, %s, %s);"
+					$query = sprintf("INSERT IGNORE INTO imageAttrib(imageId, categoryId, attributeId) VALUES(%s, %s, %s);"
 						, mysql_escape_string($id)
 						, mysql_escape_string($categoryId)
-						, mysql_escape_string($valueId)
+						, mysql_escape_string($attributeId)
 					);
 
 					$this->db->query($query);
@@ -1678,7 +1678,7 @@ Class Image {
 					$query = sprintf("INSERT INTO `imageLog` (action, imageId, afterDesc, query, dateCreated) VALUES (10, '%s', 'Cat ID: %s, Attrib ID: %s', '%s', NOW());"
 						, mysql_escape_string($id)
 						, mysql_escape_string($categoryId)
-						, mysql_escape_string($valueId)
+						, mysql_escape_string($attributeId)
 						, mysql_escape_string($query)
 					);
 					$this->db->query($query);
@@ -1692,18 +1692,18 @@ Class Image {
 
 	public function deleteImageAttribute() {
 		$imageIds = @explode(',', $this->data['imageId']);
-		$valueId = $this->data['valueId'];
+		$attributeId = $this->data['attributeId'];
 		if(count($imageIds)) {
 			foreach($imageIds as $id) {
-				$query = sprintf("DELETE FROM `imageAttrib` WHERE imageId = %s AND valueId IN (%s)"
+				$query = sprintf("DELETE FROM `imageAttrib` WHERE imageId = %s AND attributeId IN (%s)"
 				, mysql_escape_string($id)
-				, mysql_escape_string($valueId)
+				, mysql_escape_string($attributeId)
 				);
 				$this->db->query($query);
 
 				$query = sprintf("INSERT INTO `imageLog` (action, imageId, afterDesc, query, dateCreated) VALUES (11, '%s', 'Attrib ID: %s', '%s', NOW())"
 				, mysql_escape_string($id)
-				, mysql_escape_string($valueId)
+				, mysql_escape_string($attributeId)
 				, mysql_escape_string($query)
 				);
 				$this->db->query($query);
@@ -1730,17 +1730,17 @@ Class Image {
 		return( $id );
 	}
 
-	public function renameCategory() {
+	public function imageUpdateCategory() {
 		$value = $this->data['value'];
-		$valueId = $this->data['valueId'];
-		$query = sprintf("UPDATE imageAttribType set title = '%s' WHERE typeId = %s "
+		$categoryId = $this->data['categoryId'];
+		$query = sprintf("UPDATE imageAttribType set title = '%s' WHERE categoryId = %s "
 			, mysql_escape_string($value)
-			, mysql_escape_string($valueId)
+			, mysql_escape_string($categoryId)
 			);
 		$this->db->query($query);
 
-		$query = sprintf("INSERT INTO `imageLog` (action, afterDesc, query, dateCreated) VALUES (5, 'ID: %s, Value: %s', '%s', NOW())"
-		, mysql_escape_string($valueId)
+		$query = sprintf("INSERT INTO `imageLog` (action, afterDesc, query, dateCreated) VALUES (5, 'categoryId: %s, value: %s', '%s', NOW())"
+		, mysql_escape_string($categoryId)
 		, mysql_escape_string($value)
 		, mysql_escape_string($query)
 		);
@@ -1750,11 +1750,11 @@ Class Image {
 
 	public function deleteCategory() {
 		$categoryId = $this->data['categoryId'];
-		$query = sprintf("DELETE FROM `imageAttrib` WHERE typeId = %s", mysql_escape_string($categoryId));
+		$query = sprintf("DELETE FROM `imageAttrib` WHERE categoryId = %s", mysql_escape_string($categoryId));
 		$this->db->query($query);
-		$query = sprintf("DELETE FROM `imageAttribValue` WHERE typeId = %s", mysql_escape_string($categoryId));
+		$query = sprintf("DELETE FROM `imageAttribValue` WHERE categoryId = %s", mysql_escape_string($categoryId));
 		$this->db->query($query);
-		$query = sprintf("DELETE FROM `imageAttribType` WHERE typeId = %s", mysql_escape_string($categoryId));
+		$query = sprintf("DELETE FROM `imageAttribType` WHERE categoryId = %s", mysql_escape_string($categoryId));
 		$this->db->query($query);
 		
 		$query = sprintf("INSERT INTO `imageLog` (action, afterDesc, query, dateCreated) VALUES (6, 'Category ID: %s', '%s', NOW())", mysql_escape_string($categoryId), mysql_escape_string($query));
@@ -1762,13 +1762,13 @@ Class Image {
 		return true;
 	}
 	
-	public function imageListCategory($queryFlag = true) {
-		$query = "SELECT * FROM `imageAttribType` WHERE 1=1 ";
+	public function imageListCategory() {
+		$query = "SELECT SQL_CALC_FOUND_ROWS * FROM `imageAttribType` WHERE 1=1 ";
 		
 		if(is_array($this->data['categoryId']) && count($this->data['categoryId'])) {
-			$query .= sprintf(" AND `typeId` IN (%s) ", implode(',',$this->data['categoryId']));
+			$query .= sprintf(" AND `categoryId` IN (%s) ", implode(',',$this->data['categoryId']));
 		} else if($this->data['categoryId'] != '' && is_numeric($this->data['categoryId'])) {
-			$query .= sprintf(" AND `typeId` = %s ", mysql_escape_string($this->data['categoryId']));
+			$query .= sprintf(" AND `categoryId` = %s ", mysql_escape_string($this->data['categoryId']));
 		}
 		
 		if($this->data['value'] != '') {
@@ -1788,18 +1788,20 @@ Class Image {
 					break;
 			}
 		}
-		$query .= " ORDER BY `typeId`, `title` ";
+		$query .= " ORDER BY `categoryId`, `title` ";
 		if($this->data['start'] != '' && $this->data['limit'] != '') {
 			$query .= sprintf(" LIMIT %s, %s ", $this->data['start'], $this->data['limit']);
 		}
-		
-		// die($query);
-		
-		return $queryFlag ? $this->db->query($query) : $this->db->query_all($query);
+		try {
+			$records = $this->db->query_all($query);
+		} catch (Exception $e) {
+			trigger_error($e->getMessage(),E_USER_ERROR);
+		}
+		return $records;
 	}
 	
-	public function imageCategoryExist($typeId) {
-		$query = sprintf("SELECT * FROM `imageAttribType` WHERE `typeId` = '%s'", mysql_escape_string($typeId));
+	public function imageCategoryExist($categoryId) {
+		$query = sprintf("SELECT * FROM `imageAttribType` WHERE `categoryId` = '%s'", mysql_escape_string($categoryId));
 		$records = $this->db->query_all($query);
 		if(count($records)) {
 			return true;
@@ -1810,14 +1812,14 @@ Class Image {
 
 	public function imageAddAttribute() {
 		$id = 0;
-		$query = sprintf("INSERT INTO imageAttribValue(name, typeId) VALUES('%s',%s);"
+		$query = sprintf("INSERT INTO imageAttribValue(name, categoryId) VALUES('%s',%s);"
 			, mysql_escape_string($this->data['value'])
 			, mysql_escape_string($this->data['categoryId'])
 		);
 		
 		$this->db->query($query);
 		$id = $this->db->insert_id;
-		$query = sprintf("INSERT INTO `imageLog` (action, afterDesc, query, dateCreated) VALUES (7, 'valueId: %s, value: %s, categoryId: %s', '%s', NOW())"
+		$query = sprintf("INSERT INTO `imageLog` (action, afterDesc, query, dateCreated) VALUES (7, 'attributeId: %s, value: %s, categoryId: %s', '%s', NOW())"
 		, mysql_escape_string($id)
 		, mysql_escape_string($this->data['value'])
 		, mysql_escape_string($this->data['categoryId'])
@@ -1829,15 +1831,15 @@ Class Image {
 
 	public function imageRenameAttribute() {
 		$value = $this->data['value'];
-		$valueId = $this->data['valueId'];
-		$query = sprintf("UPDATE imageAttribValue set name = '%s' WHERE valueId = %s"
+		$attributeId = $this->data['attributeId'];
+		$query = sprintf("UPDATE imageAttribValue set name = '%s' WHERE attributeId = %s"
 			, mysql_escape_string($value)
-			, mysql_escape_string($valueId)
+			, mysql_escape_string($attributeId)
 			);
 		$this->db->query($query);
 
-		$query = sprintf("INSERT INTO `imageLog` (action, afterDesc, query, dateCreated) VALUES (8, 'valueId: %s, value: %s', '%s', NOW())"
-		, mysql_escape_string($valueId)
+		$query = sprintf("INSERT INTO `imageLog` (action, afterDesc, query, dateCreated) VALUES (8, 'attributeId: %s, value: %s', '%s', NOW())"
+		, mysql_escape_string($attributeId)
 		, mysql_escape_string($value)
 		, mysql_escape_string($query)
 		);
@@ -1846,26 +1848,26 @@ Class Image {
 	}
 
 	public function imageDeleteAttribute() {
-		$valueId = $this->data['valueId'];
-		$query = sprintf("DELETE FROM `imageAttrib` WHERE valueId = %s", mysql_escape_string($valueId));
+		$attributeId = $this->data['attributeId'];
+		$query = sprintf("DELETE FROM `imageAttrib` WHERE attributeId = %s", mysql_escape_string($attributeId));
 		$this->db->query($query);
-		$query = sprintf("DELETE FROM `imageAttribValue` WHERE valueId = %s", mysql_escape_string($valueId));
+		$query = sprintf("DELETE FROM `imageAttribValue` WHERE attributeId = %s", mysql_escape_string($attributeId));
 		$this->db->query($query);		
-		$query = sprintf("INSERT INTO `imageLog` (action, afterDesc, query, dateCreated) VALUES (9, 'valueId: %s', '%s', NOW())", mysql_escape_string($valueId), mysql_escape_string($query));
+		$query = sprintf("INSERT INTO `imageLog` (action, afterDesc, query, dateCreated) VALUES (9, 'attributeId: %s', '%s', NOW())", mysql_escape_string($attributeId), mysql_escape_string($query));
 		$this->db->query($query);
 		return true;
 	}
 	
 	public function imageListAttributes($queryFlag = true) {
 		if($this->data['code'] != '') {
-			$query = sprintf(" SELECT iav.* FROM `imageAttribValue` iav, `image` i, `imageAttrib` ia WHERE 1=1 AND i.`imageId` = ia.`imageId` AND ia.`valueId` = iav.`valueId` AND i.`collectionCode` LIKE '%s%%' ", mysql_escape_string($this->data['code']));
+			$query = sprintf(" SELECT iav.* FROM `imageAttribValue` iav, `image` i, `imageAttrib` ia WHERE 1=1 AND i.`imageId` = ia.`imageId` AND ia.`attributeId` = iav.`attributeId` AND i.`collectionCode` LIKE '%s%%' ", mysql_escape_string($this->data['code']));
 		} else {
 			$query = ' SELECT iav.* FROM `imageAttribValue` iav WHERE 1=1 ';
 		}
 		if(is_array($this->data['categoryId']) && count($this->data['categoryId'])) {
-			$query .= sprintf(" AND iav.`typeId` IN (%s) ", implode(',',$this->data['categoryId']));
+			$query .= sprintf(" AND iav.`categoryId` IN (%s) ", implode(',',$this->data['categoryId']));
 		} else if($this->data['categoryId'] != '' && is_numeric($this->data['categoryId'])) {
-			$query .= sprintf(" AND iav.`typeId` = %s ", mysql_escape_string($this->data['categoryId']));
+			$query .= sprintf(" AND iav.`categoryId` = %s ", mysql_escape_string($this->data['categoryId']));
 		}
 		
 		if($this->data['value'] != '') {
@@ -1885,7 +1887,14 @@ Class Image {
 					break;
 			}
 		}
-		$query .= " ORDER BY iav.`typeId`, iav.`name` ";
+		$queryCount = str_replace('iav.*', 'count(*) ct', $query);
+
+		$countRet = $this->db->query_one( $queryCount );
+		if ($countRet != NULL) {
+			$this->total = $countRet->ct;
+		}
+		
+		$query .= " ORDER BY iav.`categoryId`, iav.`name` ";
 		if($this->data['start'] != '' && $this->data['limit'] != '') {
 			$query .= sprintf(" LIMIT %s, %s ", $this->data['start'], $this->data['limit']);
 		}
@@ -1898,12 +1907,12 @@ Class Image {
 	}
 
 /*	
-	public function list_attributes ($typeId) {
-		$query = sprintf("SELECT * FROM `imageAttribValue` WHERE `typeId` = '%s'", mysql_escape_string($typeId));
+	public function list_attributes ($categoryId) {
+		$query = sprintf("SELECT * FROM `imageAttribValue` WHERE `categoryId` = '%s'", mysql_escape_string($categoryId));
 		$records = $this->db->query_all($query);
 		if(count($records)) {
 			foreach($records as $record) {
-				$tmpArray['valueId'] = $record->valueId;
+				$tmpArray['attributeId'] = $record->attributeId;
 				$tmpArray['name'] = $record->name;
 				$data[] = $tmpArray;
 			}
@@ -1913,22 +1922,22 @@ Class Image {
 		}
 	}
 	
-	public function get_attributes ($typeId,$type = 'ID') {
+	public function get_attributes ($categoryId,$type = 'ID') {
 		$type = (in_array(strtoupper($type), array('ID','TITLE'))) ? strtoupper($type) : 'ID';
 		switch($type) {
 			case 'TITLE':
-				$query = sprintf("SELECT ia.* FROM `imageAttribValue` ia, `imageAttribType` it  WHERE ia.`typeId` = it.`typeId` AND LOWER(it.`title`) = '%s'", mysql_escape_string(strtolower($typeId)));
+				$query = sprintf("SELECT ia.* FROM `imageAttribValue` ia, `imageAttribType` it  WHERE ia.`categoryId` = it.`categoryId` AND LOWER(it.`title`) = '%s'", mysql_escape_string(strtolower($categoryId)));
 				break;
 			case 'ID':
 			default:
-				$query = sprintf("SELECT * FROM `imageAttribValue` WHERE `typeId` = '%s'", mysql_escape_string($typeId));
+				$query = sprintf("SELECT * FROM `imageAttribValue` WHERE `categoryId` = '%s'", mysql_escape_string($categoryId));
 				break;
 		}
 		
 		$records = $this->db->query_all($query);
 		if(count($records)) {
 			foreach($records as $record) {
-				$tmpArray['valueId'] = $record->valueId;
+				$tmpArray['attributeId'] = $record->attributeId;
 				$tmpArray['name'] = $record->name;
 				$data[] = $tmpArray;
 			}
@@ -1939,14 +1948,14 @@ Class Image {
 	}
 */
 	
-	public function imageAttributeExist($valueId) {
-		$query = sprintf("SELECT count(*) ct FROM `imageAttribValue` WHERE `valueId` = '%s'", mysql_escape_string($valueId));
+	public function imageAttributeExist($attributeId) {
+		$query = sprintf("SELECT count(*) ct FROM `imageAttribValue` WHERE `attributeId` = '%s'", mysql_escape_string($attributeId));
 		$ret = $this->db->query_one($query);
 		return (is_object($ret) && $ret->ct) ? true : false;
 	}
 	
 	public function get_all_attributes($imageId) {
-		$query = sprintf("SELECT ia.typeId iaTID, ia.valueId iaVID, iat.title iatTitle, iav.name iavValue FROM imageAttrib ia LEFT OUTER JOIN imageAttribType iat ON ( ia.typeId = iat.typeId ) JOIN imageAttribValue iav ON (iav.valueId = ia.valueId AND ia.imageId = '%s' ) ORDER BY ia.typeId", mysql_escape_string($imageId));
+		$query = sprintf("SELECT ia.categoryId iaTID, ia.attributeId iaVID, iat.title iatTitle, iav.name iavValue FROM imageAttrib ia LEFT OUTER JOIN imageAttribType iat ON ( ia.categoryId = iat.categoryId ) JOIN imageAttribValue iav ON (iav.attributeId = ia.attributeId AND ia.imageId = '%s' ) ORDER BY ia.categoryId", mysql_escape_string($imageId));
 		$records = $this->db->query_all($query);
 		if(count($records)) {
 			$prevID = 0;
@@ -1984,15 +1993,15 @@ Class Image {
 			case "root":
 				$parent = '';
 	
-				$this->query = "SELECT DISTINCT  it.typeId, it.title, iv.valueId, iv.name FROM imageAttribType it, imageAttribValue iv, imageAttrib ia WHERE it.typeId = iv.typeId AND ia.valueId = iv.valueId ORDER BY it.title, iv.name;";
+				$this->query = "SELECT DISTINCT  it.categoryId, it.title, iv.attributeId, iv.name FROM imageAttribType it, imageAttribValue iv, imageAttrib ia WHERE it.categoryId = iv.categoryId AND ia.attributeId = iv.attributeId ORDER BY it.title, iv.name;";
 				$records = $this->db->query_all($this->query);
 				if(count($records)) {
 					foreach($records as $record) {
 						if ($parent != $record->title && $parent != '') {
-						$this->nodes[] = array('text'=>$old_title, 'nodeApi'=>'cateogry', 'iconCls'=>'icon_folder_picture', 'cls'=>'tree_panel', 'nodeValue'=>$record->typeId, 'children'=>$children);
+						$this->nodes[] = array('text'=>$old_title, 'nodeApi'=>'cateogry', 'iconCls'=>'icon_folder_picture', 'cls'=>'tree_panel', 'nodeValue'=>$record->categoryId, 'children'=>$children);
 						$children = '';
 						}
-						$children[] = array('id'=>'char_' . $record->valueId, 'id'=>'char_' . $record->valueId, 'text'=>$record->name, 'nodeApi'=>'character', 'checked'=>false, 'leaf'=>true, 'nodeValue'=>$record->valueId);
+						$children[] = array('id'=>'char_' . $record->attributeId, 'id'=>'char_' . $record->attributeId, 'text'=>$record->name, 'nodeApi'=>'character', 'checked'=>false, 'leaf'=>true, 'nodeValue'=>$record->attributeId);
 						
 						if ($parent != $record->title) {
 							$parent = $record->title;
@@ -2001,7 +2010,7 @@ Class Image {
 						$old_title = $record->title;
 					}
 				}
-				$this->nodes[] = array('text'=>$old_title, 'nodeApi'=>'cateogry', 'iconCls'=>'icon_folder_picture', 'cls'=>'tree_panel', 'nodeValue'=>$record->typeId, 'children'=>$children);
+				$this->nodes[] = array('text'=>$old_title, 'nodeApi'=>'cateogry', 'iconCls'=>'icon_folder_picture', 'cls'=>'tree_panel', 'nodeValue'=>$record->categoryId, 'children'=>$children);
 		
 				break;
 			}
@@ -2162,7 +2171,7 @@ Class Image {
 			$this->query .= " GROUP BY I.imageId HAVING sz >= " . ( $this->char_count - 1 );
 		}
 
-		$this->query = "SELECT valueId as id FROM imageAttrib t1 INNER JOIN  (" . $this->query . ") AS t2 ON t1.imageId = t2.imageId GROUP BY t1.valueId ORDER BY t1.valueId;";
+		$this->query = "SELECT attributeId as id FROM imageAttrib t1 INNER JOIN  (" . $this->query . ") AS t2 ON t1.imageId = t2.imageId GROUP BY t1.attributeId ORDER BY t1.attributeId;";
 		try {
 			$this->records = $this->db->query_all($this->query);
 		} catch (Exception $e) {
@@ -2231,7 +2240,7 @@ Class Image {
 		$this->nodes = array();
 		$this->query = '';
 		if($this->imageFieldExists($this->data['imageId'])) {
-			$query = sprintf("SELECT IAT.title as attrib, IAV.name as value FROM imageAttrib IA, imageAttribType IAT, imageAttribValue IAV WHERE IA.typeId = IAT.typeId AND IA.valueId = IAV.valueId AND IA.imageId = %s ORDER BY IAT.title, IAV.name", mysql_escape_string($this->data['imageId']));
+			$query = sprintf("SELECT IAT.title as attrib, IAV.name as value FROM imageAttrib IA, imageAttribType IAT, imageAttribValue IAV WHERE IA.categoryId = IAT.categoryId AND IA.attributeId = IAV.attributeId AND IA.imageId = %s ORDER BY IAT.title, IAV.name", mysql_escape_string($this->data['imageId']));
 	
 			try {
 				$records = $this->db->query_all($query);
