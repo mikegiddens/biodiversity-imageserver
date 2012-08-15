@@ -4,7 +4,7 @@ Ext.define('BIS.model.CollectionModel', {
 
     fields: [
         {
-            name: 'collection_id'
+            name: 'collectionId'
         },
         {
             name: 'name'

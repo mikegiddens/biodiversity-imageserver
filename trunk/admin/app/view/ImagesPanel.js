@@ -55,7 +55,14 @@ Ext.define('BIS.view.ImagesPanel', {
                             displayMsg: 'Displaying {0} - {1} of {2}',
                             dock: 'bottom'
                         }
-                    ]
+                    ],
+                    listeners: {
+                        afterrender: function( grid, e ) {
+                            grid.dropZone = new Ext.dd.DropZone( Ext.get('imagesGrid-body'), {
+                                overClass: 'highlight'
+                            });
+                        }
+                    }
                 }
             ],
             dockedItems: [

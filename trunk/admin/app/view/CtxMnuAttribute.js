@@ -35,8 +35,19 @@ Ext.define('BIS.view.CtxMnuAttribute', {
         me.callParent(arguments);
     },
     remove: function() {
-        var cmd = 'delete_attribute'
-            params = { valueID: this.record.valueID }
+        Ext.Ajax.request({
+            method: 'POST',
+            url: Config.baseUrl + 'attributeDelete',
+            params: { attributeId: this.record.data.attributeId },
+            scope: this,
+            success: function( resObj ) {
+                var res = Ext.decode( resObj.responseText );
+                console.log( res );
+                if ( res.success ) {
+                    
+                }
+            }
+        });
     },
     update: function() {
         Ext.create('Ext.window.Window', {

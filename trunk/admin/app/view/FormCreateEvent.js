@@ -28,6 +28,26 @@ Ext.define('BIS.view.FormCreateEvent', {
                             fieldLabel: 'Description',
                             labelAlign: 'right',
                             anchor: '100%'
+                        },
+                        {
+                            xtype: 'textfield',
+                            name: 'eventId',
+                            fieldLabel: 'Event Identifier',
+                            labelAlign: 'right',
+                            anchor: '100%',
+                            readOnly: true,
+                            fieldCls: 'x-item-disabled',
+                            hidden: this.mode == 'add'
+                        },
+                        {
+                            xtype: 'textfield',
+                            name: 'eventTypeId',
+                            fieldLabel: 'Type Identifier',
+                            labelAlign: 'right',
+                            anchor: '100%',
+                            readOnly: true,
+                            fieldCls: 'x-item-disabled',
+                            hidden: this.mode == 'add'
                         }
                     ]
                 },
@@ -45,23 +65,24 @@ Ext.define('BIS.view.FormCreateEvent', {
         afterrender: function() {
             if ( this.mode != 'add' ) {
                 // edit
+                console.log( this.record.data );
                 Ext.getCmp('formCreateEvent').loadRecord( this.record );
             }
         }
     },
     submit: function() {
         var values = Ext.getCmp('formCreateEvent').getValues();
-        var route, params = { title: values.title, description: values.description };
+        var route;
         if ( this.mode == 'add' ) {
-            route = 'addEvent';
+            route = 'eventAdd';
         } else {
             // edit
-            route = 'renameEvent';
+            route = 'eventUpdate';
         }
         Ext.Ajax.request({
             method: 'POST',
             url: Config.baseUrl + route,
-            params: params,
+            params: values,
             scope: this,
             success: function( resObj ) {
                 var res = Ext.decode( resObj.responseText );

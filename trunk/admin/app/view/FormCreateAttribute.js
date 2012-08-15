@@ -28,7 +28,8 @@ Ext.define('BIS.view.FormCreateAttribute', {
                             labelAlign: 'right',
                             anchor: '100%',
                             readOnly: true,
-                            fieldCls: 'x-item-disabled'
+                            fieldCls: 'x-item-disabled',
+                            hidden: this.mode == 'add'
                         }
                     ]
                 },
@@ -45,11 +46,9 @@ Ext.define('BIS.view.FormCreateAttribute', {
     listeners: {
         afterrender: function() {
             var form = Ext.getCmp('formCreateAttribute').getForm();
-            if ( this.mode == 'add' ) {
-                form.setValues( {identifier:this.record.data.typeID} );
-            } else {
+            if ( this.mode != 'add' ) {
                 // edit
-                form.setValues( {value:this.record.data.title,identifier:this.record.data.valueID} );
+                form.setValues( {value:this.record.data.title,identifier:this.record.data.categoryId} );
             }
         }
     },
@@ -58,11 +57,11 @@ Ext.define('BIS.view.FormCreateAttribute', {
         var route, params = { value: values.value };
         if ( this.mode == 'add' ) {
             params.categoryID = values.identifier;
-            route = 'add_attribute';
+            route = 'attributeAdd';
         } else {
             // edit
             params.valueID = values.identifier;
-            route = 'rename_attribute';
+            route = 'attributeUpdate';
         }
         Ext.Ajax.request({
             method: 'POST',

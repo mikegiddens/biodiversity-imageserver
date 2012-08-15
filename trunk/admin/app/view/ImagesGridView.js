@@ -1,6 +1,7 @@
 Ext.define('BIS.view.ImagesGridView', {
     extend: 'Ext.view.View',
     alias: ['widget.imagesgridview'],
+    requires: ['BIS.view.ImageZoomViewer','BIS.view.CtxMnuAttribute'],
     initialTpl: '<div>testing...</div>',
     tpl: '<tpl for="."><div>hello</div></tpl>',
     itemSelector: '.ux-explorerview-item',
@@ -11,7 +12,16 @@ Ext.define('BIS.view.ImagesGridView', {
     listeners: {
         afterrender: function( gridview, e ) {
             gridview.setTpl('both');
+//            gridview.ddTarget = new Ext.dd.DDTarget('imageDrop', 'imageDropGroup');
         },
+        // dd events
+        onDragEnter: function( e, targetElId ) {
+            console.log( 'enter', e, targetElId );
+        },
+        drop: function( node, data, dropRec, dropPos ) {
+            console.log( 'drop', node, data, dropRec, dropPos );
+        },
+        // tpl events
         itemclick: function( gridview, record, el, ind, e, opts ) {
             var data = record.data;
             var html = [];
@@ -19,6 +29,41 @@ Ext.define('BIS.view.ImagesGridView', {
                 html.push('<p>'+p+':&nbsp;'+data[p]+'</p>');
             }
             Ext.getCmp('imageDetailsPanel').update( html.join('') );
+        },
+        itemdblclick: function( gridview, record, el, ind, e, opts ) {
+            Ext.create('Ext.window.Window', {
+                title: 'View Image ' + record.data.filename,
+                iconCls: 'icon_image',
+                modal: true,
+                height: 500,
+                width: 800,
+                layout: 'fit',
+                items: [
+                    {
+                        xtype: 'tabpanel',
+                        border: false,
+                        activeItem: 0,
+                        items: [
+                            {
+                                xtype: 'panel',
+                                title: 'Static Image',
+                                iconCls: 'icon_image',
+                                html: '<img src="'+record.data.path + record.data.filename.substr( 0, record.data.filename.indexOf('.') ) + '_l.' + record.data.ext+'">'
+                            },
+                            {
+                                xtype: 'imagezoomviewer',
+                                title: 'Zooming Image',
+                                iconCls: 'icon_magnifier'
+                            }
+                        ]
+                    }
+                ]
+            }).show();
+        },
+        itemcontextmenu: function(view, record, item, index, e) {
+            e.stopEvent();
+            var ctx = Ext.create('BIS.view.CtxMnuImage', {record: record});
+            ctx.showAt(e.getXY());
         }
     },
     constructor: function( config ) {

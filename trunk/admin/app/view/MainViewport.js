@@ -71,6 +71,37 @@ Ext.define('BIS.view.MainViewport', {
                             rootVisible: false,
                             useArrows: true,
                             multiSelect: true,
+                            allowCopy: true,
+                            viewConfig: {
+                                plugins: [
+                                    Ext.create('Ext.tree.plugin.TreeViewDragDrop', {
+                                        ddGroup: 'categoryDD',
+                                        enableDrop: true,
+                                        dragText: 'Copy attribute to another category.',
+                                        appendOnly: true
+                                    })
+                                ],
+                                listeners: {
+                                    beforedrop: function( el, dragobj, targetNode, action, opts ) {
+                                        var record = dragobj.records[0].data;
+                                        var target = targetNode.data;
+                                        if ( action == 'append' ) {
+                                            if ( record.modelClass == 'attribute' && target.modelClass == 'category' ) {
+                                                if ( record.categoryId != target.categoryId ) {
+                                                    // send attributeAdd with record info on target categoryId
+                                                    return true;
+                                                }
+                                            }
+                                        }
+                                        return false;
+                                    },
+                                    isValidDropPoint: function( a,b,c,d,e ) {
+                                        console.log( a, b, c, d,e  );
+                                    }
+                                },
+                                copy: true,
+                                loadMask: false
+                            },
                             columns: [
                                 {
                                     xtype: 'treecolumn',
@@ -86,8 +117,9 @@ Ext.define('BIS.view.MainViewport', {
                                     Ext.getCmp('viewsPagingTitle').setText('Categories');
                                 },
                                 beforeitemexpand: function( record, opts ) {
-                                    this.getStore().getProxy().extraParams.cmd = 'list_attributes';
-                                    this.getStore().getProxy().extraParams.categoryID = record.data.typeID;
+                                    this.getStore().getProxy().extraParams.cmd = 'attributeList';
+                                    this.getStore().getProxy().extraParams.categoryId = record.data.categoryId;
+                                    this.getStore().getProxy().extraParams.showNames = false;
                                     this.getStore().getProxy().setModel( 'BIS.model.AttributeModel' );
                                 },
                                 itemcontextmenu: function(view, record, item, index, e) {
@@ -238,12 +270,38 @@ Ext.define('BIS.view.MainViewport', {
                                     sortable: true
                                 }
                             ],
+                            viewConfig: {
+                                plugins: [
+                                    Ext.create('Ext.tree.plugin.TreeViewDragDrop', {
+                                        ddGroup: 'eventDD',
+                                        enableDrop: true
+                                    })
+                                ],
+                                listeners: {
+                                    beforedrop: function( el, dragobj, targetNode, action, opts ) {
+                                        var record = dragobj.records[0].data;
+                                        var target = targetNode.data;
+                                        console.log( record, target );
+                                        if ( action == 'append' ) {
+                                            if ( record.modelClass == 'event' && target.modelClass == 'eventtype' ) {
+                                                if ( record.eventTypeId != target.eventTypeId ) {
+                                                    // send eventAdd with record info on target eventTypeId
+                                                    return true;
+                                                }
+                                            }
+                                        }
+                                        return false;
+                                    }
+                                },
+                                copy: true,
+                                loadMask: false
+                            },
                             listeners: {
                                 show: function( el, opts ) {
                                     Ext.getCmp('viewsPagingTitle').setText('Events');
                                 },
                                 beforeitemexpand: function( record, opts ) {
-                                    this.getStore().getProxy().extraParams.cmd = 'listEvents';
+                                    this.getStore().getProxy().extraParams.cmd = 'eventList';
                                     this.getStore().getProxy().extraParams.filter = {eventTypeId: record.data.eventTypeId};
                                     this.getStore().getProxy().setModel( 'BIS.model.EventModel' );
                                 },
@@ -260,7 +318,21 @@ Ext.define('BIS.view.MainViewport', {
                                     }
                                     ctx.showAt(e.getXY());
                                 }
-                            }
+                            },
+                            dockedItems: [
+                                {
+                                    xtype: 'toolbar',
+                                    dock: 'top',
+                                    items: [
+                                        {
+                                            text: 'New Event Type',
+                                            iconCls: 'icon_newEventType',
+                                            scope: this,
+                                            handler: this.createEventType
+                                        }
+                                    ]
+                                }
+                            ]
                         }
                     ],
                     dockedItems: [
@@ -269,25 +341,29 @@ Ext.define('BIS.view.MainViewport', {
                             id: 'viewsPagingToolbar',
                             dock: 'top',
                             layout: {
-                                pack: 'center',
+                                pack: 'start',
+                                align: 'center',
                                 type: 'hbox'
                             },
                             items: [
                                 {
                                     xtype: 'button',
+                                    flex: 1,
                                     text: '<',
                                     scope: this,
                                     handler: this.decrementView
                                 },
                                 {
                                     xtype: 'label',
-                                    width: 200,
+                                    flex: 6,
+                                    style: 'text-align: center',
                                     cls: 'x-panel-header-text x-panel-header-text-default-framed',
                                     id: 'viewsPagingTitle',
                                     text: 'Sets'
                                 },
                                 {
                                     xtype: 'button',
+                                    flex: 1,
                                     text: '>',
                                     scope: this,
                                     handler: this.incrementView
@@ -302,8 +378,20 @@ Ext.define('BIS.view.MainViewport', {
                 {
                     xtype: 'panel',
                     id: 'imageDetailsPanel',
-                    layout: {
-                        type: 'fit'
+                    layout: 'fit',
+                    tpl: new Ext.XTemplate('<div>{title}<//div>'),
+                    listeners: {
+                        scope: this,
+                        render: function ( panel ) {
+                            var dropTarget = new Ext.dd.DropTarget(panel.el, {
+                                ddGroup: 'categoryDD',
+                                copy: false,
+                                notifyDrop: function (dragSource, e, data) {
+                                    var record = data.records[0].data;
+                                    Ext.getCmp('imageDetailsPanel').update( record );
+                                }
+                            });
+                        }
                     },
                     collapseDirection: 'right',
                     collapsed: false,
@@ -327,7 +415,7 @@ Ext.define('BIS.view.MainViewport', {
                             menu: {
                                 xtype: 'menu',
                                 id: 'viewMenu',
-                                width: 120,
+                                width: 150,
                                 items: [
                                     {
                                         xtype: 'menuitem',
@@ -406,6 +494,13 @@ Ext.define('BIS.view.MainViewport', {
                                         iconCls: 'icon_users',
                                         scope: this,
                                         handler: this.openUserManager
+                                    },
+                                    {
+                                        xtype: 'menuitem',
+                                        text: 'Server Information',
+                                        iconCls: 'icon_info',
+                                        scope: this,
+                                        handler: this.openServerInfo
                                     }
                                 ]
                             }
@@ -494,6 +589,28 @@ Ext.define('BIS.view.MainViewport', {
         }).show();
         loadMask.hide();
     },
+    openServerInfo: function( menuItem, e ) {
+        var loadMask = new Ext.LoadMask(Ext.getBody(),{msg: 'Loading info...',indicator: true});
+        loadMask.show();
+        Ext.create('Ext.window.Window', {
+            title: 'Server Information',
+            iconCls: 'icon_info',
+            modal: true,
+            height: 500,
+            width: 800,
+            layout: 'fit',
+            items: [
+                {
+                    xtype: 'panel',
+                    border: false,
+                    tpl: new Ext.XTemplate(
+                        '<div>Server Info</div>'
+                    )
+                }
+            ]
+        }).show();
+        loadMask.hide();
+    },
     createCategory: function() {
         Ext.create('Ext.window.Window', {
             title: 'Create Category',
@@ -517,6 +634,19 @@ Ext.define('BIS.view.MainViewport', {
             layout: 'fit',
             items: [
                 { xtype: 'formcreatecollection', mode: 'add' } 
+            ]
+        }).show();
+    },
+    createEventType: function() {
+        Ext.create('Ext.window.Window', {
+            title: 'Create Event Type',
+            iconCls: 'icon_newEventType',
+            modal: true,
+            height: 500,
+            width: 800,
+            layout: 'fit',
+            items: [
+                { xtype: 'formcreateeventtype', mode: 'add' }
             ]
         }).show();
     }

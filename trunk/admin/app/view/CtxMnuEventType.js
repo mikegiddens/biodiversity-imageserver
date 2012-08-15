@@ -5,6 +5,9 @@ Ext.define('BIS.view.CtxMnuEventType', {
     listeners: {
         click: function( menu, item ) {
             switch( item.identifier ) {
+                case 'add':
+                    this.addEvent();
+                    break;
                 case 'update':
                     this.update();
                     break;
@@ -22,6 +25,12 @@ Ext.define('BIS.view.CtxMnuEventType', {
         Ext.applyIf(me, {
             items: [
                 {
+                    text: 'Add Event',
+                    iconCls: 'icon_newEvent',
+                    identifier: 'add'
+                },
+                '-',
+                {
                     text: 'Edit Event Type',
                     iconCls: 'icon_editEventType',
                     identifier: 'update'
@@ -34,6 +43,22 @@ Ext.define('BIS.view.CtxMnuEventType', {
             ]
         });
         me.callParent(arguments);
+    },
+    addEvent: function() {
+        Ext.create('Ext.window.Window', {
+            title: 'Create New Event',
+            iconCls: 'icon_newEvent',
+            modal: true,
+            height: 500,
+            width: 800,
+            layout: 'fit',
+            items: [
+                Ext.create('widget.formcreateevent', {
+                    record: this.record,
+                    mode: 'add'
+                })
+            ]
+        }).show();
     },
     remove: function() {
         var cmd = 'deleteEventType'

@@ -12,15 +12,23 @@ Ext.define('BIS.store.CategoryTreeStore', {
             storeId: 'categoryTreeStore',
             model: 'BIS.model.CategoryModel',
             defaultRootProperty: 'data',
+            listeners: {
+                load: function( store, records, isSuccessful, operation, opts ) {
+                    if (!(isSuccessful)) {
+                        Ext.get('categoryTreePanel-body').update('<span style="position: relative; left: 10px; top: 10px">No categories found. Click "New Category" above to create a new one.</span>');
+                    }
+                }
+            },
             proxy: {
                 type: 'jsonp',
                 url: Config.baseUrl + 'resources/api/api.php',
                 extraParams: {
-                    cmd: 'list_categories'
+                    cmd: 'categoryList'
                 },
                 reader: {
                     type: 'json',
-                    root: 'data'
+                    root: 'records',
+                    successProperty: 'success'
                 }
             }
         }, cfg)]);

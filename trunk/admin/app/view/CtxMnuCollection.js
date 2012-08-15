@@ -20,6 +20,11 @@ Ext.define('BIS.view.CtxMnuCollection', {
                         ]
                     }).show();
                     break;
+                case 'delete':
+                    Ext.Msg.confirm('Remove ' + this.record.data.name + '?', 'Are you sure you want remove ' + this.record.data.name + '?', function( btn, nothing, item ) {
+                        this.remove();
+                    }, this);
+                    break;
             }
         }
     },
@@ -32,9 +37,29 @@ Ext.define('BIS.view.CtxMnuCollection', {
                     text: 'Edit Collection',
                     iconCls: 'icon_editCollection',
                     identifier: 'update'
+                },
+                {
+                    text: 'Remove Collection',
+                    iconCls: 'icon_removeCollection',
+                    identifier: 'delete'
                 }
             ]
         });
         me.callParent(arguments);
+    },
+    remove: function() {
+        Ext.Ajax.request({
+            method: 'POST',
+            url: Config.baseUrl + 'collectionDelete',
+            params: { collectionId: this.record.data.collectionId },
+            scope: this,
+            success: function( resObj ) {
+                var res = Ext.decode( resObj.responseText );
+                console.log( res );
+                if ( res.success ) {
+                    
+                }
+            }
+        });
     }
 });

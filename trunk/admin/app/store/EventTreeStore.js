@@ -12,15 +12,23 @@ Ext.define('BIS.store.EventTreeStore', {
             storeId: 'eventTreeStore',
             model: 'BIS.model.EventTypeModel',
             defaultRootId: 'results',
+            listeners: {
+                load: function( store, records, isSuccessful, operation, opts ) {
+                    if (!(isSuccessful)) {
+                        Ext.get('eventTreePanel-body').update('<span style="position: relative; left: 10px; top: 10px">No event types found. Click "New Event Type" above to add a new one.</span>');
+                    }
+                }
+            },
             proxy: {
                 type: 'jsonp',
                 url: Config.baseUrl + 'resources/api/api.php',
                 extraParams: {
-                    cmd: 'listEventTypes'
+                    cmd: 'eventTypeList'
                 },
                 reader: {
                     type: 'json',
-                    root: 'results'
+                    root: 'records',
+                    successProperty: 'success'
                 }
             }
         }, cfg)]);
