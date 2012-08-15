@@ -28,6 +28,16 @@ Ext.define('BIS.view.FormCreateEventType', {
                             fieldLabel: 'Description',
                             labelAlign: 'right',
                             anchor: '100%'
+                        },
+                        {
+                            xtype: 'textfield',
+                            name: 'eventTypeId',
+                            fieldLabel: 'Identifier',
+                            labelAlign: 'right',
+                            anchor: '100%',
+                            readOnly: true,
+                            fieldCls: 'x-item-disabled',
+                            hidden: this.mode == 'add'
                         }
                     ]
                 },
@@ -51,17 +61,17 @@ Ext.define('BIS.view.FormCreateEventType', {
     },
     submit: function() {
         var values = Ext.getCmp('formCreateEventType').getValues();
-        var route, params = { title: values.title, description: values.description };
+        var route;
         if ( this.mode == 'add' ) {
-            route = 'addEventType';
+            route = 'eventTypeAdd';
         } else {
             // edit
-            route = 'renameEventType';
+            route = 'eventTypeUpdate';
         }
         Ext.Ajax.request({
             method: 'POST',
             url: Config.baseUrl + route,
-            params: params,
+            params: values,
             scope: this,
             success: function( resObj ) {
                 var res = Ext.decode( resObj.responseText );

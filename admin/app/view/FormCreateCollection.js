@@ -24,10 +24,20 @@ Ext.define('BIS.view.FormCreateCollection', {
                         },
                         {
                             xtype: 'textfield',
-                            name: 'collectionCode',
+                            name: 'code',
                             fieldLabel: 'Code',
                             labelAlign: 'right',
                             anchor: '100%'
+                        },
+                        {
+                            xtype: 'textfield',
+                            name: 'collectionId',
+                            fieldLabel: 'Identifier',
+                            labelAlign: 'right',
+                            anchor: '100%',
+                            readOnly: 'true',
+                            fieldCls: 'x-item-disabled',
+                            hidden: this.mode == 'add'
                         }
                     ]
                 },
@@ -45,10 +55,7 @@ Ext.define('BIS.view.FormCreateCollection', {
         afterrender: function() {
             if ( this.mode != 'add' ) {
                 // edit
-                Ext.getCmp('formCreateCollection').getForm().setValues({
-                    name: this.record.data.name,
-                    collectionCode: this.record.data.code
-                });
+                Ext.getCmp('formCreateCollection').loadRecord( this.record );
             }
         }
     },
@@ -56,10 +63,10 @@ Ext.define('BIS.view.FormCreateCollection', {
         var values = Ext.getCmp('formCreateCollection').getValues();
         var route;
         if ( this.mode == 'add' ) {
-            route = 'addCollection';
+            route = 'collectionAdd';
         } else {
             // edit
-            route = 'renameCollection';
+            route = 'collectionUpdate';
         }
         Ext.Ajax.request({
             method: 'POST',

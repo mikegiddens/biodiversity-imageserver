@@ -12,6 +12,13 @@ Ext.define('BIS.store.QueueStore', {
         me.callParent([Ext.apply({
             storeId: 'queueStore',
             model: 'BIS.model.QueueModel',
+            listeners: {
+                load: function( store, records, isSuccessful, operation, opts ) {
+                    if (!(isSuccessful)) {
+                        Ext.get('queuePanel-body').update('<span style="position: relative; left: 10px; top: 10px">Queue is empty.</span>');
+                    }
+                }
+            },
             proxy: {
                 url: Config.baseUrl + 'resources/api/api.php',
                 type: 'jsonp',
@@ -20,7 +27,8 @@ Ext.define('BIS.store.QueueStore', {
                 },
                 reader: {
                     type: 'json',
-                    root: 'data'
+                    root: 'records',
+                    successProperty: 'success'
                 }
             }
         }, cfg)]);

@@ -1,7 +1,9 @@
 .imageRowSelected {
 	background-color: lightblue;
 }
-
+.highlight {
+	background-color: lightgreen;
+}
 
 
 /* ==========
@@ -133,6 +135,24 @@
 .icon_arrowAlternating {
 	background-image:url(../img/ico/arrow_refresh.png) !important;
 }
+.icon_image {
+	background-image:url(../img/ico/image.png) !important;
+}
+.icon_images {
+	background-image:url(../img/ico/images.png) !important;
+}
+.icon_addImage {
+	background-image:url(../img/ico/image_add.png) !important;
+}
+.icon_removeImage {
+	background-image:url(../img/ico/image_delete.png) !important;
+}
 .icon_cancel {
 	background-image:url(../img/ico/cancel.png) !important;
+}
+.icon_magnifier {
+	background-image:url(../img/ico/magnifier.png) !important;
+}
+.icon_info {
+	background-image:url(../img/ico/information.png) !important;
 }

@@ -36,6 +36,11 @@ Ext.define('BIS.view.CtxMnuCategory', {
                         ]
                     }).show();
                     break;
+                case 'delete':
+                    Ext.Msg.confirm('Remove ' + this.record.data.title + '?', 'Are you sure you want remove ' + this.record.data.title + '?', function( btn, nothing, item ) {
+                        this.remove();
+                    }, this);
+                    break;
             }
         }
     },
@@ -49,13 +54,34 @@ Ext.define('BIS.view.CtxMnuCategory', {
                     iconCls: 'icon_newAttribute',
                     identifier: 'create'
                 },
+                '-',
                 {
                     text: 'Edit Category',
                     iconCls: 'icon_editCategory',
                     identifier: 'update'
+                },
+                {
+                    text: 'Remove Category',
+                    iconCls: 'icon_removeCategory',
+                    identifier: 'delete'
                 }
             ]
         });
         me.callParent(arguments);
+    },
+    remove: function() {
+        Ext.Ajax.request({
+            method: 'POST',
+            url: Config.baseUrl + 'categoryDelete',
+            params: { categoryId: this.record.data.categoryId },
+            scope: this,
+            success: function( resObj ) {
+                var res = Ext.decode( resObj.responseText );
+                console.log( res );
+                if ( res.success ) {
+                    
+                }
+            }
+        });
     }
 });

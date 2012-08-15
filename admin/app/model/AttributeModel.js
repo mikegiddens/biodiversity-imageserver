@@ -4,7 +4,10 @@ Ext.define('BIS.model.AttributeModel', {
 
     fields: [
         {
-            name: 'valueID'
+            name: 'attributeId'
+        },
+        {
+            name: 'categoryId'
         },
         {
             name: 'title',

@@ -4,7 +4,7 @@ Ext.define('BIS.model.CategoryModel', {
 
     fields: [
         {
-            name: 'typeID'
+            name: 'categoryId'
         },
         {
             name: 'title'
