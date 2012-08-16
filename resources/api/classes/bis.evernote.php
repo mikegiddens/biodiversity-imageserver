@@ -18,7 +18,7 @@ Class EvernoteAccounts {
 	* Returns a since field value
 	* @return mixed
 	*/
-	public function get( $field ) {
+	public function evernoteAccountsGetProperty( $field ) {
 		if (isset($this->record[$field])) {
 			return( $this->record[$field] );
 		} else {
@@ -30,42 +30,43 @@ Class EvernoteAccounts {
 	* Set the value to a field
 	* @return bool
 	*/
-	public function set( $field, $value ) {
+	public function evernoteAccountsSetProperty( $field, $value ) {
 		$this->record[$field] = $value;
 		return( true );
 	}
 	
-	public function setAllData ($data) {
+	public function evernoteAccountsSetAllData ($data) {
 		foreach($data as $field => $value) {
 			$this->record[$field] = $value;
 		}
 	}
 
-	public function setData ($data) {
+	public function evernoteAccountsSetData ($data) {
+		$this->evernoteAccountsClearData();
 		$this->data = $data;
 	}
 
-	public function clearData () {
+	public function evernoteAccountsClearData () {
 		unset($this->data);
 		return true;
 	}
 
-	public function clearRecords () {
+	public function evernoteAccountsClearRecords () {
 		unset($this->records);
 		return true;
 	}
 
-	public function getRecords () {
+	public function evernoteAccountsGetRecords () {
 		return $this->records;
 	}
 
-	public function load_by_enId( $enId ) {
+	public function evernoteAccountsLoadById( $enId ) {
 		if($enId == '') return false;
-		$query = sprintf("SELECT * FROM `evenote_accounts` WHERE `enAccountId` = %s", mysql_escape_string($enId) );
+		$query = sprintf("SELECT * FROM `evenoteAccounts` WHERE `enAccountId` = %s", mysql_escape_string($enId) );
 		$ret = $this->db->query_one( $query );
 		if ($ret != NULL) {
 			foreach( $ret as $field => $value ) {
-				$this->set($field, $value);
+				$this->evernoteAccountsSetProperty($field, $value);
 			}
 			return(true);
 		}
@@ -75,26 +76,26 @@ Class EvernoteAccounts {
 /**
  * Call to this function must be preceeded with a call to the load_byenIid function
  */
-	public function getEvernoteDetails() {
-		return array('username' => $this->get('username')
-			, 'password' => $this->get('password')
-			, 'consumerKey' => $this->get('consumerKey')
-			, 'consumerSecret' => $this->get('consumerSecret')
-			, 'notebookGuid' => $this->get('notebookGuid')
+	public function evernoteAccountsGetDetails() {
+		return array('userName' => $this->evernoteAccountsGetProperty('userName')
+			, 'password' => $this->evernoteAccountsGetProperty('password')
+			, 'consumerKey' => $this->evernoteAccountsGetProperty('consumerKey')
+			, 'consumerSecret' => $this->evernoteAccountsGetProperty('consumerSecret')
+			, 'notebookGuid' => $this->evernoteAccountsGetProperty('notebookGuid')
 			);
 	}
 
-	public function getAccounts($enAccountId='') {
+	public function evernoteAccountsGet($enAccountId='') {
 		$accounts = array();
 		if($enAccountId=='') {
-			$query = 'SELECT * FROM `evenote_accounts`;';
+			$query = 'SELECT * FROM `evenoteAccounts`;';
 		} else {
-			$query = sprintf("SELECT * FROM `evenote_accounts` WHERE `enAccountId` = '%s';", mysql_escape_string($enAccountId));
+			$query = sprintf("SELECT * FROM `evenoteAccounts` WHERE `enAccountId` = '%s';", mysql_escape_string($enAccountId));
 		}
 		$acnts = $this->db->query_all($query);
 		if(is_array($acnts) && count($acnts)) {
 			foreach($acnts as $acnt) {
-				$accounts[] = array('username' => $acnt->username
+				$accounts[] = array('userName' => $acnt->userName
 						, 'password' => $acnt->password
 						, 'consumerKey' => $acnt->consumerKey
 						, 'consumerSecret' => $acnt->consumerSecret
@@ -105,8 +106,8 @@ Class EvernoteAccounts {
 		return $accounts;
 	}
 	
-	public function accountNameExist($accountName) {
-		$accounts = $this->listAccounts();
+	public function evernoteAccountsExists($accountName) {
+		$accounts = $this->evernoteAccountsList();
 		for($i=0; $i<count($accounts); $i++) {
 			if($accounts[$i]['accountName'] == $accountName) {
 				return $accounts[$i]['enAccountId'];
@@ -115,15 +116,15 @@ Class EvernoteAccounts {
 		return false;
 	}
 	
-	public function addAccount() {
-		$query = sprintf("INSERT INTO `evenote_accounts` SET `accountName` = '%s', `username` = '%s', `password` = '%s', `consumerKey` = '%s', `consumerSecret` = '%s', `notebookGuid` = '%s', `rank` = '%s', `dateAdded` = now(), `dateModified` = now();"
-				, mysql_escape_string($this->get('accountName'))
-				, mysql_escape_string($this->get('username'))
-				, mysql_escape_string($this->get('password'))
-				, mysql_escape_string($this->get('consumerKey'))
-				, mysql_escape_string($this->get('consumerSecret'))
-				, mysql_escape_string($this->get('notebookGuid'))
-				, mysql_escape_string($this->get('rank'))
+	public function evernoteAccountsAdd() {
+		$query = sprintf("INSERT INTO `evenoteAccounts` SET `accountName` = '%s', `userName` = '%s', `password` = '%s', `consumerKey` = '%s', `consumerSecret` = '%s', `notebookGuid` = '%s', `rank` = '%s', `dateAdded` = now(), `dateModified` = now();"
+				, mysql_escape_string($this->evernoteAccountsGetProperty('accountName'))
+				, mysql_escape_string($this->evernoteAccountsGetProperty('userName'))
+				, mysql_escape_string($this->evernoteAccountsGetProperty('password'))
+				, mysql_escape_string($this->evernoteAccountsGetProperty('consumerKey'))
+				, mysql_escape_string($this->evernoteAccountsGetProperty('consumerSecret'))
+				, mysql_escape_string($this->evernoteAccountsGetProperty('notebookGuid'))
+				, mysql_escape_string($this->evernoteAccountsGetProperty('rank'))
 			);
 		if($this->db->query($query)) {
 			return($this->db->insert_id);
@@ -132,10 +133,10 @@ Class EvernoteAccounts {
 		}
 	}
 	
-	public function field_exists ($enAccountId){
+	public function evernoteAccountsFieldExists ($enAccountId){
 		if($enAccountId == '' || is_null($enAccountId)) return(false);
 
-		$query = sprintf("SELECT `enAccountId` FROM `evenote_accounts` WHERE `enAccountId` = %s;", $enAccountId);
+		$query = sprintf("SELECT `enAccountId` FROM `evenoteAccounts` WHERE `enAccountId` = %s;", $enAccountId);
 		$ret = $this->db->query_one( $query );
 		if ($ret == NULL) {
 			return false;
@@ -145,16 +146,16 @@ Class EvernoteAccounts {
 	}
 	
 	
-	public function editAccount() {
-		$query = sprintf("UPDATE `evenote_accounts` SET `accountName` = '%s', `username` = '%s', `password` = '%s', `consumerKey` = '%s', `consumerSecret` = '%s', `notebookGuid` = '%s', `rank` = '%s', `dateModified` = now() WHERE `enAccountId` = '%s';"
-				, mysql_escape_string($this->get('accountName'))
-				, mysql_escape_string($this->get('username'))
-				, mysql_escape_string($this->get('password'))
-				, mysql_escape_string($this->get('consumerKey'))
-				, mysql_escape_string($this->get('consumerSecret'))
-				, mysql_escape_string($this->get('notebookGuid'))
-				, mysql_escape_string($this->get('rank'))
-				, mysql_escape_string($this->get('enAccountId'))
+	public function evernoteAccountsUpdate() {
+		$query = sprintf("UPDATE `evenoteAccounts` SET `accountName` = '%s', `userName` = '%s', `password` = '%s', `consumerKey` = '%s', `consumerSecret` = '%s', `notebookGuid` = '%s', `rank` = '%s', `dateModified` = now() WHERE `enAccountId` = '%s';"
+				, mysql_escape_string($this->evernoteAccountsGetProperty('accountName'))
+				, mysql_escape_string($this->evernoteAccountsGetProperty('userName'))
+				, mysql_escape_string($this->evernoteAccountsGetProperty('password'))
+				, mysql_escape_string($this->evernoteAccountsGetProperty('consumerKey'))
+				, mysql_escape_string($this->evernoteAccountsGetProperty('consumerSecret'))
+				, mysql_escape_string($this->evernoteAccountsGetProperty('notebookGuid'))
+				, mysql_escape_string($this->evernoteAccountsGetProperty('rank'))
+				, mysql_escape_string($this->evernoteAccountsGetProperty('enAccountId'))
 				);
 		if($this->db->query($query)) {
 			return(true);
@@ -163,8 +164,8 @@ Class EvernoteAccounts {
 		}
 	}
 	
-	public function deleteAccount($enAccountId) {
-		$query = sprintf("DELETE FROM `evenote_accounts` WHERE `enAccountId` = '%s'", mysql_escape_string($enAccountId));
+	public function evernoteAccountsDelete($enAccountId) {
+		$query = sprintf("DELETE FROM `evenoteAccounts` WHERE `enAccountId` = '%s'", mysql_escape_string($enAccountId));
 		if($this->db->query($query)) {
 			return(true);
 		} else {
@@ -172,21 +173,60 @@ Class EvernoteAccounts {
 		}
 	}
 	
-	public function listAccounts() {
+	public function evernoteAccountsList() {
+		$where = buildWhere($this->data['filter']);
+		if ($where != '') {
+			$where = " WHERE " . $where;
+		}
+		
+		if(is_array($this->data['enAccountId']) && count($this->data['enAccountId'])) {
+			$where .= sprintf(" AND `enAccountId` IN (%s) ", implode(',', $this->data['enAccountId']));
+		} else if($this->data['enAccountId'] != '' && is_numeric($this->data['enAccountId'])) {
+			$where .= sprintf(" AND `enAccountId` = %d ", $this->data['enAccountId']);
+		}
+		if($this->data['value'] != '') {
+			switch($this->data['searchFormat']) {
+				case 'exact':
+					$where .= sprintf(" AND `accountName` = '%s' ", mysql_escape_string($this->data['value']));
+					break;
+				case 'left':
+					$where .= sprintf(" AND `accountName` LIKE '%s%%' ", mysql_escape_string($this->data['value']));
+					break;
+				case 'right':
+					$where .= sprintf(" AND `accountName` LIKE '%%%s' ", mysql_escape_string($this->data['value']));
+					break;
+				case 'both':
+				default:
+					$where .= sprintf(" AND `accountName` LIKE '%%%s%%' ", mysql_escape_string($this->data['value']));
+					break;
+			}
+		}
+		if($this->data['group'] != '' && in_array($this->data['group'], array('accountName','userName','dateAdded','dateModified')) && $this->data['dir'] != '') {
+			$where .= build_order( array(array('field' => $this->data['group'], 'dir' => $this->data['dir'])));
+		} else {
+			$where .= ' ORDER BY `enAccountId` ASC ';
+		}
+
+		$where .= build_limit($this->data['start'], $this->data['limit']);
+	
+	
 		$accounts = array();
-		$query = 'SELECT * FROM `evenote_accounts`;';
+		$query = 'SELECT SQL_CALC_FOUND_ROWS * FROM `evenoteAccounts` ' . $where;
+		
+		// die($query);
+		
 		$acnts = $this->db->query_all($query);
 		if(is_array($acnts) && count($acnts)) {
 			foreach($acnts as $acnt) {
 				$accounts[] = array(
 						'enAccountId' => $acnt->enAccountId
 						,'accountName' => $acnt->accountName
-						,'username' => $acnt->username
+						,'userName' => $acnt->userName
 						, 'password' => $acnt->password
 						, 'consumerKey' => $acnt->consumerKey
 						, 'consumerSecret' => $acnt->consumerSecret
 						, 'notebookGuid' => $acnt->notebookGuid
-						   );
+					);
 			}
 		}
 		return $accounts;
@@ -196,8 +236,8 @@ Class EvernoteAccounts {
  *  Functions related to Evernote tags
  */
 
-	public function getAllTags() {
-		$query = "SELECT * FROM `evernote_tags` ORDER BY `tagName`";
+	public function evernoteTagsGetAll() {
+		$query = "SELECT * FROM `evernoteTags` ORDER BY `tagName`";
 		$tags = $this->db->query_all($query);
 		if(is_array($tags) && count($tags)) {
 			foreach($tags as $tag) {
@@ -207,9 +247,9 @@ Class EvernoteAccounts {
 		return $tagList;
 	}
 	
-	public function existTagGuid($tagGuid) {
+	public function evernoteTagsExistGuid($tagGuid) {
 		if($tagGuid=='') return false;
-		$query = sprintf("SELECT * FROM `evernote_tags` WHERE `tagGuid` = '%s'", mysql_escape_string($tagGuid));
+		$query = sprintf("SELECT * FROM `evernoteTags` WHERE `tagGuid` = '%s'", mysql_escape_string($tagGuid));
 		$ret = $this->db->query_one( $query );
 		if ($ret != NULL)
 			return(true);
@@ -217,9 +257,9 @@ Class EvernoteAccounts {
 			return(false);
 	}
 	
-	public function existTagName($tagName) {
+	public function evernoteTagsExist($tagName) {
 		if($tagName=='') return false;
-		$query = sprintf("SELECT * FROM `evernote_tags` WHERE `tagName` = '%s'", mysql_escape_string($tagName));
+		$query = sprintf("SELECT * FROM `evernoteTags` WHERE `tagName` = '%s'", mysql_escape_string($tagName));
 		$ret = $this->db->query_one( $query );
 		if ($ret != NULL)
 			return(true);
@@ -227,10 +267,10 @@ Class EvernoteAccounts {
 			return(false);
 	}
 	
-	public function addTag($tagName, $tagGuid) {
+	public function evernoteTagsAdd($tagName, $tagGuid) {
 		if($tagName=='' || $tagGuid=='') return false;
 		if(!$this->existTagGuid($tagGuid)) {
-			$query = sprintf("INSERT INTO `evernote_tags` SET `tagName` = '%s', `tagGuid` = '%s'"
+			$query = sprintf("INSERT INTO `evernoteTags` SET `tagName` = '%s', `tagGuid` = '%s'"
 					, mysql_escape_string($tagName)
 					, mysql_escape_string($tagGuid)
 					);
@@ -239,9 +279,9 @@ Class EvernoteAccounts {
 		return true;
 	}
 	
-	public function load_by_tagName($tagName) {
+	public function evernoteTagsLoadByTagName($tagName) {
 		if($tagName == '') return false;
-		$query = sprintf("SELECT * FROM `evernote_tags` WHERE `tagName` = '%s'", mysql_escape_string($tagName) );
+		$query = sprintf("SELECT * FROM `evernoteTags` WHERE `tagName` = '%s'", mysql_escape_string($tagName) );
 		$ret = $this->db->query_one( $query );
 		if ($ret != NULL) {
 			foreach( $ret as $field => $value ) {
