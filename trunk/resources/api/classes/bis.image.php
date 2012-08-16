@@ -116,7 +116,7 @@ Class Image {
 		global $config;
 		$barcode = $this->imageGetName();
 		$tmpPath = $config['path']['images'] . $this->imageBarcodePath( $barcode );
-		$this->mkdir_recursive( $tmpPath );
+		$this->imageMkdirRecursive( $tmpPath );
 		$flsz = @filesize($this->imageGetProperty('path') . $this->imageGetProperty('fileName'));
 		if(!$flsz) {
 			if(!@rename( $this->imageGetProperty('path') . $this->imageGetProperty('fileName'), $config['path']['error'] . $this->imageGetProperty('fileName') )) {
@@ -744,7 +744,7 @@ Class Image {
 						$y = $j;
 						$z = 1;
 
-						$this->mkdir_recursive($outputPath . $k . '/');
+						$this->imageMkdirRecursive($outputPath . $k . '/');
 						imagecopy($dest, $sample, 0, 0, ($i * 256), ($j * 256), 256, 256);
 // 						imagejpeg($dest, sprintf( $outputPath . '%s/tile_%s_%s_%s.jpg', $k, $z, $x, $y) );
 						$func1($dest, sprintf( $outputPath . '%s/tile_%s_%s_%s.' . $ext, $k, $z, $x, $y) );
@@ -776,7 +776,7 @@ Class Image {
 		if($this->imageLoadByBarcode($barcode)) {
 			$tilepath = $config['path']['images'] . $this->imageBarcodePath( $barcode ) . 'google_tiles/';
 			$filename = $config['path']['images'] . $this->imageBarcodePath( $barcode ) . $this->imageGetProperty('fileName');
-			$this->mkdir_recursive($tilepath);
+			$this->imageMkdirRecursive($tilepath);
 			# creating tiles using Image Magik
 			$gTileRes = $this->imageCreateGTileIM($filename, $tilepath);
 			return true;
@@ -891,7 +891,7 @@ Class Image {
 					$y = $j;
 	//				$z = 1;
 					
-					$this->mkdir_recursive($outputPath . $z . '/');
+					$this->imageMkdirRecursive($outputPath . $z . '/');
 		
 					$cmd = sprintf("convert %s -crop %sx%s+%s+%s\! %s%s/tile_%s_%s_%s.jpg"
 						, $tmpFile
@@ -927,7 +927,7 @@ Class Image {
 		global $config;
 		if($this->imageLoadByBarcode($barcode)) {
 			$outputPath = $config['path']['images'] . $this->imageBarcodePath( $barcode ) . 'zoomify/';
-			$this->mkdir_recursive( $outputPath );
+			$this->imageMkdirRecursive( $outputPath );
 			$image = $config['path']['images'] . $this->imageBarcodePath( $barcode ) . $this->imageGetProperty('fileName');
 			$script_path =  $config['path']['base'] . 'api/classes/zoomify/ZoomifyFileProcessor.py ';
 			passthru('python ' . $script_path . $image);
@@ -1521,21 +1521,6 @@ Class Image {
 
 	}
 
-	// private function setAdminCharacterFilter() {
-		// $characters = $this->data['characters'];
-		// if (($characters != '') && ($characters != '[]')) {
-			// $this->char_list = '';
-			// // foreach($json->decode($characters) as $character) {
-			// foreach(json_decode($characters) as $character) {
-				// $this->char_list .= $character->node_value . ",";
-			// }
-			// $this->char_list = substr($this->char_list, 0, -1);
-
-			// $this->query .= " AND ia.imageId = I.imageId AND ia.attributeId IN (".$this->char_list.") ";
-		// }
-// //	print $this->query;
-	// }
-
 	private function setAdminCharacterFilter() {
 		$characters = json_decode($this->data['characters'],true);
 		$char_list = '';
@@ -1641,24 +1626,24 @@ Class Image {
 	
 # Attribute Functions
 
-		public function getAttributeBy($attribute, $attribType) {
-			if(!@in_array($attribType,array('categoryId','title','term'))) return false;
-			if($attribType == 'categoryId') {
-				return $this->category_exist($attribute) ? $attribute : false; 
-			}
-			$ret = $this->db->query_one( sprintf(" SELECT `categoryId` FROM `imageAttribType` WHERE `%s` = '%s' ", mysql_escape_string($attribType), mysql_escape_string($attribute)) );
-			return ($ret == NULL) ? false : $ret->categoryId;
+	public function getAttributeBy($attribute, $attribType) {
+		if(!@in_array($attribType,array('categoryId','title','term'))) return false;
+		if($attribType == 'categoryId') {
+			return $this->category_exist($attribute) ? $attribute : false; 
+		}
+		$ret = $this->db->query_one( sprintf(" SELECT `categoryId` FROM `imageAttribType` WHERE `%s` = '%s' ", mysql_escape_string($attribType), mysql_escape_string($attribute)) );
+		return ($ret == NULL) ? false : $ret->categoryId;
+	}
+
+	public function getValueBy($value, $valueType) {
+		if(!@in_array($valueType,array('attributeId','name'))) return false;
+		if($valueType == 'attributeId') {
+			return $this->attribute_exist($value) ? $value : false; 
 		}
 
-		public function getValueBy($value, $valueType) {
-			if(!@in_array($valueType,array('attributeId','name'))) return false;
-			if($valueType == 'attributeId') {
-				return $this->attribute_exist($value) ? $value : false; 
-			}
-
-			$ret = $this->db->query_one( sprintf(" SELECT `attributeId` FROM `imageAttribValue` WHERE `name` = '%s' ", mysql_escape_string($value)) );
-			return ($ret == NULL) ? false : $ret->attributeId;
-		}
+		$ret = $this->db->query_one( sprintf(" SELECT `attributeId` FROM `imageAttribValue` WHERE `name` = '%s' ", mysql_escape_string($value)) );
+		return ($ret == NULL) ? false : $ret->attributeId;
+	}
 	
 	public function addImageAttribute() {
 		$imageIds = @explode(',', $this->data['imageId']);
@@ -1713,94 +1698,8 @@ Class Image {
 			return false;
 		}
 	}
-
-	public function imageAddCategory() {
-		$id = 0;
-		$value = $this->data['value'];
-		$query = sprintf("INSERT INTO imageAttribType (title) VALUES('%s')", mysql_escape_string($value));
-		$this->db->query($query);
-		$id = $this->db->insert_id;
-
-		$query = sprintf("INSERT INTO `imageLog` (action, afterDesc, query, dateCreated) VALUES (4, 'categoryId: %s, value: %s', '%s', NOW())"
-		, mysql_escape_string($id)
-		, mysql_escape_string($value)
-		, mysql_escape_string($query)
-		);
-		$this->db->query($query);
-		return( $id );
-	}
-
-	public function imageUpdateCategory() {
-		$value = $this->data['value'];
-		$categoryId = $this->data['categoryId'];
-		$query = sprintf("UPDATE imageAttribType set title = '%s' WHERE categoryId = %s "
-			, mysql_escape_string($value)
-			, mysql_escape_string($categoryId)
-			);
-		$this->db->query($query);
-
-		$query = sprintf("INSERT INTO `imageLog` (action, afterDesc, query, dateCreated) VALUES (5, 'categoryId: %s, value: %s', '%s', NOW())"
-		, mysql_escape_string($categoryId)
-		, mysql_escape_string($value)
-		, mysql_escape_string($query)
-		);
-		$this->db->query($query);
-		return true;
-	}
-
-	public function deleteCategory() {
-		$categoryId = $this->data['categoryId'];
-		$query = sprintf("DELETE FROM `imageAttrib` WHERE categoryId = %s", mysql_escape_string($categoryId));
-		$this->db->query($query);
-		$query = sprintf("DELETE FROM `imageAttribValue` WHERE categoryId = %s", mysql_escape_string($categoryId));
-		$this->db->query($query);
-		$query = sprintf("DELETE FROM `imageAttribType` WHERE categoryId = %s", mysql_escape_string($categoryId));
-		$this->db->query($query);
-		
-		$query = sprintf("INSERT INTO `imageLog` (action, afterDesc, query, dateCreated) VALUES (6, 'Category ID: %s', '%s', NOW())", mysql_escape_string($categoryId), mysql_escape_string($query));
-		$this->db->query($query);
-		return true;
-	}
 	
-	public function imageListCategory() {
-		$query = "SELECT SQL_CALC_FOUND_ROWS * FROM `imageAttribType` WHERE 1=1 ";
-		
-		if(is_array($this->data['categoryId']) && count($this->data['categoryId'])) {
-			$query .= sprintf(" AND `categoryId` IN (%s) ", implode(',',$this->data['categoryId']));
-		} else if($this->data['categoryId'] != '' && is_numeric($this->data['categoryId'])) {
-			$query .= sprintf(" AND `categoryId` = %s ", mysql_escape_string($this->data['categoryId']));
-		}
-		
-		if($this->data['value'] != '') {
-			switch($this->data['searchFormat']) {
-				case 'exact':
-					$query .= sprintf(" AND `title` = '%s' ", mysql_escape_string($this->data['value']));
-					break;
-				case 'left':
-					$query .= sprintf(" AND `title` LIKE '%s%%' ", mysql_escape_string($this->data['value']));
-					break;
-				case 'right':
-					$query .= sprintf(" AND `title` LIKE '%%%s' ", mysql_escape_string($this->data['value']));
-					break;
-				case 'both':
-				default:
-					$query .= sprintf(" AND `title` LIKE '%%%s%%' ", mysql_escape_string($this->data['value']));
-					break;
-			}
-		}
-		$query .= " ORDER BY `categoryId`, `title` ";
-		if($this->data['start'] != '' && $this->data['limit'] != '') {
-			$query .= sprintf(" LIMIT %s, %s ", $this->data['start'], $this->data['limit']);
-		}
-		try {
-			$records = $this->db->query_all($query);
-		} catch (Exception $e) {
-			trigger_error($e->getMessage(),E_USER_ERROR);
-		}
-		return $records;
-	}
-	
-	public function imageCategoryExist($categoryId) {
+	public function imageCategoryExists($categoryId) {
 		$query = sprintf("SELECT * FROM `imageAttribType` WHERE `categoryId` = '%s'", mysql_escape_string($categoryId));
 		$records = $this->db->query_all($query);
 		if(count($records)) {
@@ -1808,54 +1707,6 @@ Class Image {
 		} else {
 			return false;
 		}
-	}
-
-	public function imageAddAttribute() {
-		$id = 0;
-		$query = sprintf("INSERT INTO imageAttribValue(name, categoryId) VALUES('%s',%s);"
-			, mysql_escape_string($this->data['value'])
-			, mysql_escape_string($this->data['categoryId'])
-		);
-		
-		$this->db->query($query);
-		$id = $this->db->insert_id;
-		$query = sprintf("INSERT INTO `imageLog` (action, afterDesc, query, dateCreated) VALUES (7, 'attributeId: %s, value: %s, categoryId: %s', '%s', NOW())"
-		, mysql_escape_string($id)
-		, mysql_escape_string($this->data['value'])
-		, mysql_escape_string($this->data['categoryId'])
-		, mysql_escape_string($query)
-		);
-		$this->db->query($query);
-		return($id);
-	}
-
-	public function imageRenameAttribute() {
-		$value = $this->data['value'];
-		$attributeId = $this->data['attributeId'];
-		$query = sprintf("UPDATE imageAttribValue set name = '%s' WHERE attributeId = %s"
-			, mysql_escape_string($value)
-			, mysql_escape_string($attributeId)
-			);
-		$this->db->query($query);
-
-		$query = sprintf("INSERT INTO `imageLog` (action, afterDesc, query, dateCreated) VALUES (8, 'attributeId: %s, value: %s', '%s', NOW())"
-		, mysql_escape_string($attributeId)
-		, mysql_escape_string($value)
-		, mysql_escape_string($query)
-		);
-		$this->db->query($query);
-		return(true);
-	}
-
-	public function imageDeleteAttribute() {
-		$attributeId = $this->data['attributeId'];
-		$query = sprintf("DELETE FROM `imageAttrib` WHERE attributeId = %s", mysql_escape_string($attributeId));
-		$this->db->query($query);
-		$query = sprintf("DELETE FROM `imageAttribValue` WHERE attributeId = %s", mysql_escape_string($attributeId));
-		$this->db->query($query);		
-		$query = sprintf("INSERT INTO `imageLog` (action, afterDesc, query, dateCreated) VALUES (9, 'attributeId: %s', '%s', NOW())", mysql_escape_string($attributeId), mysql_escape_string($query));
-		$this->db->query($query);
-		return true;
 	}
 	
 	public function imageListAttributes($queryFlag = true) {
@@ -1906,53 +1757,6 @@ Class Image {
 		}
 	}
 
-/*	
-	public function list_attributes ($categoryId) {
-		$query = sprintf("SELECT * FROM `imageAttribValue` WHERE `categoryId` = '%s'", mysql_escape_string($categoryId));
-		$records = $this->db->query_all($query);
-		if(count($records)) {
-			foreach($records as $record) {
-				$tmpArray['attributeId'] = $record->attributeId;
-				$tmpArray['name'] = $record->name;
-				$data[] = $tmpArray;
-			}
-			return $data;
-		} else {
-			return false;
-		}
-	}
-	
-	public function get_attributes ($categoryId,$type = 'ID') {
-		$type = (in_array(strtoupper($type), array('ID','TITLE'))) ? strtoupper($type) : 'ID';
-		switch($type) {
-			case 'TITLE':
-				$query = sprintf("SELECT ia.* FROM `imageAttribValue` ia, `imageAttribType` it  WHERE ia.`categoryId` = it.`categoryId` AND LOWER(it.`title`) = '%s'", mysql_escape_string(strtolower($categoryId)));
-				break;
-			case 'ID':
-			default:
-				$query = sprintf("SELECT * FROM `imageAttribValue` WHERE `categoryId` = '%s'", mysql_escape_string($categoryId));
-				break;
-		}
-		
-		$records = $this->db->query_all($query);
-		if(count($records)) {
-			foreach($records as $record) {
-				$tmpArray['attributeId'] = $record->attributeId;
-				$tmpArray['name'] = $record->name;
-				$data[] = $tmpArray;
-			}
-			return $data;
-		} else {
-			return false;
-		}
-	}
-*/
-	
-	public function imageAttributeExist($attributeId) {
-		$query = sprintf("SELECT count(*) ct FROM `imageAttribValue` WHERE `attributeId` = '%s'", mysql_escape_string($attributeId));
-		$ret = $this->db->query_one($query);
-		return (is_object($ret) && $ret->ct) ? true : false;
-	}
 	
 	public function get_all_attributes($imageId) {
 		$query = sprintf("SELECT ia.categoryId iaTID, ia.attributeId iaVID, iat.title iatTitle, iav.name iavValue FROM imageAttrib ia LEFT OUTER JOIN imageAttribType iat ON ( ia.categoryId = iat.categoryId ) JOIN imageAttribValue iav ON (iav.attributeId = ia.attributeId AND ia.imageId = '%s' ) ORDER BY ia.categoryId", mysql_escape_string($imageId));
@@ -2333,22 +2137,6 @@ Class Image {
 			return false;
 		}
 	}
-	
-	public function imageMetaDataPackageImport($data) {
-		// if((!is_array($data)) || (count($data)!=4)) return false;
-		if(!is_array($data)) return false;
-		$query = sprintf("INSERT IGNORE INTO `imageAttribType` SET `title` = '%s', `description` = '%s', `elementSet` = '%s', `term` = '%s'"
-				, mysql_escape_string($data[2])
-				, mysql_escape_string($data[3])
-				, mysql_escape_string($data[0])
-				, mysql_escape_string($data[1])
-				);
-		if($this->db->query($query)) {
-			return true;
-		} else {
-			return false;
-		}
-	}
 
 	public function getNonENProcessedRecords($filter='') {
 		if($filter['collection']=='')
@@ -2367,4 +2155,276 @@ Class Image {
 		return ($this->db->query($query)) ? true : false;
 	}
 }
+
+class ImageAttribType
+{
+	public $db, $record;
+	public function __construct($db = null) {
+		$this->db = $db;
+	}
+	public function imageCategorySetData($data) {
+		$this->data = $data;
+		return(true);
+	}
+	public function imageCategoryGetProperty( $field ) {
+		if (isset($this->record[$field])) {
+			return( $this->record[$field] );
+		} else {
+			return(false);
+		}
+	}
+	public function imageCategorySetProperty( $field, $value ) {
+		$this->record[$field] = $value;
+		return(true);
+	}
+	
+	public function imageCategoryLoadById( $categoryId ) {
+		if($categoryId == '') return false;
+		$query = sprintf("SELECT * FROM `imageAttribType` WHERE `categoryId` = %s", mysql_escape_string($categoryId) );
+		try {
+		$ret = $this->db->query_one( $query );
+		} catch (Exception $e) {
+			trigger_error($e->getMessage(),E_USER_ERROR);
+		}
+		if ($ret != NULL) {
+			foreach( $ret as $field => $value ) {
+				$this->imageCategorySetProperty($field, $value);
+			}
+			return(true);
+		} else {
+			return(false);
+		}
+	}
+
+	
+	public function imageCategoryExists($categoryId) {
+		$query = sprintf("SELECT * FROM `imageAttribType` WHERE `categoryId` = '%s'", mysql_escape_string($categoryId));
+		$records = $this->db->query_all($query);
+		if(count($records)) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+	
+	public function imageCategoryAdd() {
+		$query = sprintf(" INSERT INTO `imageAttribType` SET `title` = '%s', `description` = '%s', `elementSet` = '%s', `term` = '%s' "
+					, mysql_escape_string($this->imageCategoryGetProperty('title'))
+					, mysql_escape_string($this->imageCategoryGetProperty('description'))
+					, mysql_escape_string($this->imageCategoryGetProperty('elementSet'))
+					, mysql_escape_string($this->imageCategoryGetProperty('term'))
+					);
+
+		if($this->db->query($query)) {
+			$id = $this->db->insert_id;
+			$query1 = sprintf("INSERT INTO `imageLog` (action, afterDesc, query, dateCreated) VALUES (4, 'categoryId: %s, value: %s', '%s', NOW())"
+				, mysql_escape_string($id)
+				, mysql_escape_string($this->imageCategoryGetProperty('title'))
+				, mysql_escape_string($query)
+				);
+			$this->db->query($query1);
+			return( $id );
+		}
+		return false;
+	}
+
+	public function imageCategoryUpdate() {
+		$query = sprintf(" UPDATE `imageAttribType` SET `title` = '%s', `description` = '%s', `elementSet` = '%s', `term` = '%s' WHERE categoryId = %s "
+			, mysql_escape_string($this->imageCategoryGetProperty('title'))
+			, mysql_escape_string($this->imageCategoryGetProperty('description'))
+			, mysql_escape_string($this->imageCategoryGetProperty('elementSet'))
+			, mysql_escape_string($this->imageCategoryGetProperty('term'))
+			, mysql_escape_string($this->imageCategoryGetProperty('categoryId'))
+			);
+		if($this->db->query($query)) {
+			$this->db->query(sprintf("INSERT INTO `imageLog` (action, afterDesc, query, dateCreated) VALUES (5, 'categoryId: %s, value: %s', '%s', NOW())"
+			, mysql_escape_string($this->imageCategoryGetProperty('categoryId'))
+			, mysql_escape_string($this->imageCategoryGetProperty('title'))
+			, mysql_escape_string($query)
+			));
+			return true;
+		}
+		return false;
+	}
+
+	public function imageCategoryDelete($categoryId) {
+		if($categoryId == '') return false;
+		$query1 = '';
+		$query = sprintf("DELETE FROM `imageAttrib` WHERE categoryId = %s;", mysql_escape_string($categoryId));
+		$this->db->query($query);
+		$query1 .= $query;
+		$query = sprintf("DELETE FROM `imageAttribValue` WHERE categoryId = %s;", mysql_escape_string($categoryId));
+		$this->db->query($query);
+		$query1 .= $query;
+		$query = sprintf("DELETE FROM `imageAttribType` WHERE categoryId = %s;", mysql_escape_string($categoryId));
+		$this->db->query($query);
+		$query1 .= $query;
+		
+		$query2 = sprintf("INSERT INTO `imageLog` (action, afterDesc, query, dateCreated) VALUES (6, 'Category ID: %s', '%s', NOW())", mysql_escape_string($categoryId), mysql_escape_string($query1));
+		if($this->db->query($query2)) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+	
+	public function imageCategoryList() {
+		$query = "SELECT SQL_CALC_FOUND_ROWS * FROM `imageAttribType` WHERE 1=1 ";
+		
+		if(is_array($this->data['categoryId']) && count($this->data['categoryId'])) {
+			$query .= sprintf(" AND `categoryId` IN (%s) ", implode(',',$this->data['categoryId']));
+		} else if($this->data['categoryId'] != '' && is_numeric($this->data['categoryId'])) {
+			$query .= sprintf(" AND `categoryId` = %s ", mysql_escape_string($this->data['categoryId']));
+		}
+		
+		if($this->data['value'] != '') {
+			switch($this->data['searchFormat']) {
+				case 'exact':
+					$query .= sprintf(" AND `title` = '%s' ", mysql_escape_string($this->data['value']));
+					break;
+				case 'left':
+					$query .= sprintf(" AND `title` LIKE '%s%%' ", mysql_escape_string($this->data['value']));
+					break;
+				case 'right':
+					$query .= sprintf(" AND `title` LIKE '%%%s' ", mysql_escape_string($this->data['value']));
+					break;
+				case 'both':
+				default:
+					$query .= sprintf(" AND `title` LIKE '%%%s%%' ", mysql_escape_string($this->data['value']));
+					break;
+			}
+		}
+		$query .= " ORDER BY `categoryId`, `title` ";
+		if($this->data['start'] != '' && $this->data['limit'] != '') {
+			$query .= sprintf(" LIMIT %s, %s ", $this->data['start'], $this->data['limit']);
+		}
+		try {
+			$records = $this->db->query_all($query);
+		} catch (Exception $e) {
+			trigger_error($e->getMessage(),E_USER_ERROR);
+		}
+		return $records;
+	}
+
+	public function imageMetaDataPackageImport($data) {
+		if(!is_array($data)) return false;
+		$query = sprintf("INSERT IGNORE INTO `imageAttribType` SET `title` = '%s', `description` = '%s', `elementSet` = '%s', `term` = '%s'"
+				, mysql_escape_string($data[2])
+				, mysql_escape_string($data[3])
+				, mysql_escape_string($data[0])
+				, mysql_escape_string($data[1])
+				);
+		if($this->db->query($query)) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+}
+
+class ImageAttribValue
+{
+	public $db, $record;
+	public function __construct($db = null) {
+		$this->db = $db;
+	}
+	public function imageAttributeSetData($data) {
+		$this->data = $data;
+		return(true);
+	}
+	public function imageAttributeGetProperty( $field ) {
+		if (isset($this->record[$field])) {
+			return( $this->record[$field] );
+		} else {
+			return(false);
+		}
+	}
+	public function imageAttributeSetProperty( $field, $value ) {
+		$this->record[$field] = $value;
+		return(true);
+	}
+	
+	public function imageAttributeLoadById( $attributeId ) {
+		if($attributeId == '') return false;
+		$query = sprintf("SELECT * FROM `imageAttribValue` WHERE `attributeId` = %s", mysql_escape_string($attributeId) );
+		try {
+		$ret = $this->db->query_one( $query );
+		} catch (Exception $e) {
+			trigger_error($e->getMessage(),E_USER_ERROR);
+		}
+		if ($ret != NULL) {
+			foreach( $ret as $field => $value ) {
+				$this->imageAttributeSetProperty($field, $value);
+			}
+			return(true);
+		} else {
+			return(false);
+		}
+	}
+	
+	public function imageAttributeExists($attributeId) {
+		$query = sprintf("SELECT count(*) ct FROM `imageAttribValue` WHERE `attributeId` = '%s'", mysql_escape_string($attributeId));
+		$ret = $this->db->query_one($query);
+		return (is_object($ret) && $ret->ct) ? true : false;
+	}
+
+	public function imageAttributeDelete($attributeId) {
+		$query1 = '';
+		$query = sprintf("DELETE FROM `imageAttrib` WHERE attributeId = %s;", mysql_escape_string($attributeId));
+		$this->db->query($query);
+		$query1 .= $query;
+		$query = sprintf("DELETE FROM `imageAttribValue` WHERE attributeId = %s", mysql_escape_string($attributeId));
+		$this->db->query($query);		
+		$query1 .= $query;
+		$query = sprintf("INSERT INTO `imageLog` (action, afterDesc, query, dateCreated) VALUES (9, 'attributeId: %s', '%s', NOW())", mysql_escape_string($attributeId), $query1);
+		if($this->db->query($query)) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+	
+	public function imageAttributeAdd() {
+		$query = sprintf(" INSERT INTO `imageAttribValue` SET `name` = '%s', `categoryId` = '%s' "
+					, mysql_escape_string($this->imageCategoryGetProperty('name'))
+					, mysql_escape_string($this->imageCategoryGetProperty('categoryId'))
+					);
+
+		if($this->db->query($query)) {
+			$id = $this->db->insert_id;
+			$query1 = sprintf("INSERT INTO `imageLog` (action, afterDesc, query, dateCreated) VALUES (7, 'attributeId: %s, value: %s, categoryId: %s', '%s', NOW())"
+			, mysql_escape_string($id)
+			, mysql_escape_string($this->data['name'])
+			, mysql_escape_string($this->data['categoryId'])
+			, mysql_escape_string($query)
+			);
+			$this->db->query($query1);
+			return( $id );
+		}
+		return false;
+	}
+
+	public function imageAttributeUpdate() {
+		$query = sprintf(" UPDATE `imageAttribValue` SET `name` = '%s', `categoryId` = %s WHERE `attributeId` = %s "
+			, mysql_escape_string($this->imageCategoryGetProperty('name'))
+			, mysql_escape_string($this->imageCategoryGetProperty('categoryId'))
+			, mysql_escape_string($this->imageCategoryGetProperty('attributeId'))
+			);
+		if($this->db->query($query)) {
+			$query1 = sprintf("INSERT INTO `imageLog` (action, afterDesc, query, dateCreated) VALUES (8, 'attributeId: %s, value: %s', '%s', NOW())"
+				, mysql_escape_string($this->imageCategoryGetProperty('attributeId'))
+				, mysql_escape_string($this->imageCategoryGetProperty('name'))
+				, mysql_escape_string($query)
+				);
+			$this->db->query($query1);
+			return true;
+		}
+		return false;
+	}
+
+	
+}
+
+
 ?>

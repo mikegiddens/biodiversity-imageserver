@@ -13,27 +13,42 @@
 	*/
 
 	$expected = array (
-			'api'
+			'accountName'
+		,	'admin0'
+		,	'admin1'
+		,	'admin2'
+		,	'admin3'
+		,	'api'
 		,	'attributeId'
 		,	'callback'
 		,	'categoryId'
 		,	'code'
 		,	'collectionId'
+		,	'consumerKey'
+		,	'consumerSecret'
+		,	'country'
+		,	'countryIso'
 		,	'cmd'
 		,	'description'
 		,	'dir'
+		,	'enAccountId'
 		,	'eventId'
 		,	'eventTypeId'
 		,	'geoFlag'
+		,	'geographyId'
 		,	'geoId'
 		,	'group'
 		,	'key'
 		,	'limit'
 		,	'name'
+		,	'notebookGuid'
+		,	'password'
 		,	'searchFormat'
 		,	'showNames'
 		,	'start'
+		,	'tag'
 		,	'url'
+		,	'userName'
 		,	'title'
 		,	'value'
 
@@ -66,7 +81,7 @@
 		global $si,$userAccess;
 		switch($si->authMode) {
 			case 'key':
-				if(!$si->remoteAccess->checkRemoteAccess(ip2long($_SERVER['REMOTE_ADDR']), $key)) {
+				if(!$si->remoteAccess->remoteAccessCheck(ip2long($_SERVER['REMOTE_ADDR']), $key)) {
 					print_c (json_encode( array( 'success' => false, 'error' => array('msg' => $si->getError(103), 'code' => 103 )) ));
 					exit();
 				}
@@ -195,43 +210,46 @@
 	switch( $cmd ) {
 		case 'attributeAdd':
 			checkAuth();
-			$data['categoryId'] = $categoryId;
-			if($data['categoryId'] == '') {
+			if($categoryId == '') {
 				$valid = false;
 				$errorCode = 101;
-			}
-			$data['value'] = $value;
-			if($data['value'] == '') {
+			} else if(!$si->imageCategory->imageCategoryExists($categoryId)) {
 				$valid = false;
-				$errorCode = 102;
+				$errorCode = 147;
+			}
+			if($name == '') {
+				$valid = false;
+				$errorCode = 148;
 			}
 			if($valid) {
-				$si->image->imageSetData($data);
-				$id = $si->image->imageAddAttribute();
+				$si->imageAttribute->imageAttributeSetProperty('name',$name);
+				$si->imageAttribute->imageAttributeSetProperty('categoryId',$categoryId);
+				$id = $si->imageAttribute->imageAttributeAdd();
 				if($id) {
 					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart, 'attributeId' => $id ) ) );
 				} else {
-					print_c( json_encode( array( 'success' => false, 'error' => array ( 'code' => 105, 'msg' => $si->getError(105) ) ) ) );
+					print_c( json_encode( array( 'success' => false, 'error' => $si->getErrorArray(105) ) ) ) ;
 				}
 			} else {
-				print_c( json_encode( array( 'success' => false, 'error' => array ( 'code' => $errorCode, 'msg' => $si->getError($errorCode) ) ) ) );
+				print_c( json_encode( array( 'success' => false, 'error' => $si->getErrorArray($errorCode) ) ) );
 			}
 			break;
 			
 		case 'attributeDelete':
 			checkAuth();
-			$data['attributeId'] = $attributeId;
-			if($data['attributeId'] == "") {
+			if($attributeId == "") {
 				$valid = false;
 				$errorCode = 109;
+			} else if ($si->imageAttribute->imageAttributeExists($attributeId)) {
+				$valid = false;
+				$errorCode = 149;
 			}
 			if($valid) {
-				$si->image->imageSetData($data);
-				if($si->image->imageDeleteAttribute()) {
+				if($si->imageAttribute->imageAttributeDelete($attributeId)) {
 					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart ) ) );
 				}
 			} else {
-				print_c( json_encode( array( 'success' => false, 'error' => array ( 'code' => $errorCode, 'msg' => $si->getError($errorCode) ) ) ) );
+				print_c( json_encode( array( 'success' => false, 'error' => $si->getErrorArray($errorCode) ) ) );
 			}
 			break;
 
@@ -256,52 +274,73 @@
 						}
 						print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart, 'totalCount' => $si->image->total, 'records' => $names ) ) );
 				} else {
-					print_c( json_encode( array( 'success' => false, 'error' => array ( 'code' => $errorCode, 'msg' => $si->getError($errorCode) ) ) ) );
+					print_c( json_encode( array( 'success' => false, 'error' => $si->getErrorArray($errorCode) ) ) );
 				}
 			break;
 
 		case 'attributeUpdate':
-				checkAuth();
-				$data['value'] = $value;
-				if($data['value'] == "") {
-					$valid = false;
-					$errorCode = 102;
+			checkAuth();
+			if($attributeId == "") {
+				$valid = false;
+				$errorCode = 109;
+			} else if ($si->imageAttribute->imageAttributeLoadById($attributeId)) {
+				$valid = false;
+				$errorCode = 149;
+			}
+			if($valid) {
+				(trim($name) != '') ? $si->imageAttribute->imageAttributeSetProperty('name',$name) : '';
+				(trim($categoryId) != '') ? $si->imageAttribute->imageAttributeSetProperty('categoryId',$categoryId) : '';
+
+				if($si->imageAttribute->imageAttributeUpdate()) {
+					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart ) ) );
 				}
-				$data['attributeId'] = $attributeId;
-				if($data['attributeId'] == "") {
-					$valid = false;
-					$errorCode = 109;
-				}
-				if($valid) {
-					$si->image->imageSetData($data);
-					if($si->image->imageRenameAttribute()) {
-						print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart ) ) );
-					}
-				} else {
-					print_c( json_encode( array( 'success' => false, 'error' => array ( 'code' => $errorCode, 'msg' => $si->getError($errorCode) ) ) ) );
-				}
+			} else {
+				print_c( json_encode( array( 'success' => false, 'error' => $si->getErrorArray($errorCode) ) ) );
+			}
 			break;
 			
 		case 'categoryAdd':
 			checkAuth();
-			$data['value'] = $value;
-			if($data['value'] == "") {
+			if($title == "") {
 				$valid = false;
-				$errorCode = 102;
+				$errorCode = 112;
 			}
 			if($valid) {
-				$si->image->imageSetData($data);
-				$id = $si->image->imageAddCategory();
+				$si->imageCategory->imageCategorySetProperty('title',$title);
+				$si->imageCategory->imageCategorySetProperty('description',$description);
+				$si->imageCategory->imageCategorySetProperty('elementSet',$elementSet);
+				$si->imageCategory->imageCategorySetProperty('term',$term);
+				$id = $si->imageCategory->imageCategoryAdd();
 				if($id) {
 					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart, 'categoryId' => $id ) ) );
 				} else {
-					print_c( json_encode( array( 'success' => false, 'error' => array ( 'code' => 110, 'msg' => $si->getError(110) ) ) ) );
+					print_c( json_encode( array( 'success' => false, 'error' => $si->getErrorArray(110) ) ) );
 				}
 			} else {
-				print_c( json_encode( array( 'success' => false, 'error' => array ( 'code' => $errorCode, 'msg' => $si->getError($errorCode) ) ) ) );
+				print_c( json_encode( array( 'success' => false, 'error' => $si->getErrorArray($errorCode) ) ) );
 			}
 			break;
-			
+
+		case 'categoryDelete':
+			checkAuth();
+			if($categoryId == "") {
+				$valid = false;
+				$errorCode = 101;
+			} else if(!$si->imageCategory->imageCategoryExists($categoryId)) {
+				$valid = false;
+				$errorCode = 147;
+			}
+			if($valid) {
+				if($si->imageCategory->imageCategoryDelete($categoryId)) {
+					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart ) ) );
+				} else {
+					print_c( json_encode( array( 'success' => false, 'error' => $si->getErrorArray(146) ) ) );
+				}
+			} else {
+				print_c( json_encode( array( 'success' => false, 'error' => $si->getErrorArray($errorCode) ) ) );
+			}
+			break;
+
 		case 'categoryList':
 			$data['start'] = (is_numeric($start)) ? $start : 0;
 			$data['limit'] = (is_numeric($limit)) ? $limit : 10;
@@ -310,36 +349,37 @@
 			
 			$data['categoryId'] = (!is_numeric($categoryId)) ? json_decode(stripslashes(trim($categoryId)),true) : $categoryId;
 			if($valid) {
-				$si->image->imageSetData($data);
-				$rets = $si->image->imageListCategory();
+				$si->imageCategory->imageCategorySetData($data);
+				$rets = $si->imageCategory->imageCategoryList();
 				$rets = is_null($rets) ? array() : $rets;
-				print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart, 'totalCount' => $si->image->db->query_total(), 'records' => $rets ) ) );
+				print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart, 'totalCount' => $si->imageCategory->db->query_total(), 'records' => $rets ) ) );
 			} else {
-				print_c( json_encode( array( 'success' => false, 'error' => array ( 'code' => $errorCode, 'msg' => $si->getError($errorCode) ) ) ) );
+				print_c( json_encode( array( 'success' => false, 'error' => $si->getErrorArray($errorCode) ) ) );
 			}
 			break;
 
 		case 'categoryUpdate':
 			checkAuth();
-			$data['value'] = $value;
-			if($data['value'] == "") {
-				$valid = false;
-				$errorCode = 102;
-			}
-			$data['categoryId'] = $categoryId;
-			if($data['categoryId'] == "") {
+			if($categoryId == "") {
 				$valid = false;
 				$errorCode = 101;
+			} else if(!$si->imageCategory->imageCategoryLoadById($categoryId)) {
+				$valid = false;
+				$errorCode = 147;
 			}
 			if($valid) {
-				$si->image->imageSetData($data);
-				if($si->image->imageUpdateCategory()) {
+				$si->imageCategory->imageCategorySetProperty('categoryId',$categoryId);
+				(trim($title) != '') ? $si->imageCategory->imageCategorySetProperty('title',$title) : '';
+				(trim($description) != '') ? $si->imageCategory->imageCategorySetProperty('description',$description) : '';
+				(trim($elementSet) != '') ? $si->imageCategory->imageCategorySetProperty('elementSet',$elementSet) : '';
+				(trim($term) != '') ? $si->imageCategory->imageCategorySetProperty('term',$term) : '';
+				if($si->imageCategory->imageCategoryUpdate()) {
 					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart ) ) );
 				} else {
-					print_c( json_encode( array( 'success' => false, 'error' => array ( 'code' => 111, 'msg' => $si->getError(111) ) ) ) );
+					print_c( json_encode( array( 'success' => false, 'error' => $si->getErrorArray(111) ) ) );
 				}
 			} else {
-				print_c( json_encode( array( 'success' => false, 'error' => array ( 'code' => $errorCode, 'msg' => $si->getError($errorCode) ) ) ) );
+				print_c( json_encode( array( 'success' => false, 'error' => $si->getErrorArray($errorCode) ) ) );
 			}
 			break;
 			
@@ -359,10 +399,10 @@
 				if($si->collection->collectionSave()) {
 					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart, 'collectionId' => $si->collection->insert_id ) ) );
 				} else {
-					print_c( json_encode( array( 'success' => false,  'error' => array('code' => 127, 'msg' => $si->getError(127)) ) ));
+					print_c( json_encode( array( 'success' => false,  'error' => $si->getErrorArray(127) ) ));
 				}
 			} else {
-				print_c( json_encode( array( 'success' => false,  'error' => array('code' => $errorCode, 'msg' => $si->getError($errorCode)) ) ));
+				print_c( json_encode( array( 'success' => false,  'error' => $si->getErrorArray($errorCode) ) ));
 			}
 			break;
 			
@@ -379,10 +419,10 @@
 				if($si->collection->collectionDelete($collectionId)) {
 					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart) ) );
 				} else {
-					print_c( json_encode( array( 'success' => false,  'error' => array('code' => 127, 'msg' => $si->getError(127)) ) ));
+					print_c( json_encode( array( 'success' => false,  'error' => $si->getErrorArray(127) ) ));
 				}
 			} else {
-				print_c( json_encode( array( 'success' => false,  'error' => array('code' => $errorCode, 'msg' => $si->getError($errorCode)) ) ));
+				print_c( json_encode( array( 'success' => false,  'error' => $si->getErrorArray($errorCode) ) ));
 			}
 			break;
 
@@ -402,7 +442,7 @@
 				$ret = $si->collection->collectionList();
 				print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart, 'totalCount' => $si->collection->db->query_total(), 'records' => $ret ) ) );
 			} else {
-				print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($errorCode) , 'code' => $errorCode ) ) ) );
+				print_c( json_encode( array( 'success' => false,  'error' => $si->getErrorArray($errorCode) ) ) );
 			}
 			break;
 
@@ -426,10 +466,10 @@
 				if($si->collection->collectionSave()) {
 					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart ) ) );
 				} else {
-					print_c( json_encode( array( 'success' => false, 'error' => array ( 'code' => 129, 'msg' => $si->getError(129) ) ) ) );
+					print_c( json_encode( array( 'success' => false, 'error' => $si->getErrorArray(129) ) ) );
 				}
 			} else {
-				print_c( json_encode( array( 'success' => false, 'error' => array ( 'code' => $errorCode, 'msg' => $si->getError($errorCode) ) ) ) );
+				print_c( json_encode( array( 'success' => false, 'error' => $si->getErrorArray($errorCode) ) ) );
 			}
 			break;
 			
@@ -457,10 +497,10 @@
 				if($si->event->eventsSave()) {
 					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart, 'eventId' => $si->event->insert_id ) ) );
 				} else {
-					print_c( json_encode( array( 'success' => false, 'error' => array ( 'code' => 114, 'msg' => $si->getError(114) ) ) ) );
+					print_c( json_encode( array( 'success' => false, 'error' => $si->getErrorArray(114) ) ) );
 				}
 			} else {
-				print_c( json_encode( array( 'success' => false, 'error' => array ( 'code' => $errorCode, 'msg' => $si->getError($errorCode) ) ) ) );
+				print_c( json_encode( array( 'success' => false, 'error' => $si->getErrorArray($errorCode) ) ) );
 			}
 			break;
 
@@ -479,10 +519,10 @@
 				if($si->event->eventsDelete($eventId)) {
 					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart ) ) );
 				} else {
-					print_c( json_encode( array( 'success' => false, 'error' => array ( 'code' => 116, 'msg' => $si->getError(116) ) ) ) );
+					print_c( json_encode( array( 'success' => false, 'error' => $si->getErrorArray(116) ) ) );
 				}
 			} else {
-				print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($errorCode) , 'code' => $errorCode ) ) ) );
+				print_c( json_encode( array( 'success' => false,  'error' => $si->getErrorArray($errorCode) ) ) );
 			}
 			break;
 
@@ -503,7 +543,7 @@
 				$ret = $si->event->eventsListRecords();
 				print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart, 'totalCount' => $si->event->db->query_total(), 'records' => $ret ) ) );
 			} else {
-				print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($errorCode) , 'code' => $errorCode ) ) ) );
+				print_c( json_encode( array( 'success' => false,  'error' => $si->getErrorArray($errorCode) ) ) );
 			}
 			break;
 
@@ -529,10 +569,10 @@
 				if($si->event->eventsSave()) {
 					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart ) ) );
 				} else {
-					print_c( json_encode( array( 'success' => false, 'error' => array ( 'code' => 118, 'msg' => $si->getError(118) ) ) ) );
+					print_c( json_encode( array( 'success' => false, 'error' => $si->getErrorArray(118) ) ) );
 				}
 			} else {
-				print_c( json_encode( array( 'success' => false, 'error' => array ( 'code' => $errorCode, 'msg' => $si->getError($errorCode) ) ) ) );
+				print_c( json_encode( array( 'success' => false, 'error' => $si->getErrorArray($errorCode) ) ) );
 			}
 			break;
 
@@ -553,33 +593,15 @@
 				
 				if($si->eventType->eventTypesSave()) {
 					if(false == $si->eventType->insert_id) {
-						print_c( json_encode( array( 'success' => false, 'error' => array ( 'code' => 123, 'msg' => $si->getError(123) ) ) ) );
+						print_c( json_encode( array( 'success' => false, 'error' => $si->getErrorArray(123) ) ) );
 					} else {
 						print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart, 'eventTypeId' => $si->eventType->insert_id ) ) );
 					}
 				} else {
-					print_c( json_encode( array( 'success' => false, 'error' => array ( 'code' => 119, 'msg' => $si->getError(119) ) ) ) );
+					print_c( json_encode( array( 'success' => false, 'error' => $si->getErrorArray(119) ) ) );
 				}
 			} else {
-				print_c( json_encode( array( 'success' => false, 'error' => array ( 'code' => $errorCode, 'msg' => $si->getError($errorCode) ) ) ) );
-			}
-			break;
-
-		case 'eventTypeList':
-			$data['start'] = ($start == '') ? 0 : $start;
-			$data['limit'] = ($limit == '') ? 100 : $limit;
-			$data['eventTypeId'] = (!is_numeric($eventTypeId)) ? json_decode(stripslashes(trim($eventTypeId)),true) : $eventTypeId;
-			$data['searchFormat'] = in_array(strtolower(trim($searchFormat)),array('exact','left','right','both')) ? strtolower(trim($searchFormat)) : 'both';
-			$data['value'] = str_replace('%','%%',trim($value));
-			$data['group'] = $group;
-			$data['dir'] = (strtoupper(trim($dir)) == 'DESC') ? 'DESC' : 'ASC';
-
-			if($valid) {
-				$si->eventType->eventTypesSetData($data);
-				$ret = $si->eventType->eventTypesListRecords();
-				print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart, 'totalCount' => $si->eventType->db->query_total(), 'records' => $ret ) ) );
-			} else {
-				print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($errorCode) , 'code' => $errorCode ) ) ) );
+				print_c( json_encode( array( 'success' => false, 'error' => $si->getErrorArray($errorCode) ) ) );
 			}
 			break;
 
@@ -599,11 +621,29 @@
 				if($si->eventType->eventTypesDelete($eventTypeId)) {
 					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart ) ) );
 				} else {
-					print_c( json_encode( array( 'success' => false, 'error' => array ( 'code' => 121, 'msg' => $si->getError(121) ) ) ) );
+					print_c( json_encode( array( 'success' => false, 'error' => $si->getErrorArray(121) ) ) );
 				}
 
 			} else {
-				print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($errorCode) , 'code' => $errorCode ) ) ) );
+				print_c( json_encode( array( 'success' => false,  'error' => $si->getErrorArray($errorCode) ) ) );
+			}
+			break;
+
+		case 'eventTypeList':
+			$data['start'] = ($start == '') ? 0 : $start;
+			$data['limit'] = ($limit == '') ? 100 : $limit;
+			$data['eventTypeId'] = (!is_numeric($eventTypeId)) ? json_decode(stripslashes(trim($eventTypeId)),true) : $eventTypeId;
+			$data['searchFormat'] = in_array(strtolower(trim($searchFormat)),array('exact','left','right','both')) ? strtolower(trim($searchFormat)) : 'both';
+			$data['value'] = str_replace('%','%%',trim($value));
+			$data['group'] = $group;
+			$data['dir'] = (strtoupper(trim($dir)) == 'DESC') ? 'DESC' : 'ASC';
+
+			if($valid) {
+				$si->eventType->eventTypesSetData($data);
+				$ret = $si->eventType->eventTypesListRecords();
+				print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart, 'totalCount' => $si->eventType->db->query_total(), 'records' => $ret ) ) );
+			} else {
+				print_c( json_encode( array( 'success' => false,  'error' => $si->getErrorArray($errorCode) ) ) );
 			}
 			break;
 
@@ -627,20 +667,313 @@
 				if($si->eventType->eventTypesSave()) {
 					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart ) ) );
 				} else {
-					print_c( json_encode( array( 'success' => false, 'error' => array ( 'code' => 122, 'msg' => $si->getError(122) ) ) ) );
+					print_c( json_encode( array( 'success' => false, 'error' => $si->getErrorArray(122) ) ) );
 				}
 			} else {
-				print_c( json_encode( array( 'success' => false, 'error' => array ( 'code' => $errorCode, 'msg' => $si->getError($errorCode) ) ) ) );
+				print_c( json_encode( array( 'success' => false, 'error' => $si->getErrorArray($errorCode) ) ) );
+			}
+			break;
+			
+		case 'evernoteAccountAdd':
+			checkAuth();
+			if($accountName=='' || $userName=='' || $password=='' || $consumerKey=='' || $consumerSecret=='' || $notebookGuid=='') {
+				$valid = false;
+				$errorCode = 131;
+			} else if ($si->en->evernoteAccountsExists($accountName)) {
+				$valid = false;
+				$errorCode = 132;
+			}
+			if($valid) {
+				$data['accountName'] = $accountName;
+				$data['userName'] = $userName;
+				$data['password'] = $password;
+				$data['consumerKey'] = $consumerKey;
+				$data['consumerSecret'] = $consumerSecret;
+				$data['notebookGuid'] = $notebookGuid;
+				$data['rank'] = (trim($rank)!='') ? $rank : 0;
+				$si->en->evernoteAccountsSetAllData($data);
+				if(false === ($id = $si->en->evernoteAccountsAdd())) {
+					print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray(135)) ));
+				} else {
+					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart, 'enAccountId' => $id ) ) );
+				}
+			} else {
+				print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray($errorCode)) ));
+			}
+			break;
+			
+		case 'evernoteAccountDelete':
+			checkAuth();
+			if($enAccountId==''){
+				$valid = false;
+				$errorCode = 133;
+			} elseif(!$si->en->evernoteAccountsLoadById($enAccountId)) {
+				$valid = false;
+				$errorCode = 134;
+			}
+			if($valid) {
+				if($si->en->evernoteAccountsDelete($enAccountId)) {
+					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart ) ) );
+				} else {
+					print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray(136)) ));
+				}
+			} else {
+				print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray($errorCode)) ));
+			}
+			break;
+			
+		case 'evernoteAccountList':
+			checkAuth();
+			$data['start'] = ($start == '') ? 0 : $start;
+			$data['limit'] = ($limit == '') ? 100 : $limit;
+			$data['enAccountId'] = (!is_numeric($enAccountId)) ? json_decode(stripslashes(trim($enAccountId)),true) : $enAccountId;
+			$data['searchFormat'] = in_array(strtolower(trim($searchFormat)),array('exact','left','right','both')) ? strtolower(trim($searchFormat)) : 'both';
+			$data['value'] = str_replace('%','%%',trim($value));
+			$data['group'] = $group;
+			$data['dir'] = (strtoupper(trim($dir)) == 'DESC') ? 'DESC' : 'ASC';
+			$si->en->evernoteAccountsSetData($data);
+			if($valid) {
+				$accounts = $si->en->evernoteAccountsList();
+				print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart, 'totalCount' => $si->en->db->query_total(), 'records' => $accounts ) ) );
+			} else {
+				print_c( json_encode( array( 'success' => false, 'error' => $si->getErrorArray($errorCode) ) ) );
+			}
+			break;
+			
+		case 'evernoteAccountUpdate':
+			checkAuth();
+			if($enAccountId==''){
+				$valid = false;
+				$errorCode = 133;
+			} else if(!$si->en->evernoteAccountsLoadById($enAccountId)) {
+				$valid = false;
+				$errorCode = 134;
+			} else if ($accountName!='' && $accountName != $si->en->evernoteAccountsGetProperty('accountName') && $si->en->evernoteAccountsExists($accountName)) {
+				$valid = false;
+				$errorCode = 132;
+			}
+			if($valid) {
+				if($accountName!='') $data['accountName'] = $accountName;
+				if($userName!='') $data['userName'] = $userName;
+				if($password!='') $data['password'] = $password;
+				if($consumerKey!='') $data['consumerKey'] = $consumerKey;
+				if($consumerSecret!='') $data['consumerSecret'] = $consumerSecret;
+				if($notebookGuid!='') $data['notebookGuid'] = $notebookGuid;
+				if($rank!='') $data['rank'] = $rank;
+				$si->en->evernoteAccountsSetAllData($data);
+				if($si->en->evernoteAccountsUpdate()) {
+					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart ) ) );
+				} else {
+					print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray(137)) ));
+				}
+			} else {
+				print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray($errorCode)) ));
 			}
 			break;
 
+		case 'evernoteSearchByLabel':
+			$value = urldecode(trim($value));
+			$enAccountId = trim($enAccountId);
+			if($value == '') {
+				$valid = false;
+				$errorCode = 102;
+			} elseif($enAccountId!='' && !$si->en->evernoteAccountsFieldExists($enAccountId)) {
+				$valid = false;
+				$errorCode = 134;
+			}
+			if($valid) {
+				$tag = (trim($tag)!='') ? $tag : '';
+				if($tag != '') {
+					$tagRecord = $si->en->evernoteTagsLoadByTagName($tag);
+					if($tagRecord) {
+						$tag = $tagRecord['tagGuid'];
+					} else {
+						$tag = '';
+					}
+				}
+				$start = (trim($start) == '') ? 0 : trim($start);
+				$limit = (trim($limit) == '') ? 25 : trim($limit);
+				$data = array();
+				$si->en->evernoteAccountsSetData(array('enAccountId' => $enAccountId));
+				$accounts = $si->en->evernoteAccountsList();
+				$totalNotes = 0;
+				if(is_array($accounts) && count($accounts)) {
+				$limit = ceil($limit/(count($accounts)));
+				foreach($accounts as $account) {
+				$evernote_details_json = json_encode($account);
+
+				$url = $config['evernoteUrl'];
+				$url .= '?cmd=findNotes&auth=[' . $evernote_details_json . ']&start=' . $start . '&limit=' . $limit . '&searchWord=' . urlencode($value);
+				if($tag != '') $url .= '&tag=[\"'.$tag.'\"]';
+				$rr = json_decode(@file_get_contents($url),true);
+				if($rr['success']) {
+					//$totalNotes += $rr['totalNotes'];
+					$labels = $rr['data'];
+					if(is_array($labels) && count($labels)) {
+						foreach($labels as $label) {
+							if(!array_key_exists($label,$data)) {
+								$ar = array();
+								if(!$si->s2l->load_by_labelId($label)) continue;
+								$totalNotes++;
+								$si->image->imageSetData(array("field"=>"barcode", "value"=>$si->s2l->get('barcode'), "start"=>0, "limit"=>$limit));
+								$ar = $si->image->imageList();
+								$ar = $ar[0];
+								$tmpPath = $si->image->getUrl($ar->image_id);
+								$ar->path = $tmpPath['baseUrl'];
+								$fname = explode(".", $ar->filename);
+								$ar->ext = $fname[1];
+								$ar->en_flag = ($si->s2l->load_by_barcode($ar->barcode)) ? 1 : 0;
+								$data[$label] = $ar;
+							}
+						}
+					}
+				} # if rr[success]
+				} # for
+				} # if labels
+				$data = @array_values($data);
+				print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart, 'totalCount' => $totalNotes, 'records' => $data ) ));
+			} else {
+				print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray($errorCode)) ));
+			}
+
+			break;
+
 			
+		case 'geographyAdd':
+			checkAuth();
+			if($country == '' || $countryIso == '') {
+				$valid = false;
+				$errorCode = 138;
+			} else if ($si->geography->geographyCountryExists($country)) {
+				$valid = false;
+				$errorCode = 139;
+			} else if ($si->geography->geographyCountryIsoExists($countryIso)) {
+				$valid = false;
+				$errorCode = 140;
+			}
+			if($valid) {
+				$si->geography->geographySetProperty('country', $country);
+				$si->geography->geographySetProperty('countryIso', $countryIso);
+				$si->geography->geographySetProperty('admin0', $admin0);
+				$si->geography->geographySetProperty('admin1', $admin1);
+				$si->geography->geographySetProperty('admin2', $admin2);
+				$si->geography->geographySetProperty('admin3', $admin3);
+				if(false === ($id = $si->geography->geographySave())) {
+					print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray(143)) ));
+				} else {
+					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart, 'geographyId' => $id ) ) );
+				}
+			} else {
+				print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray($errorCode)) ));
+			}
+			break;
+			
+		case 'geographyDelete':
+			checkAuth();
+			if($geographyId==''){
+				$valid = false;
+				$errorCode = 141;
+			} elseif(!$si->geography->geographyLoadById($geographyId)) {
+				$valid = false;
+				$errorCode = 142;
+			}
+			if($valid) {
+				if($si->geography->geographyDelete($geographyId)) {
+					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart ) ) );
+				} else {
+					print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray(144)) ));
+				}
+			} else {
+				print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray($errorCode)) ));
+			}
+			break;
+
+		case 'geographyImport':
+			
+			break;
+			
+		case 'geographyList':
+			checkAuth();
+			$data['start'] = ($start == '') ? 0 : $start;
+			$data['limit'] = ($limit == '') ? 100 : $limit;
+			$data['geographyId'] = (!is_numeric($geographyId)) ? json_decode(stripslashes(trim($geographyId)),true) : $geographyId;
+			$data['countryIso'] = $countryIso;
+			$data['searchFormat'] = in_array(strtolower(trim($searchFormat)),array('exact','left','right','both')) ? strtolower(trim($searchFormat)) : 'both';
+			$data['value'] = str_replace('%','%%',trim($value));
+			$data['group'] = $group;
+			$data['dir'] = (strtoupper(trim($dir)) == 'DESC') ? 'DESC' : 'ASC';
+			$si->geography->geographySetData($data);
+			if($valid) {
+				$records = $si->geography->geographyList();
+				print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart, 'totalCount' => $si->geography->db->query_total(), 'records' => $records ) ) );
+			} else {
+				print_c( json_encode( array( 'success' => false, 'error' => $si->getErrorArray($errorCode) ) ) );
+			}
+			break;
+			
+		case 'geographyUpdate':
+			checkAuth();
+			if($geographyId ==''){
+				$valid = false;
+				$errorCode = 141;
+			} elseif(!$si->geography->geographyLoadById($geographyId)) {
+				$valid = false;
+				$errorCode = 142;
+			} else if ($country != '' && $country != $si->geography->geographyGetProperty('country') && $si->geography->geographyCountryExists($country)) {
+				$valid = false;
+				$errorCode = 139;
+			} else if ($countryIso != '' && $countryIso != $si->geography->geographyGetProperty('countryIso') && $si->geography->geographyCountryIsoExists($countryIso)) {
+				$valid = false;
+				$errorCode = 140;
+			}
+			if($valid) {
+				($country != '' ) ? $si->geography->geographySetProperty('country', $country) : '';
+				($countryIso != '' ) ? $si->geography->geographySetProperty('countryIso', $countryIso) : '';
+				($admin0 != '' ) ? $si->geography->geographySetProperty('admin0', $admin0) : '';
+				($admin1 != '' ) ? $si->geography->geographySetProperty('admin1', $admin1) : '';
+				($admin2 != '' ) ? $si->geography->geographySetProperty('admin2', $admin2) : '';
+				($admin3 != '' ) ? $si->geography->geographySetProperty('admin3', $admin3) : '';
+				if($si->geography->geographyUpdate()) {
+					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart ) ) );
+				} else {
+					print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray(145)) ));
+				}
+			} else {
+				print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray($errorCode)) ));
+			}
+			break;
+
+		case 'helpingscienceQueueList':
+			$data['start'] = ($start != '') ? $start : 0;
+			$data['limit'] = ($limit != '') ? $limit : 100;
+			if(is_array($filter)) {
+				$data['filter'] = $filter;
+			} else {
+				$data['filter'] = json_decode(stripslashes($filter),true);
+			}
+			$data['clientId'] = (!is_numeric($clientId)) ? json_decode(stripslashes(trim($clientId)),true) : $clientId;
+			$data['collectionId'] = (!is_numeric($collectionId)) ? json_decode(stripslashes(trim($collectionId)),true) : $collectionId;
+			$data['imageServerId'] = (!is_numeric($imageServerId)) ? json_decode(stripslashes(trim($imageServerId)),true) : $imageServerId;
+			$data['searchFormat'] = in_array(strtolower(trim($searchFormat)),array('exact','left','right','both')) ? strtolower(trim($searchFormat)) : 'both';
+			$data['value'] = str_replace('%','%%',trim($value));
+			$data['group'] = $group;
+			$data['dir'] = (strtoupper(trim($dir)) == 'DESC') ? 'DESC' : 'ASC';
+
+			if($valid) {
+				$si->bis->bis2HsSetData($data);
+				$data = $si->bis->bis2HsList();
+				print_c( json_encode( array( 'success' => true, 'totalCount' => $si->bis->db->query_total(), 'records' => $data ) ) );
+			}else {
+				print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray($errorCode)) ));
+			}
+
+			break;
 			
 		case 'metadataPackageImport':
 			if($url == '' || $key == '') {
 				$valid = false;
 				$errorCode = 106;
-			} elseif(!$si->remoteAccess->checkRemoteAccess(ip2long($_SERVER['REMOTE_ADDR']), $key)) {
+			} elseif(!$si->remoteAccess->remoteAccessCheck(ip2long($_SERVER['REMOTE_ADDR']), $key)) {
 				$valid = false;
 				$errorCode = 103;
 			} elseif(!($fp = fopen($url, "r"))) {
@@ -662,15 +995,87 @@
 				}
 				if($count == 0) {
 					$errorCode = 108;
-					print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($errorCode) , 'code' => $errorCode ) ) ) );
+					print_c( json_encode( array( 'success' => false,  'error' => $si->getErrorArray($errorCode) ) ) );
 				} else {
 					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart, 'totalCount' => $count ) ) );
 				}
+			} else {
+				print_c( json_encode( array( 'success' => false,  'error' => $si->getErrorArray($errorCode) ) ) );
+			}
+			break;
+			
+		case 'remoteAccessKeyList':
+			$whitelist=  array('localhost',  '127.0.0.1');
+			if(!in_array($_SERVER['HTTP_HOST'],  $whitelist)){
+				//$valid = false;
+				$errorCode = 150;
+			}
+			if($valid) {
+				$list = $si->remoteAccess->remoteAccessList();
+				$listArray = array();
+				while($record = $list->fetch_object())
+				{
+					$item['ip'] = $record->ip;
+					$item['key'] = $record->key;
+					$item['active'] = $record->active;
+					$listArray[] = $item;
+				}
+				print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart, 'records' => $listArray ) ) );
+			} else {
+				print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray($errorCode)) ));
+			}
+			break;
+
+
+		case 'storageDeviceAdd':
+			$data['name'] = trim($name);
+			$data['description'] = trim($description);
+			$data['type'] = trim($type);
+			$data['baseUrl'] = trim($baseUrl);
+			$data['basePath'] = trim($basePath);
+			$data['user'] = trim($user);
+			$data['pw'] = trim($pw);
+			$data['key'] = trim($key);
+			$data['active'] = (trim($active) == 'false') ? 'false' : 'true';
+			$default = (trim($default) == 'true') ? true : false;
+			if($name=='' || $type=='' || $baseUrl=='') {
+				$errorCode = 148;
+				print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($errorCode) , 'code' => $errorCode ) ) ) );
+			} else {
+				$si->storage->set_all($data);
+				$id = $si->storage->save();
+				if($default) {
+					$si->storage->setDefault($id);
+				}
+				print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start, 'storage_id' => $id ) ) );
+			}
+			break;
+		
+		case 'storageDeviceList':
+			if(is_array($si->storage->devices)) {
+				print_c( json_encode( array( 'success' => true, 'totalCount' => count($si->storage->devices), 'processTime' => microtime(true) - $time_start, 'data' => $si->storage->devices ) ) );
+			} else {
+				$errorCode = 149;
+				print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($errorCode) , 'code' => $errorCode ) ) ) );
+			}
+			break;
+			
+		case 'storageDeviceSetDefault':
+			if(($storage_id == '') || (!$si->storage->exists($storage_id))) {
+				$valid = false;
+				$errorCode = 150;
+			} else{
+				$valid = true;
+			}
+			if($valid){
+				$si->storage->setDefault($storage_id);
+				print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start ) ) );
 			} else {
 				print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($errorCode) , 'code' => $errorCode ) ) ) );
 			}
 			break;
 
+			
 		default:
 			$errorCode = 100;
 			print_c( json_encode( array( 'success' => false,  'error' => array('code' => $errorCode, 'message' => $si->getError($errorCode)) ) ) );

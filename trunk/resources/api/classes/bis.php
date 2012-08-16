@@ -42,13 +42,15 @@
 			} else {
 				$this->amazon = NULL;
 			}
-			$this->bis = new Bis2hs($this->db);
+			$this->bis = new Bis2Hs($this->db);
 			$this->collection = new Collection($this->db);
 			$this->event = new Event($this->db);
 			$this->eventType = new EventTypes($this->db);
 			$this->en = new EvernoteAccounts($this->db);
 			$this->geography = new Geography($this->db);
 			$this->image = new Image($this->db);
+			$this->imageAttribute = new ImageAttribValue($this->db);
+			$this->imageCategory = new ImageAttribType($this->db);
 			$this->imageRating = new ImageRating($this->db);
 			$this->images = new Images($this->db);
 			$this->lg = new LogClass($this->db);
@@ -59,7 +61,7 @@
 			$this->s2l = new Specimen2label($this->db);
 			$this->userPerm = new UserPermissions($this->db);
 			$this->set = new Set($this->db);
-			$this->storage = new Storage($this->db);
+			$this->storage = new StorageDevice($this->db);
 		}
 
 		function load($project) {
@@ -74,6 +76,10 @@
 			if(in_array(strtolower($authMode), $expectedAM)) {
 				$this->authMode = strtolower($authMode);
 			}
+		}
+
+		public function getErrorArray($errorCode) {
+			return array('msg' => $this->getError($errorCode), 'code' => $errorCode );
 		}
 		
 		public function getError($errorCode) {
@@ -109,6 +115,27 @@
 				, 128 => 'Collection Does Not Exist.'
 				, 129 => 'Collection Could Not be Updated.'
 				, 130 => 'Collection Could Not be Added.'
+				, 131 => 'accountName, userName, password, consumerKey, consumerSecret and notebookGuid should be provided.'
+				, 132 => 'Evernote accountName already exists.'
+				, 133 => 'enAccountId should be provided.'
+				, 134 => 'enAccountId does not exist.'
+				, 135 => 'Evernote Account Could Not be Added.'
+				, 136 => 'Evernote Account Could Not be Deleted.'
+				, 137 => 'Evernote Account Could Not be Updated.'
+				, 138 => 'country and countryIso should be provided.'
+				, 139 => 'country already exists.'
+				, 140 => 'countryIso already exists.'
+				, 141 => 'geographyId should be provided.'
+				, 142 => 'Geography Does Not Exist.'
+				, 143 => 'Geography Could Not be Added.'
+				, 144 => 'Geography Could Not be Deleted.'
+				, 145 => 'Geography Could Not be Updated.'
+				, 146 => 'Category Could Not be Deleted.'
+				, 147 => 'Category Does Not be Exist.'
+				, 148 => 'name should be provided.'
+				, 149 => 'Attribute Does Not Exist.'
+				, 150 => 'Insufficient privileges to run this command.'
+
 
 
 			);

@@ -100,7 +100,7 @@ class Event
 		$where .= build_limit($this->data['start'], $this->data['limit']);
 
 		if($geoFlag) {
-			$query = "SELECT SQL_CALC_FOUND_ROWS `eventId`, `geoId`, `eventDate`, `eventTypeId`, `title`, `description`, `country`,	`country_iso`, `admin_0` FROM `events` LEFT OUTER JOIN `geography` ON `events`.`geoId` = `geography`.`geographyId` " . $where;
+			$query = "SELECT SQL_CALC_FOUND_ROWS `eventId`, `geoId`, `eventDate`, `eventTypeId`, `title`, `description`, `country`,	`countryIso`, `admin0` FROM `events` LEFT OUTER JOIN `geography` ON `events`.`geoId` = `geography`.`geographyId` " . $where;
 		} else {
 			$query = "SELECT SQL_CALC_FOUND_ROWS `eventId`, `geoId`, `eventDate`, `eventTypeId`, `title`, `description` FROM `events` " . $where;
 		}
