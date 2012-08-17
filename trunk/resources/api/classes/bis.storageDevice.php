@@ -21,10 +21,10 @@ class StorageDevice {
 			$this->devices[$cnt]['type']  =  $item->type;
 			$this->devices[$cnt]['baseUrl']  =  $item->baseUrl;
 			$this->devices[$cnt]['basePath']  =  $item->basePath;
-			$this->devices[$cnt]['user']  =  $item->user;
-			$this->devices[$cnt]['pw']  =  $item->pw;
+			$this->devices[$cnt]['userName']  =  $item->userName;
+			$this->devices[$cnt]['password']  =  $item->password;
 			$this->devices[$cnt]['key']  =  $item->key;
-			$this->devices[$cnt]['active']  =  $item->active;
+			$this->devices[$cnt]['active']  =  ($item->active) ? true : false;
 			$this->devices[$cnt]['defaultStorage']  =  $item->defaultStorage;
 			$this->devices[$cnt]['extra2']  =  $item->extra2;
 			$cnt++;
@@ -51,14 +51,14 @@ class StorageDevice {
 	}
 	
 	public function storageDeviceSave() {
-		$query = sprintf("INSERT IGNORE INTO `storageDevice` SET `name` = '%s', `description` = '%s', `type` = '%s', `baseUrl` = '%s', `basePath` = '%s', `user` = '%s', `pw` = '%s', `key` = '%s', `active` = '%s', `defaultStorage` = '%s', `extra2` = '%s' ;"
+		$query = sprintf("INSERT IGNORE INTO `storageDevice` SET `name` = '%s', `description` = '%s', `type` = '%s', `baseUrl` = '%s', `basePath` = '%s', `userName` = '%s', `password` = '%s', `key` = '%s', `active` = '%s', `defaultStorage` = '%s', `extra2` = '%s' ;"
 		, mysql_escape_string($this->storageDeviceGetProperty('name'))
 		, mysql_escape_string($this->storageDeviceGetProperty('description'))
 		, mysql_escape_string($this->storageDeviceGetProperty('type'))
 		, mysql_escape_string($this->storageDeviceGetProperty('baseUrl'))
 		, mysql_escape_string($this->storageDeviceGetProperty('basePath'))
-		, mysql_escape_string($this->storageDeviceGetProperty('user'))
-		, mysql_escape_string($this->storageDeviceGetProperty('pw'))
+		, mysql_escape_string($this->storageDeviceGetProperty('userName'))
+		, mysql_escape_string($this->storageDeviceGetProperty('password'))
 		, mysql_escape_string($this->storageDeviceGetProperty('key'))
 		, mysql_escape_string($this->storageDeviceGetProperty('active'))
 		, mysql_escape_string($this->storageDeviceGetProperty('defaultStorage'))
@@ -67,6 +67,39 @@ class StorageDevice {
 		if($this->db->query($query)) {
 			$this->storageDeviceGetAll();
 			return($this->db->insert_id);
+		} else {
+			return (false);
+		}
+	}
+	
+	public function storageDeviceUpdate() {
+		$query = sprintf("UPDATE `storageDevice` SET `name` = '%s', `description` = '%s', `type` = '%s', `baseUrl` = '%s', `basePath` = '%s', `userName` = '%s', `password` = '%s', `key` = '%s', `active` = '%s', `defaultStorage` = '%s', `extra2` = '%s' WHERE `storageDeviceId` = '%s' ;"
+		, mysql_escape_string($this->storageDeviceGetProperty('name'))
+		, mysql_escape_string($this->storageDeviceGetProperty('description'))
+		, mysql_escape_string($this->storageDeviceGetProperty('type'))
+		, mysql_escape_string($this->storageDeviceGetProperty('baseUrl'))
+		, mysql_escape_string($this->storageDeviceGetProperty('basePath'))
+		, mysql_escape_string($this->storageDeviceGetProperty('userName'))
+		, mysql_escape_string($this->storageDeviceGetProperty('password'))
+		, mysql_escape_string($this->storageDeviceGetProperty('key'))
+		, mysql_escape_string($this->storageDeviceGetProperty('active'))
+		, mysql_escape_string($this->storageDeviceGetProperty('defaultStorage'))
+		, mysql_escape_string($this->storageDeviceGetProperty('extra2'))
+		, mysql_escape_string($this->storageDeviceGetProperty('storageDeviceId'))
+		);
+		if($this->db->query($query)) {
+			$this->storageDeviceGetAll();
+			return(true);
+		} else {
+			return (false);
+		}
+	}
+	
+	public function storageDeviceDelete($storageDeviceId) {
+		$query = sprintf(" DELETE FROM `storageDevice` WHERE `storageDeviceId` = %s ", mysql_escape_string($storageDeviceId));
+		if($this->db->query($query)) {
+			$this->storageDeviceGetAll();
+			return(true);
 		} else {
 			return (false);
 		}
@@ -142,7 +175,7 @@ class StorageDevice {
 			$device = $this->storageDeviceGet($storageDeviceId);
 			switch(strtolower($this->storageDeviceGetType($storageDeviceId))) {
 				case 's3':
-					$amazon = new AmazonS3(array('key' => $device['pw'],'secret' => $device['key']));
+					$amazon = new AmazonS3(array('key' => $device['password'],'secret' => $device['key']));
 					$storageFilePath1 = substr($storageFilePath,0,1)=='/' ? substr($storageFilePath,1,strlen($storageFilePath)-1) : $storageFilePath;
 					$response = $amazon->create_object ($device['basePath'], $storageFilePath1 . '/' .  $storageFileName, array('fileUpload' => $tmpFile,'acl' => AmazonS3::ACL_PUBLIC,'storage' => AmazonS3::STORAGE_REDUCED) );
 					if($response->isOK()) {
@@ -197,14 +230,14 @@ class StorageDevice {
 		}
 	}
 		
-	public function storageDeviceDelete($storageDeviceId, $storageFileName, $storageFilePath='') {
+	public function storageDeviceDeleteFile($storageDeviceId, $storageFileName, $storageFilePath='') {
 		if($storageDeviceId == '' || $storageFileName == '') {
 			return false;
 		} else {
 			$device = $this->storageDeviceGet($storageDeviceId);
 			switch(strtolower($this->storageDeviceGetType($storageDeviceId))) {
 				case 's3':
-					$amazon = new AmazonS3(array('key' => $device['pw'],'secret' => $device['key']));
+					$amazon = new AmazonS3(array('key' => $device['password'],'secret' => $device['key']));
 					$storageFilePath1 = substr($storageFilePath,0,1)=='/' ? substr($storageFilePath,1,strlen($storageFilePath)-1) : $storageFilePath;
 					$response = $amazon->delete_object ($device['basePath'], $storageFilePath1 . '/' .  $storageFileName);
 					break;
@@ -235,7 +268,7 @@ class StorageDevice {
 				
 				switch(strtolower($device2['type'])) {
 					case 's3':
-						$amazon = new AmazonS3(array('key' => $device2['pw'],'secret' => $device2['key']));
+						$amazon = new AmazonS3(array('key' => $device2['password'],'secret' => $device2['key']));
 						switch(strtolower($device1['type'])) {
 							case 's3':
 								$tmp = $img->get('path');
@@ -272,7 +305,7 @@ class StorageDevice {
 					case 'local':
 						switch(strtolower($device1['type'])) {
 							case 's3':
-								$amazon = new AmazonS3(array('key' => $device1['pw'],'secret' => $device1['key']));
+								$amazon = new AmazonS3(array('key' => $device1['password'],'secret' => $device1['key']));
 								$tmp = $img->get('path');
 								$tmp = substr($tmp,0,1)=='/' ? substr($tmp,1,strlen($tmp)-1) : $tmp;
 								$source = $tmp . '/' . $img->get('filename');
@@ -315,7 +348,7 @@ class StorageDevice {
 		switch(strtolower($device['type'])) {
 			case 's3':
 				$key = substr($key,0,1)=='/' ? substr($key,1,strlen($key)-1) : $key;
-				$amazon = new AmazonS3(array('key' => $device['pw'],'secret' => $device['key']));
+				$amazon = new AmazonS3(array('key' => $device['password'],'secret' => $device['key']));
 				if($amazon->if_object_exists($device['basePath'], $key)) {
 					return true;
 				} else {
@@ -344,7 +377,7 @@ class StorageDevice {
 		if(!$device) return false;
 		switch(strtolower($device['type'])) {
 			case 's3':
-				$amazon = new AmazonS3(array('key' => $device['pw'],'secret' => $device['key']));
+				$amazon = new AmazonS3(array('key' => $device['password'],'secret' => $device['key']));
 				$key = substr($key,0,1)=='/' ? substr($key,1,strlen($key)-1) : $key;
 				$tmpPath = uniqid('tmpFile');
 				$fp = fopen($tmpPath, "w+b");
@@ -382,7 +415,7 @@ class StorageDevice {
 		if(!$device) return false;
 		switch(strtolower($device['type'])) {
 			case 's3':
-				$amazon = new AmazonS3(array('key' => $device['pw'],'secret' => $device['key']));
+				$amazon = new AmazonS3(array('key' => $device['password'],'secret' => $device['key']));
 				$key = substr($key,0,1)=='/' ? substr($key,1,strlen($key)-1) : $key;
 				$tmp = explode("/" , $key);
 				if(is_array($tmp)) {
@@ -418,7 +451,7 @@ class StorageDevice {
 		if(!$device) return false;
 		switch(strtolower($device['type'])) {
 			case 's3':
-				$amazon = new AmazonS3(array('key' => $device['pw'],'secret' => $device['key']));
+				$amazon = new AmazonS3(array('key' => $device['password'],'secret' => $device['key']));
 				$key = substr($key,0,1)=='/' ? substr($key,1,strlen($key)-1) : $key;
 				$tmp = explode("/" , $key);
 				if(is_array($tmp)) {

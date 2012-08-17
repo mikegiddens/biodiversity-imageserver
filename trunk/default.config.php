@@ -50,6 +50,7 @@
 	$config['email']['to'] = '';
 	$config['reportsavail'] = true;
 
+	# Amazon S3 details
 	$config['s3']['accessKey'] = '';
 	$config['s3']['secretKey'] = '';
 	$config['s3']['bucket'] = '';
@@ -73,4 +74,9 @@
 
 	$config['tileGenerator'] = 'http://{url-to-project}/silvertiles/api.php';
 	$config['tileUrl'] = 'http://{url-to-project}/tiles/';
+	
+	# RSS Feed details
+	$config['rssFeed']['title'] = 'Image Server Dev';
+	$config['rssFeed']['webUrl'] = 'http://{WRONG!!!!!}/trt/';
+	
 ?>

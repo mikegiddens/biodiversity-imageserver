@@ -19,9 +19,18 @@
 		,	'admin2'
 		,	'admin3'
 		,	'api'
+		,	'attribType'
+		,	'attribute'
 		,	'attributeId'
+		,	'baseUrl'
+		,	'basePath'
+		,	'browse'
 		,	'callback'
+		,	'category'
 		,	'categoryId'
+		,	'categoryType'
+		,	'characters'
+		,	'characterType'
 		,	'code'
 		,	'collectionId'
 		,	'consumerKey'
@@ -34,21 +43,38 @@
 		,	'enAccountId'
 		,	'eventId'
 		,	'eventTypeId'
+		,	'extra'
+		,	'fileName'
+		,	'filter'
+		,	'force'
 		,	'geoFlag'
 		,	'geographyId'
 		,	'geoId'
 		,	'group'
+		,	'imageId'
+		,	'imagePath'
 		,	'key'
 		,	'limit'
 		,	'name'
 		,	'notebookGuid'
+		,	'order'
+		,	'params'
 		,	'password'
 		,	'searchFormat'
+		,	'searchType'
+		,	'searchValue'
 		,	'showNames'
+		,	'showOCR'
+		,	'sort'
 		,	'start'
+		,	'storageDeviceId'
+		,	'stream'
 		,	'tag'
+		,	'type'
 		,	'url'
+		,	'useRating'
 		,	'userName'
+		,	'useStatus'
 		,	'title'
 		,	'value'
 
@@ -511,7 +537,7 @@
 				$errorCode = 115;
 			} else if(!$si->event->eventsLoadById($eventId)) {
 				$valid = false;
-				$errorCode = 124;
+				$errorCode = 117;
 			}
 			if($valid) {
 				$si->event->lg->logSetProperty('action', 'eventDelete');
@@ -818,9 +844,9 @@
 								$si->image->imageSetData(array("field"=>"barcode", "value"=>$si->s2l->get('barcode'), "start"=>0, "limit"=>$limit));
 								$ar = $si->image->imageList();
 								$ar = $ar[0];
-								$tmpPath = $si->image->getUrl($ar->image_id);
+								$tmpPath = $si->image->getUrl($ar->imageId);
 								$ar->path = $tmpPath['baseUrl'];
-								$fname = explode(".", $ar->filename);
+								$fname = explode(".", $ar->fileName);
 								$ar->ext = $fname[1];
 								$ar->en_flag = ($si->s2l->load_by_barcode($ar->barcode)) ? 1 : 0;
 								$data[$label] = $ar;
@@ -838,7 +864,422 @@
 
 			break;
 
+# Image commands
+
+		case 'imageAddAttribute':
+			checkAuth();
+			$data['imageId'] = $imageId;
+			$categoryType = in_array(trim($categoryType),array('categoryId','title','term')) ? trim($categoryType) : 'categoryId';
+			$attribType = in_array(trim($attribType),array('attributeId','name')) ? trim($attribType) : 'attributeId';
+			$force = (trim($force) == 'true') ? true : false;
+			if($data['imageId'] == "") {
+				$valid = false;
+				$errorCode = 157;
+			} elseif(trim($category) == '') {
+				$valid = false;
+				$errorCode = 160;
+			} elseif(trim($attribute) == "") {
+				$valid = false;
+				$errorCode = 159;
+			} else {
+				if(false === ($data['categoryId'] = $si->imageCategory->imageCategoryGetBy($category,$categoryType))) {
+					$valid = false;
+					$errorCode = 147;
+				} else if(false === ($data['attributeId'] = $si->imageAttribute->imageAttributeGetBy($attribute,$attributeType))) {
+					if ($force && $attribType == 'name') {
+						$si->imageAttribute->imageAttributeSetProperty('name',$attribute);
+						$si->imageAttribute->imageAttributeSetProperty('categoryId',$data['categoryId']);
+						$id = $si->imageAttribute->imageAttributeAdd();
+						$data['attributeId'] = $id;
+					} else {
+						$valid = false;
+						$errorCode = 149;
+					}
+				}
+			}
+			if($valid) {
+				$si->image->imageSetData($data);
+				if($si->image->imageAttributeAdd()) {
+					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart ) ) );
+				} else {
+					print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray(161)) ));
+				}
+			} else {
+				print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray($errorCode)) ));
+			}
+			break;
 			
+		case 'imageAddFromDnd':
+			checkAuth();
+			$imagePath = (isset($imagePath))?$imagePath:'';
+			$storageDeviceId = (trim($storageDeviceId)!='') ? $storageDeviceId : $si->storage->storageDeviceGetDefault();
+			if(!$si->remoteAccess->remoteAccessCheck(ip2long($_SERVER['REMOTE_ADDR']), $key)) {
+				$errorCode = 103;
+				$valid = false;
+			} elseif($storageDeviceId == '' || !$si->storage->storageDeviceExists($storageDeviceId)) {
+				$errorCode = 156;
+				$valid = false;
+			} elseif($fileName=='') {
+				$errorCode = 163;
+				$valid = false;
+			} else {
+				$config['allowedImportTypes'] = array(1,2,3); //GIF, JPEG, PNG
+				# http://www.php.net/manual/en/function.exif-imagetype.php
+				$stream = ($stream != '') ? $stream : '';
+				$stream = str_replace(' ','+',$stream);
+				$stream = base64_decode($stream);
+				if((strpos($fileName,'/')) !== false) {
+					$tmpFilename = explode('/', $fileName);
+					$fileName = $tmpFilename[count($tmpFilename)-1];
+				}
+				file_put_contents($fileName, $stream);
+				$size = getimagesize($fileName);
+				if(!in_array($size[2],$config['allowedImportTypes'])) {
+					$errorCode = 164;
+					$valid = false;
+				}
+			}
+			if($valid) {
+				$response = $si->storage->storageDeviceStore($fileName,$storageDeviceId,$fileName, $imagePath, $key);
+				$iEXd = new EXIFread($fileName);
+				unlink($fileName);
+				if($response['success']) {
+					$si->pqueue->processQueueSetProperty('imageId', $response['imageId']);
+					$si->pqueue->processQueueSetProperty('processType','all');
+					$si->pqueue->processQueueSave();
+					
+					//Add latitude and longitude - Start
+					if($gps = $iEXd->getGPS()) {
+						$catId = 0;
+						$atrId = 0;
+						$catArray = $si->imageCategory->imageCategoryList();
+						if(is_array($catArray)) {
+							foreach($catArray as $cat) {
+								if($cat['title'] == 'Latitude') {
+									$catId = $cat['categoryId'];
+									break;
+								}
+							}
+						}
+						if(!$catId) {
+							$si->imageCategory->imageCategorySetProperty('title', 'Latitude');
+							$catId = $si->imageCategory->imageCategoryAdd();
+						}
+						$atrArray = $si->imageAttribute->imageAttributeList($catId);
+						if(is_array($atrArray)) {
+							foreach($atrArray as $atr) {
+								if($atr['name'] == $gps['Latitude']) {
+									$atrId = $atr['attributeId'];
+									break;
+								}
+							}
+						}
+						if(!$atrId) {
+							$si->imageAttribute->imageAttributeSetProperty('name',$gps['Latitude']);
+							$si->imageAttribute->imageAttributeSetProperty('categoryId',$catId);
+							$atrId = $si->imageAttribute->imageAttributeAdd();
+						}
+						$data['imageId'] = $response['imageId'];
+						$data['attributeId'] = $atrId;
+						$data['categoryId'] = $catId;
+						$si->image->imageSetData($data);
+						$si->image->imageAttributeAdd();
+						
+						$catId = 0;
+						$atrId = 0;
+						if(is_array($catArray)) {
+							foreach($catArray as $cat) {
+								if($cat['title'] == 'Longitude') {
+									$catId = $cat['categoryId'];
+									break;
+								}
+							}
+						}
+						if(!$catId) {
+							$si->imageCategory->imageCategorySetProperty('title', 'Longitude');
+							$catId = $si->imageCategory->imageCategoryAdd();
+						}
+						$atrArray = $si->imageAttribute->imageAttributeList($catId);
+						if(is_array($atrArray)) {
+							foreach($atrArray as $atr) {
+								if($atr['name'] == $gps['Longitude']) {
+									$atrId = $atr['attributeId'];
+									break;
+								}
+							}
+						}
+						if(!$atrId) {
+							$si->imageAttribute->imageAttributeSetProperty('name',$gps['Longitude']);
+							$si->imageAttribute->imageAttributeSetProperty('categoryId',$catId);
+							$atrId = $si->imageAttribute->imageAttributeAdd();
+						}
+						$data['imageId'] = $response['imageId'];
+						$data['attributeId'] = $atrId;
+						$data['categoryId'] = $catId;
+						$si->image->imageSetData($data);
+						$si->image->imageAttributeAdd();
+					}
+					//Add latitude and longitude - End
+					
+					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart, 'imageId' => $response['imageId'] ) ) );
+				} else {
+					print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray(165)) ));
+				}
+			} else {
+				print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray($errorCode)) ));
+			}
+			break;
+
+		case 'imageAddFromExisting':
+			checkAuth();
+			if($imagePath != '') {
+				$imagePath = '/' . ltrim($imagePath,'/');
+			}
+			if($storageDeviceId == '' || $imagePath == '' || $fileName == '') {
+				$valid = false;
+				$errorCode = 124;
+			} elseif(!$si->storage->storageDeviceExists($storageDeviceId)) {
+				$valid = false;
+				$errorCode = 156;
+			} elseif(!$si->image->imageExists($storageDeviceId, $imagePath, $fileName)) {
+				$valid = false;
+				$errorCode = 168;
+			} else {
+				$valid = true;
+			}
+			if($valid) {
+				$imageId = $si->image->imageGetId($fileName, $imagePath, $storageDeviceId);
+				if(!$imageId) {
+					$device = $si->storage->storageDeviceGet($storageDeviceId);
+					$ar = @getimagesize($device['basePath'] . '/' . $imagePath . '/' . $fileName);
+					
+					$si->image->imageSetProperty('fileName',$fileName);
+					$si->image->imageSetProperty('storageDeviceId', $storageDeviceId);
+					$si->image->imageSetProperty('path', $imagePath);
+					$si->image->imageSetProperty('originalFilename', $fileName);
+					
+					if($si->image->imageSave()) {
+						$imageId = $si->image->insert_id;
+						$si->pqueue->processQueueSetProperty('imageId', $imageId);
+						$si->pqueue->processQueueSetProperty('processType','all');
+						$si->pqueue->processQueueSave();
+						print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart, 'imageId' => $imageId ) ) );
+					} else {
+						print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray(167)) ));
+					}
+				} else {
+					print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray(166)) ));
+				}
+				
+			} else {
+				print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray($errorCode)) ));
+			}
+			break;
+
+
+		case 'imageDelete':
+			checkAuth();
+			if(trim($imageId) == '') {
+				$valid = false;
+				$errorCode = 157;
+			}
+			if($valid) {
+				$data['obj'] = $si->amazon;
+				$imageId = (!is_numeric($imageId)) ? json_decode(stripslashes(trim($imageId)),true) : $imageId;
+				$items = array();
+				if(is_array($imageId)) {
+					foreach($imageId as $imid) {
+						$data['imageId'] = $imid;
+						$si->image->imageSetData($data);
+						if($si->image->imageLoadById($data['imageId'])) {
+							if(($si->image->imageGetProperty('remoteAccessKey') == $key) || ($key==0)) {
+								$ret = $si->image->imageDelete();
+								if($ret['success']) $items[] = $imid;
+							} else {
+								$ret['success'] = false;
+								$ret['code'] = 171;
+							}
+						} else {
+							$ret['success'] = false;
+							$ret['code'] = 170;
+						}
+					}
+				} else {
+					$data['imageId'] = $imageId;
+					$si->image->imageSetData($data);
+					if($si->image->imageLoadById($data['imageId'])) {
+						if(($si->image->imageGetProperty('remoteAccessKey') == $key) || ($key==0)) {
+							$ret = $si->image->imageDelete();
+							if($ret['success']) $items[] = $imageId;
+						} else {
+							$ret['success'] = false;
+							$ret['code'] = 171;
+						}
+					} else {
+						$ret['success'] = false;
+						$ret['code'] = 170;
+					}
+				}
+				
+				if(count($items)) {
+					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart, 'totalCount' => count($items), 'records' => $items ) ) );
+				} else {
+					print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray($ret['code'])) ));
+				}
+			} else {
+				print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray($errorCode)) ));
+			}
+			break;
+
+			
+		case 'imageDeleteAttribute':
+			checkAuth();
+			$data['imageId'] = $imageId;
+			if($data['imageId'] == "") {
+				$valid = false;
+				$errorCode = 157;
+			}
+			$data['attributeId'] = $attributeId;
+			if($data['attributeId'] == "") {
+				$valid = false;
+				$errorCode = 109;
+			}
+			if($valid) {
+				$si->image->imageSetData($data);
+				if($si->image->imageAttributeDelete()) {
+					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart ) ) );
+				} else {
+					print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray(162)) ));
+				}
+			} else {
+				print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray($errorCode)) ));
+			}
+			break;
+			
+		case 'imageList':
+			$data['start'] = ($start != '') ? $start : 0;
+			$data['limit'] = ($limit != '') ? $limit : 100;
+			$data['showOCR'] = (@in_array(trim($showOCR),array('1','true','TRUE'))) ? true : false;
+			$data['order'] = json_decode(stripslashes(trim($order)),true);
+			if(trim($sort) != '') {
+				$data['sort'] = trim($sort);
+				$dir = (trim($dir) == 'DESC') ? 'DESC' : 'ASC';
+				$data['dir'] = trim($dir);
+			}
+			if(is_array($filter)) {
+				$data['filter'] = $filter;
+			} else {
+				$data['filter'] = json_decode(stripslashes(trim($filter)),true);
+			}
+			$data['imageId'] = (!is_numeric($imageId)) ? json_decode(stripslashes(trim($imageId)),true) : $imageId;
+			$data['searchFormat'] = in_array(strtolower(trim($searchFormat)),array('exact','left','right','both')) ? strtolower(trim($searchFormat)) : 'both';
+			$data['value'] = str_replace('%','%%',trim($value));
+			$data['group'] = $group;
+			$data['dir'] = (strtoupper(trim($dir)) == 'DESC') ? 'DESC' : 'ASC';
+			$data['code'] = ($code != '') ? $code : '';
+
+			$data['characters'] = $characters;
+			$data['characterType'] = in_array(strtolower(trim($characterType)), array('ids','string')) ? strtolower(trim($characterType)) : 'string';
+			$data['browse'] = $browse;
+			$data['searchValue'] = $searchValue;
+			$data['searchType'] = $searchType;
+
+			$data['useRating'] = (trim($useRating) == 'true') ? true : false;
+			$data['useStatus'] = (trim($useStatus) == 'true') ? true : false;
+
+			if($valid) {
+				$si->image->imageSetData($data);
+				$data = $si->image->imageList();
+				$total = $si->image->total;
+				if(is_array($data) && count($data)) {
+					foreach($data as &$dt) {
+						$device = $si->storage->storageDeviceGet($dt->storageDeviceId);
+						$url = $device['baseUrl'];
+						switch(strtolower($device['type'])) {
+							case 's3':
+								$tmp = $dt->path;
+								$tmp = substr($tmp, 0, 1)=='/' ? substr($tmp, 1, strlen($tmp)-1) : $tmp;
+								$url .= $tmp . '/';
+								break;
+							case 'local':
+								if(substr($url, strlen($url)-1, 1) == '/') {
+									$url = substr($url,0,strlen($url)-1);
+								}
+								$url .= $dt->path . '/';
+								break;
+						}
+						unset($dt->storageDeviceId);
+						unset($dt->path);
+						$dt->path = $url;
+						$fname = explode(".", $dt->fileName);
+						$dt->ext = $fname[1];
+						$dt->enFlag = ($si->s2l->Specimen2LabelLoadByBarcode($dt->barcode)) ? 1 : 0;
+					}
+				}
+
+				if($api=='rss'){
+					include("feedwriter.php");
+
+					$RSSFeed = new FeedWriter(RSS2);
+					$RSSFeed->setTitle($config['rssFeed']['title']);
+					$RSSFeed->setLink($config['rssFeed']['webUrl']);
+						
+					foreach($data as $key => $value){
+						
+						$key1 = get_object_vars($value);						
+						$imgMed = $key1['path'] . $key1['barcode'] . '_m.jpg';
+						$imgLarg = $key1['path'] . $key1['barcode'] . '_l.jpg';
+					
+						$title = $key1['barcode'];  
+						$newItem = $RSSFeed->createNewItem();
+						 
+						# Add elements to the feed item    
+						$newItem->setTitle($title);
+						$newItem->setLink($img1);
+						$newItem->setDescription("<a href='" . $imgLarg . "'><img style='border:1px solid #5C7FB9'src='" . $imgMed . "'/></a>");
+						$newItem->setEncloser($imgLarg, '7', 'image/jpeg');
+						# set the feed item
+						$RSSFeed->addItem($newItem);
+					}
+
+					$RSSFeed->genarateFeed();
+				} else {
+					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart, 'totalCount' => $total, 'records' => $data ) ));
+				}
+			} else {				
+				print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray($errorCode)) ));
+			}
+			break;
+
+		case 'imageUpdate':
+			checkAuth();
+			if($imageId == "") {
+				$valid = false;
+				$errorCode = 157;
+			} elseif(!$si->image->imageLoadById($imageId)) {
+				$valid = false;
+				$errorCode = 158;
+			}
+			if($valid) {
+				$fieldsArray = array('fileName','barcode','width','height','family','genus','specificEpithet','rank','author','title','description','globalUniqueIdentifier','creativeCommons','characters','flickrPlantID','flickrDetails','picassaPlantID','zoomEnabled','ScientificName','collectionCode','catalogueNumber','tmpFamily','tmpFamilyAccepted','tmpGenus','tmpGenusAccepted','storageDeviceId','path','originalFilename','remoteAccessKey','statusType','rating');
+				$params = @json_decode(@stripslashes(trim($params)),true);
+				if(is_array($params) && count($params)) {
+					foreach($params as $key => $value) {
+						if(@in_array($key,$fieldsArray)) {
+							$si->image->imageSetProperty($key,$value);
+						}
+					}
+					$si->image->imageSave();
+				}
+				print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart)));
+			} else {
+				print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray($errorCode)) ));
+			}
+			break;
+
+
+			
+# Geopraphy Commands			
 		case 'geographyAdd':
 			checkAuth();
 			if($country == '' || $countryIso == '') {
@@ -1026,59 +1467,112 @@
 			}
 			break;
 
-
 		case 'storageDeviceAdd':
+			checkAuth();
 			$data['name'] = trim($name);
 			$data['description'] = trim($description);
 			$data['type'] = trim($type);
 			$data['baseUrl'] = trim($baseUrl);
 			$data['basePath'] = trim($basePath);
-			$data['user'] = trim($user);
-			$data['pw'] = trim($pw);
+			$data['userName'] = trim($userName);
+			$data['password'] = trim($password);
 			$data['key'] = trim($key);
-			$data['active'] = (trim($active) == 'false') ? 'false' : 'true';
+			$data['extra2'] = trim($extra);
+			$data['active'] = (trim($active) == 'false') ? false : true;
 			$default = (trim($default) == 'true') ? true : false;
 			if($name=='' || $type=='' || $baseUrl=='') {
-				$errorCode = 148;
-				print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($errorCode) , 'code' => $errorCode ) ) ) );
+				$errorCode = 151;
+				print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray($errorCode)) ));
 			} else {
-				$si->storage->set_all($data);
-				$id = $si->storage->save();
-				if($default) {
-					$si->storage->setDefault($id);
+				$si->storage->storageDeviceSetAll($data);
+				$id = $si->storage->storageDeviceSave();
+				if($id) {
+					if($default) {
+						$si->storage->storageDeviceSetDefault($id);
+					}
+					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart, 'storageDeviceId' => $id ) ) );
+				} else {
+					print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray(152)) ));
 				}
-				print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start, 'storage_id' => $id ) ) );
+			}
+			break;
+		
+		case 'storageDeviceDelete':
+			checkAuth();
+			if(($storageDeviceId == '') || (!$si->storage->storageDeviceExists($storageDeviceId))) {
+				$valid = false;
+				$errorCode = 156;
+			}
+			if($valid){
+				if($si->storage->storageDeviceDelete($storageDeviceId)) {
+					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart ) ) );
+				} else {
+					print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray(154)) ));
+				}
+			} else {
+				print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray($errorCode)) ));
 			}
 			break;
 		
 		case 'storageDeviceList':
 			if(is_array($si->storage->devices)) {
-				print_c( json_encode( array( 'success' => true, 'totalCount' => count($si->storage->devices), 'processTime' => microtime(true) - $time_start, 'data' => $si->storage->devices ) ) );
+				print_c( json_encode( array( 'success' => true, 'totalCount' => count($si->storage->devices), 'processTime' => microtime(true) - $timeStart, 'records' => $si->storage->devices ) ) );
 			} else {
-				$errorCode = 149;
-				print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($errorCode) , 'code' => $errorCode ) ) ) );
+				print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray(155)) ));
 			}
 			break;
 			
-		case 'storageDeviceSetDefault':
-			if(($storage_id == '') || (!$si->storage->exists($storage_id))) {
+		case 'storageDeviceUpdate':
+			checkAuth();
+			if(($storageDeviceId == '') || (!$si->storage->storageDeviceExists($storageDeviceId))) {
 				$valid = false;
-				$errorCode = 150;
-			} else{
-				$valid = true;
+				$errorCode = 156;
 			}
 			if($valid){
-				$si->storage->setDefault($storage_id);
-				print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $time_start ) ) );
+				$data = $si->storage->storageDeviceGet($storageDeviceId);
+				(trim($name) != '' ) ? $data['name'] = trim($name) : '';
+				(trim($description) != '' ) ? $data['description'] = trim($description) : '';
+				(trim($type) != '' ) ? $data['type'] = trim($type) : '';
+				(trim($baseUrl) != '' ) ? $data['baseUrl'] = trim($baseUrl) : '';
+				(trim($basePath) != '' ) ? $data['basePath'] = trim($basePath) : '';
+				(trim($userName) != '' ) ? $data['userName'] = trim($userName) : '';
+				(trim($password) != '' ) ? $data['password'] = trim($password) : '';
+				(trim($key) != '' ) ? $data['key'] = trim($key) : '';
+				(trim($extra) != '' ) ? $data['extra2'] = trim($extra) : '';
+				in_array(@strtolower(trim($active)), array('true','false')) ? ($data['active'] = (@strtolower(trim($active) == 'false')) ? false : true) : '';
+				$default = (trim($default) == 'true') ? true : false;
+				$si->storage->storageDeviceSetAll($data);
+				if($si->storage->storageDeviceUpdate()) {
+					if($default) {
+						$si->storage->storageDeviceSetDefault($storageDeviceId);
+					}
+					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart ) ) );
+				} else {
+					print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray(153)) ));
+				}
 			} else {
-				print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $si->getError($errorCode) , 'code' => $errorCode ) ) ) );
+				print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray($errorCode)) ));
+			}
+		
+			break;
+			
+		case 'storageDeviceSetDefault':
+			if(($storageDeviceId == '') || (!$si->storage->storageDeviceExists($storageDeviceId))) {
+				$valid = false;
+				$errorCode = 156;
+			}
+			if($valid){
+				$si->storage->storageDeviceSetDefault($storageDeviceId);
+				print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart ) ) );
+			} else {
+				print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray($errorCode)) ));
 			}
 			break;
 
 			
 		default:
 			$errorCode = 100;
-			print_c( json_encode( array( 'success' => false,  'error' => array('code' => $errorCode, 'message' => $si->getError($errorCode)) ) ) );
+				print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray($errorCode)) ));
 			break;
 	}
 
