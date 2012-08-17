@@ -6,7 +6,7 @@
  * @website http://www.silverbiology.com
  */
 
-Class Specimen2label {
+Class Specimen2Label {
 
 	public $records,$data,$files,$record;
 	
@@ -18,7 +18,7 @@ Class Specimen2label {
 	* Returns a since field value
 	* @return mixed
 	*/
-	public function get( $field ) {
+	public function Specimen2LabelGetProperty( $field ) {
 		if (isset($this->record[$field])) {
 			return( $this->record[$field] );
 		} else {
@@ -30,60 +30,60 @@ Class Specimen2label {
 	* Set the value to a field
 	* @return bool
 	*/
-	public function set( $field, $value ) {
+	public function Specimen2LabelSetProperty( $field, $value ) {
 		$this->record[$field] = $value;
 		return( true );
 	}
 
-	public function setData ($data) {
+	public function Specimen2LabelSetData ($data) {
 		$this->data = $data;
 	}
 
-	public function clearData () {
+	public function Specimen2LabelClearData () {
 		unset($this->data);
 		return true;
 	}
 
-	public function clearRecords () {
+	public function Specimen2LabelClearRecords () {
 		unset($this->records);
 		return true;
 	}
 
-	public function getRecords () {
+	public function Specimen2LabelGetRecords () {
 		return $this->records;
 	}
 
-	public function load_by_labelId( $labelId ) {
+	public function Specimen2LabelLoadById( $labelId ) {
 		if($labelId == '') return false;
-		$query = sprintf("SELECT * FROM `specimen2label` WHERE `labelId` = %s", mysql_escape_string($labelId) );
+		$query = sprintf("SELECT * FROM `specimen2Label` WHERE `labelId` = %s", mysql_escape_string($labelId) );
 		$ret = $this->db->query_one( $query );
 		if ($ret != NULL) {
 			foreach( $ret as $field => $value ) {
-				$this->set($field, $value);
+				$this->Specimen2LabelSetProperty($field, $value);
 			}
 			return(true);
 		}
 		return(false);
 	}
 
-	public function load_by_barcode( $barcode ) {
+	public function Specimen2LabelLoadByBarcode( $barcode ) {
 		if($barcode == '') return false;
-		$query = sprintf("SELECT * FROM `specimen2label` WHERE `barcode` = '%s'", mysql_escape_string($barcode) );
+		$query = sprintf("SELECT * FROM `specimen2Label` WHERE `barcode` = '%s'", mysql_escape_string($barcode) );
 		$ret = $this->db->query_one( $query );
 		if ($ret != NULL) {
 			foreach( $ret as $field => $value ) {
-				$this->set($field, $value);
+				$this->Specimen2LabelSetProperty($field, $value);
 			}
 			return(true);
 		}
 		return(false);
 	}
 
-	public function save() {
-		$query = sprintf("INSERT IGNORE INTO `specimen2label` SET `labelId` = '%s', `evernoteAccountId` = '%s', `barcode` = '%s', `dateAdded` = now();"
-		, mysql_escape_string($this->get('labelId'))
-		, mysql_escape_string($this->get('evernoteAccountId'))
-		, mysql_escape_string($this->get('barcode'))
+	public function Specimen2LabelSave() {
+		$query = sprintf("INSERT IGNORE INTO `specimen2Label` SET `labelId` = '%s', `evernoteAccountId` = '%s', `barcode` = '%s', `dateAdded` = now();"
+		, mysql_escape_string($this->Specimen2LabelGetProperty('labelId'))
+		, mysql_escape_string($this->Specimen2LabelGetProperty('evernoteAccountId'))
+		, mysql_escape_string($this->Specimen2LabelGetProperty('barcode'))
 		);
 		if( $this->db->query($query) ) {
 			return( true );
@@ -91,10 +91,10 @@ Class Specimen2label {
 		return( false );
 	}
 
-	public function getLatestDate() {
-		$query = 'SELECT max(dateAdded) start_date FROM `specimen2label`;';
+	public function Specimen2LabelGetLatestDate() {
+		$query = 'SELECT max(dateAdded) startDate FROM `specimen2Label`;';
 		$ret = $this->db->query_one($query);
-		return $ret->start_date;
+		return $ret->startDate;
 	}
 
 }
