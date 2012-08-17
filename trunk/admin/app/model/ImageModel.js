@@ -19,13 +19,13 @@ Ext.define('BIS.model.ImageModel', {
 
     fields: [
         {
-            name: 'image_id'
+            name: 'imageId'
         },
         {
-            name: 'filename'
+            name: 'fileName'
         },
         {
-            name: 'timestamp_modified'
+            name: 'timestampModified'
         },
         {
             name: 'barcode'
@@ -37,28 +37,28 @@ Ext.define('BIS.model.ImageModel', {
             name: 'height'
         },
         {
-            name: 'Family'
+            name: 'family'
         },
         {
-            name: 'Genus'
+            name: 'genus'
         },
         {
-            name: 'SpecificEpithet'
+            name: 'specificEpithet'
         },
         {
-            name: 'flickr_PlantID'
+            name: 'flickrPlantId'
         },
         {
-            name: 'flickr_modified'
+            name: 'flickrModified'
         },
         {
-            name: 'flickr_details'
+            name: 'flickrDetails'
         },
         {
-            name: 'picassa_PlantID'
+            name: 'picassaPlantId'
         },
         {
-            name: 'picassa_modified'
+            name: 'picassaModified'
         },
         {
             name: 'gTileProcessed'
@@ -70,31 +70,34 @@ Ext.define('BIS.model.ImageModel', {
             name: 'processed'
         },
         {
-            name: 'box_flag'
+            name: 'boxFlag'
         },
         {
-            name: 'ocr_flag'
+            name: 'ocrFlag'
         },
         {
-            name: 'namefinder_flag'
+            name: 'namefinderFlag'
         },
         {
-            name: 'namefinder_value'
+            name: 'namefinderValue'
         },
         {
-            name: 'ScientificName'
+            name: 'scientificName'
         },
         {
-            name: 'CollectionCode'
+            name: 'collectionCode'
         },
         {
-            name: 'GlobalUniqueIdentifier'
+            name: 'globalUniqueIdentifier'
         },
         {
             name: 'path'
         },
         {
             name: 'ext'
+        },
+        {
+            name: 'enFlag'
         }
     ]
 });

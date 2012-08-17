@@ -13,17 +13,30 @@ Ext.define('BIS.store.ImagesStore', {
             storeId: 'imagesStore',
             model: 'BIS.model.ImageModel',
             listeners: {
+                scope: this,
                 load: function( store, records, isSuccessful, operation, opts ) {
                     if (!(isSuccessful)) {
                         Ext.get('imagesPanel-body').update('<span style="position: relative; left: 10px; top: 10px">No images found. Click "Add Image" below or drag and drop one or more onto this panel to add a new one.</span>');
                     }
+                    Ext.select('div.imageSelector').each( function( el ) {
+                        var dropTarget = new Ext.dd.DropTarget( el.dom, {
+                            ddGroup: 'categoryDD',
+                            copy: false,
+                            notifyDrop: function (dragSource, e, data) {
+                                console.log( dragSource, e, data );
+                                var record = data.records[0].data;
+                                var imgId = '';
+                                console.log( 'Associate ' + data.title + ' with ' );
+                            }
+                        });
+                    });
                 }
             },
             proxy: {
-                url: Config.baseUrl + 'resources/api/api_old.php',
+                url: Config.baseUrl + 'resources/api/api.php',
                 type: 'jsonp',
                 extraParams: {
-                    cmd: 'images'
+                    cmd: 'imageList'
                 },
                 reader: {
                     type: 'json',

@@ -1,10 +1,10 @@
 Ext.define('BIS.view.ImagesGridView', {
     extend: 'Ext.view.View',
     alias: ['widget.imagesgridview'],
-    requires: ['BIS.view.ImageZoomViewer','BIS.view.CtxMnuAttribute'],
+    requires: ['BIS.view.ImageZoomViewer','BIS.view.CtxMnuImage','BIS.view.CtxMnuAttribute'],
     initialTpl: '<div>testing...</div>',
     tpl: '<tpl for="."><div>hello</div></tpl>',
-    itemSelector: '.ux-explorerview-item',
+    itemSelector: '.imageSelector',
     selectedItemCls: 'imageRowSelected',
     stripeRows: true,
     autoScroll: true,
@@ -12,27 +12,17 @@ Ext.define('BIS.view.ImagesGridView', {
     listeners: {
         afterrender: function( gridview, e ) {
             gridview.setTpl('both');
-//            gridview.ddTarget = new Ext.dd.DDTarget('imageDrop', 'imageDropGroup');
         },
         // dd events
-        onDragEnter: function( e, targetElId ) {
-            console.log( 'enter', e, targetElId );
-        },
-        drop: function( node, data, dropRec, dropPos ) {
-            console.log( 'drop', node, data, dropRec, dropPos );
-        },
         // tpl events
         itemclick: function( gridview, record, el, ind, e, opts ) {
             var data = record.data;
-            var html = [];
-            for ( var p in data ) {
-                html.push('<p>'+p+':&nbsp;'+data[p]+'</p>');
-            }
-            Ext.getCmp('imageDetailsPanel').update( html.join('') );
+            Ext.getCmp('imageDetailsPanel').loadImage( data );
+            Ext.getCmp('propertySeachCombo').enable();
         },
         itemdblclick: function( gridview, record, el, ind, e, opts ) {
             Ext.create('Ext.window.Window', {
-                title: 'View Image ' + record.data.filename,
+                title: 'View Image ' + record.data.fileName,
                 iconCls: 'icon_image',
                 modal: true,
                 height: 500,
@@ -48,7 +38,7 @@ Ext.define('BIS.view.ImagesGridView', {
                                 xtype: 'panel',
                                 title: 'Static Image',
                                 iconCls: 'icon_image',
-                                html: '<img src="'+record.data.path + record.data.filename.substr( 0, record.data.filename.indexOf('.') ) + '_l.' + record.data.ext+'">'
+                                html: '<img src="'+record.data.path + record.data.fileName.substr( 0, record.data.fileName.indexOf('.') ) + '_l.' + record.data.ext+'">'
                             },
                             {
                                 xtype: 'imagezoomviewer',
@@ -69,9 +59,9 @@ Ext.define('BIS.view.ImagesGridView', {
     constructor: function( config ) {
         this.tplBoth = new Ext.XTemplate(
             '<tpl for=".">'+
-            '<div>' +
-                '<div style="float:left;width:100px;margin:5px 10px 5px 5px;"><img src="{[this.renderThumbnail(values.path,values.filename,values.ext)]}"></div>'+
-                    '<div style="float:left"><div unselectable="on">{barcode} {Family}<br/>{Genus} {SpecificEpithet}<br/>'+
+            '<div class="imageSelector">' +
+                '<div style="display:inline-block;width:100px;margin:5px 10px 5px 5px;"><img src="{[this.renderThumbnail(values.path,values.fileName,values.ext)]}"></div>'+
+                    '<div style="display:inline-block"><div unselectable="on">{barcode} {family}<br/>{genus} {specificEpithet}<br/>'+
                     '<tpl if="barcode != 0">'+
                         '<span>Barcode: {barcode}</span><br>'+
                     '</tpl>'+
@@ -91,13 +81,13 @@ Ext.define('BIS.view.ImagesGridView', {
         );
         this.tplSmallIcons = new Ext.XTemplate(
             '<tpl for=".">'+
-            '<div style="float: left; width:100px;height:100px"><img ' +
-                '<tpl if="Family != \'\' || Genus != \'\' || SpecificEpithet != \'\' ">'+
+            '<div style="display:inline-block; width:100px;height:100px"><img ' +
+                '<tpl if="family != \'\' || genus != \'\' || specificEpithet != \'\' ">'+
                     ' ext:qtip="' +
-                    '<tpl if="Family != \'\' " >{Family}<br></tpl>'+
-                    '<tpl if="Genus != \'\' " >{Genus} {SpecificEpithet}"</tpl>'+
+                    '<tpl if="Family != \'\' " >{family}<br></tpl>'+
+                    '<tpl if="Genus != \'\' " >{genus} {specificEpithet}"</tpl>'+
                 '</tpl>' +
-                'src="{[this.renderThumbnail(values.path,values.filename,values.ext)]}" /></div>'+
+                'src="{[this.renderThumbnail(values.path,values.fileName,values.ext)]}" /></div>'+
             '</tpl>', {
                 renderThumbnail: function( path, filename, ext ) {
                     return path + filename.substr( 0, filename.indexOf('.') ) + '_s.' + ext;
@@ -106,9 +96,9 @@ Ext.define('BIS.view.ImagesGridView', {
         );
         this.tplTileIcons = new Ext.XTemplate(
             '<tpl for=".">'+
-            '<div style="float: left; padding: 5px;">'+
-                '<div unselectable="on">{barcode}<br/> {Family}<span>{Genus} {SpecificEpithet}</span></div>'+
-                '<div style="border-bottom: solid thin #9F9F9F; width: 275px; height: 276px;"><img src="{[this.renderThumbnail(values.path,values.filename,values.ext)]}"></div>'+
+            '<div style="display:inline-block; padding: 5px;">'+
+                '<div unselectable="on">{barcode}<br/> {family}<span>{genus} {specificEpithet}</span></div>'+
+                '<div style="border-bottom: solid thin #9F9F9F; width: 275px; height: 276px;"><img src="{[this.renderThumbnail(values.path,values.fileName,values.ext)]}"></div>'+
             '</div>'+
             '</tpl>', {
                 renderThumbnail: function( path, filename, ext ) {
