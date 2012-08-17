@@ -16,7 +16,7 @@ Ext.define('BIS.store.StorageDevicesStore', {
                 url: Config.baseUrl + 'resources/api/api.php',
                 type: 'jsonp',
                 extraParams: {
-                    cmd: 'listStorageDevices'
+                    cmd: 'storageDeviceList'
                 },
                 reader: {
                     type: 'json',

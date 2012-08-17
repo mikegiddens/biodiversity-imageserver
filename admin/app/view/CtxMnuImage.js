@@ -6,7 +6,7 @@ Ext.define('BIS.view.CtxMnuImage', {
             switch( item.identifier ) {
                 case 'open':
                     Ext.create('Ext.window.Window', {
-                        title: 'View Image ' + record.data.filename,
+                        title: 'View Image ' + this.record.data.filename,
                         iconCls: 'icon_image',
                         modal: true,
                         height: 500,
@@ -22,7 +22,7 @@ Ext.define('BIS.view.CtxMnuImage', {
                                         xtype: 'panel',
                                         title: 'Static Image',
                                         iconCls: 'icon_image',
-                                        html: '<img src="'+record.data.path + record.data.filename.substr( 0, record.data.filename.indexOf('.') ) + '_l.' + record.data.ext+'">'
+                                        html: '<img src="'+this.record.data.path + this.record.data.filename.substr( 0, this.record.data.filename.indexOf('.') ) + '_l.' + this.record.data.ext+'">'
                                     },
                                     {
                                         xtype: 'imagezoomviewer',
@@ -89,15 +89,15 @@ Ext.define('BIS.view.CtxMnuImage', {
     remove: function() {
         var cmd = 'imageDelete'
             params = { imageId: this.record.imageId }
-    }
+    },
     rotateCW: function() {
         var cmd = 'imageRotateCW'
             params = { imageId: this.record.imageId }
-    }
+    },
     rotateCCW: function() {
         var cmd = 'imageRotateCCW'
             params = { imageId: this.record.imageId }
-    }
+    },
     rotate180: function() {
         var cmd = 'imageRotate180'
             params = { imageId: this.record.imageId }
