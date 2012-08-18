@@ -19,6 +19,7 @@
 		,	'admin2'
 		,	'admin3'
 		,	'api'
+		,	'associations'
 		,	'attribType'
 		,	'attribute'
 		,	'attributeId'
@@ -49,7 +50,6 @@
 		,	'force'
 		,	'geoFlag'
 		,	'geographyId'
-		,	'geoId'
 		,	'group'
 		,	'imageId'
 		,	'imagePath'
@@ -515,7 +515,7 @@
 				$si->event->lg->logSetProperty('action', 'eventAdd');
 				$si->event->lg->logSetProperty('lastModifiedBy', $_SESSION['user_id']);
 
-				$si->event->eventsSetProperty('geoId', $geoId);
+				$si->event->eventsSetProperty('geographyId', $geographyId);
 				$si->event->eventsSetProperty('eventTypeId', $eventTypeId);
 				$si->event->eventsSetProperty('title', $title);
 				$si->event->eventsSetProperty('description', $description);
@@ -557,7 +557,7 @@
 			$data['limit'] = ($limit == '') ? 100 : $limit;
 			$data['eventId'] = (!is_numeric($eventId)) ? json_decode(stripslashes(trim($eventId)),true) : $eventId;
 			$data['eventTypeId'] = (!is_numeric($eventTypeId)) ? json_decode(stripslashes(trim($eventTypeId)),true) : $eventTypeId;
-			$data['geoId'] = (!is_numeric($geoId)) ? json_decode(stripslashes(trim($geoId)),true) : $geoId;
+			$data['geographyId'] = (!is_numeric($geographyId)) ? json_decode(stripslashes(trim($geographyId)),true) : $geographyId;
 			$data['searchFormat'] = in_array(strtolower(trim($searchFormat)),array('exact','left','right','both')) ? strtolower(trim($searchFormat)) : 'both';
 			$data['value'] = str_replace('%','%%',trim($value));
 			$data['geoFlag'] = (strtolower(trim($geoFlag)) == 'true') ? true : false;
@@ -587,7 +587,7 @@
 				$si->event->lg->logSetProperty('action', 'addEvent');
 				$si->event->lg->logSetProperty('lastModifiedBy', $_SESSION['user_id']);
 
-				($geoId != '') ? $si->event->eventsSetProperty('geoId', $geoId) : '';
+				($geographyId != '') ? $si->event->eventsSetProperty('geographyId', $geographyId) : '';
 				($eventTypeId != '') ? $si->event->eventsSetProperty('eventTypeId', $eventTypeId) : '';
 				($title != '') ? $si->event->eventsSetProperty('title', $title) : '';
 				($description != '') ? $si->event->eventsSetProperty('description', $description) : '';
@@ -1188,6 +1188,7 @@
 			$data['useStatus'] = (trim($useStatus) == 'true') ? true : false;
 
 			if($valid) {
+				$associations = json_decode(stripslashes(trim($associations)),true);
 				$si->image->imageSetData($data);
 				$data = $si->image->imageList();
 				$total = $si->image->total;
@@ -1214,6 +1215,22 @@
 						$fname = explode(".", $dt->fileName);
 						$dt->ext = $fname[1];
 						$dt->enFlag = ($si->s2l->Specimen2LabelLoadByBarcode($dt->barcode)) ? 1 : 0;
+						
+						if(is_array($associations) && count($associations)) {
+							foreach($associations as $association) {
+								switch($association) {
+									case 'events':
+										$dt->events = $si->event->eventsByImage($dt->imageId);
+										break;
+									case 'geography':
+										$dt->geography = $si->geography->geographyByImage($dt->imageId);
+										break;
+									case 'attributes':
+										$dt->attributes = $si->image->imageGetAttributeDetails($dt->imageId);
+										break;
+								}
+							}
+						}
 					}
 				}
 
