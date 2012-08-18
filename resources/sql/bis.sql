@@ -80,14 +80,14 @@ CREATE TABLE IF NOT EXISTS `evenoteAccounts` (
 
 CREATE TABLE IF NOT EXISTS `events` (
   `eventId` int(11) NOT NULL AUTO_INCREMENT,
-  `geoId` int(11) NOT NULL,
+  `geographyId` int(11) NOT NULL,
   `eventDate` datetime NOT NULL,
   `eventTypeId` int(11) NOT NULL,
   `title` varchar(50) NOT NULL,
   `description` varchar(255) NOT NULL,
   `lastModifiedBy` int(11) NOT NULL,
   PRIMARY KEY (`eventId`),
-  KEY `geoId` (`geoId`,`eventTypeId`)
+  KEY `geographyId` (`geographyId`,`eventTypeId`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
 
 -- --------------------------------------------------------

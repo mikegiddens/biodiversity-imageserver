@@ -64,10 +64,10 @@ class Event
 		} else if($this->data['eventId'] != '') {
 			$where .= sprintf(" AND `eventId` = %s ", mysql_escape_string($this->data['eventId']));
 		}
-		if(is_array($this->data['geoId']) && count($this->data['geoId'])) {
-			$where .= sprintf(" AND `geoId` IN (%s) ", implode(',', $this->data['geoId']));
-		} else if($this->data['geoId'] != '') {
-			$where .= sprintf(" AND `geoId` = %s ", mysql_escape_string($this->data['geoId']));
+		if(is_array($this->data['geographyId']) && count($this->data['geographyId'])) {
+			$where .= sprintf(" AND `geographyId` IN (%s) ", implode(',', $this->data['geographyId']));
+		} else if($this->data['geographyId'] != '') {
+			$where .= sprintf(" AND `geographyId` = %s ", mysql_escape_string($this->data['geographyId']));
 		}
 		if(is_array($this->data['eventTypeId']) && count($this->data['eventTypeId'])) {
 			$where .= sprintf(" AND `eventTypeId` IN (%s) ", implode(',', $this->data['eventTypeId']));
@@ -91,7 +91,7 @@ class Event
 					break;
 			}
 		}
-		if($this->data['group'] != '' && in_array($this->data['group'], array('eventId','geoId','eventDate','eventTypeId')) && $this->data['dir'] != '') {
+		if($this->data['group'] != '' && in_array($this->data['group'], array('eventId','geographyId','eventDate','eventTypeId')) && $this->data['dir'] != '') {
 			$where .= build_order( array(array('field' => $this->data['group'], 'dir' => $this->data['dir'])));
 		} else {
 			$where .= ' ORDER BY `eventId` ASC ';
@@ -100,9 +100,9 @@ class Event
 		$where .= build_limit($this->data['start'], $this->data['limit']);
 
 		if($geoFlag) {
-			$query = "SELECT SQL_CALC_FOUND_ROWS `eventId`, `geoId`, `eventDate`, `eventTypeId`, `title`, `description`, `country`,	`countryIso`, `admin0` FROM `events` LEFT OUTER JOIN `geography` ON `events`.`geoId` = `geography`.`geographyId` " . $where;
+			$query = "SELECT SQL_CALC_FOUND_ROWS `eventId`, `geographyId`, `eventDate`, `eventTypeId`, `title`, `description`, `country`,	`countryIso`, `admin0` FROM `events` LEFT OUTER JOIN `geography` ON `events`.`geographyId` = `geography`.`geographyId` " . $where;
 		} else {
-			$query = "SELECT SQL_CALC_FOUND_ROWS `eventId`, `geoId`, `eventDate`, `eventTypeId`, `title`, `description` FROM `events` " . $where;
+			$query = "SELECT SQL_CALC_FOUND_ROWS `eventId`, `geographyId`, `eventDate`, `eventTypeId`, `title`, `description` FROM `events` " . $where;
 		}
 
 		if($queryFlag) {
@@ -127,8 +127,8 @@ class Event
 
 	public function eventsSave() {
 		if($this->eventsRecordExists($this->eventsGetProperty('eventId'))) {
-			$query = sprintf("UPDATE `events` SET  `geoId` = '%s', `eventDate` = now(), `eventTypeId` = '%s', `title` = '%s', `description` = '%s', `lastModifiedBy` = '%s' WHERE `eventId` = '%s' ;"
-			, mysql_escape_string($this->eventsGetProperty('geoId'))
+			$query = sprintf("UPDATE `events` SET  `geographyId` = '%s', `eventDate` = now(), `eventTypeId` = '%s', `title` = '%s', `description` = '%s', `lastModifiedBy` = '%s' WHERE `eventId` = '%s' ;"
+			, mysql_escape_string($this->eventsGetProperty('geographyId'))
 			, mysql_escape_string($this->eventsGetProperty('eventTypeId'))
 			, mysql_escape_string($this->eventsGetProperty('title'))
 			, mysql_escape_string($this->eventsGetProperty('description'))
@@ -136,8 +136,8 @@ class Event
 			, mysql_escape_string($this->eventsGetProperty('eventId'))
 			);
 		} else {
-			$query = sprintf("INSERT IGNORE INTO `events` SET `geoId` = '%s', `eventDate` = now(), `eventTypeId` = '%s', `title` = '%s', `description` = '%s', `lastModifiedBy` = '%s' ;"
-			, mysql_escape_string($this->eventsGetProperty('geoId'))
+			$query = sprintf("INSERT IGNORE INTO `events` SET `geographyId` = '%s', `eventDate` = now(), `eventTypeId` = '%s', `title` = '%s', `description` = '%s', `lastModifiedBy` = '%s' ;"
+			, mysql_escape_string($this->eventsGetProperty('geographyId'))
 			, mysql_escape_string($this->eventsGetProperty('eventTypeId'))
 			, mysql_escape_string($this->eventsGetProperty('title'))
 			, mysql_escape_string($this->eventsGetProperty('description'))
@@ -198,7 +198,6 @@ class Event
 			return false;
 		}
 	}
-
 	
 	public function listImagesByEvent($eventId,$size = 'l',$attributesFlag = true) {
 		$query = sprintf("SELECT e.`imageId`, i.`filename`, i.`barcode`, i.`storage_id`, i.`path`  FROM `event_images` e LEFT OUTER JOIN image i ON e.`imageId` = i.`image_id` WHERE e.`eventId` = '%s';", mysql_escape_string($eventId));
@@ -245,23 +244,13 @@ class Event
 		return false;
 	}
 	
-	public function eventsListAll($imageId) {
-		$query = sprintf("SELECT eventId FROM `event_images` WHERE `imageId` = '%s';", mysql_escape_string($imageId));
-		$records = $this->db->query_all($query);
-		if(count($records)) {
-			foreach($records as $record) {
-				$eventId = $record->eventId;
-				$query = sprintf("SELECT title FROM `events` WHERE `eventId` = '%s';", mysql_escape_string($eventId));
-				$list = $this->db->query_one($query);
-				$tmpArray['id'] = $eventId;
-				$tmpArray['name'] = $list->title;
-				$array[] = $tmpArray;
-			}
-			return $array;
-		}
-		return false;
+	public function eventsByImage($imageId = '') {
+		if($imageId == '' || !is_numeric($imageId) ) return false;
+		$query = sprintf("SELECT e.*,g.* FROM `events` e JOIN `eventImages` ei ON e.`eventId` = ei.`eventId` LEFT OUTER JOIN `geography` g ON e.`geographyId` = g.`geographyId` WHERE ei.`imageId` = %s ", mysql_escape_string($imageId));
+		$ret = $this->db->query_all($query);
+		return is_null($ret) ? array() : $ret;
 	}
-
+	
 }
 
 

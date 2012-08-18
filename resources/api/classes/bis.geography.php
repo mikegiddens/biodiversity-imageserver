@@ -128,7 +128,6 @@ class Geography
 		}
 	}
 
-
 	public function geographySave() {
 			$query = sprintf("INSERT IGNORE INTO `geography` SET `country` = '%s', `countryIso` = '%s', `admin0` = '%s', `admin1` = '%s', `admin2` = '%s', `admin3` = '%s' ;"
 			, mysql_escape_string($this->geographyGetProperty('country'))
@@ -170,6 +169,13 @@ class Geography
 			return  true;
 		}
 		return false;
+	}
+
+	public function geographyByImage($imageId = '') {
+		if($imageId == '' || !is_numeric($imageId) ) return false;
+		$query = sprintf("SELECT g.`geographyId`, g.`country`, g.`countryIso`, g.`admin0` FROM `geography` g, `events` e, `eventImages` ei WHERE e.`eventId` = ei.`eventId` AND e.`geographyId` = g.`geographyId` AND ei.`imageId` = %s", mysql_escape_string($imageId));
+		$ret = $this->db->query_all($query);
+		return is_null($ret) ? array() : $ret;
 	}
 	
 }

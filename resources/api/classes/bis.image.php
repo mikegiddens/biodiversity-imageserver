@@ -1641,6 +1641,13 @@ Class Image {
 	
 # Attribute Functions
 	
+	public function imageGetAttributeDetails($imageId = '') {
+		if($imageId == '' || !is_numeric($imageId) ) return false;
+		$query = sprintf("SELECT ia.*, iat.`title` category, iav.`name` attribute FROM `imageAttrib` ia LEFT OUTER JOIN `imageAttribType` iat ON ia.`categoryId` = iat.`categoryId` LEFT OUTER JOIN `imageAttribValue` iav ON ia.`attributeId` = iav.`attributeId` WHERE ia.`imageId` = %s", mysql_escape_string($imageId));
+		$ret = $this->db->query_all($query);
+		return is_null($ret) ? array() : $ret;
+	}
+	
 	public function imageAttributeAdd() {
 		$imageIds = @explode(',', $this->data['imageId']);
 		$categoryId = $this->data['categoryId'];

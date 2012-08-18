@@ -41,14 +41,14 @@ http://bis.silverbiology.com/dev/resources/api/api.php?cmd=collectionUpdate&name
 -------------
 
 eventAdd:
-http://bis.silverbiology.com/dev/resources/api/api.php?cmd=eventAdd&eventTypeId=1&title=African Safari&geoId=1&description=Safari
-http://bis.silverbiology.com/dev/resources/api/api.php?cmd=eventAdd&eventTypeId=2&title=Vienna%20Congress&geoId=&description=
+http://bis.silverbiology.com/dev/resources/api/api.php?cmd=eventAdd&eventTypeId=1&title=African Safari&geographyId=1&description=Safari
+http://bis.silverbiology.com/dev/resources/api/api.php?cmd=eventAdd&eventTypeId=2&title=Vienna%20Congress&geographyId=&description=
 
 eventList:
 http://bis.silverbiology.com/dev/resources/api/api.php?cmd=eventList&group=title&dir=desc&value=gress
 http://bis.silverbiology.com/dev/resources/api/api.php?cmd=eventList&group=title&dir=desc&eventTypeId=2
 http://bis.silverbiology.com/dev/resources/api/api.php?cmd=eventList&group=title&dir=desc&eventTypeId=[1,2]
-http://bis.silverbiology.com/dev/resources/api/api.php?cmd=eventList&group=geoId&dir=&eventTypeId=[1,2]
+http://bis.silverbiology.com/dev/resources/api/api.php?cmd=eventList&group=geographyId&dir=&eventTypeId=[1,2]
 
 eventDelete:
 http://bis.silverbiology.com/dev/resources/api/api.php?cmd=eventDelete&eventId=3
@@ -106,6 +106,7 @@ imageList:
 http://bis.silverbiology.com/dev/resources/api/api.php?cmd=imageList&value=-p
 http://bis.silverbiology.com/dev/resources/api/api.php?cmd=imageList&value=-p&code=CAS-ICH&imageId=[1281,1284]
 http://bis.silverbiology.com/dev/resources/api/api.php?cmd=imageList&value=-p&code=CAS-ICH&showOCR=1
+http://bis.silverbiology.com/dev/resources/api/api.php?cmd=imageList&associations=["geography","events","attributes"]&imageId=[1383]
 
 imageUpdate:
 http://bis.silverbiology.com/dev/resources/api/api.php?cmd=imageUpdate&imageId=1383&params={"specificEpithet" : "Citrus"}
