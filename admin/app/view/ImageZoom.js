@@ -39,7 +39,7 @@ Ext.define('BIS.view.ImageZoom', {
                     this.tileContainerEl = this.el.select('div').item(0);
                     this.dragEl = this.el.select('div').item(2);
                     this.zoomControlContainer = this.el.select('div').item(1);
-                    this.addClass('imagezoom-opencursor');
+                    this.addCls('imagezoom-opencursor');
                     this.setBackgroundColor(this.backgroundColor);
                     this.dragEl.applyStyles({overflow: 'hidden'});
                     this.loadDragTracker();
@@ -63,11 +63,11 @@ Ext.define('BIS.view.ImageZoom', {
     },
     enableDblClickZoom: function(){
         this.dragEl.on('dblclick', function(e){
-                if(this.currentShape != 'polygon' && this.currentShape != 'polyline'){
-                    if(this.currentZoomLevel < this.zoomMax){
-                        this.zoom(e, true);
-                    }
+            if (this.currentShape != 'polygon' && this.currentShape != 'polyline') {
+                if (this.currentZoomLevel < this.zoomMax) {
+                    this.zoom(e, true);
                 }
+            }
         }, this);
     },
     getImageSize: function() {
@@ -171,8 +171,8 @@ Ext.define('BIS.view.ImageZoom', {
                 ,	el: this.tileContainerEl
                 ,	scope: this
                 ,	listeners: {
-                            mousedown: function(e) { this.addClass('imagezoom-closecursor'); }
-                        ,	mouseup: function(e) { this.removeClass('imagezoom-closecursor'); }
+                            mousedown: function(e) { this.addCls('imagezoom-closecursor'); }
+                        ,	mouseup: function(e) { this.removeCls('imagezoom-closecursor'); }
                         ,	scope: this
                     }
             });
@@ -184,16 +184,17 @@ Ext.define('BIS.view.ImageZoom', {
         }
         this.fireEvent('beforeImageLoad', this);
         this.resetImage();
-        Ext.ux.JSONP.request( url, {
-                callbackKey: 'callback'
-            ,	callback: this.loadAllControls
-            ,	scope: this
+        Ext.Ajax.request({
+            url: url,
+            scope: this,
+            success: this.loadAllControls
         });
     },
-    loadAllControls: function(o) {
+    loadAllControls: function( data ) {
+        var o = Ext.decode( data.responseText );
         if (o.success) {
             if (this.currentZoomLevel > o.maxZoomLevel) this.currentZoomLevel = o.maxZoomLevel;
-            if(this.isImageLoaded) {
+            if (this.isImageLoaded) {
                 this.resetImage();
             }
             this.zoomMax = o.maxZoomLevel;
@@ -211,7 +212,7 @@ Ext.define('BIS.view.ImageZoom', {
             this.loadZoomBox();
             this.setCenterTile();
             this.fireEvent('afterImageLoad', this);	
-            if(this.showMask){
+            if (this.showMask) {
                 this.myMask.hide();
             }
         } else {
@@ -253,7 +254,7 @@ Ext.define('BIS.view.ImageZoom', {
             Ext.fly(this.westPan).on('click', function(){
                 this.moveDragContainer(-50, 0);
             }, this);
-            var panImage = 'resources/images/imagezoom/pan-control.gif';
+            var panImage = 'resources/img/pan-control.gif';
             this.pancontrol = Ext.DomHelper.insertFirst(this.tileContainerEl.dom, {tag: 'img', src: panImage, cls: 'imagezoom-pancontrol', usemap:"#panmap"});
         }
     },
@@ -284,9 +285,9 @@ Ext.define('BIS.view.ImageZoom', {
     },
     loadZoomControl: function() {
         if(this.zoomControl && this.isImageLoaded){
-            var plusImage = 'resources/images/imagezoom/plus.png';
+            var plusImage = 'resources/img/plus.png';
             this.zoomPlus = Ext.DomHelper.insertFirst(this.zoomControlContainer, {tag: 'img', src: plusImage, cls: 'imagezoom-zoomplus', title: this.zoomPlusText});
-            var minusImage = 'resources/images/imagezoom/minus.png';
+            var minusImage = 'resources/img/minus.png';
             this.zoomContainer = new Ext.slider.SingleSlider({
                     renderTo: this.zoomControlContainer
                 ,	hideLabel: true
@@ -510,7 +511,7 @@ Ext.define('BIS.view.ImageZoom', {
     zoomTile: function(zoomLevel) {
         if(this.isImageLoaded){
             if(!Ext.isDefined(this.tileLayers[zoomLevel-1])){
-                this.tileLayers[zoomLevel-1] = new SilverCollection.TileLayer({
+                this.tileLayers[zoomLevel-1] = Ext.create('BIS.view.ImageZoomTile',{
                         renderTo: this.dragEl
                     ,	zoomLevel: zoomLevel
                     ,	tileTpl: this.tileTpl
@@ -532,8 +533,8 @@ Ext.define('BIS.view.ImageZoom', {
             }
             if(this.preivousZoom != zoomLevel){
                 if(Ext.isDefined(this.previousLayer)){
-                    this.previousLayer.el.addClass('hidden');
-                    this.currentLayer.el.removeClass('hidden');
+                    this.previousLayer.el.addCls('hidden');
+                    this.currentLayer.el.removeCls('hidden');
                 }
             }
             this.dragEl.setWidth(this.currentLayer.el.getWidth());

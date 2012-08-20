@@ -7,7 +7,6 @@ Ext.define('BIS.view.ImagesGridView', {
 		'BIS.view.CtxMnuAttribute'
 	],
 	initialTpl: '<div>Loading...</div>',
-	tpl: '<tpl for="."><div>hello</div></tpl>',
 	itemSelector: '.imageSelector',
 	selectedItemCls: 'imageRowSelected',
 	stripeRows: true,
@@ -15,11 +14,9 @@ Ext.define('BIS.view.ImagesGridView', {
 	multiSelect: true,
 	listeners: {
 		afterrender: function( gridview, e ) {
-			console.log('test');
 			gridview.setTpl('both');
 		},
 		// dd events
-		// tpl events
 		itemclick: function( gridview, record, el, ind, e, opts ) {
 			var data = record.data;
 			Ext.getCmp('imageDetailsPanel').loadImage( data );
@@ -41,11 +38,13 @@ Ext.define('BIS.view.ImagesGridView', {
 						xtype: 'panel',
 						title: 'Static Image',
 						iconCls: 'icon_image',
+                        autoScroll: true,
 						html: '<img src="'+record.data.path + record.data.fileName.substr( 0, record.data.fileName.indexOf('.') ) + '_l.' + record.data.ext+'">'
 					},{
 						xtype: 'imagezoomviewer',
 						title: 'Zooming Image',
-						iconCls: 'icon_magnifier'
+						iconCls: 'icon_magnifier',
+                        imageId: record.data.imageId
 					}]
 				}]
 			}).show();
@@ -57,6 +56,7 @@ Ext.define('BIS.view.ImagesGridView', {
 		}
 	},
 	constructor: function( config ) {
+        this.table = this;
 		this.tplBoth = new Ext.XTemplate(
 			'<tpl for=".">'+
 			'<div class="imageSelector">' +
@@ -74,13 +74,13 @@ Ext.define('BIS.view.ImagesGridView', {
 					//console.log( date );
 					return date;
 			},
-			renderThumbnail: function( path, filename, ext ) {
-					return path + filename.substr( 0, filename.indexOf('.') ) + '_s.' + ext;
+			renderThumbnail: function( path, fileName, ext ) {
+					return path + fileName.substr( 0, fileName.indexOf('.') ) + '_s.' + ext;
 			}
 		});
-
 		this.tplSmallIcons = new Ext.XTemplate(
 			'<tpl for=".">'+
+			'<div class="imageSelector">' +
 			'<div style="display:inline-block; width:100px;height:100px"><img ' +
 				'<tpl if="family != \'\' || genus != \'\' || specificEpithet != \'\' ">'+
 					' ext:qtip="' +
@@ -88,24 +88,25 @@ Ext.define('BIS.view.ImagesGridView', {
 					'<tpl if="Genus != \'\' " >{genus} {specificEpithet}"</tpl>'+
 				'</tpl>' +
 				'src="{[this.renderThumbnail(values.path,values.fileName,values.ext)]}" /></div>'+
+			'</div>'+
 			'</tpl>', {
-			renderThumbnail: function( path, filename, ext ) {
-					return path + filename.substr( 0, filename.indexOf('.') ) + '_s.' + ext;
+			renderThumbnail: function( path, fileName, ext ) {
+					return path + fileName.substr( 0, fileName.indexOf('.') ) + '_s.' + ext;
 			}
 		});
-
 		this.tplTileIcons = new Ext.XTemplate(
 			'<tpl for=".">'+
+			'<div class="imageSelector">' +
 			'<div style="display:inline-block; padding: 5px;">'+
 				'<div unselectable="on">{barcode}<br/> {family}<span>{genus} {specificEpithet}</span></div>'+
 				'<div style="border-bottom: solid thin #9F9F9F; width: 275px; height: 276px;"><img src="{[this.renderThumbnail(values.path,values.fileName,values.ext)]}"></div>'+
 			'</div>'+
+			'</div>'+
 			'</tpl>', {
-			renderThumbnail: function( path, filename, ext ) {
-				return path + filename.substr( 0, filename.indexOf('.') ) + '_m.' + ext;
+			renderThumbnail: function( path, fileName, ext ) {
+				return path + fileName.substr( 0, fileName.indexOf('.') ) + '_m.' + ext;
 			}
-		});
-
+        });
 		this.callParent( arguments );
 	},
 	onRowSelect: function( ind ) {

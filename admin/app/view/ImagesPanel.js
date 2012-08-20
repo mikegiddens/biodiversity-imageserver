@@ -8,6 +8,7 @@ Ext.define('BIS.view.ImagesPanel', {
 	id: 'imagesGrid',
 	autoScroll: true,
 	store: 'ImagesStore',
+    viewType: 'imagesgridview',
 	listeners: {
 /*
 		afterrender: function( grid, e ) {
@@ -18,10 +19,10 @@ Ext.define('BIS.view.ImagesPanel', {
 		}
 */
 	},
+    beginLayout: Ext.emptyFn,
 	initComponent: function() {
 		var me = this;
 		Ext.applyIf(me, {
-			viewType: 'imagesgridview',
 			columns: [{
 				xtype: 'gridcolumn',
 				dataIndex: 'image_id',
@@ -98,24 +99,23 @@ Ext.define('BIS.view.ImagesPanel', {
 		me.callParent(arguments);
 	},
 	setFilter: function( params, reset ) {
-		if ( reset ) this.grid.getStore().clearFilter();
+		if ( reset ) this.getStore().clearFilter();
 		var parsedParams = [];
 		for ( var p in params ) {
 			parsedParams.push({property: p, value: params[p]});
 		}
-		this.grid.getStore().filter( parsedParams );
+		this.getStore().filter( parsedParams );
 	},
 	clearFilter: function() {
-		this.grid.getStore().clearFilter();
+		this.getStore().clearFilter();
 	},
 	changeView: function( cycleBtn, item ) {
-		console.log(this.getView(), item.type);
 		if ( item.type != 'details' ) {
-//			this.getView().setTpl( item.type );
+			this.getView().setTpl( item.type );
 		}
 	},
 	search: function( val ) {
-		this.grid.getStore().filterBy(function( record, id ) {
+		this.getStore().filterBy(function( record, id ) {
 			for ( var p in record.data ) {
 				if ( String(record.data[p]).indexOf(val) > 0 ) {
 					return true;

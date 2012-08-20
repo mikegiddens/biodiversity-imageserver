@@ -4,11 +4,11 @@ Ext.define('BIS.view.CategoryTreePanel', {
 	requires: [
 	],
 	id: 'categoryTreePanel',
+    rootVisible: false,
 	initComponent: function() {
 		var me = this;
 		Ext.applyIf(me, {
 			store: 'CategoryTreeStore',
-			rootVisible: false,
 			useArrows: true,
 			multiSelect: true,
 			allowCopy: true,
@@ -52,13 +52,15 @@ Ext.define('BIS.view.CategoryTreePanel', {
 			scope: this,
 			listeners: {
 				show: function( el, opts ) {
+                    this.getStore().load();
 					Ext.getCmp('viewsPagingTitle').setText('Categories');
 				},
 				beforeitemexpand: function( record, opts ) {
+                    // http://stackoverflow.com/questions/11413724/different-node-types-in-a-extjs-4-1-treestore
+					this.getStore().getProxy().getReader().setModel( 'BIS.model.AttributeModel' );
 					this.getStore().getProxy().extraParams.cmd = 'attributeList';
 					this.getStore().getProxy().extraParams.categoryId = record.data.categoryId;
 					this.getStore().getProxy().extraParams.showNames = false;
-					this.getStore().getProxy().setModel( 'BIS.model.AttributeModel' );
 				},
 				itemcontextmenu: function(view, record, item, index, e) {
 					e.stopEvent();
@@ -91,7 +93,8 @@ Ext.define('BIS.view.CategoryTreePanel', {
 	},
 
 	createCategory: function() {
-		Ext.create('Ext.window.Window', {
+        var me = this;
+		var tmpWindow = Ext.create('Ext.window.Window', {
 			title: 'Create Category',
 			iconCls: 'icon_newCategory',
 			modal: true,
@@ -104,6 +107,11 @@ Ext.define('BIS.view.CategoryTreePanel', {
 				border: false
 			}]
 		}).show();
+        tmpWindow.on( 'categoryCreated', function( data ) {
+            console.log( data );
+            tmpWindow.close();
+            me.getStore().load();
+        });
 	}
 
 });

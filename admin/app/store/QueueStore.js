@@ -15,15 +15,15 @@ Ext.define('BIS.store.QueueStore', {
             listeners: {
                 load: function( store, records, isSuccessful, operation, opts ) {
                     if (!(isSuccessful)) {
-                        Ext.get('queuePanel-body').update('<span style="position: relative; left: 10px; top: 10px">Queue is empty.</span>');
+                        //Ext.get('queuePanel-body').update('<span style="position: relative; left: 10px; top: 10px">Queue is empty.</span>');
                     }
                 }
             },
             proxy: {
                 url: Config.baseUrl + 'resources/api/api.php',
-                type: 'jsonp',
+                type: 'ajax',
                 extraParams: {
-                    cmd: 'list_process_queue'
+                    cmd: 'queueList'
                 },
                 reader: {
                     type: 'json',

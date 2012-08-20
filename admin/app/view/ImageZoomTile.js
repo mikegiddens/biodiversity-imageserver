@@ -3,26 +3,39 @@ Ext.define('BIS.view.ImageZoomTile', {
 	alias: ['widget.tilelayer'],
     initComponent: function() {
         var me = this;
+        // add string function
+        String.format = function() {
+            var s = arguments[0];
+            for (var i = 0; i < arguments.length - 1; i++) {       
+            var reg = new RegExp("\\{" + i + "\\}", "gm");             
+            s = s.replace(reg, arguments[i + 1]);
+            }
+            return s;
+        }
+        //
         Ext.applyIf( me, {
         	zoomLevel: 5,
         	tileSize: 256,
         	tileTpl: '',
-        	style: 'overflow:hidden; position:relative;',
-        	afterRender: function() {
-                this.tiles = [];
-                this.xtpl = Ext.DomHelper.createTemplate({
-                    tag: 'img',
-                    src: Ext.BLANK_IMAGE_URL,
-                    width: 256,
-                    height: 256,
-                    cls: 'tile'
-                });
-                this.createTiles(this.zoomLevel);
-                this.el.setWidth((this.tileSize * (Math.pow(this.zoomLevel, 2))) + 2);
-            }
+        	style: 'overflow:hidden; position:relative;'
         });
         me.callParent(arguments);
     },
+    listeners: {
+        afterrender: function() {
+            this.tiles = [];
+            this.xtpl = Ext.DomHelper.createTemplate({
+                tag: 'img',
+                src: Ext.BLANK_IMAGE_URL,
+                width: 256,
+                height: 256,
+                cls: 'tile'
+            });
+            this.createTiles(this.zoomLevel);
+            this.el.setWidth((this.tileSize * (Math.pow(this.zoomLevel, 2))) + 2);
+        }
+    },
+    tiles: [],
     createTiles: function(zoomLevel) {
         this.zoomLevel = zoomLevel;
         var tileCount = Math.pow(zoomLevel, 2);
@@ -57,7 +70,7 @@ Ext.define('BIS.view.ImageZoomTile', {
         }
     },
     showTile: function(x, y) {
-        if(this.tiles[x] && this.tiles[x][y] && !this.tiles[x][y].rendered) {
+        if( this.tiles[x] && this.tiles[x][y] && !this.tiles[x][y].rendered ) {
             var tileCount = Math.pow(this.zoomLevel, 2);
             var imgName = ((x-1) * (tileCount)) + (y-1);
             var url = String.format(this.tileTpl, x, y, this.zoomLevel, imgName);

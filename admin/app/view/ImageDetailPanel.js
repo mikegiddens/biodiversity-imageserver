@@ -3,10 +3,10 @@ Ext.define('BIS.view.ImageDetailPanel', {
 	alias: ['widget.imagedetailpanel'],
 	requires: [
 	],
+    id: 'imageDetailsPanel',
 	initComponent: function() {
 		var me = this;
 		Ext.applyIf(me, {
-			id: 'imageDetailsPanel',
 			title: 'Image Properties',
 			layout: 'fit',
 			autoScroll: true,

@@ -37,6 +37,93 @@
 	background-image:url(../img/closedn.png);
 }
 
+/*===============================
+/* Zoom Viewer Styles
+/*===============================*/
+img {
+	border: none;
+	border-width: 0px;
+	background-color: transparent;
+}
+.imagezoom-tiles{
+	width: 256px;
+	height: 256px;
+	border: thin solid rgb(153, 153, 153);
+	text-align: center;
+	float: left;
+}
+.tile{
+	float: left;
+	overflow: hidden;
+    position: relative;
+}
+.hidden { display: none; }
+.imagezoom-opencursor{
+	cursor: url(../images/icons/openhand_8_8.cur) ,pointer;
+}
+.imagezoom-closecursor{
+	cursor: url(../images/icons/closedhand_8_8.cur) ,pointer;
+}
+.imagezoom-copyright{
+	bottom: 7px;
+    color: grey;
+    font-size: 12px;
+    position: absolute;
+    right: 8px;
+    z-index: 10000;
+}
+.imagezoom-zoombox{
+	border: medium none;
+	-moz-user-select: none;
+	z-index: 10000;
+	position: absolute;
+	width: 111px;
+	height: 74px;
+	left: 0px;
+	top: 0px;
+}
+.imagezoom-rototecontrol {
+	bottom: 4px;
+    left: 40%;
+    position: absolute;
+    z-index: 10000;
+}
+.imagezoom-pancontrol{
+	cursor: pointer;
+	width: 59px;
+	height: 59px;
+    left: 15px;
+    position: absolute;
+    top: 20px;
+    z-index: 10000;
+}
+.imagezoom-scaleBar {
+    -moz-user-select: none;
+    bottom: 4px;
+    color: grey;
+    font-family: Arial,sans-serif;
+    font-size: 11px;
+    height: 26px;
+    left: 15px;
+    position: absolute;
+    width: 114px;
+	z-index: 10000;
+}
+.imagezoom-zoomcontrol{
+	left: 33px;
+    position: absolute;
+    top: 100px;
+    z-index: 10000;
+}
+.imagezoom-zoomplus{
+	padding-bottom: 5px;
+    padding-left: 2px;
+	cursor: pointer;
+}
+.imagezoom-zoomminus{
+	padding-left: 2px;
+	cursor: pointer;
+}
 /* ==========
     ICONS
 ========== */
