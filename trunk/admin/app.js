@@ -2,7 +2,7 @@ Ext.Loader.setConfig({
     enabled: true
 });
 
-Ext.application({
+Ext.application({					
     models: [
         'SetModel',
         'CategoryModel',
