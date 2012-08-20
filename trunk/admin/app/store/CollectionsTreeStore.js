@@ -18,7 +18,7 @@ Ext.define('BIS.store.CollectionsTreeStore', {
                 }
             },
             proxy: {
-                type: 'jsonp',
+                type: 'ajax',
                 url: Config.baseUrl + 'resources/api/api.php',
                 extraParams: {
                     cmd: 'collectionList'

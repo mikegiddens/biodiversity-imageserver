@@ -1,42 +1,48 @@
 Ext.define('BIS.view.FormCreateAttribute', {
-    extend: 'Ext.panel.Panel',
+    extend: 'Ext.form.FormPanel',
     alias: ['widget.formcreateattribute'],
-
-    id: 'createAttributePanel',
-
+    id: 'formCreateAttribute',
+    bodyPadding: 10,
     initComponent: function() {
         var me = this;
-
         Ext.applyIf(me, {
             items: [
                 {
-                    xtype: 'form',
-                    id: 'formCreateAttribute',
-                    bodyPadding: 10,
-                    items: [
-                        {
-                            xtype: 'textfield',
-                            name: 'value',
-                            fieldLabel: 'Name',
-                            labelAlign: 'right',
-                            anchor: '100%'
-                        },
-                        {
-                            xtype: 'textfield',
-                            name: 'identifier',
-                            fieldLabel: 'Identifier',
-                            labelAlign: 'right',
-                            anchor: '100%',
-                            readOnly: true,
-                            fieldCls: 'x-item-disabled',
-                            hidden: this.mode == 'add'
-                        }
-                    ]
+                    xtype: 'textfield',
+                    name: 'value',
+                    fieldLabel: 'Name',
+                    labelAlign: 'right',
+                    allowBlank: false,
+                    anchor: '100%'
                 },
                 {
-                    xtype: 'button',
-                    text: ( this.mode == 'add' ) ? 'Add' : 'Update',
-                    handler: this.submit
+                    xtype: 'textfield',
+                    name: 'identifier',
+                    fieldLabel: 'Identifier',
+                    labelAlign: 'right',
+                    anchor: '100%',
+                    readOnly: true,
+                    fieldCls: 'x-item-disabled',
+                    hidden: this.mode == 'add'
+                },
+                {
+                    xtype: 'hiddenfield',
+                    name: 'cmd',
+                    value: (this.mode == 'add') ? 'attributeAdd' : 'attributeUpdate'
+                }
+            ],
+            dockedItems: [
+                {
+                    xtype: 'toolbar',
+                    dock: 'bottom',
+                    ui: 'footer',
+                    items: [
+                        {
+                            text: ( this.mode == 'add' ) ? 'Add' : 'Update',
+                            scope: this,
+                            handler: this.submitForm
+                        }
+                    ]
                 }
             ]
         });
@@ -52,29 +58,22 @@ Ext.define('BIS.view.FormCreateAttribute', {
             }
         }
     },
-    submit: function() {
-        var values = Ext.getCmp('formCreateAttribute').getValues();
-        var route, params = { value: values.value };
-        if ( this.mode == 'add' ) {
-            params.categoryID = values.identifier;
-            route = 'attributeAdd';
-        } else {
-            // edit
-            params.valueID = values.identifier;
-            route = 'attributeUpdate';
-        }
-        Ext.Ajax.request({
-            method: 'POST',
-            url: Config.baseUrl + route,
-            params: params,
-            scope: this,
-            success: function( resObj ) {
-                var res = Ext.decode( resObj.responseText );
-                console.log( res );
-                if ( res.success ) {
-                    
-                }
-            }
-        });
-    }
+
+	submitForm: function() {
+		var form = this.up('form').getForm();
+		form.url = Config.baseUrl + 'resources/api/api.php';
+		if ( form.isValid() ) {
+			form.submit({
+				success: function(form, action) {
+					 Ext.Msg.alert('Success', action.result.msg);
+					 // fire event, close window
+					 // DO NOT refresh any list here it should be done from the list copmonent by listening to the event.
+				},
+				failure: function(form, action) {
+						Ext.Msg.alert('Failed', 'Request Failed');
+				}
+			});
+		}
+	}    
+
 });

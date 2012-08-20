@@ -14,7 +14,7 @@ Ext.define('BIS.store.StorageDevicesStore', {
             model: 'BIS.model.StorageDeviceModel',
             proxy: {
                 url: Config.baseUrl + 'resources/api/api.php',
-                type: 'jsonp',
+                type: 'ajax',
                 extraParams: {
                     cmd: 'storageDeviceList'
                 },

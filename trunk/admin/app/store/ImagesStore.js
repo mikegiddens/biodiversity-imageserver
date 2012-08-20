@@ -34,14 +34,15 @@ Ext.define('BIS.store.ImagesStore', {
             },
             proxy: {
                 url: Config.baseUrl + 'resources/api/api.php',
-                type: 'jsonp',
+                type: 'ajax',
                 extraParams: {
                     cmd: 'imageList'
                 },
                 reader: {
                     type: 'json',
                     root: 'records',
-                    successProperty: 'success'
+                    successProperty: 'success',
+                    totalProperty: 'totalCount'
                 }
             }
         }, cfg)]);

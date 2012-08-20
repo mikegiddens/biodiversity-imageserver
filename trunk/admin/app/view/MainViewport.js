@@ -230,9 +230,9 @@ Ext.define('BIS.view.MainViewport', {
 				viewCard.prev();
 			}
     },
-		switchView: function(menuItem, e) {
-			Ext.getCmp('viewsPanel').getLayout().setActiveItem(menuItem.panelIndex);
-		},
+    switchView: function( menuItem, e ) {
+        Ext.getCmp('viewsPanel').getLayout().setActiveItem(menuItem.panelIndex);
+    },
     openStorageSettings: function( menuItem, e ) {
 			Ext.create('Ext.window.Window', {
 				title: 'Storage Settings',

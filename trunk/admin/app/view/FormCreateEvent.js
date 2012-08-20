@@ -1,60 +1,60 @@
 Ext.define('BIS.view.FormCreateEvent', {
-    extend: 'Ext.panel.Panel',
+    extend: 'Ext.form.FormPanel',
     alias: ['widget.formcreateevent'],
-
-    id: 'createEventPanel',
-
+    id: 'formCreateEvent',
+    bodyPadding: 10,
     initComponent: function() {
         var me = this;
-
         Ext.applyIf(me, {
             items: [
                 {
-                    xtype: 'form',
-                    id: 'formCreateEvent',
-                    border: false,
-                    bodyPadding: 10,
-                    items: [
-                        {
-                            xtype: 'textfield',
-                            name: 'title',
-                            fieldLabel: 'Title',
-                            labelAlign: 'right',
-                            anchor: '100%'
-                        },
-                        {
-                            xtype: 'textarea',
-                            name: 'description',
-                            fieldLabel: 'Description',
-                            labelAlign: 'right',
-                            anchor: '100%'
-                        },
-                        {
-                            xtype: 'textfield',
-                            name: 'eventId',
-                            fieldLabel: 'Event Identifier',
-                            labelAlign: 'right',
-                            anchor: '100%',
-                            readOnly: true,
-                            fieldCls: 'x-item-disabled',
-                            hidden: this.mode == 'add'
-                        },
-                        {
-                            xtype: 'textfield',
-                            name: 'eventTypeId',
-                            fieldLabel: 'Type Identifier',
-                            labelAlign: 'right',
-                            anchor: '100%',
-                            readOnly: true,
-                            fieldCls: 'x-item-disabled',
-                            hidden: this.mode == 'add'
-                        }
-                    ]
+                    xtype: 'textfield',
+                    name: 'title',
+                    fieldLabel: 'Title',
+                    labelAlign: 'right',
+                    allowBlank: false,
+                    anchor: '100%'
                 },
                 {
-                    xtype: 'button',
-                    text: ( this.mode == 'add' ) ? 'Add' : 'Update',
-                    handler: this.submit
+                    xtype: 'textarea',
+                    name: 'description',
+                    fieldLabel: 'Description',
+                    labelAlign: 'right',
+                    anchor: '100%'
+                },
+                {
+                    xtype: 'textfield',
+                    name: 'eventId',
+                    fieldLabel: 'Event Identifier',
+                    labelAlign: 'right',
+                    anchor: '100%',
+                    readOnly: true,
+                    fieldCls: 'x-item-disabled',
+                    hidden: this.mode == 'add'
+                },
+                {
+                    xtype: 'textfield',
+                    name: 'eventTypeId',
+                    fieldLabel: 'Type Identifier',
+                    labelAlign: 'right',
+                    anchor: '100%',
+                    readOnly: true,
+                    fieldCls: 'x-item-disabled',
+                    hidden: this.mode == 'add'
+                }
+            ],
+            dockedItems: [
+                {
+                    xtype: 'toolbar',
+                    dock: 'bottom',
+                    ui: 'footer',
+                    items: [
+                        {
+                            text: ( this.mode == 'add' ) ? 'Add' : 'Update',
+                            scope: this,
+                            handler: this.submitForm
+                        }
+                    ]
                 }
             ]
         });
@@ -70,27 +70,28 @@ Ext.define('BIS.view.FormCreateEvent', {
             }
         }
     },
-    submit: function() {
-        var values = Ext.getCmp('formCreateEvent').getValues();
-        var route;
-        if ( this.mode == 'add' ) {
-            route = 'eventAdd';
-        } else {
-            // edit
-            route = 'eventUpdate';
-        }
-        Ext.Ajax.request({
-            method: 'POST',
-            url: Config.baseUrl + route,
-            params: values,
-            scope: this,
-            success: function( resObj ) {
-                var res = Ext.decode( resObj.responseText );
-                console.log( res );
-                if ( res.success ) {
-                    
-                }
-            }
-        });
-    }
+	submitForm: function() {
+		var route = 'resources/api/api.php?cmd=';
+        console.log( this, this.mode );
+		if ( this.mode == 'add' ) {
+			route += 'eventAdd';
+		} else {
+			// edit
+			route += 'eventUpdate';
+		}
+		var form = this.up('form').getForm();
+		form.url = Config.baseUrl + route;
+		if ( form.isValid() ) {
+			form.submit({
+				success: function(form, action) {
+					 Ext.Msg.alert('Success', action.result.msg);
+					 // fire event, close window
+					 // DO NOT refresh any list here it should be done from the list copmonent by listening to the event.
+				},
+				failure: function(form, action) {
+						Ext.Msg.alert('Failed', 'Request Failed');
+				}
+			});
+		}
+	}
 });

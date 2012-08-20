@@ -1,14 +1,12 @@
 Ext.define('BIS.view.CollectionTreePanel', {
 	extend: 'Ext.tree.TreePanel',
 	alias: ['widget.collectiontreepanel'],
-	requires: [
-	],
 	id: 'collectionTreePanel',
+    rootVisible: false,
 	initComponent: function() {
 		var me = this;
 		Ext.applyIf(me, {
 			store: 'CollectionsTreeStore',
-			rootVisible: false,
 			useArrows: true,
 			columns: [{
 				xtype: 'treecolumn',
@@ -33,6 +31,7 @@ Ext.define('BIS.view.CollectionTreePanel', {
 			scope: this,
 			listeners: {
 				show: function( el, opts ) {
+                    this.getStore().load();
 					Ext.getCmp('viewsPagingTitle').setText('Collections');
 				},
 				itemcontextmenu: function(view, record, item, index, e) {
@@ -41,7 +40,7 @@ Ext.define('BIS.view.CollectionTreePanel', {
 					ctx.showAt(e.getXY());
 				},
 				itemclick: function( tree, record, el, ind, e, opts ) {
-					Ext.getCmp('imagesPanel').setFilter({CollectionCode: record.data.code}, true);
+					Ext.getCmp('imagesGrid').setFilter({collectionCode: record.data.code}, true);
 				}
 			},
 			dockedItems: [{
@@ -63,8 +62,8 @@ Ext.define('BIS.view.CollectionTreePanel', {
 			title: 'Create Collection',
 			iconCls: 'icon_newCollection',
 			modal: true,
-			height: 500,
-			width: 800,
+			height: 100,
+			width: 350,
 			layout: 'fit',
 			items: [{
 				xtype: 'formcreatecollection',

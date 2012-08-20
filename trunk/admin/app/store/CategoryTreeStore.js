@@ -4,7 +4,6 @@ Ext.define('BIS.store.CategoryTreeStore', {
         'BIS.model.CategoryModel',
         'BIS.model.AttributeModel'
     ],
-    autoLoad: true,
     constructor: function(cfg) {
         var me = this;
         cfg = cfg || {};
@@ -20,7 +19,7 @@ Ext.define('BIS.store.CategoryTreeStore', {
                 }
             },
             proxy: {
-                type: 'jsonp',
+                type: 'ajax',
                 url: Config.baseUrl + 'resources/api/api.php',
                 extraParams: {
                     cmd: 'categoryList'

@@ -1,50 +1,50 @@
 Ext.define('BIS.view.FormCreateEventType', {
-    extend: 'Ext.panel.Panel',
+    extend: 'Ext.form.FormPanel',
     alias: ['widget.formcreateeventtype'],
-
-    id: 'createEventTypePanel',
-
+    id: 'formCreateEventType',
+    bodyPadding: 10,
     initComponent: function() {
         var me = this;
-
         Ext.applyIf(me, {
             items: [
                 {
-                    xtype: 'form',
-                    id: 'formCreateEventType',
-                    border: false,
-                    bodyPadding: 10,
-                    items: [
-                        {
-                            xtype: 'textfield',
-                            name: 'title',
-                            fieldLabel: 'Title',
-                            labelAlign: 'right',
-                            anchor: '100%'
-                        },
-                        {
-                            xtype: 'textarea',
-                            name: 'description',
-                            fieldLabel: 'Description',
-                            labelAlign: 'right',
-                            anchor: '100%'
-                        },
-                        {
-                            xtype: 'textfield',
-                            name: 'eventTypeId',
-                            fieldLabel: 'Identifier',
-                            labelAlign: 'right',
-                            anchor: '100%',
-                            readOnly: true,
-                            fieldCls: 'x-item-disabled',
-                            hidden: this.mode == 'add'
-                        }
-                    ]
+                    xtype: 'textfield',
+                    name: 'title',
+                    fieldLabel: 'Title',
+                    allowBlank: false,
+                    labelAlign: 'right',
+                    anchor: '100%'
                 },
                 {
-                    xtype: 'button',
-                    text: ( this.mode == 'add' ) ? 'Add' : 'Update',
-                    handler: this.submit
+                    xtype: 'textarea',
+                    name: 'description',
+                    fieldLabel: 'Description',
+                    labelAlign: 'right',
+                    anchor: '100%'
+                },
+                {
+                    xtype: 'textfield',
+                    name: 'eventTypeId',
+                    fieldLabel: 'Identifier',
+                    labelAlign: 'right',
+                    anchor: '100%',
+                    readOnly: true,
+                    fieldCls: 'x-item-disabled',
+                    hidden: this.mode == 'add'
+                }
+            ],
+            dockedItems: [
+                {
+                    xtype: 'toolbar',
+                    dock: 'bottom',
+                    ui: 'footer',
+                    items: [
+                        {
+                            text: ( this.mode == 'add' ) ? 'Add' : 'Update',
+                            scope: this,
+                            handler: this.submitForm
+                        }
+                    ]
                 }
             ]
         });
@@ -59,27 +59,27 @@ Ext.define('BIS.view.FormCreateEventType', {
             }
         }
     },
-    submit: function() {
-        var values = Ext.getCmp('formCreateEventType').getValues();
-        var route;
-        if ( this.mode == 'add' ) {
-            route = 'eventTypeAdd';
-        } else {
-            // edit
-            route = 'eventTypeUpdate';
-        }
-        Ext.Ajax.request({
-            method: 'POST',
-            url: Config.baseUrl + route,
-            params: values,
-            scope: this,
-            success: function( resObj ) {
-                var res = Ext.decode( resObj.responseText );
-                console.log( res );
-                if ( res.success ) {
-                    
-                }
-            }
-        });
-    }
+	submitForm: function() {
+		var route = 'resources/api/api.php?cmd=';
+		if ( this.mode == 'add' ) {
+			route += 'eventTypeAdd';
+		} else {
+			// edit
+			route += 'eventTypeUpdate';
+		}
+		var form = this.up('form').getForm();
+		form.url = Config.baseUrl + route;
+		if ( form.isValid() ) {
+			form.submit({
+				success: function(form, action) {
+					 Ext.Msg.alert('Success', action.result.msg);
+					 // fire event, close window
+					 // DO NOT refresh any list here it should be done from the list copmonent by listening to the event.
+				},
+				failure: function(form, action) {
+						Ext.Msg.alert('Failed', 'Request Failed');
+				}
+			});
+		}
+	}
 });

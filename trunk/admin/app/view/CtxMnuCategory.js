@@ -9,8 +9,8 @@ Ext.define('BIS.view.CtxMnuCategory', {
                         title: 'Add Attribute to ' + this.record.data.title,
                         iconCls: 'icon_newAttribute',
                         modal: true,
-                        height: 500,
-                        width: 800,
+                        height: 100,
+                        width: 350,
                         layout: 'fit',
                         items: [
                             Ext.create('widget.formcreateattribute', {
@@ -25,8 +25,8 @@ Ext.define('BIS.view.CtxMnuCategory', {
                         title: 'Edit ' + this.record.data.title,
                         iconCls: 'icon_editCategory',
                         modal: true,
-                        height: 500,
-                        width: 800,
+                        height: 100,
+                        width: 350,
                         layout: 'fit',
                         items: [
                             Ext.create('widget.formcreatecategory', {
@@ -72,7 +72,7 @@ Ext.define('BIS.view.CtxMnuCategory', {
     remove: function() {
         Ext.Ajax.request({
             method: 'POST',
-            url: Config.baseUrl + 'categoryDelete',
+            url: Config.baseUrl + 'resources/api/api.php?cmd=categoryDelete',
             params: { categoryId: this.record.data.categoryId },
             scope: this,
             success: function( resObj ) {

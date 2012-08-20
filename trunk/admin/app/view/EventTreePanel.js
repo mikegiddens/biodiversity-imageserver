@@ -48,8 +48,10 @@ Ext.define('BIS.view.EventTreePanel', {
 				copy: true,
 				loadMask: false
 			},
+            scope: this,
 			listeners: {
 				show: function( el, opts ) {
+                    this.getStore().load();
 					Ext.getCmp('viewsPagingTitle').setText('Events');
 				},
 				beforeitemexpand: function( record, opts ) {
@@ -91,8 +93,8 @@ Ext.define('BIS.view.EventTreePanel', {
 			title: 'Create Event Type',
 			iconCls: 'icon_newEventType',
 			modal: true,
-			height: 500,
-			width: 800,
+			height: 100,
+			width: 350,
 			layout: 'fit',
 			items: [{
 				xtype: 'formcreateeventtype',

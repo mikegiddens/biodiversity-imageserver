@@ -20,7 +20,7 @@ Ext.define('BIS.store.SetTreeStore', {
                 }
             },
             proxy: {
-                type: 'jsonp',
+                type: 'ajax',
                 url: Config.baseUrl + 'resources/api/api.php',
                 extraParams: {
                     cmd: 'setList'
