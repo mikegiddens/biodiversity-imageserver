@@ -91,7 +91,7 @@
 				, 104 => 'User is not logged-in or do not have the privilege to access this command.'
 				, 105 => 'Image Attribute Not Added'
 				, 106 => 'url and key should be provided.'
-				, 107 => 'Invalid URL provided.'
+				, 107 => 'Invalid url provided.'
 				, 108 => 'No new records added.'
 				, 109 => 'attributeId should be provided.'
 				, 110 => 'Category Not Added.'
@@ -156,6 +156,18 @@
 				, 169 => 'Error in deleting from the database.'
 				, 170 => 'Image does not exist in the database.'
 				, 171 => 'The key provided cannot be used to perform this action.'
+				, 172 => 'storageDeviceId, imagePath and fileName required'
+				, 173 => 'Image could not be moved or copied.'
+				, 174 => 'url, storageDeviceId and key should be provided.'
+				, 175 => 'code does not exist.'
+				, 176 => 'Image could not be added to the collection.'
+				, 177 => 'Image could not be added to the event.'
+				, 178 => 'Image could not be deleted from the event.'
+				, 179 => 'code should be provided.'
+				, 180 => 'zBarImg Not Enabled.'
+				, 181 => 'Invalid barcode or imageId.'
+				, 182 => 'No attributes set for the image.'
+				, 183 => 'No images for the specified event.'
 
 
 

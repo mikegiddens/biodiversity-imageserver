@@ -181,12 +181,12 @@ class StorageDevice {
 					if($response->isOK()) {
 						$result['imageId'] = $img->imageGetId($storageFileName, $storageFilePath, 1);
 						if(!$result['imageId']) {
-							$img->imageSetProperty('filename',$storageFileName);
+							$img->imageSetProperty('fileName',$storageFileName);
 							$img->imageSetProperty('storageDeviceId', 1);
 							$img->imageSetProperty('path', $storageFilePath);
 							$img->imageSetProperty('originalFilename', $storageFileName);
 							$img->imageSetProperty('remoteAccessKey', $remoteAccesskey);
-							$img->save();
+							$img->imageSave();
 							$result['imageId'] = $img->imageGetId($storageFileName, $storageFilePath, 1);
 						}
 						$result['success'] = true;
@@ -204,12 +204,15 @@ class StorageDevice {
 					if($response) {
 						$result['imageId'] = $img->imageGetId($storageFileName, $storageFilePath, 2);
 						if(!$result['imageId']) {
-							$img->imageSetProperty('filename',$storageFileName);
+							$ar = @getimagesize($device['basePath'].$storageFilePath.'/'.$storageFileName);
+							$img->imageSetProperty('width',$ar[0]);
+							$img->imageSetProperty('height',$ar[1]);
+							$img->imageSetProperty('fileName',$storageFileName);
 							$img->imageSetProperty('storageDeviceId', 2);
 							$img->imageSetProperty('path', $storageFilePath);
 							$img->imageSetProperty('originalFilename', $storageFileName);
 							$img->imageSetProperty('remoteAccessKey', $remoteAccesskey);
-							$img->save();
+							$img->imageSave();
 							$result['imageId'] = $img->imageGetId($storageFileName, $storageFilePath, 2);
 						}
 						$result['success'] = true;
@@ -263,8 +266,8 @@ class StorageDevice {
 			if(($img->get('storageDeviceId') == $newStorageId) && ($img->get('path') == $newImagePath)) {
 				return true;
 			} else {
-				$device1 = $this->get($img->get('storageDeviceId'));
-				$device2 = $this->get($newStorageId);
+				$device1 = $this->storageDeviceGet($img->get('storageDeviceId'));
+				$device2 = $this->storageDeviceGet($newStorageId);
 				
 				switch(strtolower($device2['type'])) {
 					case 's3':
@@ -341,9 +344,9 @@ class StorageDevice {
 		}
 	}
 	
-	public function fileExists($storageDeviceId, $key) {
-		if($storageDeviceId == '' || $key == '') return false;
-		$device = $this->get($storageDeviceId);
+	public function storageDeviceFileExists($storageDeviceId, $key) {
+		if($storageDeviceId == '') return false;
+		$device = $this->storageDeviceGet($storageDeviceId);
 		if(!$device) return false;
 		switch(strtolower($device['type'])) {
 			case 's3':
@@ -355,7 +358,6 @@ class StorageDevice {
 					return false;
 				}
 				break;
-				
 			case 'local':
 				$key = substr($key,0,1)!='/' ? '/'.$key : $key;
 				if(@file_exists($device['basePath'].$key)) {
@@ -364,16 +366,15 @@ class StorageDevice {
 					return false;
 				}
 				break;
-				
 			default:
 				return false;
 				break;
 		}
 	}
 	
-	public function fileGetContents($storageDeviceId, $key) {
-		if($storageDeviceId == '' || $key == '') return false;
-		$device = $this->get($storageDeviceId);
+	public function storageDeviceFileGetContents($storageDeviceId, $key) {
+		if($storageDeviceId == '') return false;
+		$device = $this->storageDeviceGet($storageDeviceId);
 		if(!$device) return false;
 		switch(strtolower($device['type'])) {
 			case 's3':
@@ -392,7 +393,6 @@ class StorageDevice {
 					return false;
 				}
 				break;
-				
 			case 'local':
 				$key = substr($key,0,1)!='/' ? '/'.$key : $key;
 				$data = @file_get_contents($device['basePath'] . $key);
@@ -402,16 +402,15 @@ class StorageDevice {
 					return false;
 				}
 				break;
-				
 			default:
 				return false;
 				break;
 		}
 	}
 	
-	public function fileDownload($storageDeviceId , $key) {
-		if($storageDeviceId == '' || $key == '') return false;
-		$device = $this->get($storageDeviceId);
+	public function storageDeviceFileDownload($storageDeviceId , $key) {
+		if($storageDeviceId == '') return false;
+		$device = $this->storageDeviceGet($storageDeviceId);
 		if(!$device) return false;
 		switch(strtolower($device['type'])) {
 			case 's3':
@@ -434,20 +433,19 @@ class StorageDevice {
 					return false;
 				}
 				break;
-				
 			case 'local':
-				$key = substr($key,0,1)!='/' ? '/'.$key : $key;
+				$key = (substr($key,0,1)!='/') ? '/'.$key : $key;
 				return ($device['basePath'] . $key);
-				
+				break;
 			default:
 				return false;
 				break;
 		}
 	}
 	
-	public function createFile_Data($storageDeviceId, $key, $data) {
-		if($storageDeviceId == '' || $key == '' || $data == '') return false;
-		$device = $this->get($storageDeviceId);
+	public function storageDeviceCreateFile($storageDeviceId, $key, $data) {
+		if($storageDeviceId == '' || $data == '') return false;
+		$device = $this->storageDeviceGet($storageDeviceId);
 		if(!$device) return false;
 		switch(strtolower($device['type'])) {
 			case 's3':

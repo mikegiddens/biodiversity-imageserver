@@ -167,9 +167,9 @@ class Event
 		return false;
 	}
 	
-	public function eventsAddImageEvent($imageId, $eventId) {
+	public function eventsAddImage($imageId, $eventId) {
 		if($imageId == '' || $eventId == '') return false;
-		if(!$this->recordExists($eventId)) return false;
+		if(!$this->eventsRecordExists($eventId)) return false;
 		$query = sprintf("INSERT INTO eventImages SET `imageId` = '%s', `eventId` = '%s'"
 				, mysql_escape_string($imageId)
 				, mysql_escape_string($eventId) 
@@ -185,9 +185,9 @@ class Event
 		}
 	}
 	
-	public function eventsDeleteImageEvent($imageId, $eventId) {
+	public function eventsDeleteImage($imageId, $eventId) {
 		if($imageId == '' || $eventId == '') return false;
-		if(!$this->recordExists($eventId)) return false;
+		if(!$this->eventsRecordExists($eventId)) return false;
 		$query = sprintf("DELETE FROM `eventImages` WHERE `imageId` = '%s' AND `eventId` = '%s' ", mysql_escape_string($imageId), mysql_escape_string($eventId));
 		if($this->db->query($query)) {
 			$this->lg->logSetProperty('table', 'eventImages');
@@ -199,11 +199,11 @@ class Event
 		}
 	}
 	
-	public function listImagesByEvent($eventId,$size = 'l',$attributesFlag = true) {
-		$query = sprintf("SELECT e.`imageId`, i.`filename`, i.`barcode`, i.`storage_id`, i.`path`  FROM `event_images` e LEFT OUTER JOIN image i ON e.`imageId` = i.`image_id` WHERE e.`eventId` = '%s';", mysql_escape_string($eventId));
+	public function eventsListImages($eventId,$size = 'l',$attributesFlag = true) {
+		$query = sprintf("SELECT e.`imageId`, i.`fileName`, i.`barcode`, i.`storageDeviceId`, i.`path`  FROM `eventImages` e LEFT OUTER JOIN image i ON e.`imageId` = i.`imageId` WHERE e.`eventId` = '%s';", mysql_escape_string($eventId));
 		$records = $this->db->query_all($query);
 		if(count($records)) {
-			$storage = new Storage($this->db);
+			$storage = new StorageDevice($this->db);
 			if($attributesFlag) {
 				$image = new Image($this->db);
 			}
@@ -215,28 +215,28 @@ class Event
 			}
 			
 			foreach($records as &$record) {
-				$device = $storage->get($record->storage_id);
-				$tmpFilename = explode(".",$record->filename);
+				$device = $storage->storageDeviceGet($record->storageDeviceId);
+				$tmpFilename = explode(".",$record->fileName);
 				$tmpFilename[0] .= $size;
-				$record->filename = implode(".", $tmpFilename);
+				$record->fileName = implode(".", $tmpFilename);
 
 				$record->url = $device['baseUrl'];
 				switch(strtolower($device['type'])) {
 					case 's3':
 						$record->path = substr($record->path, 0, 1) == '/' ? substr($record->path, 1, strlen($record->path)-1) : $record->path;
 						$record->baseUrl = $device['baseUrl'] . $record->path . '/';
-						$record->url = $device['baseUrl'] . $record->path . '/' . $record->filename;
+						$record->url = $device['baseUrl'] . $record->path . '/' . $record->fileName;
 						break;
 					case 'local':
 						if(substr($device['baseUrl'], strlen($url['url'])-1, 1) == '/') {
 							$record->url = substr($device['baseUrl'],0,strlen($device['baseUrl'])-1);
 						}
 						$record->baseUrl = $record->url . $record->path . '/';
-						$record->url .= $record->path . '/' . $record->filename;
+						$record->url .= $record->path . '/' . $record->fileName;
 						break;
 				}
 				if($attributesFlag) {
-					$record->attributes = $image->get_all_attributes($record->image_id);
+					$record->attributes = $image->imageGetAttributes($record->imageId);
 				}
 			}
 			return $records;
