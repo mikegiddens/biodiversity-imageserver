@@ -353,8 +353,8 @@ Class Image {
 		//$bucket = $config['s3']['bucket'];
 		$tmpPath = $_TMP . $this->imageGetProperty('fileName');
 		
-		$storage = new Storage($this->db);
-		$device = $storage->get($this->imageGetProperty('storageDeviceId'));
+		$storage = new StorageDevice($this->db);
+		$device = $storage->storageDeviceGet($this->imageGetProperty('storageDeviceId'));
 		$bucket = $device['basePath'];
 		$path = $device['basePath'] . $this->imageGetProperty('path');
 		$image =  $path .'/'. $this->imageGetProperty('fileName');
@@ -477,7 +477,7 @@ Class Image {
 	}
 
 	public function imageGetId($fileName, $filepath, $storageDeviceId) {
-		if($fileName == '' || $filepath == '' || $storageDeviceId == '') return false;
+		if($fileName == '' || $storageDeviceId == '') return false;
 		$query = sprintf("SELECT `imageId` FROM `image` WHERE `originalFilename` = '%s' AND `path` = '%s' AND `storageDeviceId` = '%s';", $fileName, $filepath, $storageDeviceId);
 		$ret = $this->db->query_one($query);
 		if($ret->imageId == NULL) {
@@ -1203,11 +1203,11 @@ Class Image {
 	public function imageDelete() {
 		global $config;
 		$imageId = $this->data['imageId'];
-		$storage = new Storage($this->db);
+		$storage = new StorageDevice($this->db);
 		if($imageId != '' && $this->imageFieldExists($imageId)) {
 			$this->imageLoadById($imageId);
 			$barcode = $this->imageGetProperty('barcode');
-			$device = $storage->get($this->imageGetProperty('storageDeviceId'));
+			$device = $storage->storageDeviceGet($this->imageGetProperty('storageDeviceId'));
 			$fileNameParts = explode('.', $this->imageGetProperty('fileName'));
 			switch(strtolower($device['type'])) {
 				case 's3':
@@ -1247,7 +1247,7 @@ Class Image {
 			$query = sprintf("DELETE FROM `processQueue` WHERE `imageId` = '%s' ", mysql_escape_string($imageId));
 			$this->db->query($query);
 			
-			$query = sprintf("DELETE FROM `specimen2label` WHERE `barcode` = '%s' ", mysql_escape_string($barcode));
+			$query = sprintf("DELETE FROM `specimen2Label` WHERE `barcode` = '%s' ", mysql_escape_string($barcode));
 			$this->db->query($query);
 			
 			$delquery = sprintf("DELETE FROM `image` WHERE `imageId` = '%s' ", mysql_escape_string($imageId));
@@ -1750,7 +1750,7 @@ Class Image {
 		}
 	}
 	
-	public function get_all_attributes($imageId) {
+	public function imageGetAttributes($imageId) {
 		$query = sprintf("SELECT ia.categoryId iaTID, ia.attributeId iaVID, iat.title iatTitle, iav.name iavValue FROM imageAttrib ia LEFT OUTER JOIN imageAttribType iat ON ( ia.categoryId = iat.categoryId ) JOIN imageAttribValue iav ON (iav.attributeId = ia.attributeId AND ia.imageId = '%s' ) ORDER BY ia.categoryId", mysql_escape_string($imageId));
 		$records = $this->db->query_all($query);
 		if(count($records)) {
@@ -1980,56 +1980,7 @@ Class Image {
 		return $this->records;
 	}
 
-	public function loadImageList() {
-		unset($this->records);
-		$this->records = array();
-		$this->query = '';
-
-		$this->query = "SELECT I.`imageId` AS imageId, I.`fileName` AS fileName, I.`family`, I.`genus`, I.`specificEpithet`, I.`zoomEnabled`, I.`gTileProcessed`, I.`timestampModified`, I.`characters`, I.`barcode`, I.`globalUniqueIdentifier` ";
-		$this->queryCount = ' SELECT count(*) AS sz ';
-		$this->setFilters();
-
-		if (($this->data['characters'] != '') && ($this->data['characters'] != '[]')) {
-			$tstr = " GROUP BY I.imageId HAVING sz >= " . $this->char_count;
-			$this->query .= $tstr;
-			$this->queryCount .= $tstr;
-		}
-
-		if (($this->data['sort'] != '')) {
-			$sort = $this->data['sort'];
-			if ($sort == "GUID") $sort = "GlobalUniqueIdentifier";
-			$this->query .= sprintf(" ORDER BY I.%s %s", $sort, $this->data['dir']);
-		} else {
-			$this->query .= " ORDER BY I.Family, I.Genus, I.SpecificEpithet, I.rank ";
-		}
-		
-		if ($this->data['start'] && $this->data['limit']) {
-			$this->query .= " LIMIT " . stripslashes($this->data['start']) . ", " . stripslashes($this->data['limit']);	
-		} elseif ($this->data['limit']) {
-			$this->query .= " LIMIT " . stripslashes($this->data['limit']);
-		}
-		try {
-			$records = $this->db->query_all($this->query);
-		} catch (Exception $e) {
-			trigger_error($e->getMessage(),E_USER_ERROR);
-		}
-
-		if (($this->data['characters'] != '') && ($this->data['characters'] != '[]')) {
-			$this->queryCount = "SELECT count(sz) as sz FROM (" . $this->queryCount . ") as x1";
-		}
-
-		$resCount = $this->db->query_one($this->queryCount);
-		$this->total = $resCount->sz;
-		
-		if(count($records)){
-			foreach($records as $record) {
-				$this->records[] = $record;
-			}
-		}
-		return $this->records;
-	}
-
-	public function loadImageDetails() {
+	public function imageDetails() {
 		global $config;
 		$ret = array();
 		unset($this->records);
@@ -2074,15 +2025,15 @@ Class Image {
 			$ret['record'] = $record;
 		} else {
 			$ret['status'] = false;
-			$ret['error'] = 116;
+			$ret['error'] = 170;
 		}
 		return $ret;
 	}
 	
-	public function getUrl($imageId) {
+	public function imageGetUrl($imageId) {
 		$this->imageLoadById($imageId);
-		$storage = new Storage($this->db);
-		$device = $storage->get($this->imageGetProperty('storageDeviceId'));
+		$storage = new StorageDevice($this->db);
+		$device = $storage->storageDeviceGet($this->imageGetProperty('storageDeviceId'));
 		$url['url'] = $device['baseUrl'];
 		switch(strtolower($device['type'])) {
 			case 's3':
@@ -2132,9 +2083,9 @@ Class Image {
 
 	public function getNonENProcessedRecords($filter='') {
 		if($filter['collection']=='')
-			$query = " SELECT * FROM `image` WHERE `barcode` NOT IN (SELECT `barcode` from `specimen2label`) ";
+			$query = " SELECT * FROM `image` WHERE `barcode` NOT IN (SELECT `barcode` from `specimen2Label`) ";
 		else
-			$query = sprintf(" SELECT * FROM `image` WHERE `barcode` NOT IN (SELECT `barcode` from `specimen2label`) AND `collectionCode` = '%s' ", mysql_escape_string($filter['collection']) );
+			$query = sprintf(" SELECT * FROM `image` WHERE `barcode` NOT IN (SELECT `barcode` from `specimen2Label`) AND `collectionCode` = '%s' ", mysql_escape_string($filter['collection']) );
 		if(trim($filter['start']) != '' && trim($filter['limit']) != '') {
 			$query .= build_limit(trim($filter['start']),trim($filter['limit']));
 		}
