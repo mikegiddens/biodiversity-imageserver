@@ -40,6 +40,7 @@
 		,	'country'
 		,	'countryIso'
 		,	'cmd'
+		,	'degree'
 		,	'description'
 		,	'destinationPath'
 		,	'dir'
@@ -47,9 +48,11 @@
 		,	'eventId'
 		,	'eventTypeId'
 		,	'extra'
-		,	'fileName'
+		,	'family'
+		,	'filename'
 		,	'filter'
 		,	'force'
+		,	'genus'
 		,	'geoFlag'
 		,	'geographyId'
 		,	'group'
@@ -60,6 +63,8 @@
 		,	'limit'
 		,	'loadFlag'
 		,	'name'
+		,	'nodeApi'
+		,	'nodeValue'
 		,	'notebookGuid'
 		,	'order'
 		,	'params'
@@ -853,7 +858,7 @@
 								$ar = $ar[0];
 								$tmpPath = $si->image->imageGetUrl($ar->imageId);
 								$ar->path = $tmpPath['baseUrl'];
-								$fname = explode(".", $ar->fileName);
+								$fname = explode(".", $ar->filename);
 								$ar->ext = $fname[1];
 								$ar->en_flag = ($si->s2l->load_by_barcode($ar->barcode)) ? 1 : 0;
 								$data[$label] = $ar;
@@ -926,7 +931,7 @@
 			} elseif($storageDeviceId == '' || !$si->storage->storageDeviceExists($storageDeviceId)) {
 				$errorCode = 156;
 				$valid = false;
-			} elseif($fileName=='') {
+			} elseif($filename=='') {
 				$errorCode = 163;
 				$valid = false;
 			} else {
@@ -935,21 +940,21 @@
 				$stream = ($stream != '') ? $stream : '';
 				$stream = str_replace(' ','+',$stream);
 				$stream = base64_decode($stream);
-				if((strpos($fileName,'/')) !== false) {
-					$tmpFilename = explode('/', $fileName);
-					$fileName = $tmpFilename[count($tmpFilename)-1];
+				if((strpos($filename,'/')) !== false) {
+					$tmpFilename = explode('/', $filename);
+					$filename = $tmpFilename[count($tmpFilename)-1];
 				}
-				file_put_contents($fileName, $stream);
-				$size = getimagesize($fileName);
+				file_put_contents($filename, $stream);
+				$size = getimagesize($filename);
 				if(!in_array($size[2],$config['allowedImportTypes'])) {
 					$errorCode = 164;
 					$valid = false;
 				}
 			}
 			if($valid) {
-				$response = $si->storage->storageDeviceStore($fileName,$storageDeviceId,$fileName, $imagePath, $key);
-				$iEXd = new EXIFread($fileName);
-				unlink($fileName);
+				$response = $si->storage->storageDeviceStore($filename,$storageDeviceId,$filename, $imagePath, $key);
+				$iEXd = new EXIFread($filename);
+				unlink($filename);
 				if($response['success']) {
 					$si->pqueue->processQueueSetProperty('imageId', $response['imageId']);
 					$si->pqueue->processQueueSetProperty('processType','all');
@@ -1042,30 +1047,30 @@
 			if($imagePath != '') {
 				$imagePath = '/' . ltrim($imagePath,'/');
 			}
-			if($storageDeviceId == '' || $imagePath == '' || $fileName == '') {
+			if($storageDeviceId == '' || $imagePath == '' || $filename == '') {
 				$valid = false;
 				$errorCode = 124;
 			} elseif(!$si->storage->storageDeviceExists($storageDeviceId)) {
 				$valid = false;
 				$errorCode = 156;
-			} elseif(!$si->image->imageExists($storageDeviceId, $imagePath, $fileName)) {
+			} elseif(!$si->image->imageExists($storageDeviceId, $imagePath, $filename)) {
 				$valid = false;
 				$errorCode = 168;
 			} else {
 				$valid = true;
 			}
 			if($valid) {
-				$imageId = $si->image->imageGetId($fileName, $imagePath, $storageDeviceId);
+				$imageId = $si->image->imageGetId($filename, $imagePath, $storageDeviceId);
 				if(!$imageId) {
 					$device = $si->storage->storageDeviceGet($storageDeviceId);
-					$ar = @getimagesize($device['basePath'] . '/' . $imagePath . '/' . $fileName);
+					$ar = @getimagesize($device['basePath'] . '/' . $imagePath . '/' . $filename);
 					
 					$si->image->imageSetProperty('width',$ar[0]);
 					$si->image->imageSetProperty('height',$ar[1]);
-					$si->image->imageSetProperty('fileName',$fileName);
+					$si->image->imageSetProperty('filename',$filename);
 					$si->image->imageSetProperty('storageDeviceId', $storageDeviceId);
 					$si->image->imageSetProperty('path', $imagePath);
-					$si->image->imageSetProperty('originalFilename', $fileName);
+					$si->image->imageSetProperty('originalFilename', $filename);
 					
 					if($si->image->imageSave()) {
 						$imageId = $si->image->insert_id;
@@ -1208,8 +1213,7 @@
 			# destinationPath and imagePath relative to the storage path
 			$destinationPath = ($destinationPath == '') ? '/serverimages/' : $destinationPath; 
 			$imgPath = $destinationPath;
-			$filename = $fileName;
-			if($storageDeviceId == '' || $imagePath == '' || $fileName == '') {
+			if($storageDeviceId == '' || $imagePath == '' || $filename == '') {
 				$valid = false;
 				$errorCode = 172;
 			} else if(!$si->storage->storageDeviceExists($storageDeviceId)) {
@@ -1247,7 +1251,7 @@
 						$imgPath = rtrim($imgPath,'/');
 						$si->image->imageSetProperty('width',$ar[0]);
 						$si->image->imageSetProperty('height',$ar[1]);
-						$si->image->imageSetProperty('fileName',$filename);
+						$si->image->imageSetProperty('filename',$filename);
 						$si->image->imageSetProperty('storageDeviceId', $storageDeviceId);
 						$si->image->imageSetProperty('path', $imgPath);
 						$si->image->imageSetProperty('originalFilename', $filename);
@@ -1595,9 +1599,9 @@
 				print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray(181)) ));
 			} else {
 				# getting image
-				$key = $si->image->imageGetProperty('path') . '/' . $si->image->imageGetProperty('fileName');
+				$key = $si->image->imageGetProperty('path') . '/' . $si->image->imageGetProperty('filename');
 				$cacheFlag = false;
-				$explodeFilename = explode(".", $si->image->imageGetProperty('fileName'));
+				$explodeFilename = explode(".", $si->image->imageGetProperty('filename'));
 				$cachePath = $si->image->imageGetProperty('path') . '/' . $explodeFilename[0] . "-barcodes.json";
 
 				if(strtolower($force) != 'true') {
@@ -1653,7 +1657,7 @@
 			}
 			if($valid) {
 				$force = (strtolower($force) == 'true') ? true : false;
-				$filename = explode('.', $si->image->imageGetProperty('fileName'));
+				$filename = explode('.', $si->image->imageGetProperty('filename'));
 				$key = $si->image->imageGetProperty('path') . '/' . $filename[0] . '_box.json';
 				if($si->storage->storageDeviceFileExists($si->image->imageGetProperty('storageDeviceId'), $key)) {
 					$data = $si->storage->storageDeviceFileGetContents($si->image->imageGetProperty('storageDeviceId'), $key);
@@ -1662,7 +1666,7 @@
 					}
 				}
 				if(!$existsFlag || $force) {
-					$image = $si->image->imageGetProperty('path') . '/' . $si->image->imageGetProperty('fileName');
+					$image = $si->image->imageGetProperty('path') . '/' . $si->image->imageGetProperty('filename');
 
 					# Getting image
 					$image = $si->storage->storageDeviceFileDownload($si->image->imageGetProperty('storageDeviceId'), $image);
@@ -1717,7 +1721,7 @@
 					$size = "";
 				}
 				$imageId = $si->image->imageGetProperty('imageId');
-				$tmpFilename = explode(".",$si->image->imageGetProperty('fileName'));
+				$tmpFilename = explode(".",$si->image->imageGetProperty('filename'));
 				$tmpFilename[0] .= $size;
 				$filename = implode(".", $tmpFilename);
 				if($si->image->imageExists($si->image->imageGetProperty('storageDeviceId'), $si->image->imageGetProperty('path'), $filename)) {
@@ -1786,7 +1790,7 @@
 						unset($dt->storageDeviceId);
 						unset($dt->path);
 						$dt->path = $url;
-						$fname = explode(".", $dt->fileName);
+						$fname = explode(".", $dt->filename);
 						$dt->ext = $fname[1];
 						$dt->enFlag = ($si->s2l->Specimen2LabelLoadByBarcode($dt->barcode)) ? 1 : 0;
 						
@@ -1850,7 +1854,8 @@
 			} else if(!$si->image->imageLoadById($imageId)) {
 				$valid = false;
 				$errorCode = 158;
-			}		if($valid) {
+			}
+			if($valid) {
 				$attbr = $si->image->imageGetAttributes($imageId);
 				if($attbr) {
 					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart , 'results' => $attbr) ) );
@@ -1883,6 +1888,134 @@
 				print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray($errorCode)) ));
 			}
 			break;
+
+		case 'imageListCharacters':
+			checkAuth();
+			$data['start'] = ($start == '') ? 0 : $start;
+			$data['limit'] = ($limit == '') ? 100 : $limit;
+			$data['browse'] = $browse;
+			$data['characters'] = $characters;
+			$data['searchValue'] = $searchValue;
+			$data['searchType'] = $searchType;
+			$si->image->imageSetData($data);
+			if(false !== ($nodes = $si->image->imageLoadCharacterList())) {
+				print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart, 'totalCount' => count($nodes), 'results' => $nodes)));
+			} else {
+				print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray(185)) ));
+			}
+			break;
+
+		case 'imageListNodes':
+			$nodeApi = ($nodeApi != '') ? @strtolower($nodeApi) : 'root';
+			if(!in_array($nodeApi, array('root', 'alpha', 'families', 'family', 'genera', 'genus', 'scientificname') )) {
+				$errorCode = 186;
+				$valid = false;
+			}
+			$data['nodeApi'] = $nodeApi;
+			$data['nodeValue'] = $nodeValue;
+			$data['family'] = $family;
+			$data['genus'] = $genus;
+
+			if($valid) {
+				$si->image->imageSetData($data);
+				if(false !== ($nodes = $si->image->imageLoadNodeImages())) {
+					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart, 'totalCount' => count($nodes), 'results' => $nodes)));
+				} else {
+					print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray(185)) ));
+				}
+			} else {
+				print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray($errorCode)) ));
+			}
+			break;
+
+		case 'imageListNodesCharacters':
+			$nodeApi = ($nodeApi != '') ? @strtolower($nodeApi) : 'root';
+			if(!in_array($nodeApi, array('root'))) {
+				$errorCode = 186;
+				$valid = false;
+			}
+			$data['nodeValue'] = $nodeValue;
+			$data['family'] = $family;
+			$data['genus'] = $genus;
+			if($valid) {
+				$si->image->imageSetData($data);
+				if(false !== ($nodes = $si->image->imageLoadNodeCharacters())) {
+					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart, 'totalCount' => count($nodes), 'results' => $nodes)));
+				} else {
+					print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray(185)) ));
+				}
+			} else {
+				print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray($errorCode)) ));
+			}
+			break;
+
+		case 'imageModifyRechop':
+			if($imageId == '') {
+				$valid = false;
+				$errorCode = 157;
+			}
+			if($valid) {
+				$ar = array();
+				if(is_numeric($imageId)) {
+					$imageIds = array($imageId);
+				} else {
+					$imageIds = json_decode($imageId,true);
+				}
+				if(is_array($imageIds) && count($imageIds)) {
+					foreach($imageIds as $imageId) {
+						if($si->image->imageLoadById($imageId)) {
+							$si->image->imageSetProperty('flickrPlantID',0);
+							$si->image->imageSetProperty('picassaPlantID',0);
+							$si->image->imageSetProperty('gTileProcessed',0);
+							$si->image->imageSetProperty('zoomEnabled',0);
+							$si->image->imageSetProperty('processed',0);
+							$si->image->imageSave();
+					
+							$si->pqueue->processQueueSetProperty('imageId', $response['imageId']);
+							$si->pqueue->processQueueSetProperty('processType','all');
+							$si->pqueue->processQueueSave();
+
+							$ar[] = $imageId;
+						}
+					}
+				}
+				print_c( json_encode( array('success' => true, 'processTime' => microtime(true) - $timeStart, 'totalCount' => count($ar), 'results' => $ar ) ) );
+			} else {
+				print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray($errorCode)) ));
+			}
+			break;
+
+		case 'imageModifyRotate':
+			$data = array();
+			$data['imageId'] = trim($imageId);
+			$data['degree'] = trim($degree);
+			$data['obj'] = $si->amazon;
+
+			if(trim($imageId) == '') {
+				$errorCode = 157;
+				$valid = false;
+			} else if(!$si->image->imageLoadById($imageId)) {
+				$valid = false;
+				$errorCode = 158;
+			} else if(!in_array($data['degree'], array('90', '180', '270'))){
+				$errorCode = 187;
+				$valid = false;
+			} else if(!($user_access->is_logged_in() && $user_access->get_access_level() == 10)){
+				$errorCode = 104;
+				$valid = false;
+			}
+			if($valid) {
+				$si->image->imageSetData($data);
+				$ret = $si->image->imageModifyRotate();
+				if($ret['success']) {
+					print_c( json_encode( array( 'success' => true,  'message' => $si->getError(110) ) ) );
+				} else {
+					print_c( json_encode( array( 'success' => false ) ));
+				}
+			} else {
+				print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray($errorCode)) ));
+			}
+			break;
 			
 		case 'imageTilesGet':
 			$imageId = trim($imageId);
@@ -1896,9 +2029,9 @@
 			}
 			if($valid) {
 				$barcode = $si->image->imageGetName();
-				$fileName = $si->image->imageGetProperty('fileName');
+				$filename = $si->image->imageGetProperty('filename');
 				$imgPath = $si->image->imageGetProperty('path');
-				$tmpPath = $si->storage->storageDeviceFileDownload($si->image->imageGetProperty('storageDeviceId'), $imgPath.'/'.$si->image->imageGetProperty('fileName'));
+				$tmpPath = $si->storage->storageDeviceFileDownload($si->image->imageGetProperty('storageDeviceId'), $imgPath.'/'.$si->image->imageGetProperty('filename'));
 				$t1 = explode("/", $tmpPath);
 				$t2 = $t1[count($t1)-1];
 				unset($t1[count($t1)-1]);
@@ -1947,11 +2080,11 @@
 			}
 			break;
 
-		# example : cmd=imageTilesLoad&fileName=USMS000018155&zoom=2&index=tile_14.jpg
+		# example : cmd=imageTilesLoad&filename=USMS000018155&zoom=2&index=tile_14.jpg
 		case 'imageTilesLoad';
-			$fileName = @strtolower($fileName);
+			$filename = @strtolower($filename);
 			$index = @str_replace('tile_','',@basename($index,'.jpg'));
-			$it = new imgTiles($config['path']['imgTiles'] . $fileName . '.sqlite');
+			$it = new imgTiles($config['path']['imgTiles'] . $filename . '.sqlite');
 			$result = $it->getTileData($zoom, $index);
 			$type = 'image/jpeg';
 			header('Content-Type:' . $type);
@@ -1968,7 +2101,7 @@
 				$errorCode = 158;
 			}
 			if($valid) {
-				$fieldsArray = array('fileName','barcode','width','height','family','genus','specificEpithet','rank','author','title','description','globalUniqueIdentifier','creativeCommons','characters','flickrPlantID','flickrDetails','picassaPlantID','zoomEnabled','ScientificName','code','catalogueNumber','tmpFamily','tmpFamilyAccepted','tmpGenus','tmpGenusAccepted','storageDeviceId','path','originalFilename','remoteAccessKey','statusType','rating');
+				$fieldsArray = array('filename','barcode','width','height','family','genus','specificEpithet','rank','author','title','description','globalUniqueIdentifier','creativeCommons','characters','flickrPlantID','flickrDetails','picassaPlantID','zoomEnabled','ScientificName','code','catalogueNumber','tmpFamily','tmpFamilyAccepted','tmpGenus','tmpGenusAccepted','storageDeviceId','path','originalFilename','remoteAccessKey','statusType','rating');
 				$params = @json_decode(@stripslashes(trim($params)),true);
 				if(is_array($params) && count($params)) {
 					foreach($params as $key => $value) {

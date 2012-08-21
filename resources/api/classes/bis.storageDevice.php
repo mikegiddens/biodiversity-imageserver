@@ -483,6 +483,33 @@ class StorageDevice {
 		}
 	}
 	
+	public function storageDeviceFileUpload($storageDeviceId, $key, $source, $delFlag = true) {
+		if($storageDeviceId == '' || $source == '') return false;
+		$device = $this->storageDeviceGet($storageDeviceId);
+		if(!$device) return false;
+		switch(strtolower($device['type'])) {
+			case 's3':
+				$amazon = new AmazonS3(array('key' => $device['password'],'secret' => $device['key']));
+				$key = substr($key,0,1)=='/' ? substr($key,1,strlen($key)-1) : $key;
+				$response = $amazon->create_object ($device['basePath'], $key, array('fileUpload' => $source,'acl' => AmazonS3::ACL_PUBLIC,'storage' => AmazonS3::STORAGE_REDUCED) );
+				if($delFlag == true) {
+					@unlink($source);
+				}
+				if($response->isOK()) {
+					return true;
+				} else {
+					return false;
+				}
+				break;
+			case 'local':
+				return true;
+				break;
+			default:
+				return false;
+				break;
+		}
+	}
+	
 }
 
 ?>

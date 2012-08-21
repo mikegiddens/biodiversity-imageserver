@@ -155,7 +155,7 @@ Class Bis2Hs {
 					break;
 			}
 		}
-		if($this->data['group'] != '' && in_array($this->data['group'], array('fileName','barcode','clientId','collectionId','imageServerId','timestampModified')) && $this->data['dir'] != '') {
+		if($this->data['group'] != '' && in_array($this->data['group'], array('filename','barcode','clientId','collectionId','imageServerId','timestampModified')) && $this->data['dir'] != '') {
 			$where .= build_order( array(array('field' => $this->data['group'], 'dir' => $this->data['dir'])));
 		} else {
 			$where .= ' ORDER BY `imageId` ASC ';
