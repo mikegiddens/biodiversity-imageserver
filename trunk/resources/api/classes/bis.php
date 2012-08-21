@@ -108,7 +108,7 @@
 				, 121 => 'Event Type Could Not be Deleted.'
 				, 122 => 'Event Type Could Not be Updated.'
 				, 123 => 'Event Type Already Exists.'
-				, 124 => 'storageDeviceId, imagePath and fileName required'
+				, 124 => 'storageDeviceId, imagePath and filename required'
 				, 125 => 'name and code should be provided.'
 				, 126 => 'collectionId should be provided.'
 				, 127 => 'Collection Could Not be Deleted.'
@@ -147,7 +147,7 @@
 				, 160 => 'category should be provided.'
 				, 161 => 'Image Attribute Could Not be Added'
 				, 162 => 'Image Attribute Could Not be Deleted'
-				, 163 => 'fileName Should be provided.'
+				, 163 => 'filename Should be provided.'
 				, 164 => 'File type not allowed.'
 				, 165 => 'Unable to create file.'
 				, 166 => 'Image already exists in database.'
@@ -156,7 +156,7 @@
 				, 169 => 'Error in deleting from the database.'
 				, 170 => 'Image does not exist in the database.'
 				, 171 => 'The key provided cannot be used to perform this action.'
-				, 172 => 'storageDeviceId, imagePath and fileName required'
+				, 172 => 'storageDeviceId, imagePath and filename required'
 				, 173 => 'Image could not be moved or copied.'
 				, 174 => 'url, storageDeviceId and key should be provided.'
 				, 175 => 'code does not exist.'
@@ -168,6 +168,10 @@
 				, 181 => 'Invalid barcode or imageId.'
 				, 182 => 'No attributes set for the image.'
 				, 183 => 'No images for the specified event.'
+				, 184 => 'attributes should e provided.'
+				, 185 => 'Image Characters Not Loaded'
+				, 186 => 'Not an allowed value for nodeApi'
+				, 187 => 'degree Should be provided.'
 
 
 

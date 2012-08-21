@@ -28,7 +28,7 @@ SET time_zone = "+00:00";
 
 CREATE TABLE IF NOT EXISTS `bis2Hs` (
   `imageId` int(11) NOT NULL,
-  `fileName` varchar(60) NOT NULL,
+  `filename` varchar(60) NOT NULL,
   `barcode` varchar(20) NOT NULL,
   `clientId` int(11) DEFAULT NULL,
   `collectionId` int(11) DEFAULT NULL,
@@ -158,7 +158,7 @@ CREATE TABLE IF NOT EXISTS `geography` (
 
 CREATE TABLE IF NOT EXISTS `image` (
   `imageId` int(11) NOT NULL AUTO_INCREMENT,
-  `fileName` varchar(60) NOT NULL,
+  `filename` varchar(60) NOT NULL,
   `timestampModified` datetime DEFAULT NULL,
   `barcode` varchar(20) DEFAULT NULL,
   `width` int(11) NOT NULL DEFAULT '0',
