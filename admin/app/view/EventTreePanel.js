@@ -4,11 +4,11 @@ Ext.define('BIS.view.EventTreePanel', {
 	requires: [
 	],
 	id: 'eventTreePanel',
+    rootVisible: false,
 	initComponent: function() {
 		var me = this;
 		Ext.applyIf(me, {
 			store: 'EventTreeStore',
-			rootVisible: false,
 			useArrows: true,
 			columns: [{
 				xtype: 'treecolumn',
