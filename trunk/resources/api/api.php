@@ -75,6 +75,7 @@
 		,	'searchFormat'
 		,	'searchType'
 		,	'searchValue'
+		,	'setId'
 		,	'showNames'
 		,	'showOCR'
 		,	'size'
@@ -2446,6 +2447,78 @@
 			}
 			break;
 
+			
+		case 'setAdd':
+			checkAuth();
+			if($name == '') {
+				print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray(148)) ));
+			} else if($si->set->setLoadByName($name)) {
+				$data['setId'] = $si->set->setGetProperty('setId');
+				$data['name'] = $si->set->setGetProperty('name');
+				$data['description'] = $si->set->setGetProperty('description');
+				print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray(195), 'results' => $data) ));
+			} else {
+				$si->set->setSetProperty('name',$name);
+				$si->set->setSetProperty('description',$description);
+				if(false !== $setId = $si->set->setAdd()) {
+					print_c(json_encode(array('success' => true, 'processTime' => microtime(true) - $timeStart, 'setId' => $setId)));
+				} else {
+					print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray(196)) ));
+				}
+			}
+			break;
+			
+		case 'setDelete':
+			checkAuth();
+			if($setId == '') {
+				$valid = false;
+				$errorCode = 197;
+			} elseif(!$si->set->setLoadById($setId)) {
+				$valid = false;
+				$errorCode = 198;
+			}
+			if($valid) {
+				if($si->set->setDelete($setId)) {
+					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart ) ) );
+				} else {
+					print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray(199)) ));
+				}
+			} else {
+				print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray($errorCode)) ));
+			}
+			break;
+			
+		case 'setUpdate':
+			checkAuth();
+			if($setId == '') {
+				$valid = false;
+				$errorCode = 197;
+			} else if(!$si->set->setLoadById($setId)) {
+				$valid = false;
+				$errorCode = 198;
+			} else if($name == '') {
+				$valid = false;
+				$errorCode = 148;
+			} else if($name != $si->set->setGetProperty('name') && $si->set->setNameExists($name)) {
+				$valid = false;
+				$errorCode = 195;
+			}
+			
+			if($valid) {
+				$si->set->setSetProperty('setId',$setId);
+				$si->set->setSetProperty('name',$name);
+				$si->set->setSetProperty('description',$description);
+				if($si->set->setAdd()) {
+					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart ) ) );
+				} else {
+					print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray(200)) ));
+				}
+			} else {
+				print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray($errorCode)) ));
+			}
+			break;
+
+			
 		case 'storageDeviceAdd':
 			checkAuth();
 			$data['name'] = trim($name);
