@@ -8,12 +8,12 @@ class Set
 		$this->db = $db;
 	}
 	
-	public function set( $field, $value ) {
+	public function setSetProperty( $field, $value ) {
 		$this->record[$field] = $value;
 		return( true );
 	}
 	
-	public function get($field) {
+	public function setGetProperty($field) {
 		if(isset($this->record[$field])) {
 			return $this->record[$field];
 		} else {
@@ -21,9 +21,9 @@ class Set
 		}
 	}
 	
-	public function load_by_id( $setId ) {
+	public function setLoadById( $setId ) {
 		if($setId == '') return false;
-		$query = sprintf("SELECT * FROM `set` WHERE `id` = '%s'", mysql_escape_string($setId) );
+		$query = sprintf("SELECT * FROM `set` WHERE `setId` = '%s'", mysql_escape_string($setId) );
 		$ret = $this->db->query_one( $query );
 		if ($ret != NULL) {
 			foreach( $ret as $field => $value ) {
@@ -35,7 +35,7 @@ class Set
 		}
 	}
 	
-	public function load_by_set_name( $name ) {
+	public function setLoadByName( $name ) {
 		if($name == '') return false;
 		$query = sprintf("SELECT * FROM `set` WHERE `name` = '%s'", mysql_escape_string($name) );
 		$ret = $this->db->query_one( $query );
@@ -49,7 +49,7 @@ class Set
 		}
 	}
 	
-	public function exists($name) {
+	public function setNameExists($name) {
 		if($name == '') return false;
 		$query = sprintf("SELECT * FROM `set` WHERE `name` = '%s'", mysql_escape_string($name));
 		$result = $this->db->query_all($query);
@@ -60,7 +60,40 @@ class Set
 		}
 	}
 	
-	public function addSet($name, $description) {
+	public function setAdd() {
+		$flag = true;
+		if($this->setIdExists($this->setGetProperty('setId'))) {
+			$flag = false;
+			$query = sprintf("UPDATE `set` SET `name` = '%s', `description` = '%s' WHERE `setId` = '%s'"
+				, mysql_escape_string($this->setGetProperty('name'))
+				, mysql_escape_string($this->setGetProperty('description'))
+				, mysql_escape_string($this->setGetProperty('setId'))
+				);
+		} else {
+			$query = sprintf("INSERT INTO `set` SET `name` = '%s', `description` = '%s'"
+				, mysql_escape_string($this->setGetProperty('name'))
+				, mysql_escape_string($this->setGetProperty('description'))
+				);
+		}
+		if($this->db->query($query)) {
+			return $flag ? $this->db->insert_id : true;
+		} else {
+			return false;
+		}
+	}
+	
+	public function setDelete($setId) {
+		if($setId == '') return false;
+		$query = sprintf("DELETE FROM `set` WHERE `setId` = '%s'", mysql_escape_string($setId));
+		if($this->db->query($query)) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+	
+/*	
+	public function setAdd($name, $description) {
 		if($name == '') return false;
 		$query = sprintf("INSERT INTO `set` SET `name` = '%s', `description` = '%s'"
 				, mysql_escape_string($name)
@@ -73,18 +106,18 @@ class Set
 		}
 	}
 	
-	public function editSet($sId, $name, $description) {
-		if($name == '' || $sId == '') return false;
+	public function setUpdate($setId, $name, $description) {
+		if($name == '' || $setId == '') return false;
 		if($description == '') {
-			$query = sprintf("UPDATE `set` SET `name` = '%s' WHERE `id` = '%s'"
+			$query = sprintf("UPDATE `set` SET `name` = '%s' WHERE `setId` = '%s'"
 					, mysql_escape_string($name)
-					, mysql_escape_string($sId)
+					, mysql_escape_string($setId)
 					);
 		} else {
-			$query = sprintf("UPDATE `set` SET `name` = '%s', `description` = '%s' WHERE `id` = '%s'"
+			$query = sprintf("UPDATE `set` SET `name` = '%s', `description` = '%s' WHERE `setId` = '%s'"
 				, mysql_escape_string($name)
 				, mysql_escape_string($description)
-				, mysql_escape_string($sId)
+				, mysql_escape_string($setId)
 				);
 		}
 		if($this->db->query($query)) {
@@ -93,19 +126,10 @@ class Set
 			return false;
 		}
 	}
+*/	
 	
-	public function deleteSet($sId) {
-		if($sId == '') return false;
-		$query = sprintf("DELETE FROM `set` WHERE `id` = '%s'", mysql_escape_string($sId));
-		if($this->db->query($query)) {
-			return true;
-		} else {
-			return false;
-		}
-	}
-	
-	public function listSet() {
-		$query = "SELECT s.id sID, s.name sNAME, s.description sDESCRIPTION, sv.id svID, iav.name iavNAME, sv.rank svRANK FROM `set` s LEFT OUTER JOIN set_values sv ON (sv.sId = s.id) JOIN image_attrib_value iav on (iav.valueID = sv.valueID) ORDER BY s.name, sv.rank";
+	public function setList() {
+		$query = "SELECT s.setId sID, s.name sNAME, s.description sDESCRIPTION, sv.setValueId svID, iav.name iavNAME, sv.rank svRANK FROM `set` s LEFT OUTER JOIN setValues sv ON (sv.setId = s.setId) JOIN imageAttribValue iav on (iav.attributeId = sv.attributeId) ORDER BY s.name, sv.rank";
 		$records = $this->db->query_all($query);
 		if(count($records)) {
 			$array['count'] = 0;
@@ -115,7 +139,7 @@ class Set
 					$array['count']++;
 					$prevID = $record->sID;
 					if(isset($tmpArray3)) {
-						$tmpArray1['values'] = $tmpArray3;
+						$tmpArray1['attributes'] = $tmpArray3;
 						$array['data'][] = $tmpArray1;
 						unset($tmpArray3);
 					}
@@ -124,11 +148,11 @@ class Set
 					$tmpArray1['description'] = $record->sDESCRIPTION;
 				}
 				$tmpArray2['id'] = $record->svID;
-				$tmpArray2['value'] = $record->iavNAME;
+				$tmpArray2['attribute'] = $record->iavNAME;
 				$tmpArray2['rank'] = $record->svRANK;
 				$tmpArray3[] = $tmpArray2;
 			}
-			$tmpArray1['values'] = $tmpArray3;
+			$tmpArray1['attributes'] = $tmpArray3;
 			$array['data'][] = $tmpArray1;
 			return $array;
 		} else {
@@ -136,11 +160,11 @@ class Set
 		}
 	}
 	
-	public function addSetValue($sId, $valueId, $rank) {
-		if($sId == '' || $valueId == '') return false;
-		$query = sprintf("INSERT INTO `set_values` SET `sId` = '%s', `valueId` = '%s', `rank` = '%s'"
-				, mysql_escape_string($sId)
-				, mysql_escape_string($valueId)
+	public function setValuesAdd($setId, $attributeId, $rank) {
+		if($setId == '' || $attributeId == '') return false;
+		$query = sprintf("INSERT INTO `setValues` SET `setId` = '%s', `attributeId` = '%s', `rank` = '%s'"
+				, mysql_escape_string($setId)
+				, mysql_escape_string($attributeId)
 				, mysql_escape_string($rank)
 				);
 		if($this->db->query($query)) {
@@ -150,20 +174,20 @@ class Set
 		}
 	}
 	
-	public function editSetValue($id, $sId, $valueId, $rank) {
-		if($id == '' || $sId == '' || $valueId == '') return false;
+	public function setValuesUpdate($setValueId, $setId, $attributeId, $rank) {
+		if($setValueId == '' || $setId == '' || $attributeId == '') return false;
 		if($rank == '') {
-			$query = sprintf("UPDATE `set_values` SET `sId` = '%s', `valueId` = '%s' WHERE `id` = '%s'"
-					, mysql_escape_string($sId)
-					, mysql_escape_string($valueId)
-					, mysql_escape_string($id)
+			$query = sprintf("UPDATE `setValues` SET `setId` = '%s', `attributeId` = '%s' WHERE `setValueId` = '%s'"
+					, mysql_escape_string($setId)
+					, mysql_escape_string($attributeId)
+					, mysql_escape_string($setValueId)
 					);
 		} else {
-			$query = sprintf("UPDATE `set_values` SET `sId` = '%s', `valueId` = '%s', `rank` = '%s' WHERE `id` = '%s'"
-				, mysql_escape_string($sId)
-				, mysql_escape_string($valueId)
+			$query = sprintf("UPDATE `setValues` SET `setId` = '%s', `attributeId` = '%s', `rank` = '%s' WHERE `setValueId` = '%s'"
+				, mysql_escape_string($setId)
+				, mysql_escape_string($attributeId)
 				, mysql_escape_string($rank)
-				, mysql_escape_string($id)
+				, mysql_escape_string($setValueId)
 				);
 		}
 		if($this->db->query($query)) {
@@ -173,9 +197,9 @@ class Set
 		}
 	}
 	
-	public function deleteSetValue($id) {
-		if($id == '') return false;
-		$query = sprintf("DELETE FROM `set_values` WHERE `id` = '%s'", mysql_escape_string($id));
+	public function setValuesDelete($setValueId) {
+		if($setValueId == '') return false;
+		$query = sprintf("DELETE FROM `setValues` WHERE `setValueId` = '%s'", mysql_escape_string($setValueId));
 		if($this->db->query($query)) {
 			return true;
 		} else {
@@ -183,9 +207,9 @@ class Set
 		}
 	}
 	
-	public function exists_set_values_by_id($id) {
-		if($id == '') return false;
-		$query = sprintf("SELECT * FROM `set_values` WHERE `id` = '%s'", mysql_escape_string($id));
+	public function setValuesExistsById($setValueId) {
+		if($setValueId == '') return false;
+		$query = sprintf("SELECT * FROM `setValues` WHERE `setValueId` = '%s'", mysql_escape_string($setValueId));
 		$result = $this->db->query_all($query);
 		if(count($result)) {
 			return true;
@@ -194,14 +218,14 @@ class Set
 		}
 	}
 	
-	public function listImageBySet($sId = '', $imageIds = '') {
-		if($sId == '') {
-			$query = "SELECT s.id sID, s.name sNAME, s.description sDESCRIPTION, sv.id svID, iav.valueID iavID, iav.name iavNAME, sv.rank svRANK FROM `set` s LEFT OUTER JOIN set_values sv ON (sv.sId = s.id) JOIN image_attrib_value iav on (iav.valueID = sv.valueID) ORDER BY s.name, sv.rank";
+	public function setListImages($setId = '', $imageIds = '') {
+		if($setId == '') {
+			$query = "SELECT s.setId sID, s.name sNAME, s.description sDESCRIPTION, sv.setValueId svID, iav.attributeId iavID, iav.name iavNAME, sv.rank svRANK FROM `set` s LEFT OUTER JOIN setValues sv ON (sv.setId = s.setId) JOIN imageAttribValue iav on (iav.attributeId = sv.attributeId) ORDER BY s.name, sv.rank";
 		} else {
-			if(!$this->load_by_id($sId)) {
+			if(!$this->setLoadById($setId)) {
 				return false;
 			} else {
-				$query = "SELECT s.id sID, s.name sNAME, s.description sDESCRIPTION, sv.id svID, iav.valueID iavID, iav.name iavNAME, sv.rank svRANK FROM `set` s LEFT OUTER JOIN set_values sv ON (sv.sId = s.id) JOIN image_attrib_value iav on (iav.valueID = sv.valueID) WHERE s.id = '$sId' ORDER BY s.name, sv.rank";
+				$query = "SELECT s.setId sID, s.name sNAME, s.description sDESCRIPTION, sv.setId svID, iav.attributeId iavID, iav.name iavNAME, sv.rank svRANK FROM `set` s LEFT OUTER JOIN setValues sv ON (sv.setId = s.setId) JOIN imageAttribValue iav on (iav.attributeId = sv.attributeId) WHERE s.setId = '$setId' ORDER BY s.name, sv.rank";
 			}
 		}
 		$records = $this->db->query_all($query);
@@ -211,7 +235,7 @@ class Set
 				if($prevID != $record->sID) {
 					$prevID = $record->sID;
 					if(isset($tmpArray3)) {
-						$tmpArray1['values'] = $tmpArray3;
+						$tmpArray1['attributes'] = $tmpArray3;
 						$array['data'][] = $tmpArray1;
 						unset($tmpArray3);
 					}
@@ -220,14 +244,14 @@ class Set
 					$tmpArray1['description'] = $record->sDESCRIPTION;
 				}
 				$tmpArray2['id'] = $record->svID;
-				$tmpArray2['value'] = $record->iavNAME;
+				$tmpArray2['attribute'] = $record->iavNAME;
 				$tmpArray2['rank'] = $record->svRANK;
 				if($imageIds == '') {
-					$query = sprintf("SELECT imageID FROM `image_attrib` WHERE `valueID` = '%s'"
+					$query = sprintf("SELECT imageId FROM `imageAttrib` WHERE `attributeId` = '%s'"
 							, mysql_escape_string($record->iavID)
 							);
 				} else {
-					$query = sprintf("SELECT imageID FROM `image_attrib` WHERE `valueID` = '%s' AND imageID IN (%s)"
+					$query = sprintf("SELECT imageId FROM `imageAttrib` WHERE `attributeId` = '%s' AND imageId IN (%s)"
 							, mysql_escape_string($record->iavID)
 							, implode(',', $imageIds)
 							);
@@ -236,8 +260,8 @@ class Set
 				if(count($results)) {
 					$image = new Image($this->db);
 					foreach($results as $result) {
-						$details = $image->getUrl($result->imageID);
-						$tmpArray4['id'] = $result->imageID;
+						$details = $image->imageGetUrl($result->imageId);
+						$tmpArray4['id'] = $result->imageId;
 						$tmpArray4['filename'] = $details['filename'];
 						$tmpArray4['url'] = $details['url'];
 						$tmpArray4['baseUrl'] = $details['baseUrl'];
@@ -249,7 +273,7 @@ class Set
 				}
 				$tmpArray3[] = $tmpArray2;
 			}
-			$tmpArray1['values'] = $tmpArray3;
+			$tmpArray1['attributes'] = $tmpArray3;
 			$array['data'][] = $tmpArray1;
 			return $array;
 		} else {
@@ -257,21 +281,21 @@ class Set
 		}
 	}
 	
-	public function listImageBySetKeyValue($key, $value) {
-		$query = sprintf("SELECT DISTINCT ia.imageID FROM image_attrib ia, image_attrib_value iav, image_attrib_type iat WHERE ia.typeID=iat.typeID AND ia.valueID=iav.valueID AND iat.title='%s' AND iav.name='%s'", mysql_escape_string($key), mysql_escape_string($value));
+	public function setListImageByKeyValue($key, $value) {
+		$query = sprintf("SELECT DISTINCT ia.imageId FROM imageAttrib ia, imageAttribValue iav, imageAttribType iat WHERE ia.categoryId=iat.categoryId AND ia.attributeId=iav.attributeId AND iat.title='%s' AND iav.name='%s'", mysql_escape_string($key), mysql_escape_string($value));
 		$records = $this->db->query_all($query);
 		$imageIds = array();
 		if(count($records)) {
 			foreach($records as $record) {
-				$imageIds[] = $record->imageID;
+				$imageIds[] = $record->imageId;
 			}
 		}
 			
-		$query = sprintf("SELECT distinct sv.sId FROM set_values sv, image_attrib ia WHERE sv.valueId=ia.valueID AND ia.imageID IN (%s)", implode(',', $imageIds));
+		$query = sprintf("SELECT distinct sv.setId FROM setValues sv, imageAttrib ia WHERE sv.attributeId=ia.attributeId AND ia.imageId IN (%s)", implode(',', $imageIds));
 		$records = $this->db->query_all($query);
 		if(count($records)) {
 			foreach($records as $record) {
-				$data = $this->listImageBySet($record->sId, $imageIds);
+				$data = $this->setListImages($record->setId, $imageIds);
 				$result[] = $data['data'];
 			}
 			return $result;

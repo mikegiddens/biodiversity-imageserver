@@ -179,6 +179,12 @@
 				, 192 => 'Valid metadatapackages path not set in config.'
 				, 193 => 'Process Queue Not Cleared.'
 				, 194 => 'userId should be given.'
+				, 195 => 'Set already exists.'
+				, 196 => 'Set could not be added.'
+				, 197 => 'setId should be provided.'
+				, 198 => 'Invalid setId provided.'
+				, 199 => 'Set could not be deleted.'
+				, 200 => 'Set could not be Updated.'
 
 
 

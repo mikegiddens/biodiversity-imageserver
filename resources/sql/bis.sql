@@ -376,8 +376,8 @@ CREATE TABLE IF NOT EXISTS `set` (
 
 CREATE TABLE IF NOT EXISTS `setValues` (
   `setValueId` int(11) NOT NULL AUTO_INCREMENT,
-  `sId` int(11) NOT NULL,
-  `valueId` int(11) NOT NULL,
+  `setId` int(11) NOT NULL,
+  `attributeId` int(11) NOT NULL,
   `rank` int(11) NOT NULL,
   PRIMARY KEY (`setValueId`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
