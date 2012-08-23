@@ -97,21 +97,27 @@ http://bis.silverbiology.com/dev/resources/api/api.php?cmd=imageAddAttribute&ima
 http://bis.silverbiology.com/dev/resources/api/api.php?cmd=imageAddAttribute&imageId=1383&categoryType=title&category=Location&attribType=name&attribute=Test Atribute&force=true
 
 imageAddFromExisting:
-http://bis.silverbiology.com/dev/resources/api/api.php?cmd=imageAddFromExisting&storageDeviceId=2&imagePath=serverimages&fileName=Citrus.jpg
+http://bis.silverbiology.com/dev/resources/api/api.php?cmd=imageAddFromExisting&storageDeviceId=2&imagePath=serverimages&filename=Citrus.jpg
 
 imageAddFromServer:
-bis.silverbiology.com/dev/resources/api/api.php?cmd=imageAddFromServer&storageDeviceId=2&imagePath=/&fileName=Clematis.jpg&destinationPath=/serverimages/
-bis.silverbiology.com/dev/resources/api/api.php?cmd=imageAddFromServer&storageDeviceId=2&imagePath=/&fileName=Commelina.jpg&destinationPath=/serverimages/&loadFlag=move
+bis.silverbiology.com/dev/resources/api/api.php?cmd=imageAddFromServer&storageDeviceId=2&imagePath=/&filename=Clematis.jpg&destinationPath=/serverimages/
+bis.silverbiology.com/dev/resources/api/api.php?cmd=imageAddFromServer&storageDeviceId=2&imagePath=/&filename=Commelina.jpg&destinationPath=/serverimages/&loadFlag=move
 
 imageAddFromUrl:
 http://bis.silverbiology.com/dev/resources/api/api.php?cmd=imageAddFromUrl&url=http://bis.silverbiology.com/images/uploadform/Emilia.jpg&storageDeviceId=2&key=myMNyVX57xD2s
 http://bis.silverbiology.com/dev/resources/api/api.php?cmd=imageAddFromUrl&url=http://bis.silverbiology.com/images/uploadform/Ageratum.jpg&storageDeviceId=2&key=myMNyVX57xD2s&imagePath=/serverimages
+
+imageAddRating:
+http://bis.silverbiology.com/dev/resources/api/api.php?cmd=imageAddRating
 
 imageAddToCollection:
 http://bis.silverbiology.com/dev/resources/api/api.php?cmd=imageAddToCollection&imageId=1390&code=ECN
 
 imageAddToEvent:
 http://bis.silverbiology.com/dev/resources/api/api.php?cmd=imageAddToEvent&eventId=1&imageId=1390
+
+imageCalculateRating:
+http://bis.silverbiology.com/dev/resources/api/api.php?cmd=imageCalculateRating&imageId=1&rating=3
 
 imageDelete:
 http://bis.silverbiology.com/dev/resources/api/api.php?cmd=imageDelete&imageId=1392
@@ -149,12 +155,22 @@ http://bis.silverbiology.com/dev/resources/api/api.php?cmd=imageListAttribute&im
 imageListByEvent:
 http://bis.silverbiology.com/dev/resources/api/api.php?cmd=imageListByEvent&eventId=1
 
+imageModifyRechop:
+http://bis.silverbiology.com/dev/resources/api/api.php?cmd=imageModifyRechop&imageId=1385
+http://bis.silverbiology.com/dev/resources/api/api.php?cmd=imageModifyRechop&imageId=[1386,1389]
+
+imageModifyRotate:
+http://bis.silverbiology.com/dev/resources/api/api.php?cmd=imageModifyRotate&imageId=1389&degree=90
+
+imageMoveExisting:
+http://bis.silverbiology.com/dev/resources/api/api.php?cmd=imageMoveExisting&imageId=1390&newStorageId=6&newImagePath=/
+
 imageTilesGet:
 http://bis.silverbiology.com/dev/resources/api/api.php?cmd=imageTilesGet&imageId=1383&tiles=createclear
 http://bis.silverbiology.com/dev/resources/api/api.php?cmd=imageTilesGet&imageId=1383&tiles=create
 
 imageTilesLoad:
-http://bis.silverbiology.com/dev/resources/api/api.php?cmd=imageTilesLoad&fileName=Citrus&zoom=2&index=tile_14.jpg
+http://bis.silverbiology.com/dev/resources/api/api.php?cmd=imageTilesLoad&filename=Citrus&zoom=2&index=tile_14.jpg
 
 imageUpdate:
 http://bis.silverbiology.com/dev/resources/api/api.php?cmd=imageUpdate&imageId=1383&params={"specificEpithet" : "Citrus"}
@@ -183,6 +199,13 @@ http://bis.silverbiology.com/dev/resources/api/api.php?cmd=helpingscienceQueueLi
 metadataPackageImport:
 http://bis.silverbiology.com/dev/resources/api/api.php?cmd=metadataPackageImport&url=http://bis.silverbiology.com/dev/resources/metadatapackages/dublincore.csv
 
+metadataPackageList:
+http://bis.silverbiology.com/dev/resources/api/api.php?cmd=metadataPackageList
+
+processQueueList:
+http://bis.silverbiology.com/dev/resources/api/api.php?cmd=processQueueList&value=all&limit=2&group=imageId&dir=desc
+http://bis.silverbiology.com/dev/resources/api/api.php?cmd=processQueueList
+
 -------------
 remoteAccessKeyList:
 http://bis.silverbiology.com/dev/resources/api/api.php?cmd=remoteAccessKeyList
@@ -200,6 +223,7 @@ http://bis.silverbiology.com/dev/resources/api/api.php?cmd=storageDeviceList
 
 storageDeviceUpdate:
 http://bis.silverbiology.com/dev/resources/api/api.php?cmd=storageDeviceUpdate&name=Local Server 3&description=Storage on local server&storageDeviceId=8
+http://bis.silverbiology.com/dev/resources/api/api.php?cmd=storageDeviceUpdate&baseUrl=http://bis.silverbiology.com/images_demo/&basePath=/var/www/html/images_demo&storageDeviceId=6
 
 storageDeviceSetDefault:
 http://bis.silverbiology.com/dev/resources/api/api.php?cmd=storageDeviceSetDefault&storageDeviceId=2

@@ -31,6 +31,7 @@
 	$config['path']['imgTiles'] = '{server/path/to/website}/imgTiles/';
 	$config['path']['tiles'] = '{server/path/to/website}/tiles/';
 	$config['path']['tmp'] = '';
+	$config['path']['metadatapackages'] = $config['path']['base'] . 'resources/metadatapackages/';
 
 	$config['image_sequence_cache'] = '/var/www/gui/api/imageSequenceCache.txt';
 	$config['storageCache'] = '/var/www/gui/api/space.json'; # to keep the storage information

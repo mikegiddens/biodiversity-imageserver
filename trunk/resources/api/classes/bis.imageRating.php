@@ -12,7 +12,7 @@ class ImageRating
 	* Returns a since field value
 	* @return mixed
 	*/
-	public function get( $field ) {
+	public function imageRatingGetProperty( $field ) {
 		if (isset($this->{$field})) {
 			return( $this->{$field} );
 		} else {
@@ -24,56 +24,56 @@ class ImageRating
 	* Set the value to a field
 	* @return bool
 	*/
-	public function set( $field, $value ) {
+	public function imageRatingSetProperty( $field, $value ) {
 		$this->{$field} = $value;
 		return( true );
 	}
 	
-	private function processData() {
-		$this->set('ip_address',str_replace('.', '', $this->get('ip_address')));
+	private function imageRatingProcessData() {
+		$this->imageRatingSetProperty('ipAddress',str_replace('.', '', $this->imageRatingGetProperty('ipAddress')));
 	}
 	
-	public function saveRating() {
-		$this->processData();
-		$query = sprintf(" INSERT IGNORE INTO `image_rating` SET `image_id` = '%s', `user_id` = '%s', `ip_address` = '%s', `rating` = '%s' "
-		, mysql_escape_string($this->get('image_id'))
-		, mysql_escape_string($this->get('user_id'))
-		, mysql_escape_string($this->get('ip_address'))
-		, mysql_escape_string($this->get('rating'))
+	public function imageRatingSave() {
+		$this->imageRatingProcessData();
+		$query = sprintf(" INSERT IGNORE INTO `imageRating` SET `imageId` = '%s', `userId` = '%s', `ipAddress` = '%s', `rating` = '%s' "
+		, mysql_escape_string($this->imageRatingGetProperty('imageId'))
+		, mysql_escape_string($this->imageRatingGetProperty('userId'))
+		, mysql_escape_string($this->imageRatingGetProperty('ipAddress'))
+		, mysql_escape_string($this->imageRatingGetProperty('rating'))
 		);
 		
 		$ret = $this->db->query($query);
 		return (is_null($ret)) ? false : true;
 	}
 
-	public function getNonCalculatedImages($resultFlag = true) {
-		$query = ' SELECT DISINCT `image_id` FROM `image_rating` WHERE `calc` = 0 ';
+	public function imageRatingGetNonCalculatedImages($resultFlag = true) {
+		$query = ' SELECT DISINCT `imageId` FROM `imageRating` WHERE `calc` = 0 ';
 		return ($resultFlag) ? $this->db->query($query) : $this->db->query_all($query);
 	}
 	
-	public function getAvgRatingById($image_id = '') {
-		if($image_id == '') return false;
-		$query = sprintf("SELECT avg( `rating` ) AS `rating` FROM `image_rating` WHERE `image_id` = '%s'", mysql_escape_string($image_id));
+	public function imageRatingGetAvgById($imageId = '') {
+		if($imageId == '') return false;
+		$query = sprintf("SELECT avg( `rating` ) AS `rating` FROM `imageRating` WHERE `imageId` = '%s'", mysql_escape_string($imageId));
 		$ret = $this->db->query_one($query);
 		return is_null($ret) ? false : $ret->rating;
 	}
 	
-	public function getAvgRating($resultFlag = true) {
-		$query = 'SELECT `image_id`, avg( `rating` ) AS rating FROM `image_rating` WHERE `image_id` IN ( SELECT DISTINCT `image_id` FROM `image_rating` WHERE `calc` = 0 ) GROUP BY `image_id` ';
+	public function imageRatingGetAvg($resultFlag = true) {
+		$query = 'SELECT `imageId`, avg( `rating` ) AS rating FROM `imageRating` WHERE `imageId` IN ( SELECT DISTINCT `imageId` FROM `imageRating` WHERE `calc` = 0 ) GROUP BY `imageId` ';
 		return ($resultFlag) ? $this->db->query($query) : $this->db->query_all($query);
 	}
 	
-	public function updateTrustedUserImages($user_id = '', $trusted = true) {
-		if($user_id == '') return false;
+	public function imageRatingUpdateTrustedUserImages($userId = '', $trusted = true) {
+		if($userId == '') return false;
 		$statusType = ($trusted) ? 1 : 0;
-		$query = sprintf("UPDATE `image` i, `image_rating` ir SET i.`statusType` = %d WHERE i.`image_id` = ir.`image_id` AND ir.`user_id` = '%s';", $statusType, mysql_escape_string($user_id));
+		$query = sprintf("UPDATE `image` i, `imageRating` ir SET i.`statusType` = %d WHERE i.`imageId` = ir.`imageId` AND ir.`userId` = '%s';", $statusType, mysql_escape_string($userId));
 		return ($this->db->query($query)) ? true : false;
 	}
 	
-	public function updateCalc($image_id = '') {
-		if($image_id == '') return false;
-		$ip_address = str_replace('.', '', $ip_address);
-		$query = sprintf(" UPDATE `image_rating` SET `calc` = 1 WHERE `image_id` = '%s' ", mysql_escape_string($image_id));
+	public function imageRatingUpdateCalc($imageId = '') {
+		if($imageId == '') return false;
+		$ipAddress = str_replace('.', '', $ipAddress);
+		$query = sprintf(" UPDATE `imageRating` SET `calc` = 1 WHERE `imageId` = '%s' ", mysql_escape_string($imageId));
 		return ($this->db->query($query)) ? true : false;
 	}
 	

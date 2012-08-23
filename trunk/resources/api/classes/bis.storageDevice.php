@@ -246,7 +246,7 @@ class StorageDevice {
 					break;
 				
 				case 'local':
-					@unlink($device['basePath'].$storageFilePath . '/' .  $storageFileName);
+					@unlink($device['basePath']. rtrim($storageFilePath,'/') . '/' .  $storageFileName);
 					break;
 					
 				default:
@@ -257,16 +257,16 @@ class StorageDevice {
 		}
 	}
 	
-	public function moveExistingImage($imageId, $newStorageId, $newImagePath) {
+	public function storageDeviceMoveImage($imageId, $newStorageId, $newImagePath) {
 		$img = new Image($this->db);
-		if($imageId == '' || $newStorageId == '' || $newImagePath == '' || !$img->field_exists($imageId) || !$this->storageDeviceExists($newStorageId)) {
+		if($imageId == '' || $newStorageId == '' || $newImagePath == '') {
 			return false;
 		}
-		if($img->load_by_id($imageId)) {
-			if(($img->get('storageDeviceId') == $newStorageId) && ($img->get('path') == $newImagePath)) {
+		if($img->imageLoadById($imageId)) {
+			if(($img->imageGetProperty('storageDeviceId') == $newStorageId) && ($img->imageGetProperty('path') == $newImagePath)) {
 				return true;
 			} else {
-				$device1 = $this->storageDeviceGet($img->get('storageDeviceId'));
+				$device1 = $this->storageDeviceGet($img->imageGetProperty('storageDeviceId'));
 				$device2 = $this->storageDeviceGet($newStorageId);
 				
 				switch(strtolower($device2['type'])) {
@@ -274,31 +274,31 @@ class StorageDevice {
 						$amazon = new AmazonS3(array('key' => $device2['password'],'secret' => $device2['key']));
 						switch(strtolower($device1['type'])) {
 							case 's3':
-								$tmp = $img->get('path');
+								$tmp = $img->imageGetProperty('path');
 								$tmp = substr($tmp,0,1)=='/' ? substr($tmp,1,strlen($tmp)-1) : $tmp;
-								$source = $tmp . '/' . $img->get('filename');
-								$tmpImage = $img->get('filename');
+								$source = $tmp . '/' . $img->imageGetProperty('filename');
+								$tmpImage = $img->imageGetProperty('filename');
 								$fp = fopen($tmpImage, "w+b");
 								$amazon->get_object($device1['basePath'], $source, array('fileDownload' => $tmpImage));
 								fclose($fp);
 								$tmp = $newImagePath;
 								$tmp = substr($tmp,0,1)=='/' ? substr($tmp,1,strlen($tmp)-1) : $tmp;
-								$response = $amazon->create_object ($device2['basePath'], $tmp . '/' .  $img->get('filename'), array('fileUpload' => $tmpImage,'acl' => AmazonS3::ACL_PUBLIC,'storage' => AmazonS3::STORAGE_REDUCED) );
+								$response = $amazon->create_object ($device2['basePath'], $tmp . '/' .  $img->imageGetProperty('filename'), array('fileUpload' => $tmpImage,'acl' => AmazonS3::ACL_PUBLIC,'storage' => AmazonS3::STORAGE_REDUCED) );
 								unlink($tmpImage);
 								break;
 							
 							case 'local':
-								$source = $device1['basePath'] . $img->get('path') . '/' . $img->get('filename');
+								$source = $device1['basePath'] . rtrim($img->imageGetProperty('path'),'/') . '/' . $img->imageGetProperty('filename');
 								$tmp = $newImagePath;
 								$tmp = substr($tmp,0,1)=='/' ? substr($tmp,1,strlen($tmp)-1) : $tmp;
-								$response = $amazon->create_object ($device2['basePath'], $tmp . '/' .  $img->get('filename'), array('fileUpload' => $source,'acl' => AmazonS3::ACL_PUBLIC,'storage' => AmazonS3::STORAGE_REDUCED) );
+								$response = $amazon->create_object ($device2['basePath'], $tmp . '/' .  $img->imageGetProperty('filename'), array('fileUpload' => $source,'acl' => AmazonS3::ACL_PUBLIC,'storage' => AmazonS3::STORAGE_REDUCED) );
 								break;
 						}
 						if($response->isOK()) {
-							$this->delete($img->get('storageDeviceId'), $img->get('filename'), $img->get('path'));
+							$this->storageDeviceDeleteFile($img->imageGetProperty('storageDeviceId'), $img->imageGetProperty('filename'), $img->imageGetProperty('path'));
 							$img->imageSetProperty('storageDeviceId', $newStorageId);
 							$img->imageSetProperty('path', $newImagePath);
-							$img->save();
+							$img->imageSave();
 							return true;
 						} else {
 							return false;
@@ -309,32 +309,32 @@ class StorageDevice {
 						switch(strtolower($device1['type'])) {
 							case 's3':
 								$amazon = new AmazonS3(array('key' => $device1['password'],'secret' => $device1['key']));
-								$tmp = $img->get('path');
+								$tmp = $img->imageGetProperty('path');
 								$tmp = substr($tmp,0,1)=='/' ? substr($tmp,1,strlen($tmp)-1) : $tmp;
-								$source = $tmp . '/' . $img->get('filename');
-								$tmpImage = $img->get('filename');
+								$source = $tmp . '/' . $img->imageGetProperty('filename');
+								$tmpImage = $img->imageGetProperty('filename');
 								$fp = fopen($tmpImage, "w+b");
 								$amazon->get_object($device1['basePath'], $source, array('fileDownload' => $tmpImage));
 								fclose($fp);
 								$img->imageMkdirRecursive($device2['basePath'].$newImagePath);
 								$fp = fopen($tmpImage, "r");
-								$response = file_put_contents($device2['basePath'].$newImagePath . '/' .  $img->get('filename'), $fp);
+								$response = file_put_contents($device2['basePath'].$newImagePath . '/' .  $img->imageGetProperty('filename'), $fp);
 								fclose($fp);
 								unlink($tmpImage);
 								break;
 							
 							case 'local':
-								$source = $device1['basePath'] . $img->get('path') . '/' . $img->get('filename');
+								$source = $device1['basePath'] . $img->imageGetProperty('path') . '/' . $img->imageGetProperty('filename');
 								$img->imageMkdirRecursive($device2['basePath'].$newImagePath);
 								$fp = fopen($source, "r");
-								$response = file_put_contents($device2['basePath'].$newImagePath . '/' .  $img->get('filename'), $fp);
+								$response = file_put_contents($device2['basePath'].$newImagePath . '/' .  $img->imageGetProperty('filename'), $fp);
 								fclose($fp);
 								break;
 						}
-						$this->delete($img->get('storageDeviceId'), $img->get('filename'), $img->get('path'));
+						$this->storageDeviceDeleteFile($img->imageGetProperty('storageDeviceId'), $img->imageGetProperty('filename'), $img->imageGetProperty('path'));
 						$img->imageSetProperty('storageDeviceId', $newStorageId);
 						$img->imageSetProperty('path', $newImagePath);
-						$img->save();
+						$img->imageSave();
 						return true;
 						break;
 				}

@@ -172,6 +172,13 @@
 				, 185 => 'Image Characters Not Loaded'
 				, 186 => 'Not an allowed value for nodeApi'
 				, 187 => 'degree Should be provided.'
+				, 188 => 'Image could not be rotated.'
+				, 189 => 'imageId, newStorageId and newImagePath should be provided'
+				, 190 => 'Unable to move existing file.'
+				, 191 => 'rating out of range.'
+				, 192 => 'Valid metadatapackages path not set in config.'
+				, 193 => 'Process Queue Not Cleared.'
+				, 194 => 'userId should be given.'
 
 
 
