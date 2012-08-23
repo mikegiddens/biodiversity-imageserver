@@ -63,12 +63,15 @@
 		,	'limit'
 		,	'loadFlag'
 		,	'name'
+		,	'newStorageId'
+		,	'newImagePath'
 		,	'nodeApi'
 		,	'nodeValue'
 		,	'notebookGuid'
 		,	'order'
 		,	'params'
 		,	'password'
+		,	'rating'
 		,	'searchFormat'
 		,	'searchType'
 		,	'searchValue'
@@ -77,16 +80,20 @@
 		,	'size'
 		,	'sort'
 		,	'start'
+		,	'statusType'
+		,	'stop'
 		,	'storageDeviceId'
 		,	'stream'
 		,	'tag'
 		,	'tiles'
 		,	'type'
+		,	'types'
 		,	'url'
 		,	'useRating'
 		,	'userName'
 		,	'useStatus'
 		,	'title'
+		,	'userId'
 		,	'value'
 		,	'zoom'
 
@@ -1396,6 +1403,20 @@
 				print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray($errorCode)) ));
 			}
 			break;
+
+		case 'imageAddRating':
+			$count = 0;
+			$ret = $si->imageRating->imageRatingGetAvg();
+			if(is_object($ret) && !is_null($ret)) {
+				while ($row = $ret->fetch_object()) {
+					if($si->image->imageAddRating($row->imageId,$row->rating)) {
+						$si->imageRating->imageRatingUpdateCalc($row->imageId);
+						$count++;
+					}
+				}
+			}
+			print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart, 'totalCount' => $count ) ) );
+			break;
 			
 		case 'imageAddToCollection':
 			checkAuth();
@@ -1452,6 +1473,31 @@
 			}
 			break;
 
+		case 'imageCalculateRating':
+			if($imageId == '') {
+				$valid = false;
+				$errorCode = 157;
+			} else if(!$si->image->imageLoadById($imageId)) {
+				$valid = false;
+				$errorCode = 158;
+			} else if( !(is_numeric($rating) && $rating >= 0 && $rating <= 5)) {
+				$valid = false;
+				$errorCode = 191;
+			}
+
+			if($valid) {
+				$userId = ($userAccess->is_logged_in()) ? $_SESSION['user_id'] : 0;
+				$si->imageRating->imageRatingSetProperty('imageId',$imageId);
+				$si->imageRating->imageRatingSetProperty('userId',$userId);
+				$si->imageRating->imageRatingSetProperty('ipAddress',str_replace('.', '', $_SERVER['REMOTE_ADDR']));
+				$si->imageRating->imageRatingSetProperty('rating',$rating);
+				$si->imageRating->imageRatingSave();
+				print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart ) ) );
+
+			} else {
+				print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray($errorCode)) ));
+			}
+			break;
 			
 		case 'imageDelete':
 			checkAuth();
@@ -1777,14 +1823,13 @@
 						switch(strtolower($device['type'])) {
 							case 's3':
 								$tmp = $dt->path;
-								$tmp = substr($tmp, 0, 1)=='/' ? substr($tmp, 1, strlen($tmp)-1) : $tmp;
+								// $tmp = substr($tmp, 0, 1)=='/' ? substr($tmp, 1, strlen($tmp)-1) : $tmp;
+								$tmp = ltrim($tmp,'/');
 								$url .= $tmp . '/';
 								break;
 							case 'local':
-								if(substr($url, strlen($url)-1, 1) == '/') {
-									$url = substr($url,0,strlen($url)-1);
-								}
-								$url .= $dt->path . '/';
+								$url = rtrim($url,'/') . '/';
+								$url .= ($dt->path == '/') ? '' : trim($dt->path,'/') . '/';
 								break;
 						}
 						unset($dt->storageDeviceId);
@@ -1971,7 +2016,7 @@
 							$si->image->imageSetProperty('processed',0);
 							$si->image->imageSave();
 					
-							$si->pqueue->processQueueSetProperty('imageId', $response['imageId']);
+							$si->pqueue->processQueueSetProperty('imageId', $imageId);
 							$si->pqueue->processQueueSetProperty('processType','all');
 							$si->pqueue->processQueueSave();
 
@@ -2000,17 +2045,40 @@
 			} else if(!in_array($data['degree'], array('90', '180', '270'))){
 				$errorCode = 187;
 				$valid = false;
-			} else if(!($user_access->is_logged_in() && $user_access->get_access_level() == 10)){
+			} else if(!($userAccess->is_logged_in() && $userAccess->get_accessLevel() == 10)){
 				$errorCode = 104;
 				$valid = false;
 			}
 			if($valid) {
 				$si->image->imageSetData($data);
-				$ret = $si->image->imageModifyRotate();
-				if($ret['success']) {
-					print_c( json_encode( array( 'success' => true,  'message' => $si->getError(110) ) ) );
+				if($si->image->imageModifyRotate()) {
+					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart  ) ) );
 				} else {
-					print_c( json_encode( array( 'success' => false ) ));
+					print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray(188)) ));
+				}
+			} else {
+				print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray($errorCode)) ));
+			}
+			break;
+			
+		case 'imageMoveExisting':
+			if($imageId == '' || $newStorageId == '' || $newImagePath == '') {
+				$valid = false;
+				$errorCode = 189;
+			} elseif(!$si->image->imageFieldExists($imageId)) {
+				$valid = false;
+				$errorCode = 170;
+			} elseif(!$si->storage->storageDeviceExists($newStorageId)) {
+				$valid = false;
+				$errorCode = 156;
+			}
+			
+			if($valid) {
+				if($si->storage->storageDeviceMoveImage($imageId, $newStorageId, $newImagePath)) {
+					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart ) ) );
+				} else {
+					$errorCode = 190;
+					print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray(190)) ));
 				}
 			} else {
 				print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray($errorCode)) ));
@@ -2285,6 +2353,77 @@
 			}
 			break;
 			
+		case 'metadataPackageList':
+			if($config['path']['metadatapackages'] != '' && is_dir($config['path']['metadatapackages'])) {
+				$list = array();
+				$files = scandir($config['path']['metadatapackages']);
+				foreach ($files as $file) {
+					if ($file != "." && $file != "..") {
+						$list[] = $file;
+					}
+				}
+				print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart, 'totalCount' => count($list), 'results' => $list ) ) );
+			} else {
+				print_c( json_encode( array( 'success' => false,  'error' => $si->getErrorArray(192) ) ) );
+			}
+			break;
+
+		case 'processQueue':
+			$data['stop'] = $stop;
+			$data['limit'] = $limit;
+			if(is_numeric($imageId)) {
+				$data['imageIds'] = array($imageId);
+			} else {
+				$data['imageIds'] = @json_decode($imageId,true);
+			}
+			$si->pqueue->processQueueSetData($data);
+			$totalCount = $si->pqueue->processQueueProcess();
+			print_c( json_encode( array( 'success' => true, 'processTime' =>microtime(true) - $timeStart, 'totalCount' => $totalCount ) ) );
+			break;
+
+		case 'processQueueList':
+			$data['start'] = ($start != '') ? $start : 0;
+			$data['limit'] = ($limit != '') ? $limit : 100;
+			$data['order'] = json_decode(stripslashes(trim($order)),true);
+			if(trim($sort) != '') {
+				$data['sort'] = trim($sort);
+			}
+			if(is_array($filter)) {
+				$data['filter'] = $filter;
+			} else {
+				$data['filter'] = json_decode(stripslashes(trim($filter)),true);
+			}
+			$data['searchFormat'] = in_array(strtolower(trim($searchFormat)),array('exact','left','right','both')) ? strtolower(trim($searchFormat)) : 'both';
+			$data['value'] = str_replace('%','%%',trim($value));
+			$data['group'] = $group;
+			$data['dir'] = (strtoupper(trim($dir)) == 'DESC') ? 'DESC' : 'ASC';
+			$si->pqueue->processQueueSetData($data);
+			$data = $si->pqueue->processQueueList();
+			$total = $si->pqueue->db->query_total();
+			print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart, 'totalCount' => $total, 'results' => $data ) ) );
+			break;
+
+		case 'processQueueClear':
+			$types = @json_decode(@stripslashes(trim($types)));
+			if(is_numeric($imageId)) {
+				$data['imageIds'] = array($imageId);
+			} else {
+				$data['imageIds'] = @json_decode($imageId,true);
+			}
+
+			if(is_array($types) && count($types)) {
+				$data['processType'] = $types;
+			}
+
+			$si->pqueue->processQueueSetData($data);
+			$allowedTypes = array('flickr_add', 'picassa_add', 'zoomify', 'google_tile', 'ocr_add', 'name_add', 'all', 'guess_add');
+			if(false !== $ret = $si->pqueue->processQueueClear()) {
+				print_c(json_encode(array('success' => true, 'processTime' => microtime(true) - $timeStart, 'totalCount' => $ret)));
+			} else {
+				print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray(193)) ));
+			}
+			break;
+			
 		case 'remoteAccessKeyList':
 			$whitelist=  array('localhost',  '127.0.0.1');
 			if(!in_array($_SERVER['HTTP_HOST'],  $whitelist)){
@@ -2409,7 +2548,26 @@
 			}
 			break;
 
-			
+		case 'userSetTrusted':
+			if(!($userAccess->is_logged_in() && $userAccess->get_accessLevel() == 10)){
+				$errorCode = 104;
+				$valid = false;
+			} else if($userId == '') {
+				$errorCode = 194;
+				$valid = false;
+			}
+			if($valid) {
+				$statusType = ($statusType == 'false') ? 0 : 1;
+				$query = sprintf(" UPDATE `users` SET `statusType` = %d WHERE `userId` = '%s' ", $statusType, $userId);
+				if($si->db->query($query)) {
+					$si->imageRating->imageRatingUpdateTrustedUserImages($userId,$statusType);
+				}
+				print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart ) ) );
+			} else {
+				print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray($errorCode)) ));
+			}
+			break;
+
 		default:
 			$errorCode = 100;
 				print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray($errorCode)) ));

@@ -152,12 +152,14 @@ Class ProcessQueue {
 		if(is_array($imageIds) && count($imageIds)) {
 			$query = sprintf(" SELECT q.* FROM `processQueue` q, image i WHERE i.`imageId` = q.`imageId` AND q.`processType` NOT IN ('picassaAdd','flickrAdd') AND i.`imageId` IN (%s) ORDER BY `dateAdded` ", @implode(',',$imageIds));
 			$rets = $this->db->query_all($query);
+			// echo '<pre>';var_dump($rets);exit;
 			if(is_array($rets) && count($rets)) {
 				foreach($rets as $record) {
-					$this->processType($record);
-					$count++;
-					$delquery = sprintf("DELETE FROM `processQueue` WHERE `imageId` = '%s' AND `processType` = '%s' ", mysql_escape_string($record->imageId), mysql_escape_string($record->processType));
-					$this->db->query($delquery);
+					if($this->processQueueProcessType($record)) {
+						$count++;
+						$delquery = sprintf("DELETE FROM `processQueue` WHERE `imageId` = '%s' AND `processType` = '%s' ", mysql_escape_string($record->imageId), mysql_escape_string($record->processType));
+						$this->db->query($delquery);
+					}
 				}
 			}
 
@@ -169,32 +171,17 @@ Class ProcessQueue {
 				}
 				if ($this->data['limit'] != '' && $count >= ($limit-1)) $loop_flag = false;
 
-				$record = $this->popQueue();
+				$record = $this->processQueuePop();
 				if($record === false) {
 					$loop_flag = false;
 				} else {
-					$this->processType($record);
-					$count++;
+					if($this->processQueueProcessType($record)) {
+						$count++;
+					}
 				}
 			}
 		}
-
-/*
-		$subject = 'Cyberflora Image Server - Processed';
-		$message = "Processed\r\n----------------";
-		$message .= "\r\nSmall : " . $this->process_stats['small'];
-		$message .= "\r\nMedium : " . $this->process_stats['medium'];
-		$message .= "\r\nLarge : " . $this->process_stats['large'];
-		$message .= "\r\nGoogle Tile : " . $this->process_stats['google_tile'];
-		$message .= "\r\nZoomify : " . $this->process_stats['zoomify'];
-		$message .= "\r\nCache : " . $this->process_stats['cache'];
-		$to = $config['email']['to'];
-*/
-
-		$ret['success'] = true;
-		$ret['time'] = microtime(true) - $this->data['time_start'];
-		$ret['total'] = $count;
-		return $ret;
+		return $count;
 	}
 
 	public function processQueuePop($processType = '') {
@@ -266,20 +253,32 @@ Class ProcessQueue {
 
 	public function processQueueProcessType($record) {
 		global $config;
-		$this->image->load_by_id($record->imageId);
-		if(strtolower($this->storage->getType($this->image->get('storage_id'))) == 'local') {
-			$device = $this->storage->get($this->image->get('storage_id'));
-			$image_path =  $device['basePath'] . $this->image->get('path');
-			$image = $image_path . '/' . $this->image->get('filename');
-			$this->image->set_fullpath($image);
+		$this->image->imageLoadById($record->imageId);
+		$device = $this->storage->storageDeviceGet($record->imageId);
+		if(!$device) return false;
+/*		
+		if(strtolower($this->storage->storageDeviceGetType($this->image->imageGetProperty('storageDeviceId'))) == 'local') {
+			$device = $this->storage->get($this->image->imageGetProperty('storageDeviceId'));
+			$image_path =  $device['basePath'] . $this->image->imageGetProperty('path');
+			$image = $image_path . '/' . $this->image->imageGetProperty('filename');
+			$this->image->imageSetFullPath($image);
 		}
+*/
 		switch($record->processType) {
 			case 'all':
 				$this->process_stats['small']++;
 				$this->process_stats['medium']++;
 				$this->process_stats['large']++;
 
-				if(strtolower($this->storage->getType($this->image->get('storage_id'))) == 's3') {
+				$ar = array ('postfix' => '_s', 'width' => 100, 'height' => 100);
+				$tmpPath = $this->image->imageCreateThumbnail($ar);
+				$ar = array ('postfix' => '_m', 'width' => 275, 'height' => 275);
+				$tmpPath = $this->image->imageCreateThumbnail($ar,$tmpPath,false);
+				$ar = array ('postfix' => '_l', 'width' => 800, 'height' => 800);
+				$tmpPath = $this->image->imageCreateThumbnail($ar,$tmpPath,true);
+
+				/*
+				if(strtolower($this->storage->storageDeviceGetType($this->image->imageGetProperty('storageDeviceId'))) == 's3') {
 					$ar = array ('s3' => $this->data['s3'], 'obj' => $this->data['obj'], 'postfix' => '_s', 'width' => 100, 'height' => 100);
 					$tmpPath = $this->image->createThumbS3($record->imageId,$ar,false);
 
@@ -300,82 +299,43 @@ Class ProcessQueue {
 						$this->image->createThumbnail( $image, 800, 800, "_l");
 					}
 				}
-				$this->image->load_by_id($record->imageId);
-				$this->image->set('processed',1);
-				$this->image->save();
+				*/
+				$this->image->imageSetProperty('processed',1);
+				$this->image->imageSave();
 				break;
 
 			case 'small':
-				$postFix = '_s';
-				$width = 100;
-				$height = 100;
-				$this->process_stats['small']++;
-				if($this->data['mode'] == 's3') {
-					$ar = array ('s3' => $this->data['s3'], 'obj' => $this->data['obj'], 'postfix' => $postFix, 'width' => $width, 'height' => $height);
-					$rr = $this->image->createThumbS3($record->imageId,$ar);
-				} else {
-					if($config['image_processing'] == 1) {
-						$this->image->createThumbnailIMagik( $image, $width, $height, $postFix);
-					} else {
-						$this->image->createThumbnail( $image, $width, $height, $postFix);
-					}
-				}
-				$this->image->load_by_barcode($record->imageId);
-				$this->image->set('processed',1);
-				$this->image->save();
+				$ar = array ('postfix' => '_s', 'width' => 100, 'height' => 100);
+				$tmpPath = $this->image->imageCreateThumbnail($ar,'',true);
+				$this->image->imageSetProperty('processed',1);
+				$this->image->imageSave();
 				break;
 
 			case 'medium':
-				$postFix = '_m';
-				$width = 275;
-				$height = 275;
-				$this->process_stats['medium']++;
-				if($this->data['mode'] == 's3') {
-					$ar = array ('s3' => $this->data['s3'], 'obj' => $this->data['obj'], 'postfix' => $postFix, 'width' => $width, 'height' => $height);
-					$this->image->createThumbS3($record->imageId,$ar);
-				} else {
-					if($config['image_processing'] == 1) {
-						$this->image->createThumbnailIMagik( $image, $width, $height, $height);
-					} else {
-						$this->image->createThumbnail( $image, $width, $height, $height);
-					}
-				}
-				$this->image->load_by_barcode($record->imageId);
-				$this->image->set('processed',1);
-				$this->image->save();
+				$ar = array ('postfix' => '_m', 'width' => 275, 'height' => 275);
+				$tmpPath = $this->image->imageCreateThumbnail($ar,'',true);
+				$this->image->imageSetProperty('processed',1);
+				$this->image->imageSave();
 				break;
 
 			case 'large':
-				$postFix = '_l';
-				$width = 800;
-				$height = 800;
-				$this->process_stats['large']++;
-
-				if($this->data['mode'] == 's3') {
-					$ar = array ('s3' => $this->data['s3'], 'obj' => $this->data['obj'], 'postfix' => $postFix, 'width' => $width, 'height' => $height);
-					$this->image->createThumbS3($record->imageId,$ar);
-				} else {
-					if($config['image_processing'] == 1) {
-						$this->image->createThumbnailIMagik( $image, $width, $height, $postFix);
-					} else {
-						$this->image->createThumbnail( $image, $width, $height, $postFix);
-					}
-				}
-				$this->image->load_by_barcode($record->imageId);
-				$this->image->set('processed',1);
-				$this->image->save();
+				$ar = array ('postfix' => '_l', 'width' => 800, 'height' => 800);
+				$tmpPath = $this->image->imageCreateThumbnail($ar,'',true);
+				$this->image->imageSetProperty('processed',1);
+				$this->image->imageSave();
 				break;
 
 			case 'cache':
 				$json_data = 'test';
 				$this->process_stats['cache']++;
-				$filename = $image_path . $record->imageId . '.json';
+				$filename = $$device['basePath'] . rtrim($this->image->imageGetProperty('path'),'/') . '/' . $record->imageId . '.json';
 				$fp = fopen($filename, 'w');
 				fwrite($fp,$json_data);
 				fclose($fp);
 				break;
 
 			case 'google_tile':
+			/*
 				$this->process_stats['google_tile']++;
 				if($this->data['mode'] == 's3') {
 					$ar = array ('s3' => $this->data['s3'], 'obj' => $this->data['obj']);
@@ -385,16 +345,17 @@ Class ProcessQueue {
 //					$ret = $this->image->processGTile($record->imageId); # No image magic format uses GD but not as clear.
 				}
 				if($ret) {
-					$this->image->load_by_barcode($record->imageId);
-					$this->image->set('gTileProcessed', 1);
-					$this->image->save();
+					$this->image->imageSetProperty('gTileProcessed', 1);
+					$this->image->imageSave();
 				}
+				*/
 				break;
 
 			case 'zoomify':
-				$this->image->zoomifyImage($record->imageId);
+				$this->image->imageZoomify($record->imageId);
 				break;
 		}
+		return true;
 	}
 
 	public function processQueueList() {
@@ -402,19 +363,41 @@ Class ProcessQueue {
 		if ($where != '') {
 			$where = " WHERE " . $where;
 		}
-		$where .= build_order( $this->data['order']);
 
-		$query = "SELECT SQL_CALC_FOUND_ROWS * FROM `processQueue` " . $where; # query for paging
-
-		$page = ($this->data['limit'] != 0) ? floor($this->data['start']/$this->data['limit']) : 1;
-
-		$ret = $this->db->query_page_all( $query, $this->data['limit'],$page );
-
+		if($this->data['value'] != '') {
+			switch($this->data['searchFormat']) {
+				case 'exact':
+					$where .= sprintf(" AND `processType` = '%s' ", mysql_escape_string($this->data['value']));
+					break;
+				case 'left':
+					$where .= sprintf(" AND `processType` LIKE '%s%%' ", mysql_escape_string($this->data['value']));
+					break;
+				case 'right':
+					$where .= sprintf(" AND `processType` LIKE '%%%s' ", mysql_escape_string($this->data['value']));
+					break;
+				case 'both':
+				default:
+					$where .= sprintf(" AND `processType` LIKE '%%%s%%' ", mysql_escape_string($this->data['value']));
+					break;
+			}
+		}
+		
+		if($this->data['group'] != '' && in_array($this->data['group'], array('imageId','processType','dateAdded')) && $this->data['dir'] != '') {
+			$where .= build_order( array(array('field' => $this->data['group'], 'dir' => $this->data['dir'])));
+		} else {
+			$where .= ' ORDER BY `imageId` ASC ';
+		}
+		
+		if($this->data['limit'] != '') {
+			$where .= sprintf(" LIMIT %s, %s ", mysql_escape_string($this->data['start']), mysql_escape_string($this->data['limit']));
+		}
+		$query = "SELECT SQL_CALC_FOUND_ROWS * FROM `processQueue` " . $where; 
+		$ret = $this->db->query_all($query);
 		return is_null($ret) ? array() : $ret;
 	}
 
 	public function processQueueClear() {
-		if(!(is_array($this->data['processType']) || is_array($this->data['imageIds']))) return array('success' => false, 'recordCount' => 0);
+		if(!(is_array($this->data['processType']) || is_array($this->data['imageIds']))) return false;
 		$where = '';
 		if(is_array($this->data['processType']) && count($this->data['processType'])) {
 			foreach($this->data['processType'] as &$type) {
@@ -431,12 +414,10 @@ Class ProcessQueue {
 		if($where != '') {
 			$query = sprintf(" DELETE FROM `processQueue` WHERE 1=1 %s ",$where);
 		}
-
 		$this->db->query($query);
 		$recordCount = $this->db->affected_rows;
 		$recordCount = is_null($recordCount) ? 0 : $recordCount;
-
-		return array('success' => true, 'recordCount' => $recordCount);
+		return $recordCount;
 	}
 
 

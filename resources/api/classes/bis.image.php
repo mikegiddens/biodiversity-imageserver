@@ -175,6 +175,57 @@ Class Image {
 		}
 	}
 
+	function imageCreateThumbnail($details,$tmpPath = '',$delFlag = false) {
+		global $config;
+		# imageLoadById should be called prior to this call
+		$storage = new StorageDevice($this->db);
+		$device = $storage->storageDeviceGet($this->imageGetProperty('storageDeviceId'));
+		
+		$postfix = $details['postfix'];
+		$type = $this->imageGetName('ext');
+		$extension = '.' . $this->imageGetName('ext');
+		$name = $this->imageGetName();
+		$key = rtrim($this->imageGetProperty('path'),'/') . '/' . $this->imageGetProperty('filename');
+		$keyThumb = rtrim($this->imageGetProperty('path'),'/') .  '/' . $name . $details['postfix'] . $extension;
+		
+		# Getting the source image.
+		$image = ($tmpPath != '') ? $tmpPath : $storage->storageDeviceFileDownload($this->imageGetProperty('storageDeviceId'),$key);
+		# Creating thumbnails.
+		$dtls = @pathinfo($image);
+		$imageTmp = $image;
+		if($config['image_processing'] == 1) {
+			$destination =  $dtls['dirname'] . '/' . $dtls['filename'] . $details['postfix'] . $extension;
+			$tmp = sprintf("convert -limit memory 16MiB -limit map 32MiB %s -thumbnail %sx%s %s", $imageTmp,$details['width'],$details['height'],$destination);
+			$res = exec($tmp);
+			$imageTmp = $destination;
+			$destination =  $dtls['dirname'] . '/' . $dtls['filename'] . $details['postfix'] . $extension;
+			$tmp = sprintf("convert %s %s",$imageTmp,$destination);
+			$res = exec($tmp);
+		} else {
+			$func = 'imagecreatefrom' . (@strtolower($dtls['extension']) == 'jpg' ? 'jpeg' : @strtolower($dtls['extension']));
+			$im = @$func($imageTmp);
+			if($im !== false) {
+				$destination = $dtls['dirname'] . $dtls['filename'] . $details['postfix'] . $extension;
+				$width = imageSX($im);
+				$height = imageSY($im);
+				// $destination = ($display_flag)?NULL:$destination;
+				$this->imageResize($details['width'],$details['height'], $im, $destination, $width, $height);
+				ImageDestroy($im); # Remove tmp Image Object
+			}
+		}
+		# Setting the destination
+		$storage->storageDeviceFileUpload($this->imageGetProperty('storageDeviceId'),$keyThumb,$destination);
+
+		if($delFlag && strtolower($device['type']) == 's3') {
+			#deleting the original tmp image downloaded from s3
+			@unlink($image);
+			return true;
+		}
+		return $image;
+	}
+	
+	
+/*	
 	function imageCreateThumbnail( $tmp_path, $new_width, $new_height, $postfix = '', $display_flag=false ) {
 		$extension = '.' . $this->imageGetName('ext');
 		$func = 'imagecreatefrom' . (@strtolower($this->imageGetName('ext')) == 'jpg' ? 'jpeg' : @strtolower($this->imageGetName('ext')));
@@ -239,11 +290,6 @@ Class Image {
 		}
 	}
 
-	/**
-	 * Creates the Thumbnails for the image using IM/GD for s3 mode
-	 * @param string barcode
-	 * @param mixed s3 details and object
-	 */
 	function createThumbS3($imageId,$arr,$deleteFlag = true) {
 		global $config;
 		$_TMP = ($config['path']['tmp'] != '') ? $config['path']['tmp'] : sys_get_temp_dir() . '/';
@@ -299,7 +345,7 @@ Class Image {
 		}
 		return $tmpPath;
 	}
-
+*/
 
     ///////////////////////////////////////////////
     // Type: Function
@@ -1130,81 +1176,34 @@ Class Image {
 	}
 
 	public function imageModifyRotate() {
-	/*
 		$pqueue = new ProcessQueue($this->db);
 		$barcode = $this->imageGetProperty('barcode');
 		$storage = new StorageDevice($this->db);
 		$key = rtrim($this->imageGetProperty('path'),'/').'/'.$this->imageGetProperty('filename');
 		$imageFile = $storage->storageDeviceFileDownload($this->imageGetProperty('storageDeviceId'), $key);
-
 		if(false !== $imageFile) {
 			$cmd = sprintf("convert -limit memory 16MiB -limit map 32MiB %s -rotate %s %s", $imageFile, $this->data['degree'], $imageFile);
 			system($cmd);
-
 			if(strtolower($storage->storageDeviceGetType($this->imageGetProperty('storageDeviceId'))) == 's3') {
 				$storage->storageDeviceFileUpload($this->imageGetProperty('storageDeviceId'), $key, $imageFile);
 			}
-			
-		}
-		
-		
-		if($config['mode'] == 's3') {
-			$imagePath = $_TMP;
-			# getting the image from s3
-			$key = $this->imageBarcodePath($barcode) . $this->imageGetProperty('filename');
-			$image['obj']->get_object($config['s3']['bucket'], $key, array('fileDownload' => $imagePath . $this->imageGetProperty('filename')));
-		} else {
-			$imagePath = $config['path']['images'] . $this->imageBarcodePath( $barcode );
-		}
-		$imageFile = $imagePath . $this->imageGetProperty('filename');
-		if(in_array($image['degree'], array(90, 180, 270))){
-			#rotating the image
-			$cmd = sprintf("convert -limit memory 16MiB -limit map 32MiB %s -rotate %s %s", $imageFile, $image['degree'], $imageFile);
-//  echo '<br>' . $cmd;
-			system($cmd);
-
-			if($config['mode'] == 's3') {
-				# putting the image to s3
-				$key = $this->imageBarcodePath($barcode) . $this->imageGetProperty('filename');
-				$response = $image['obj']->create_object ( $config['s3']['bucket'], $key, array('fileUpload' => $imageFile,'acl' => AmazonS3::ACL_PUBLIC,'storage' => AmazonS3::STORAGE_REDUCED) );
-				@unlink($imageFile);
-			}
-		}
-
-		# deleting related images
-		if($config['mode'] == 's3') {
+			$ar = explode('.',$this->imageGetProperty('filename'));
 			foreach(array('_s','_m','_l') as $postfix) {
-				$response = $image['obj']->delete_object($config['s3']['bucket'], $this->imageBarcodePath($barcode) . $barcode . $postfix . '.jpg');
+				$storage->storageDeviceDeleteFile($this->imageGetProperty('storageDeviceId'), $ar[0] . $postfix . '.jpg', $this->imageGetProperty('path'));
 			}
-		} else {
-			if(is_dir($imagePath)) {
-				$handle = opendir($imagePath);
-				while (false !== ($file = readdir($handle))) {
-					if( $file == '.' || $file == '..' || $file == $this->imageGetProperty('filename') ) continue;
-					if (is_dir($imagePath.$file)) {
-						$this->imageRrmdir($imagePath.$file);
-					} else if(is_file($imagePath.$file)) {
-						@unlink($imagePath.$file);
-					}
-				}
-			}
+			$this->imageSetProperty('flickrPlantId', 0);
+			$this->imageSetProperty('picassaPlantId', 0);
+			$this->imageSetProperty('gTileProcessed', 0);
+			$this->imageSetProperty('zoomEnabled', 0);
+			$this->imageSetProperty('processed', 0);
+			$this->imageSave();
+
+			$pqueue->processQueueSetProperty('imageId',$this->imageGetProperty('imageId'));
+			$pqueue->processQueueSetProperty('processType','all');
+			$pqueue->processQueueSave();
+			return true;
 		}
-
-		$this->imageSetProperty('flickrPlantId', 0);
-		$this->imageSetProperty('picassaPlantId', 0);
-		$this->imageSetProperty('gTileProcessed', 0);
-		$this->imageSetProperty('zoomEnabled', 0);
-		$this->imageSetProperty('processed', 0);
-		$this->save();
-
-		// $pqueue->set('imageId', $barcode);
-		$pqueue->set('imageId', $image['imageId']);
-		$pqueue->set('processType', 'all');
-		$pqueue->save();
-
-		$ret['success'] = true;
-		return $ret;
-		*/
+		return false;
 	}
 
 	public function imageDelete() {
@@ -2074,7 +2073,7 @@ Class Image {
 		return ($this->db->query($query));
 	}
 	
-	public function updateImageRating($imageId = '', $rating = '') {
+	public function imageAddRating($imageId = '', $rating = '') {
 		if($imageId == '' ||  $rating == '') return false;
 		$query = sprintf(" UPDATE `image` SET `rating` = '%s' WHERE `imageId` = '%s'; ", mysql_escape_string($rating), mysql_escape_string($imageId));
 		return ($this->db->query($query)) ? true : false;
