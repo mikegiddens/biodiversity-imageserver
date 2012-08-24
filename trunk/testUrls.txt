@@ -212,6 +212,24 @@ http://bis.silverbiology.com/dev/resources/api/api.php?cmd=remoteAccessKeyList
 
 -------------------
 
+setAdd:
+http://bis.silverbiology.com/dev/resources/api/api.php?cmd=setAdd&name=FavoritePhotographers
+
+setDelete:
+http://bis.silverbiology.com/dev/resources/api/api.php?cmd=setDelete&setId=4
+
+setUpdate:
+http://bis.silverbiology.com/dev/resources/api/api.php?cmd=setUpdate&setId=1&name=FavoritePhotographers&description=FavoritePhotographers
+
+setValueAdd:
+http://bis.silverbiology.com/dev/resources/api/api.php?cmd=setValueAdd&setId=1&attributeId=2
+
+setValueDelete:
+http://bis.silverbiology.com/dev/resources/api/api.php?cmd=setValueDelete&setValueId=1
+
+setValueUpdate:
+http://bis.silverbiology.com/dev/resources/api/api.php?cmd=setValueUpdate&setId=1&attributeId=2&rank=1&setValueId=1
+
 storageDeviceAdd:
 http://bis.silverbiology.com/dev/resources/api/api.php?cmd=storageDeviceAdd&name=Local Server3&description=Local Storage&type=LOCAL&baseUrl=http://bis.silverbiology.com/images/&basePath=/var/www/html/images&userName=User Name&password=password&key=eefe721eg1e1&extra=extra
 

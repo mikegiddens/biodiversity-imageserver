@@ -185,9 +185,15 @@
 				, 198 => 'Invalid setId provided.'
 				, 199 => 'Set could not be deleted.'
 				, 200 => 'Set could not be Updated.'
-
-
-
+				, 201 => 'Set Value could not be Added.'
+				, 202 => 'setValueId should be provided.'
+				, 203 => 'Invalid setValueId provided.'
+				, 204 => 'Set Value could not be deleted.'
+				, 205 => 'Set Value could not be Updated.'
+				, 206 => 'setId, attributeId and setValueId should be provided.'
+				, 207 => 'category and attribute should be provided.'
+				, 208 => 'No sets defined.'
+				, 209 => 'Logs not Loaded'
 			);
 			return $ar[$errorCode];
 		}

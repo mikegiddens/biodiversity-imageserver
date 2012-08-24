@@ -18,7 +18,7 @@ Class Logger {
 	* Returns a since field value
 	* @return mixed
 	*/
-	public function get( $field ) {
+	public function loggerGetProperty( $field ) {
 		if (isset($this->record[$field])) {
 			return( $this->record[$field] );
 		} else {
@@ -30,82 +30,74 @@ Class Logger {
 	* Set the value to a field
 	* @return bool
 	*/
-	public function set( $field, $value ) {
+	public function loggerSetProperty( $field, $value ) {
 		$this->record[$field] = $value;
 		return( true );
 	}
 
-	private function setFieldFromCsv ($data) {
-		$field_array = array ('sc_id', 'log_id', 'image_id', 'before', 'after', 'task', 'timestamp_modified', 'user', 'station_id','dummy_field', 'barcode');
+	private function loggerSetFieldFromCsv ($data) {
+		$field_array = array ('scId', 'logId', 'imageId', 'before', 'after', 'task', 'timestampModified', 'userId', 'stationId','dummyField', 'barcode');
 		$counter = 0;
 		foreach($field_array as $field) {
-			$this->set($field,$data[$counter]);
+			$this->loggerSetProperty($field,$data[$counter]);
 			$counter++;
 		}
 		return true;
 	}
 
-	public function setData ($data) {
+	public function loggerSetData ($data) {
 		$this->data = $data;
 	}
 
-	public function clearRecords () {
+	public function loggerClearRecords () {
 		unset($this->records);
 		return true;
 	}
 
-	public function getRecords () {
+	public function loggerGetRecords () {
 		return $this->records;
 	}
 
-	public function getId() {
-		$query = sprintf("SELECT MAX(`log_id`) as log_id FROM `master_log` WHERE `sc_id` = '%s'", mysql_escape_string($this->data['sc_id']));
+	public function loggerGetId() {
+		$query = sprintf("SELECT MAX(`logId`) as logId FROM `masterLog` WHERE `scId` = '%s'", mysql_escape_string($this->data['scId']));
 		$record = $this->db->query_one($query);
 		if($record != NULL) {
-			$this->records = $record->log_id;
+			$this->records = $record->logId;
 			return true;
 		}
 		return false;
 	}
 
-	public function loadLogs() {
-		$ret = array();
+	public function loggerLoadLogs() {
 		if(is_dir($this->data['path_files'])) {
 			$handle = opendir($this->data['path_files']);
 			$count = 0;
-			while (false !== ($file_name = readdir($handle))) {
-				if( $file_name == '.' || $file_name == '..') continue;
+			while (false !== ($filename = readdir($handle))) {
+				if( $filename == '.' || $filename == '..') continue;
 
-				$fp = fopen($this->data['path_files'] . $file_name,'r');
+				$fp = fopen($this->data['path_files'] . $filename,'r');
 				while (($data = fgetcsv($fp, ",")) !== FALSE) {
-					$this->setFieldFromCsv($data);
-					$this->save();
+					$this->loggerSetFieldFromCsv($data);
+					$this->loggerSave();
 				}
 				fclose($fp);
 				if(!file_exists($this->data['processed_files'])) {
 					@mkdir($this->data['processed_files'],0775);
 				}
-				@rename($this->data['path_files'] . $file_name, $this->data['processed_files'] . $file_name);
+				@rename($this->data['path_files'] . $filename, $this->data['processed_files'] . $filename);
 				$count++;
 			}
-			$ret['success'] = true;
-			
-		} else {
-			$ret['success'] = false;
+			return $count;
 		}
-		$ret['total'] = $count;
-		$ret['time'] = microtime(true) - $this->data['time_start'];
-		return $ret;
+		return false;
 	}
 
-	public function loadS3Logs() {
-
+	public function loggerLoadS3Logs() {
 		if(!@file_exists(sys_get_temp_dir() . '/' . 'logs/')) {
 			@mkdir(sys_get_temp_dir() . '/' . 'logs/',0775);
 		}
 		$filename = sys_get_temp_dir() . '/' . 'logs/' . 'log.csv';
 		$ret = array();
-
 		# taking log files from the s3 logs folder
 		try {
 			$logArray = $this->data['obj']->get_object_list($this->data['s3']['bucket'], array('prefix' => $this->data['s3']['path']['logs']));
@@ -120,7 +112,7 @@ Class Logger {
 				$fp = fopen($filename,'r');
 				while (($data = fgetcsv($fp, ",")) !== FALSE) {
 					$this->setFieldFromCsv($data);
-					$this->save();
+					$this->loggerSave();
 				}
 				fclose($fp);
 				clearstatcache();
@@ -131,18 +123,14 @@ Class Logger {
 				$this->data['obj']->delete_object($this->data['s3']['bucket'], $log);
 			}
 			@unlink($filename);
-			$ret['success'] = true;
+			return $count;
 		}
-
-
-		$ret['total'] = $count;
-		$ret['time'] = microtime(true) - $this->data['time_start'];
-		return $ret;
+		return false;
 	}
 
-	public function save() {
+	public function loggerSave() {
 		if(!$this->recordExists()) {
-			$query = sprintf("INSERT INTO `master_log` (`sc_id`, `log_id`, `station_id`, `image_id`, `barcode`,  `before`, `after`, task, timestamp_modified, `user`) VALUES('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s');", mysql_escape_string( $this->get('sc_id') ), mysql_escape_string( $this->get('log_id') ), mysql_escape_string( $this->get('station_id') ), mysql_escape_string( $this->get('image_id') ), mysql_escape_string( $this->get('barcode') ), mysql_escape_string( $this->get('before') ), mysql_escape_string( $this->get('after') ), mysql_escape_string( $this->get('task') ), mysql_escape_string( $this->get('timestamp_modified')), mysql_escape_string( $this->get('user') ) );
+			$query = sprintf("INSERT INTO `masterLog` (`scId`, `logId`, `stationId`, `image_id`, `barcode`,  `before`, `after`, task, timestampModified, `user`) VALUES('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s');", mysql_escape_string( $this->loggerGetProperty('scId') ), mysql_escape_string( $this->loggerGetProperty('logId') ), mysql_escape_string( $this->loggerGetProperty('stationId') ), mysql_escape_string( $this->loggerGetProperty('image_id') ), mysql_escape_string( $this->loggerGetProperty('barcode') ), mysql_escape_string( $this->loggerGetProperty('before') ), mysql_escape_string( $this->loggerGetProperty('after') ), mysql_escape_string( $this->loggerGetProperty('task') ), mysql_escape_string( $this->loggerGetProperty('timestampModified')), mysql_escape_string( $this->loggerGetProperty('user') ) );
 
 			if( $this->db->query($query) ) {
 				return( true );
@@ -152,7 +140,7 @@ Class Logger {
 	}
 
 	public function recordExists() {
-		$query = sprintf("SELECT `id` FROM `master_log` WHERE `sc_id` = '%s' AND `log_id` = '%s' AND `station_id` = '%s' ;", mysql_escape_string( $this->get('sc_id') ), mysql_escape_string( $this->get('log_id') ), mysql_escape_string( $this->get('station_id') ) );
+		$query = sprintf("SELECT `masterLogId` FROM `masterLog` WHERE `scId` = '%s' AND `logId` = '%s' AND `stationId` = '%s' ;", mysql_escape_string( $this->loggerGetProperty('scId') ), mysql_escape_string( $this->loggerGetProperty('logId') ), mysql_escape_string( $this->loggerGetProperty('stationId') ) );
 		$ret = $this->db->query_one( $query );
 		if ($ret == NULL) {
 			return false;
@@ -161,42 +149,42 @@ Class Logger {
 		}
 	}
 
-	public function loadCollectionReport() {
+	public function loggerLoadCollectionReport() {
 		$op = array();
 		switch($this->data['report_type']) {
 			case 'day':
-				$group_term = ' HOUR(timestamp_modified) ';
+				$group_term = ' HOUR(timestampModified) ';
 				break;
 			case 'week':
-				$group_term = ' DAYNAME(timestamp_modified) ';
+				$group_term = ' DAYNAME(timestampModified) ';
 				break;
 			case 'month':
-				$group_term = ' DAYOFMONTH(timestamp_modified) ';
+				$group_term = ' DAYOFMONTH(timestampModified) ';
 				break;
 			case 'year':
-				$group_term = ' MONTHNAME(timestamp_modified) ';
+				$group_term = ' MONTHNAME(timestampModified) ';
 				break;
 		}
 
-		$query = "SELECT count(*) ct, $group_term as dt FROM `master_log` WHERE `task` = 'IMAGE_PHOTOGRAPHED' AND user != 0 ";
+		$query = "SELECT count(*) ct, $group_term as dt FROM `masterLog` WHERE `task` = 'IMAGE_PHOTOGRAPHED' AND user != 0 ";
 
 		if($this->data['date'] != '' && $this->data['date2'] !='') {
-			$query .= sprintf(" AND ( date( `timestamp_modified` ) BETWEEN '%s' AND '%s' ) ", mysql_escape_string($this->data['date']), mysql_escape_string($this->data['date2']));
+			$query .= sprintf(" AND ( date( `timestampModified` ) BETWEEN '%s' AND '%s' ) ", mysql_escape_string($this->data['date']), mysql_escape_string($this->data['date2']));
 		} else if($this->data['date'] != '' && $this->data['date2'] == '') {
-			$query .= sprintf(" AND date( `timestamp_modified` ) = '%s' ", mysql_escape_string($this->data['date']));
+			$query .= sprintf(" AND date( `timestampModified` ) = '%s' ", mysql_escape_string($this->data['date']));
 		}
 
 
 		if($this->data['year'] != '') {
-			$query .= sprintf(" AND YEAR(timestamp_modified) = '%s' ", mysql_escape_string($this->data['year']));
+			$query .= sprintf(" AND YEAR(timestampModified) = '%s' ", mysql_escape_string($this->data['year']));
 		}
 
 		if($this->data['month'] != '') {
-			$query .= sprintf(" AND MONTH(timestamp_modified) = '%s' ", mysql_escape_string($this->data['month']));
+			$query .= sprintf(" AND MONTH(timestampModified) = '%s' ", mysql_escape_string($this->data['month']));
 		}
 
-		if($this->data['collection_id'] != '') {
-			$query1 = sprintf(" SELECT `code` FROM `collection` WHERE `collection_id` = '%s' ", mysql_escape_string($this->data['collection_id']));
+		if($this->data['collectionId'] != '') {
+			$query1 = sprintf(" SELECT `code` FROM `collection` WHERE `collectionId` = '%s' ", mysql_escape_string($this->data['collectionId']));
 			$rt = $this->db->query_one($query1);
 			$code = $rt->code;
 
@@ -225,14 +213,14 @@ Class Logger {
 
 		$this->records = $op;
 		return true;
-		$query = 'SELECT * FROM `log`';
+		// $query = 'SELECT * FROM `log`';
 	}
 
-	public function loadReportByDateRange () {
-		$query = "SELECT count(*) ct, date(`timestamp_modified`) as dt FROM `master_log` WHERE `task` = 'IMAGE_PHOTOGRAPHED' ";
+	public function loggerLoadReportByDateRange () {
+		$query = "SELECT count(*) ct, date(`timestampModified`) as dt FROM `masterLog` WHERE `task` = 'IMAGE_PHOTOGRAPHED' ";
 
 		if($this->data['date'] != '' && $this->data['date2'] != '') {
-			$query .= sprintf(" AND ( date( `timestamp_modified` ) BETWEEN '%s' AND '%s' ) ", mysql_escape_string($this->data['date']), mysql_escape_string($this->data['date2']));
+			$query .= sprintf(" AND ( date( `timestampModified` ) BETWEEN '%s' AND '%s' ) ", mysql_escape_string($this->data['date']), mysql_escape_string($this->data['date2']));
 		}
 
 		if(is_array($this->data['users']) &&  count($this->data['users'])) {
@@ -244,18 +232,18 @@ Class Logger {
 			$this->data['station'] = json_decode( $this->data['station'] );
 			if(count($this->data['station'])) {
 				$user_list = @implode(',', $this->data['station']);
-				$query .= sprintf(" AND `station_id` IN (%s) ", mysql_escape_string($user_list));
+				$query .= sprintf(" AND `stationId` IN (%s) ", mysql_escape_string($user_list));
 			}
 		}
 
-		if($this->data['user_id'] != '') {
-			$query .= sprintf(" AND user = '%s' ", mysql_escape_string($this->data['user_id']));
+		if($this->data['userId'] != '') {
+			$query .= sprintf(" AND user = '%s' ", mysql_escape_string($this->data['userId']));
 		}
 		if($this->data['sc'] != '') {
-			$query .= sprintf(" AND `sc_id` = '%s' ", mysql_escape_string($this->data['sc']));
+			$query .= sprintf(" AND `scId` = '%s' ", mysql_escape_string($this->data['sc']));
 		}
 
-		$query .= " GROUP BY  date(`timestamp_modified`) ";
+		$query .= " GROUP BY  date(`timestampModified`) ";
 
 		$records = $this->db->query_all($query);
 
@@ -275,14 +263,14 @@ Class Logger {
 		return true;
 	}
 
-	public function loadReportByDate () {
+	public function loggerLoadReportByDate () {
 
 		$op = array();
 		for($i=1;$i<=24;$i++) {
 			$result[$i] = 0;
 		}
 
-		$query = sprintf( "SELECT count(*) ct, HOUR (`timestamp_modified`) as dt FROM `master_log` WHERE `task` = 'IMAGE_PHOTOGRAPHED' AND ( date( `timestamp_modified` ) = '%s' ) ", mysql_escape_string($this->data['date']) );
+		$query = sprintf( "SELECT count(*) ct, HOUR (`timestampModified`) as dt FROM `masterLog` WHERE `task` = 'IMAGE_PHOTOGRAPHED' AND ( date( `timestampModified` ) = '%s' ) ", mysql_escape_string($this->data['date']) );
 		if($this->data['users'] != '') {
 			$this->data['users'] = json_decode( $this->data['users'] );
 
@@ -296,7 +284,7 @@ Class Logger {
 			$this->data['station'] = json_decode( $this->data['station'] );
 			if(count($this->data['station'])) {
 				$station_list = @implode(',', $this->data['station']);
-				$query .= sprintf(" AND `station_id` IN (%s) ", mysql_escape_string($station_list));
+				$query .= sprintf(" AND `stationId` IN (%s) ", mysql_escape_string($station_list));
 			}
 		}
 
@@ -304,11 +292,11 @@ Class Logger {
 			$this->data['sc'] = json_decode( $this->data['sc'] );
 			if(count($this->data['sc'])) {
 				$sc_list = @implode(',', $this->data['sc']);
-				$query .= sprintf(" AND `sc_id` IN (%s) ", mysql_escape_string($sc_list));
+				$query .= sprintf(" AND `scId` IN (%s) ", mysql_escape_string($sc_list));
 			}
 		}
 
-		$query .= " GROUP BY  HOUR (`timestamp_modified`) ";
+		$query .= " GROUP BY  HOUR (`timestampModified`) ";
 		$records = $this->db->query_all($query);
 
 		$op = array();
@@ -338,29 +326,29 @@ Class Logger {
 		return true;
 	}
 
-	public function loadGraphReportUsers () {
+	public function loggerLoadGraphReportUsers () {
 		$op = array();
 		switch($this->data['report_type']) {
 			case 'day':
-				$group_term = ' HOUR(timestamp_modified) ';
+				$group_term = ' HOUR(timestampModified) ';
 				break;
 			case 'week':
-				$group_term = ' DAYNAME(timestamp_modified) ';
+				$group_term = ' DAYNAME(timestampModified) ';
 				break;
 			case 'month':
-				$group_term = ' DAYOFMONTH(timestamp_modified) ';
+				$group_term = ' DAYOFMONTH(timestampModified) ';
 				break;
 			case 'year':
-				$group_term = ' MONTHNAME(timestamp_modified) ';
+				$group_term = ' MONTHNAME(timestampModified) ';
 				break;
 		}
 
-		$query = "SELECT count(*) ct, $group_term as dt FROM `master_log` WHERE `task` = 'IMAGE_PHOTOGRAPHED' AND user != 0 ";
+		$query = "SELECT count(*) ct, $group_term as dt FROM `masterLog` WHERE `task` = 'IMAGE_PHOTOGRAPHED' AND user != 0 ";
 
 		if($this->data['date'] != '' && $this->data['date2'] !='') {
-			$query .= sprintf(" AND ( date( `timestamp_modified` ) BETWEEN '%s' AND '%s' ) ", mysql_escape_string($this->data['date']), mysql_escape_string($this->data['date2']));
+			$query .= sprintf(" AND ( date( `timestampModified` ) BETWEEN '%s' AND '%s' ) ", mysql_escape_string($this->data['date']), mysql_escape_string($this->data['date2']));
 		} else if($this->data['date'] != '' && $this->data['date2'] == '') {
-			$query .= sprintf(" AND date( `timestamp_modified` ) = '%s' ", mysql_escape_string($this->data['date']));
+			$query .= sprintf(" AND date( `timestampModified` ) = '%s' ", mysql_escape_string($this->data['date']));
 		}
 
 		if(count($this->data['users']) && is_array($this->data['users'])) {
@@ -370,15 +358,15 @@ Class Logger {
 
 
 		if($this->data['year'] != '') {
-			$query .= sprintf(" AND YEAR(timestamp_modified) = '%s' ", mysql_escape_string($this->data['year']));
+			$query .= sprintf(" AND YEAR(timestampModified) = '%s' ", mysql_escape_string($this->data['year']));
 		}
 
 		if($this->data['month'] != '') {
-			$query .= sprintf(" AND MONTH(timestamp_modified) = '%s' ", mysql_escape_string($this->data['month']));
+			$query .= sprintf(" AND MONTH(timestampModified) = '%s' ", mysql_escape_string($this->data['month']));
 		}
 
-		if($this->data['user_id'] != '') {
-			$query .= sprintf(" AND user = '%s' ", mysql_escape_string($this->data['user_id']));
+		if($this->data['userId'] != '') {
+			$query .= sprintf(" AND user = '%s' ", mysql_escape_string($this->data['userId']));
 		}
 
 		$query .= " GROUP BY  $group_term ";
@@ -404,8 +392,8 @@ Class Logger {
 		return true;
 	}
 
-	public function loadGraphReportStations () {
-		$query = sprintf( "SELECT count(*) ct, date(`timestamp_modified`) as dt, station_id FROM `master_log` WHERE `task` = 'IMAGE_PHOTOGRAPHED' AND ( date( `timestamp_modified` ) BETWEEN '%s' AND '%s' ) AND station_id != 0 ", mysql_escape_string($this->data['date']), mysql_escape_string($this->data['date2']) );
+	public function loggerLoadGraphReportStations () {
+		$query = sprintf( "SELECT count(*) ct, date(`timestampModified`) as dt, stationId FROM `masterLog` WHERE `task` = 'IMAGE_PHOTOGRAPHED' AND ( date( `timestampModified` ) BETWEEN '%s' AND '%s' ) AND stationId != 0 ", mysql_escape_string($this->data['date']), mysql_escape_string($this->data['date2']) );
 
 		if($this->data['users'] != '') {
 			$this->data['users'] = json_decode( $this->data['users'] );
@@ -419,11 +407,11 @@ Class Logger {
 			$this->data['station'] = json_decode( $this->data['station'] );
 			if(count($this->data['station'])) {
 				$user_list = @implode(',', $this->data['station']);
-				$query .= sprintf(" AND `station_id` IN (%s) ", mysql_escape_string($user_list));
+				$query .= sprintf(" AND `stationId` IN (%s) ", mysql_escape_string($user_list));
 			}
 		}
 
-		$query .= " GROUP BY  date(`timestamp_modified`), station_id ";
+		$query .= " GROUP BY  date(`timestampModified`), stationId ";
 
 		$records = $this->db->query_all($query);
 
@@ -443,7 +431,7 @@ Class Logger {
 					$arr['name'] = $record->dt;
 					$temp = $record->dt;
 				}
-				$arr[$record->station_id] = $record->ct;
+				$arr[$record->stationId] = $record->ct;
 			}
 			$op[] = $arr;
 		}
@@ -451,8 +439,8 @@ Class Logger {
 		return true;
 	}
 
-	public function loadGraphReportSc () {
-		$query = sprintf( "SELECT count(*) ct, date(`timestamp_modified`) as dt, sc_id FROM `master_log` WHERE `task` = 'IMAGE_PHOTOGRAPHED' AND ( date( `timestamp_modified` ) BETWEEN '%s' AND '%s' ) AND station_id != 0 ", mysql_escape_string($this->data['date']), mysql_escape_string($this->data['date2']) );
+	public function loggerLoadGraphReportSc () {
+		$query = sprintf( "SELECT count(*) ct, date(`timestampModified`) as dt, scId FROM `masterLog` WHERE `task` = 'IMAGE_PHOTOGRAPHED' AND ( date( `timestampModified` ) BETWEEN '%s' AND '%s' ) AND stationId != 0 ", mysql_escape_string($this->data['date']), mysql_escape_string($this->data['date2']) );
 
 		if($this->data['users'] != '') {
 			$this->data['users'] = json_decode( $this->data['users'] );
@@ -466,7 +454,7 @@ Class Logger {
 			$this->data['station'] = json_decode( $this->data['station'] );
 			if(count($this->data['station'])) {
 				$user_list = @implode(',', $this->data['station']);
-				$query .= sprintf(" AND `station_id` IN (%s) ", mysql_escape_string($user_list));
+				$query .= sprintf(" AND `stationId` IN (%s) ", mysql_escape_string($user_list));
 			}
 		}
 
@@ -474,11 +462,11 @@ Class Logger {
 			$this->data['sc'] = json_decode( $this->data['sc'] );
 			if(count($this->data['sc'])) {
 				$sc_list = @implode(',', $this->data['sc']);
-				$query .= sprintf(" AND `sc_id` IN (%s) ", mysql_escape_string($sc_list));
+				$query .= sprintf(" AND `scId` IN (%s) ", mysql_escape_string($sc_list));
 			}
 		}
 
-		$query .= " GROUP BY  date(`timestamp_modified`), sc_id ";
+		$query .= " GROUP BY  date(`timestampModified`), scId ";
 
 		$records = $this->db->query_all($query);
 
@@ -498,7 +486,7 @@ Class Logger {
 					$arr['name'] = $record->dt;
 					$temp = $record->dt;
 				}
-				$arr[$record->station_id] = $record->ct;
+				$arr[$record->stationId] = $record->ct;
 			}
 			$op[] = $arr;
 		}
@@ -506,7 +494,7 @@ Class Logger {
 		return true;
 	}
 
-	public function getImageStorageStats() {
+	public function loggerGetImageStorageStats() {
 		global $config;
 		$total_size = 0;
 		$dir_iterator = new RecursiveDirectoryIterator($config['path']['images']);
@@ -523,13 +511,13 @@ Class Logger {
 
 	}
 
-	public function getTotalImagesCount() {
-		$query = "SELECT count(*) ct FROM `master_log` WHERE `task` = 'IMAGE_PHOTOGRAPHED'";
+	public function loggerGetTotalImagesCount() {
+		$query = "SELECT count(*) ct FROM `masterLog` WHERE `task` = 'IMAGE_PHOTOGRAPHED'";
 		$records = $this->db->query_one($query);
 		return $records->ct;
 	}
 
-	public function getTemplateData($report_type = 'day', $extra_param = '') {
+	public function loggerGetTemplateData($report_type = 'day', $extra_param = '') {
 		$data = array();
 		switch($report_type) {
 			case 'day':
@@ -610,13 +598,13 @@ Class Logger {
 	}
 
 
-	public function getStationUsers() {
+	public function loggerGetStationUsers() {
 
-		$query = 'SELECT DISTINCT station_id, user FROM `master_log` WHERE station_id !=0 AND user !=0 ';
-		if($this->get('station_id') != '' && $this->get('station_id') != 0 && $this->get('station_id') !== false) {
-			$query .= sprintf(" AND `station_id` = %s ", $this->get('station_id'));
+		$query = 'SELECT DISTINCT stationId, user FROM `masterLog` WHERE stationId !=0 AND user !=0 ';
+		if($this->loggerGetProperty('stationId') != '' && $this->loggerGetProperty('stationId') != 0 && $this->loggerGetProperty('stationId') !== false) {
+			$query .= sprintf(" AND `stationId` = %s ", $this->loggerGetProperty('stationId'));
 		}
-		$query .= 'ORDER BY station_id, user';
+		$query .= 'ORDER BY stationId, user';
 // echo $query;
 		$opArray = array();
 		$Ret = $this->db->query($query);
@@ -625,7 +613,7 @@ Class Logger {
 			$childArray = array();
 			$loopFlag = false;
 			while ($record = $Ret->fetch_object()) {
-				if($tmp != $record->station_id) {
+				if($tmp != $record->stationId) {
 					if(count($opArray)) {
 					# if not the first record
 						$opArray[] = array(
@@ -638,7 +626,7 @@ Class Logger {
 							);
 						$childArray = array();
 					}
-					$tmp = $record->station_id;
+					$tmp = $record->stationId;
 				}
 				$childArray[] = array(
 						  'text' => 'User ' . $record->user

@@ -7,6 +7,11 @@ class Set
 	public function __construct($db) {
 		$this->db = $db;
 	}
+
+	public function setSetData($data) {
+		$this->data = $data;
+		return(true);
+	}
 	
 	public function setSetProperty( $field, $value ) {
 		$this->record[$field] = $value;
@@ -27,7 +32,7 @@ class Set
 		$ret = $this->db->query_one( $query );
 		if ($ret != NULL) {
 			foreach( $ret as $field => $value ) {
-				$this->set($field, $value);
+				$this->setSetProperty($field, $value);
 			}
 			return(true);
 		} else {
@@ -41,7 +46,7 @@ class Set
 		$ret = $this->db->query_one( $query );
 		if ($ret != NULL) {
 			foreach( $ret as $field => $value ) {
-				$this->set($field, $value);
+				$this->setSetProperty($field, $value);
 			}
 			return(true);
 		} else {
@@ -61,22 +66,25 @@ class Set
 	}
 	
 	public function setAdd() {
-		$flag = true;
-		if($this->setIdExists($this->setGetProperty('setId'))) {
-			$flag = false;
-			$query = sprintf("UPDATE `set` SET `name` = '%s', `description` = '%s' WHERE `setId` = '%s'"
-				, mysql_escape_string($this->setGetProperty('name'))
-				, mysql_escape_string($this->setGetProperty('description'))
-				, mysql_escape_string($this->setGetProperty('setId'))
-				);
-		} else {
-			$query = sprintf("INSERT INTO `set` SET `name` = '%s', `description` = '%s'"
-				, mysql_escape_string($this->setGetProperty('name'))
-				, mysql_escape_string($this->setGetProperty('description'))
-				);
-		}
+		$query = sprintf("INSERT INTO `set` SET `name` = '%s', `description` = '%s'"
+			, mysql_escape_string($this->setGetProperty('name'))
+			, mysql_escape_string($this->setGetProperty('description'))
+			);
 		if($this->db->query($query)) {
-			return $flag ? $this->db->insert_id : true;
+			return $this->db->insert_id;
+		} else {
+			return false;
+		}
+	}
+	
+	public function setUpdate() {
+		$query = sprintf("UPDATE `set` SET `name` = '%s', `description` = '%s' WHERE `setId` = '%s'"
+			, mysql_escape_string($this->setGetProperty('name'))
+			, mysql_escape_string($this->setGetProperty('description'))
+			, mysql_escape_string($this->setGetProperty('setId'))
+			);
+		if($this->db->query($query)) {
+			return true;
 		} else {
 			return false;
 		}
@@ -129,7 +137,30 @@ class Set
 */	
 	
 	public function setList() {
-		$query = "SELECT s.setId sID, s.name sNAME, s.description sDESCRIPTION, sv.setValueId svID, iav.name iavNAME, sv.rank svRANK FROM `set` s LEFT OUTER JOIN setValues sv ON (sv.setId = s.setId) JOIN imageAttribValue iav on (iav.attributeId = sv.attributeId) ORDER BY s.name, sv.rank";
+		$query = "SELECT s.setId sID, s.name sNAME, s.description sDESCRIPTION, sv.setValueId svID, iav.name iavNAME, sv.rank svRANK FROM `set` s LEFT OUTER JOIN setValues sv ON (sv.setId = s.setId) JOIN imageAttribValue iav on (iav.attributeId = sv.attributeId) WHERE 1=1 ";
+		
+		if(is_array($this->data['setId']) && count($this->data['setId'])) {
+			$query .= sprintf(" AND s.setId IN (%s) ", implode(',', $this->data['setId']));
+		}
+		if($this->data['value'] != '') {
+			switch($this->data['searchFormat']) {
+				case 'exact':
+					$query .= sprintf(" AND s.`name` = '%s' ", mysql_escape_string($this->data['value']));
+					break;
+				case 'left':
+					$query .= sprintf(" AND s.`name` LIKE '%s%%' ", mysql_escape_string($this->data['value']));
+					break;
+				case 'right':
+					$query .= sprintf(" AND s.`name` LIKE '%%%s' ", mysql_escape_string($this->data['value']));
+					break;
+				case 'both':
+				default:
+					$query .= sprintf(" AND s.`name` LIKE '%%%s%%' ", mysql_escape_string($this->data['value']));
+					break;
+			}
+		}
+		
+		$query .= " ORDER BY s.name, sv.rank";
 		$records = $this->db->query_all($query);
 		if(count($records)) {
 			$array['count'] = 0;
@@ -156,7 +187,7 @@ class Set
 			$array['data'][] = $tmpArray1;
 			return $array;
 		} else {
-			return false;
+			return array();
 		}
 	}
 	
