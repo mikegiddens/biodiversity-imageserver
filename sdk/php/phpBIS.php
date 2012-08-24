@@ -26,7 +26,9 @@ class phpBIS
 		}
 		return $result;
 	}
-	public function addImage($source, $storageId, $destinationPath) {
+/*
+# Not used currently, use imageAddFromExisting, imageAddToCollection
+	public function addImage($source, $storageDeviceId, $destinationPath) {
 		$stream = file_get_contents($source);
 		if((strpos($source, '/')) !== false) {
 			$source = explode('/', $source);
@@ -39,7 +41,7 @@ class phpBIS
 		}
 		$data['key'] = $this->key;
 		$data['imagePath'] = $destinationPath;
-		$data['storage_id'] = $storageId;
+		$data['storageDeviceId'] = $storageDeviceId;
 		$data['filename'] = $filename;
 		$data['stream'] = $stream;
 		$data['cmd'] = 'addImage';
@@ -53,11 +55,13 @@ class phpBIS
 			return false;
 		}
 	}
-	public function addExistingImage($storageId, $path, $filename) {
-		$data['storage_id'] = $storageId;
-		$data['imagePath'] = $path;
+*/
+	public function imageAddFromExisting($storageDeviceId, $imagePath, $filename) {
+		$data['storageDeviceId'] = $storageDeviceId;
+		$data['imagePath'] = $imagePath;
 		$data['filename'] = $filename;
-		$data['cmd'] = 'addExistingImage';
+		$data['key'] = $this->key;
+		$data['cmd'] = 'imageAddFromExisting';
 		$result = $this->CURL($this->server . '/api.php', $data);
 		$result = json_decode($result, true);
 		if($result['success'] == true) {
@@ -68,12 +72,12 @@ class phpBIS
 			return false;
 		}
 	}
-	public function addImageFromURL($url, $storageId, $path) {
+	public function imageAddFromUrl($url, $storageDeviceId, $path) {
 		$data['url'] = $url;
-		$data['storage_id'] = $storageId;
+		$data['storageDeviceId'] = $storageDeviceId;
 		$data['imagePath'] = (trim($path) != '') ? $path : '';
 		$data['key'] = $this->key;
-		$data['cmd'] = 'addImageFromURL';
+		$data['cmd'] = 'imageAddFromUrl';
 		$result = $this->CURL($this->server . '/api.php', $data);
 		$result = json_decode($result, true);
 		if($result['success'] == true) {
@@ -84,17 +88,17 @@ class phpBIS
 			return false;
 		}
 	}
-	public function getURL($type, $code, $size) {
+	public function imageGetUrl($type, $code, $size) {
 		$data = array();
 		switch($type) {
 			case 'ID':
-				$data['image_id'] = $code;
+				$data['imageId'] = $code;
 				break;
 			case 'BARCODE':
 				$data['barcode'] = $code;
 				break;
 		}
-		$data['cmd'] = 'getImageUrl';
+		$data['cmd'] = 'imageGetUrl';
 		$data['size'] = (trim($size) != '') ? $size: '';
 		$res = $this->CURL($this->server . '/api.php',$data);
 		$result = json_decode($res, true);
@@ -106,12 +110,14 @@ class phpBIS
 			return $res;
 		}
 	}
-	public function addImageAttribute($imageID, $valueID, $categoryID) {
+	public function imageAddAttribute($imageId, $categoryType, $category, $attributeType, $attribute) {
 		$data = array();
-		$data['imageID'] = $imageID;
-		$data['valueID'] = $valueID;
-		$data['categoryID'] = $categoryID;
-		$data['cmd'] = 'add_image_attribute';
+		$data['imageId'] = $imageId;
+		$data['attributeType'] = $attributeType;
+		$data['attribute'] = $attribute;
+		$data['categoryType'] = $categoryType;
+		$data['category'] = $category;
+		$data['cmd'] = 'imageAddAttribute';
 		/* if(PHP_SAPI == 'cli') */{
 			$data['authMode'] = 'key';
 			$data['key'] = $this->key;
@@ -126,11 +132,11 @@ class phpBIS
 			return false;
 		}
 	}
-	public function deleteImageAttribute($imageID, $valueID) {
+	public function imageDeleteAttribute($imageId, $attributeId) {
 		$data = array();
-		$data['imageID'] = $imageID;
-		$data['valueID'] = $valueID;
-		$data['cmd'] = 'delete_image_attribute';
+		$data['imageId'] = $imageId;
+		$data['attributeId'] = $attributeId;
+		$data['cmd'] = 'imageDeleteAttribute';
 		/* if(PHP_SAPI == 'cli') */{
 			$data['authMode'] = 'key';
 			$data['key'] = $this->key;
@@ -145,9 +151,9 @@ class phpBIS
 			return false;
 		}
 	}
-	public function listImageAttributes($imageID) {
-		$data['imageID'] = $imageID;
-		$data['cmd'] = 'list_image_attributes';
+	public function imageListAttribute($imageId) {
+		$data['imageId'] = $imageId;
+		$data['cmd'] = 'imageListAttribute';
 		$result = $this->CURL($this->server . '/api.php',$data);
 		$result = json_decode($result,true);
 		if($result['success'] == true) {
@@ -158,10 +164,90 @@ class phpBIS
 			return false;
 		}
 	}
-	public function addCategory($value) {
+	public function categoryAdd($title = '',$description = '',$elementSet = '',$term = '') {
 		$data = array();
+		$data['title'] = $title;
+		$data['description'] = $description;
+		$data['elementSet'] = $elementSet;
+		$data['term'] = $term;
+		$data['cmd'] = 'categoryAdd';
+		/* if(PHP_SAPI == 'cli') */{
+			$data['authMode'] = 'key';
+			$data['key'] = $this->key;
+		}
+		$result = $this->CURL($this->server . '/api.php',$data);
+		$result = json_decode($result,true);
+		if($result['success'] == true) {
+			return $result;
+		} else {
+			$this->lastError['code'] = $result['error']['code'];
+			$this->lastError['msg'] = $result['error']['msg'];
+			return false;
+		}
+	}
+	public function categoryUpdate($categoryId,$title = '',$description = '',$elementSet = '',$term = '') {
+		$data = array();
+		$data['categoryId'] = $categoryId;
+		$data['title'] = $title;
+		$data['description'] = $description;
+		$data['elementSet'] = $elementSet;
+		$data['term'] = $term;
+		$data['cmd'] = 'categoryUpdate';
+		/* if(PHP_SAPI == 'cli') */{
+			$data['authMode'] = 'key';
+			$data['key'] = $this->key;
+		}
+		$result = $this->CURL($this->server . '/api.php',$data);
+		$result = json_decode($result,true);
+		if($result['success'] == true) {
+			return $result;
+		} else {
+			$this->lastError['code'] = $result['error']['code'];
+			$this->lastError['msg'] = $result['error']['msg'];
+			return false;
+		}
+	}
+	public function categoryDelete($categoryId) {
+		$data = array();
+		$data['categoryId'] = $categoryId;
+		$data['cmd'] = 'categoryDelete';
+		/* if(PHP_SAPI == 'cli') */{
+			$data['authMode'] = 'key';
+			$data['key'] = $this->key;
+		}
+		$result = $this->CURL($this->server . '/api.php',$data);
+		$result = json_decode($result,true);
+		if($result['success'] == true) {
+			return $result;
+		} else {
+			$this->lastError['code'] = $result['error']['code'];
+			$this->lastError['msg'] = $result['error']['msg'];
+			return false;
+		}
+	}
+	public function categoryList($categoryId='',$value='',$searchFormat='',$start='',$limit='') {
+		$data['start'] = $start;
+		$data['limit'] = $limit;
+		$data['searchFormat'] = $searchFormat;
 		$data['value'] = $value;
-		$data['cmd'] = 'add_category';
+		$data['categoryId'] = $categoryId.
+
+		$data['cmd'] = 'categoryList';
+		$result = $this->CURL($this->server . '/api.php',$data);
+		$result = json_decode($result,true);
+		if($result['success'] == true) {
+			return $result;
+		} else {
+			$this->lastError['code'] = $result['error']['code'];
+			$this->lastError['msg'] = $result['error']['msg'];
+			return false;
+		}
+	}
+	public function attributeAdd($categoryId,$name) {
+		$data = array();
+		$data['categoryId'] = $categoryId;
+		$data['name'] = $name;
+		$data['cmd'] = 'attributeAdd';
 		/* if(PHP_SAPI == 'cli') */{
 			$data['authMode'] = 'key';
 			$data['key'] = $this->key;
@@ -176,15 +262,52 @@ class phpBIS
 			return false;
 		}
 	}
-	public function renameCategory($valueID,$value) {
+	public function attributeUpdate($attributeId,$name,$categoryId) {
 		$data = array();
-		$data['valueID'] = $valueID;
+		$data['attributeId'] = $attributeId;
+		$data['name'] = $name;
+		$data['categoryId'] = $categoryId;
+		$data['cmd'] = 'attributeUpdate';
+		/* if(PHP_SAPI == 'cli') */{
+			$data['authMode'] = 'key';
+			$data['key'] = $this->key;
+		}
+		$result = $this->CURL($this->server . '/api.php',$data);
+		$result = json_decode($result,true);
+		if($result['success'] == true) {
+			return $result;
+		} else {
+			$this->lastError['code'] = $result['error']['code'];
+			$this->lastError['msg'] = $result['error']['msg'];
+			return false;
+		}
+	}
+	public function attributeDelete($attributeId) {
+		$data = array();
+		$data['attributeId'] = $attributeId;
+		$data['cmd'] = 'attributeDelete';
+		/* if(PHP_SAPI == 'cli') */{
+			$data['authMode'] = 'key';
+			$data['key'] = $this->key;
+		}
+		$result = $this->CURL($this->server . '/api.php',$data);
+		$result = json_decode($result,true);
+		if($result['success'] == true) {
+			return $result;
+		} else {
+			$this->lastError['code'] = $result['error']['code'];
+			$this->lastError['msg'] = $result['error']['msg'];
+			return false;
+		}
+	}
+	public function attributeList($categoryId,$showNames=true,$value='',$searchFormat='',$start='',$limit='') {
+		$data['categoryId'] = $categoryId;
+		$data['showNames'] = $showNames;
+		$data['start'] = $start;
+		$data['limit'] = $limit;
+		$data['searchFormat'] = $searchFormat;
 		$data['value'] = $value;
-		$data['cmd'] = 'rename_category';
-		/* if(PHP_SAPI == 'cli') */{
-			$data['authMode'] = 'key';
-			$data['key'] = $this->key;
-		}
+		$data['cmd'] = 'attributeList';
 		$result = $this->CURL($this->server . '/api.php',$data);
 		$result = json_decode($result,true);
 		if($result['success'] == true) {
@@ -195,112 +318,13 @@ class phpBIS
 			return false;
 		}
 	}
-	public function deleteCategory($categoryID) {
-		$data = array();
-		$data['categoryID'] = $categoryID;
-		$data['cmd'] = 'delete_category';
-		/* if(PHP_SAPI == 'cli') */{
-			$data['authMode'] = 'key';
-			$data['key'] = $this->key;
-		}
-		$result = $this->CURL($this->server . '/api.php',$data);
-		$result = json_decode($result,true);
-		if($result['success'] == true) {
-			return $result;
-		} else {
-			$this->lastError['code'] = $result['error']['code'];
-			$this->lastError['msg'] = $result['error']['msg'];
-			return false;
-		}
-	}
-	public function listCategories() {
-		$data['cmd'] = 'list_categories';
-		$result = $this->CURL($this->server . '/api.php',$data);
-		$result = json_decode($result,true);
-		if($result['success'] == true) {
-			return $result;
-		} else {
-			$this->lastError['code'] = $result['error']['code'];
-			$this->lastError['msg'] = $result['error']['msg'];
-			return false;
-		}
-	}
-	public function addAttribute($categoryID,$value) {
-		$data = array();
-		$data['categoryID'] = $categoryID;
-		$data['value'] = $value;
-		$data['cmd'] = 'add_attribute';
-		/* if(PHP_SAPI == 'cli') */{
-			$data['authMode'] = 'key';
-			$data['key'] = $this->key;
-		}
-		$result = $this->CURL($this->server . '/api.php',$data);
-		$result = json_decode($result,true);
-		if($result['success'] == true) {
-			return $result;
-		} else {
-			$this->lastError['code'] = $result['error']['code'];
-			$this->lastError['msg'] = $result['error']['msg'];
-			return false;
-		}
-	}
-	public function renameAttribute($valueID,$value) {
-		$data = array();
-		$data['valueID'] = $valueID;
-		$data['value'] = $value;
-		$data['cmd'] = 'rename_attribute';
-		/* if(PHP_SAPI == 'cli') */{
-			$data['authMode'] = 'key';
-			$data['key'] = $this->key;
-		}
-		$result = $this->CURL($this->server . '/api.php',$data);
-		$result = json_decode($result,true);
-		if($result['success'] == true) {
-			return $result;
-		} else {
-			$this->lastError['code'] = $result['error']['code'];
-			$this->lastError['msg'] = $result['error']['msg'];
-			return false;
-		}
-	}
-	public function deleteAttribute($valueID) {
-		$data = array();
-		$data['valueID'] = $valueID;
-		$data['cmd'] = 'delete_attribute';
-		/* if(PHP_SAPI == 'cli') */{
-			$data['authMode'] = 'key';
-			$data['key'] = $this->key;
-		}
-		$result = $this->CURL($this->server . '/api.php',$data);
-		$result = json_decode($result,true);
-		if($result['success'] == true) {
-			return $result;
-		} else {
-			$this->lastError['code'] = $result['error']['code'];
-			$this->lastError['msg'] = $result['error']['msg'];
-			return false;
-		}
-	}
-	public function list_attributes($categoryID) {
-		$data['categoryID'] = $categoryID;
-		$data['cmd'] = 'list_attributes';
-		$result = $this->CURL($this->server . '/api.php',$data);
-		$result = json_decode($result,true);
-		if($result['success'] == true) {
-			return $result;
-		} else {
-			$this->lastError['code'] = $result['error']['code'];
-			$this->lastError['msg'] = $result['error']['msg'];
-			return false;
-		}
-	}
-	public function addEvent($eventId, $title, $eventTypeId, $geoId, $description) {
+	public function eventAdd($eventId, $title, $eventTypeId, $geographyId, $description) {
 		$data['eventId'] = (trim($eventId) != '') ? $eventId : '';
 		$data['title'] = (trim($title) != '' ) ? $title : '';
 		$data['eventTypeId'] = (trim($eventTypeId) != '') ? $eventTypeId : '';
-		$data['geoId'] = (trim($geoId) != '') ? $geoId : '';
+		$data['geographyId'] = (trim($geographyId) != '') ? $geographyId : '';
 		$data['description'] = (trim($description) != '') ? $description : '';
-		$data['cmd'] = 'addEvent';
+		$data['cmd'] = 'eventAdd';
 		/* if(PHP_SAPI == 'cli') */{
 			$data['authMode'] = 'key';
 			$data['key'] = $this->key;
@@ -316,15 +340,15 @@ class phpBIS
 		}
 		
 	}
-	public function listEvents($start, $limit, $eventId, $eventTypeId, $geoId, $field, $value) {
+	public function eventList( $eventId, $eventTypeId, $geographyId, $value='',$searchFormat='',$start='',$limit='') {
 		$data['start'] = (trim($start) != '') ? $start : '';
 		$data['limit'] = (trim($limit) != '') ? $limit : '';
 		$data['eventId'] = (trim($eventId) != '') ? $eventId : '';
 		$data['eventTypeId'] = (trim($eventTypeId) != '') ? $eventTypeId : '';
-		$data['geoId'] = (trim($geoId) != '') ? $geoId : '';
-		$data['field'] = (trim($field) != '') ? $field : '';
-		$data['value'] = (trim($value) != '') ? $value : '';
-		$data['cmd'] = 'listEvents';
+		$data['geographyId'] = (trim($geographyId) != '') ? $geographyId : '';
+		$data['searchFormat'] = $searchFormat;
+		$data['value'] = $value;
+		$data['cmd'] = 'eventList';
 		$result = $this->CURL($this->server . '/api.php', $data);
 		$result = json_decode($result, true);
 		if($result['success'] == true) {
@@ -335,9 +359,9 @@ class phpBIS
 			return false;
 		}
 	}
-	public function deleteEvent($eventId) {
+	public function eventDelete($eventId) {
 		$data['eventId'] = $eventId;
-		$data['cmd'] = 'deleteEvent';
+		$data['cmd'] = 'eventDelete';
 		/* if(PHP_SAPI == 'cli') */{
 			$data['authMode'] = 'key';
 			$data['key'] = $this->key;
@@ -352,10 +376,10 @@ class phpBIS
 			return false;
 		}
 	}
-	public function addImageEvent($eventId, $imageId) {
+	public function imageAddToEvent($eventId, $imageId) {
 		$data['eventId'] = $eventId;
 		$data['imageId'] = $imageId;
-		$data['cmd'] = 'addImageEvent';
+		$data['cmd'] = 'imageAddToEvent';
 		/* if(PHP_SAPI == 'cli') */{
 			$data['authMode'] = 'key';
 			$data['key'] = $this->key;
@@ -370,10 +394,10 @@ class phpBIS
 			return false;
 		}
 	}
-	public function deleteImageEvent($eventId, $imageId) {
+	public function imageDeleteFromEvent($eventId, $imageId) {
 		$data['eventId'] = $eventId;
 		$data['imageId'] = $imageId;
-		$data['cmd'] = 'deleteImageEvent';
+		$data['cmd'] = 'imageDeleteFromEvent';
 		/* if(PHP_SAPI == 'cli') */{
 			$data['authMode'] = 'key';
 			$data['key'] = $this->key;
@@ -388,9 +412,11 @@ class phpBIS
 			return false;
 		}
 	}
-	public function listImagesByEvent($eventId) {
+	public function imageListByEvent($eventId,$size,$attributesFlag) {
 		$data['eventId'] = $eventId;
-		$data['cmd'] = 'listImagesByEvent';
+		$data['size'] = $size;
+		$data['attributesFlag'] = $attributesFlag;
+		$data['cmd'] = 'imageListByEvent';
 		$result = $this->CURL($this->server . '/api.php', $data);
 		$result = json_decode($result, true);
 		if($result['success'] == true) {
@@ -401,11 +427,10 @@ class phpBIS
 			return false;
 		}
 	}
-	public function addEventType($eventTypeId, $title, $description) {
-		$data['eventTypeId'] = $eventTypeId;
+	public function eventTypeAdd($title, $description) {
 		$data['title'] = $title;
 		$data['description'] = $description;
-		$data['cmd'] = 'addEventType';
+		$data['cmd'] = 'eventTypeAdd';
 		/* if(PHP_SAPI == 'cli') */{
 			$data['authMode'] = 'key';
 			$data['key'] = $this->key;
@@ -420,14 +445,15 @@ class phpBIS
 			return false;
 		}
 	}
-	public function listEventTypes($start, $limit, $eventTypeId, $title, $field, $value) {
+	public function eventTypeList($eventTypeId, $value='',$searchFormat='',$start='',$limit='',$group = '',$dir = 'ASC') {
 		$data['start'] = (trim($start) != '') ? $start : '';
 		$data['limit'] = (trim($limit) != '') ? $limit : '';
 		$data['eventTypeId'] = (trim($eventTypeId) != '') ? $eventTypeId : '';
-		$data['title'] = (trim($title) != '') ? $title : '';
-		$data['field'] = (trim($field) != '') ? $field : '';
-		$data['value'] = (trim($value) != '') ? $value : '';
-		$data['cmd'] = 'listEventTypes';
+		$data['searchFormat'] = $searchFormat;
+		$data['value'] = $value;
+		$data['group'] = $group;
+		$data['dir'] = $dir;
+		$data['cmd'] = 'eventTypeList';
 		$result = $this->CURL($this->server . '/api.php', $data);
 		$result = json_decode($result, true);
 		if($result['success'] == true) {
@@ -438,9 +464,9 @@ class phpBIS
 			return false;
 		}
 	}
-	public function deleteEventType($eventTypeId) {
+	public function eventTypeDelete($eventTypeId) {
 		$data['eventTypeId'] = $eventTypeId;
-		$data['cmd'] = 'deleteEventType';
+		$data['cmd'] = 'eventTypeDelete';
 		/* if(PHP_SAPI == 'cli') */{
 			$data['authMode'] = 'key';
 			$data['key'] = $this->key;
@@ -455,10 +481,10 @@ class phpBIS
 			return false;
 		}
 	}
-	public function addSet($name, $description) {
+	public function setAdd($name, $description) {
 		$data['name'] = $name;
 		$data['description'] = (trim($description) != '') ? $description : '';
-		$data['cmd'] = 'addSet';
+		$data['cmd'] = 'setAdd';
 		/* if(PHP_SAPI == 'cli') */{
 			$data['authMode'] = 'key';
 			$data['key'] = $this->key;
@@ -475,11 +501,11 @@ class phpBIS
 			}
 		}
 	}
-	public function editSet($sId, $name, $description) {
-		$data['sId'] = $sId;
+	public function setUpdate($setId, $name, $description) {
+		$data['setId'] = $setId;
 		$data['name'] = $name;
 		$data['description'] = (trim($description) != '') ? $description : '';
-		$data['cmd'] = 'editSet';
+		$data['cmd'] = 'setUpdate';
 		/* if(PHP_SAPI == 'cli') */{
 			$data['authMode'] = 'key';
 			$data['key'] = $this->key;
@@ -494,9 +520,9 @@ class phpBIS
 			return false;
 		}
 	}
-	public function deleteSet($sId) {
-		$data['sId'] = $sId;
-		$data['cmd'] = 'deleteSet';
+	public function setDelete($setId) {
+		$data['setId'] = $setId;
+		$data['cmd'] = 'setDelete';
 		/* if(PHP_SAPI == 'cli') */{
 			$data['authMode'] = 'key';
 			$data['key'] = $this->key;
@@ -511,8 +537,11 @@ class phpBIS
 			return false;
 		}
 	}
-	public function listSets() {
-		$data['cmd'] = 'listSets';
+	public function setList($setId='', $value='',$searchFormat='') {
+		$data['setId'] = $setId;
+		$data['searchFormat'] = $searchFormat;
+		$data['value'] = $value;
+		$data['cmd'] = 'setList';
 		$result = $this->CURL($this->server . '/api.php', $data);
 		$result = json_decode($result, true);
 		if($result['success'] == true) {
@@ -523,11 +552,11 @@ class phpBIS
 			return false;
 		}
 	}
-	public function addSetValue($sId, $valueId, $rank) {
-		$data['sId'] = $sId;
-		$data['valueId'] = $valueId;
+	public function setValueAdd($setId, $attributeId, $rank) {
+		$data['setId'] = $setId;
+		$data['attributeId'] = $attributeId;
 		$data['rank'] = (trim($rank) != '') ? $rank : 0;
-		$data['cmd'] = 'addSetValue';
+		$data['cmd'] = 'setValueAdd';
 		/* if(PHP_SAPI == 'cli') */{
 			$data['authMode'] = 'key';
 			$data['key'] = $this->key;
@@ -542,12 +571,12 @@ class phpBIS
 			return false;
 		}
 	}
-	public function editSetValue($id, $sId, $valueId, $rank) {
-		$data['id'] = $id;
-		$data['sId'] = $sId;
+	public function setValueUpdate($setValueId, $setId, $valueId, $rank) {
+		$data['setValueId'] = $setValueId;
+		$data['setId'] = $setId;
 		$data['valueId'] = $valueId;
 		$data['rank'] = (trim($rank) != '') ? $rank : '';
-		$data['cmd'] = 'editSetValue';
+		$data['cmd'] = 'setValueUpdate';
 		/* if(PHP_SAPI == 'cli') */{
 			$data['authMode'] = 'key';
 			$data['key'] = $this->key;
@@ -562,9 +591,9 @@ class phpBIS
 			return false;
 		}
 	}
-	public function deleteSetValue($id) {
-		$data['id'] = $id;
-		$data['cmd'] = 'deleteSetValue';
+	public function setValueDelete($setValueId) {
+		$data['id'] = $setValueId;
+		$data['cmd'] = 'setValueDelete';
 		/* if(PHP_SAPI == 'cli') */{
 			$data['authMode'] = 'key';
 			$data['key'] = $this->key;
@@ -579,9 +608,9 @@ class phpBIS
 			return false;
 		}
 	}
-	public function listImageBySet($sId) {
-		$data['sId'] = (trim($sId) != '') ? $sId : '';
-		$data['cmd'] = 'listImageBySet';
+	public function imageListBySet($setId) {
+		$data['setId'] = (trim($setId) != '') ? $setId : '';
+		$data['cmd'] = 'imageListBySet';
 		$result = $this->CURL($this->server . '/api.php', $data);
 		$result = json_decode($result, true);
 		if($result['success'] == true) {
@@ -592,10 +621,10 @@ class phpBIS
 			return false;
 		}
 	}
-	public function listImageBySetKeyValue($category, $value) {
+	public function imageListBySetKeyValue($category, $attribute) {
 		$data['category'] = (trim($category) != '') ? $category : '';
-		$data['value'] = (trim($value) != '') ? $value : '';
-		$data['cmd'] = 'listImageBySetKeyValue';
+		$data['attribute'] = (trim($attribute) != '') ? $attribute : '';
+		$data['cmd'] = 'imageListBySetKeyValue';
 		$result = $this->CURL($this->server . '/api.php', $data);
 		$result = json_decode($result, true);
 		if($result['success'] == true) {
@@ -606,24 +635,26 @@ class phpBIS
 			return false;
 		}
 	}
-	public function listImages($start, $limit, $order, $showOCR, $filter, $image_id, $field, $value, $sort, $dir, $code1, $characters, $browse, $search_value, $search_type) {
-		$data['start'] = (trim($start) != '') ? $start : 0;
-		$data['limit'] = (trim($limit) != '') ? $limit : 100;
-		$data['order'] = $order;
-		$data['showOCR'] = (trim($showOCR) != '') ? $showOCR : false;
-		$data['filter'] = $filter;
-		$data['image_id'] = $image_id;
-		$data['field'] = $field;
-		$data['value'] = $value;
-		$data['sort'] = $sort;
-		$data['dir'] = (trim($sort) != '') ? ((trim($dir) != '') ? $dir : 'ASC') : '';
-		$data['code1'] = (trim($code1) != '') ? $code1 : '';
-		$data['characters'] = $characters;
-		$data['browse'] = $browse;
-		$data['search_value'] = $search_value;
-		$data['search_type'] = $search_type;
-		$data['output'] = 'JSON';
-		$data['cmd'] = 'images';
+	public function imageList( $properties = array()) {
+		$data['start'] = $properties['start'];
+		$data['limit'] = $properties['limit'];
+		$data['order'] = $properties['order'];
+		$data['showOCR'] = (trim($properties['showOCR']) != '') ? $properties['showOCR'] : false;
+		$data['filter'] = $properties['filter'];
+		$data['imageId'] = $properties['imageId'];
+		$data['sort'] = $properties['sort'];
+		$data['dir'] = $properties['dir'];
+		$data['code'] = $properties['code'];
+		$data['characters'] = $properties['characters'];
+		$data['browse'] = $properties['browse'];
+		$data['searchValue'] = $properties['searchValue'];
+		$data['searchType'] = $properties['searchType'];
+		$data['value'] = $properties['value'];
+		$data['searchFormat'] = $properties['searchFormat'];
+		$data['group'] = $properties['group'];
+		$data['useRating'] = $properties['useStatus'];
+		$data['useStatus'] = $properties['useStatus'];
+		$data['cmd'] = 'imageList';
 		$result = $this->CURL($this->server . '/api.php', $data);
 		$result = json_decode($result, true);
 		if($result['success'] == true) {
@@ -634,10 +665,10 @@ class phpBIS
 			return false;
 		}
 	}
-	public function addCollection($name, $collectionCode) {
+	public function collectionAdd($name, $code) {
 		$data['name'] = $name;
-		$data['collectionCode'] = $collectionCode;
-		$data['cmd'] = 'addCollection';
+		$data['code'] = $code;
+		$data['cmd'] = 'collectionAdd';
 		$result = $this->CURL($this->server . '/api.php', $data);
 		$result = json_decode($result, true);
 		if($result['success'] == true) {
@@ -648,10 +679,10 @@ class phpBIS
 			return false;
 		}
 	}
-	public function addImageToCollection($imageId, $collectionCode) {
+	public function imageAddToCollection($imageId, $code) {
 		$data['imageId'] = $imageId;
-		$data['collectionCode'] = $collectionCode;
-		$data['cmd'] = 'addImageToCollection';
+		$data['code'] = $code;
+		$data['cmd'] = 'imageAddToCollection';
 		$result = $this->CURL($this->server . '/api.php', $data);
 		$result = json_decode($result, true);
 		if($result['success'] == true) {
@@ -662,10 +693,10 @@ class phpBIS
 			return false;
 		}
 	}
-	public function addBarcodeToImage($imageId, $barcode) {
+	public function imageAddBarcode($imageId, $barcode) {
 		$data['imageId'] = $imageId;
-		$data['barcode'] = $barcode;
-		$data['cmd'] = 'addBarcodeToImage';
+		$data['params'] = json_encode(array('barcode' => $barcode));
+		$data['cmd'] = 'imageUpdate';
 		$result = $this->CURL($this->server . '/api.php', $data);
 		$result = json_decode($result, true);
 		if($result['success'] == true) {
@@ -677,7 +708,7 @@ class phpBIS
 		}
 	}
 	public function populateOcrProcessQueue($imageIds) {
-		$data['image_id'] = json_encode($imageIds);
+		$data['imageId'] = json_encode($imageIds);
 		$data['cmd'] = 'populateOcrProcessQueue';
 		$result = $this->CURL($this->server . '/backup_services.php', $data);
 		$result = json_decode($result, true);
