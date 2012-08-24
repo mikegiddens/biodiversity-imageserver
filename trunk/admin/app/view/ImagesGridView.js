@@ -60,12 +60,16 @@ Ext.define('BIS.view.ImagesGridView', {
 		this.tplBoth = new Ext.XTemplate(
 			'<tpl for=".">'+
 			'<div class="imageSelector">' +
-				'<div style="display:inline-block;width:100px;margin:5px 10px 5px 5px;"><img src="{[this.renderThumbnail(values.path,values.filename,values.ext)]}"></div>'+
-					'<div style="display:inline-block"><div unselectable="on">{barcode} {family}<br/>{genus} {specificEpithet}<br/>'+
-					'<tpl if="barcode != 0">'+
-						'<span>Barcode: {barcode}</span><br>'+
-					'</tpl>'+
-					'<span>Date Added: {timestamp_modified:this.convDate}</span></div>'+
+				'<div style="display:inline-block;width:100px;margin:5px 10px 5px 5px;">'+
+                    '<img src="{[this.renderThumbnail(values.path,values.filename,values.ext)]}">'+
+                '</div>'+
+				'<div style="display:inline-block">'+
+                    '<div unselectable="on">{barcode} {family}<br/>{genus} {specificEpithet}<br/>'+
+                        '<tpl if="barcode != 0">'+
+                            '<span>Barcode: {barcode}</span><br>'+
+                        '</tpl>'+
+                        '<span>Date Added: {timestamp_modified:this.convDate}</span>'+
+                    '</div>'+
 				'</div>'+
 			'</div>'+
 			'<div style="clear:both"></div>'+

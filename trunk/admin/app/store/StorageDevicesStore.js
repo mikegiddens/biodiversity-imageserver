@@ -20,7 +20,7 @@ Ext.define('BIS.store.StorageDevicesStore', {
                 },
                 reader: {
                     type: 'json',
-                    root: 'data'
+                    root: 'records'
                 }
             }
         }, cfg)]);

@@ -25,9 +25,39 @@ Ext.define('BIS.view.StorageSettingsPanel', {
 						sortable: true,
 						flex: 1
 					},
+                    listeners: {
+                        itemdblclick: function( grid, record, el, ind, e, opts ) {
+                            var tmpWindow = Ext.create('Ext.window.Window', {
+                                title: 'Edit Storage Device',
+                                iconCls: 'icon_editDevice',
+                                modal: true,
+                                height: 500,
+                                width: 800,
+                                layout: 'fit',
+                                items: [{ 
+                                    xtype: 'formcreatedevice',
+                                    device: record,
+                                    mode: 'edit'
+                                }]
+                            });
+                            tmpWindow.on('deviceCreated', function( data ) {
+                                Ext.getCmp('storageDevicesGrid').getStore().load();
+                                tmpWindow.close();
+                            });
+                            tmpWindow.show();
+                        },
+                        itemcontextmenu: function(view, record, item, index, e) {
+                            e.stopEvent();
+                            var tmpCtx = Ext.create('BIS.view.CtxMnuDevice', {record: record});
+                            tmpCtx.on('deviceDeleted', function( data ) {
+                                Ext.getCmp('storageDevicesGrid').getStore().load();
+                            });
+                            tmpCtx.showAt( e.getXY() );
+                        }
+                    },
 					columns: [{
 						text: 'Identifier',
-						dataIndex: 'storage_id',
+						dataIndex: 'storage_id'
 					},{
 						text: 'Name',
 						flex: 2,
@@ -63,28 +93,8 @@ Ext.define('BIS.view.StorageSettingsPanel', {
 					},{
 						text: 'Notes',
 						dataIndex: 'extra2',
-					}],
-					listeners: {
-						itemdblclick: function( grid, record, el, ind, e, opts ) {
-							Ext.create('Ext.window.Window', {
-								title: 'Edit Storage Device',
-								iconCls: 'icon_editDevice',
-								modal: true,
-								height: 500,
-								width: 800,
-								layout: 'fit',
-								items: [{ 
-									xtype: 'formcreatedevice',
-									device: record 
-								}]
-							}).show();
-					},
-					itemcontextmenu: function(view, record, item, index, e) {
-						e.stopEvent();
-						Ext.create('BIS.view.CtxMnuDevice', {record: record}).showAt( e.getXY() );
-					}
-				}
-				}],
+					}]
+                }],
 				dockedItems: [{
 					xtype: 'toolbar',
 					dock: 'top',
@@ -100,7 +110,7 @@ Ext.define('BIS.view.StorageSettingsPanel', {
 		me.callParent(arguments);
 	},
 	createDevice: function() {
-		Ext.create('Ext.window.Window', {
+		var tmpWindow = Ext.create('Ext.window.Window', {
 			title: 'Add Storage Device',
 			iconCls: 'icon_addDevice',
 			modal: true,
@@ -109,9 +119,15 @@ Ext.define('BIS.view.StorageSettingsPanel', {
 			layout: 'fit',
 			resizable: false,
 			bodyBorder: false,
-			items: [{ 
-				xtype: 'formcreatedevice' 
-			}]
-		}).show();
+			items: [{
+                xtype: 'formcreatedevice',
+                mode: 'add'
+            }]
+		});
+        tmpWindow.on('deviceCreated', function( data ) {
+            Ext.getCmp('storageDevicesGrid').getStore().load();
+            tmpWindow.close();
+        });
+        tmpWindow.show();
 	}
 });

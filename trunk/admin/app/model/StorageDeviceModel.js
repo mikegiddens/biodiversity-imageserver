@@ -4,7 +4,7 @@ Ext.define('BIS.model.StorageDeviceModel', {
 
     fields: [
         {
-            name: 'storage_id'
+            name: 'storageId'
         },
         {
             name: 'name'
