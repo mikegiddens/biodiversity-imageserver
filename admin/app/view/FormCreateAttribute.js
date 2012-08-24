@@ -51,10 +51,9 @@ Ext.define('BIS.view.FormCreateAttribute', {
     },
     listeners: {
         afterrender: function() {
-            var form = Ext.getCmp('formCreateAttribute').getForm();
             if ( this.mode != 'add' ) {
                 // edit
-                form.setValues( {value:this.record.data.title,identifier:this.record.data.categoryId} );
+                Ext.getCmp('formCreateAttribute').loadRecord( this.record );
             }
         }
     },

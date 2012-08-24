@@ -35,11 +35,22 @@ Ext.define('BIS.view.CtxMnuDevice', {
         me.callParent(arguments);
     },
     remove: function() {
-        var cmd = 'deleteStorageDevice'
-            params = { storage_id: this.record.storage_id }
+        Ext.Ajax.request({
+            method: 'POST',
+            url: Config.baseUrl + 'resources/api/api.php',
+            params: { storageId: this.record.storageId, cmd: 'storageDeviceDelete' },
+            scope: this,
+            success: function( resObj ) {
+                var res = Ext.decode( resObj.responseText );
+                console.log( res );
+                if ( res.success ) {
+                    this.fireEvent('deviceDeleted');
+                }
+            }
+        });
     },
     update: function() {
-        Ext.create('Ext.window.Window', {
+        var tmpWindow = Ext.create('Ext.window.Window', {
             title: 'Edit Device ' + this.record.data.name,
             iconCls: 'icon_editDevice',
             modal: true,
@@ -48,9 +59,15 @@ Ext.define('BIS.view.CtxMnuDevice', {
             layout: 'fit',
             items: [
                 Ext.create('widget.formcreatedevice', {
-                    device: this.record
+                    device: this.record,
+                    mode: 'edit'
                 })
             ]
-        }).show();
+        });
+        tmpWindow.on('deviceCreated', function( data ) {
+            Ext.getCmp('storageDevicesGrid').getStore().load();
+            tmpWindow.close();
+        });
+        tmpWindow.show();
     }
 });

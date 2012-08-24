@@ -12,82 +12,86 @@ Ext.define('BIS.view.FormCreateDevice', {
 		anchor: '100%'
 	},
 	defaultType: 'textfield',
-	items: [{
-		fieldLabel: 'Identifier',
-		name: 'storage_id',
-		readOnly: true,
-		fieldCls: 'x-item-disabled'
-	},{
-		fieldLabel: 'Name',
-		name: 'name'
-	},{
-		fieldLabel: 'Description',
-		name: 'description'
-	},{
-		fieldLabel: 'Type',
-		name: 'type'
-	},{
-		fieldLabel: 'Base URL',
-		name: 'baseUrl'
-	},{
-		fieldLabel: 'Base Path',
-		name: 'basePath'
-	},{
-		fieldLabel: 'Username',
-		name: 'user'
-	},{
-		fieldLabel: 'Password',
-		name: 'pw'
-	},{
-		xtype: 'checkbox',
-		fieldLabel: 'Active?',
-		name: 'active'
-	},{
-		fieldLabel: 'Notes',
-		name: 'extra2'
-	}],
-	dockedItems: [{
-		xtype: 'toolbar',
-		dock: 'bottom',
-		ui: 'footer',
-		items: [{ 
-			xtype: 'component', flex: 1 
-		},{
-			width: 80,
-			text: ( this.device ) ? 'Update Settings' : 'Add Device',
-			xtype: 'button',
-			handler: function(btn, e) {
-				console.log('h', this, btn, e);
-//				this.ownerCt.ownerCt.submitForm();
-			}
-		}]
-	}],	
-	listeners: {
-		afterrender: function() {
-			if ( this.device ) {
-				Ext.getCmp('formCreateDevice').loadRecord( this.device );
-			}
-		}
-	},
+	initComponent: function() {
+		var me = this;	
+		Ext.applyIf(me, {
+            items: [{
+                fieldLabel: 'Identifier',
+                name: 'storage_id',
+                readOnly: true,
+                fieldCls: 'x-item-disabled',
+                hidden: (this.mode == 'add')
+            },{
+                fieldLabel: 'Name',
+                name: 'name'
+            },{
+                fieldLabel: 'Description',
+                name: 'description'
+            },{
+                fieldLabel: 'Type',
+                name: 'type'
+            },{
+                fieldLabel: 'Base URL',
+                name: 'baseUrl'
+            },{
+                fieldLabel: 'Base Path',
+                name: 'basePath'
+            },{
+                fieldLabel: 'Username',
+                name: 'user'
+            },{
+                fieldLabel: 'Password',
+                name: 'pw'
+            },{
+                xtype: 'checkbox',
+                fieldLabel: 'Active?',
+                name: 'active'
+            },{
+                fieldLabel: 'Notes',
+                name: 'extra2'
+            },{
+                xtype: 'hiddenfield',
+                name: 'cmd',
+                value: ( this.mode == 'add' ) ? 'storageDeviceAdd' : 'storageDeviceUpdate'
+            }],
+            dockedItems: [{
+                xtype: 'toolbar',
+                dock: 'bottom',
+                ui: 'footer',
+                items: [{ 
+                    xtype: 'component', flex: 1 
+                },{
+                    width: 80,
+                    text: ( this.mode == 'add' ) ? 'Add Device' : 'Update Settings',
+                    scope: this,
+                    handler: this.submitForm
+                }]
+            }],	
+            listeners: {
+                afterrender: function() {
+                    if ( this.device ) {
+                        this.loadRecord( this.device );
+                    }
+                }
+            }
+        });
+		me.callParent(arguments);        
+    },
 	submitForm: function() {
-		console.log('submit');
-		// required fields: name, type, baseUrl
-		var values = Ext.getCmp('formCreateDevice').getValues();
-		var route = ( this.device ) ? 'updateDevice!!!!!!!!' : 'addStorageDevice';
-//			url: Config.baseUrl + route,
-
-		Ext.Ajax.request({
-			method: 'POST',
-			url: Config.baseUrl + route,
-			params: values,
-			scope: this,
-			success: function( resObj ) {
-				var res = Ext.decode( resObj.responseText );
-				console.log( res );
-				if ( res.success ) {						
-					// success
+		var form = this.getForm();
+		form.url = Config.baseUrl + 'resources/api/api.php';
+		if ( form.isValid() ) {
+			form.submit({
+                scope: this,
+				success: function(form, action) {
+                     this.ownerCt.fireEvent( 'deviceCreated', Ext.decode(action.response.responseText) );
+				},
+				failure: function(form, action) {
+                    var res = Ext.decode(action.response.responseText);
+                    Ext.Msg.alert('Failed', 'Unable to create device. '+res.error.msg);
 				}
-			}
-		});
+			});
+		}
 	}
 });
+
