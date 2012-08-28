@@ -4,6 +4,7 @@
  * *Web Services*
   * Storage
     * [WS_AddStorageDevice Add Storage Device]
+    * [WS_DeleteStorageDevice Delete Storage Device]
     * [WS_ListStorageDevices List Storage Devices]
     * [WS_SetDefaultStorageDevice Set Default Storage Device]
   * Collections
