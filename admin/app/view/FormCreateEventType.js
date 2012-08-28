@@ -72,12 +72,10 @@ Ext.define('BIS.view.FormCreateEventType', {
 		if ( form.isValid() ) {
 			form.submit({
 				success: function(form, action) {
-					 Ext.Msg.alert('Success', action.result.msg);
-					 // fire event, close window
-					 // DO NOT refresh any list here it should be done from the list copmonent by listening to the event.
+                    this.ownerCt.fireEvent('eventTypeAdded',action);
 				},
 				failure: function(form, action) {
-						Ext.Msg.alert('Failed', 'Request Failed');
+			        Ext.Msg.alert('Failed', 'Request Failed');
 				}
 			});
 		}

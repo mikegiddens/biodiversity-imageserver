@@ -46,7 +46,7 @@ Ext.define('BIS.view.MainViewport', {
 				},
 				defaults: {
 					border: false,
-					autoScroll: true,
+					autoScroll: true
 				},
 				titleCollapse: false,
 				region: 'west',
@@ -83,11 +83,11 @@ Ext.define('BIS.view.MainViewport', {
 					}]
 				}],
 				items: [{
-					xtype: 'settreepanel',
+					xtype: 'settreepanel'
 				},{
-					xtype: 'categorytreepanel',
+					xtype: 'categorytreepanel'
 				},{
-					xtype: 'collectiontreepanel',
+					xtype: 'collectiontreepanel'
 				},{
 					xtype: 'panel',
 					id: 'toolPanel',

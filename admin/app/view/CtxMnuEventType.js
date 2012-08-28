@@ -45,12 +45,12 @@ Ext.define('BIS.view.CtxMnuEventType', {
         me.callParent(arguments);
     },
     addEvent: function() {
-        Ext.create('Ext.window.Window', {
+        var tmpWindow = Ext.create('Ext.window.Window', {
             title: 'Create New Event',
             iconCls: 'icon_newEvent',
             modal: true,
-            height: 500,
-            width: 800,
+            height: 100,
+            width: 250,
             layout: 'fit',
             items: [
                 Ext.create('widget.formcreateevent', {
@@ -59,18 +59,22 @@ Ext.define('BIS.view.CtxMnuEventType', {
                 })
             ]
         }).show();
+        tmpWindow.on('eventAdded',function(data){
+            tmpWindow.close();
+            Ext.getCmp('eventTreePanel').getStore().load();
+        });
     },
     remove: function() {
         var cmd = 'deleteEventType'
             params = { eventTypeId: this.record.eventTypeId }
     },
     update: function() {
-        Ext.create('Ext.window.Window', {
+        var tmpWindow = Ext.create('Ext.window.Window', {
             title: 'Edit Event Type ' + this.record.data.title,
             iconCls: 'icon_editEventType',
             modal: true,
             height: 100,
-            width: 350,
+            width: 250,
             layout: 'fit',
             items: [
                 Ext.create('widget.formcreateeventtype', {
@@ -79,5 +83,9 @@ Ext.define('BIS.view.CtxMnuEventType', {
                 })
             ]
         }).show();
+        tmpWindow.on('eventAdded',function(data){
+            tmpWindow.close();
+            Ext.getCmp('eventTreePanel').getStore().load();
+        });
     }
 });

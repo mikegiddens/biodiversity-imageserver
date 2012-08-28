@@ -5,7 +5,8 @@ Ext.define('BIS.view.CtxMnuCategory', {
         click: function( menu, item ) {
             switch( item.identifier ) {
                 case 'create':
-                    Ext.create('Ext.window.Window', {
+                    var me = this;
+                    var tmpWindow = Ext.create('Ext.window.Window', {
                         title: 'Add Attribute to ' + this.record.data.title,
                         iconCls: 'icon_newAttribute',
                         modal: true,
@@ -19,9 +20,14 @@ Ext.define('BIS.view.CtxMnuCategory', {
                             })
                         ]
                     }).show();
+                    tmpWindow.on('attributeCreated', function( data ) {
+                        tmpWindow.close();
+                        Ext.getCmp('categoryTreePanel').getStore().load();
+                    });
                     break;
                 case 'update':
-                    Ext.create('Ext.window.Window', {
+                    var me = this;
+                    var tmpWindow = Ext.create('Ext.window.Window', {
                         title: 'Edit ' + this.record.data.title,
                         iconCls: 'icon_editCategory',
                         modal: true,
@@ -35,6 +41,10 @@ Ext.define('BIS.view.CtxMnuCategory', {
                             })
                         ]
                     }).show();
+                    tmpWindow.on('attributeCreated', function( data ) {
+                        tmpWindow.close();
+                        Ext.getCmp('categoryTreePanel').getStore().load();
+                    });
                     break;
                 case 'delete':
                     Ext.Msg.confirm('Remove ' + this.record.data.title + '?', 'Are you sure you want remove ' + this.record.data.title + '?', function( btn, nothing, item ) {
@@ -77,10 +87,12 @@ Ext.define('BIS.view.CtxMnuCategory', {
             scope: this,
             success: function( resObj ) {
                 var res = Ext.decode( resObj.responseText );
-                console.log( res );
                 if ( res.success ) {
-                    
+                    this.fireEvent('categoryCreated', res);
                 }
+            },
+            failure: function( form, action ) {
+                Ext.Msg.alert('Failed', 'Request failed.');
             }
         });
     }

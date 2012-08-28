@@ -87,9 +87,8 @@ Ext.define('BIS.view.EventTreePanel', {
 		});
 		me.callParent(arguments);
 	},
-
 	createEventType: function() {
-		Ext.create('Ext.window.Window', {
+		var tmpWindow = Ext.create('Ext.window.Window', {
 			title: 'Create Event Type',
 			iconCls: 'icon_newEventType',
 			modal: true,
@@ -101,6 +100,9 @@ Ext.define('BIS.view.EventTreePanel', {
 				mode: 'add'
 			}]
 		}).show();
+        tmpWindow.on('eventTypeAdded',function(data){
+            tmpWindow.close();
+            Ext.getCmp('eventTreePanel').getStore().load();
+        });
 	}
-
 });

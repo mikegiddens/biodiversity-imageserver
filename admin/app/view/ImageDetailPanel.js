@@ -111,6 +111,11 @@ Ext.define('BIS.view.ImageDetailPanel', {
 	},
 	
 	loadImage: function( record ) {
+        // get metadata
+        //  
+        // get events
+        // get geography
+        // get sets
 		var properties = [];
 		for ( var p in record ) {
 			properties.push( p );
