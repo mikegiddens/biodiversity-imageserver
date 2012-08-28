@@ -26,5 +26,5 @@ Ext.define('BIS.model.AttributeModel', {
             defaultValue: 'attribute'
         }
     ],
-    belongsTo: 'CategoryModel'
+    belongsTo: 'BIS.model.CategoryModel'
 });

@@ -50,12 +50,12 @@ Ext.define('BIS.view.CtxMnuAttribute', {
         });
     },
     update: function() {
-        Ext.create('Ext.window.Window', {
+        var tmpWindow = Ext.create('Ext.window.Window', {
             title: 'Edit Attribute ' + this.record.data.title,
             iconCls: 'icon_editAttribute',
             modal: true,
-            height: 500,
-            width: 800,
+            height: 100,
+            width: 350,
             layout: 'fit',
             items: [
                 Ext.create('widget.formcreateattribute', {
@@ -64,5 +64,10 @@ Ext.define('BIS.view.CtxMnuAttribute', {
                 })
             ]
         }).show();
+        tmpWindow.on( 'attributeCreated', function( data ) {
+            tmpWindow.close();
+            // this shouldn't reload the whole store - just the parent node
+            Ext.getCmp('categoryTreePanel').getStore().load();
+        });
     }
 });

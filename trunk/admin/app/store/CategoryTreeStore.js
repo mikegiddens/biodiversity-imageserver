@@ -10,7 +10,7 @@ Ext.define('BIS.store.CategoryTreeStore', {
         me.callParent([Ext.apply({
             storeId: 'categoryTreeStore',
             model: 'BIS.model.CategoryModel',
-            defaultRootProperty: 'data',
+            //defaultRootProperty: 'data', // for tree store to locate children
             listeners: {
                 load: function( store, records, isSuccessful, operation, opts ) {
                     if (!(isSuccessful)) {

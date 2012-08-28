@@ -14,5 +14,5 @@ Ext.define('BIS.model.CategoryModel', {
             defaultValue: 'category'
         }
     ],
-    hasMany: 'AttributeModel'
+    hasMany: 'BIS.model.AttributeModel'
 });

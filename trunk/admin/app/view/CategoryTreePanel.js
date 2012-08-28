@@ -26,7 +26,7 @@ Ext.define('BIS.view.CategoryTreePanel', {
 						var record = dragobj.records[0].data;
 						var target = targetNode.data;
 						if ( action == 'append' ) {
-							if ( record.modelClass == 'attribute' && target.modelClass == 'category' ) {
+							if ( (record.modelClass == 'attribute') && (target.modelClass == 'category') ) {
 								if ( record.categoryId != target.categoryId ) {
 									// send attributeAdd with record info on target categoryId
 									return true;
@@ -108,7 +108,6 @@ Ext.define('BIS.view.CategoryTreePanel', {
 			}]
 		}).show();
         tmpWindow.on( 'categoryCreated', function( data ) {
-            console.log( data );
             tmpWindow.close();
             me.getStore().load();
         });

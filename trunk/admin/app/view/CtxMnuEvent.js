@@ -40,12 +40,13 @@ Ext.define('BIS.view.CtxMnuEvent', {
             params = { eventTypeId: this.record.eventTypeId }
     },
     update: function() {
-        Ext.create('Ext.window.Window', {
+        var me = this;
+        var tmpWindow = Ext.create('Ext.window.Window', {
             title: 'Edit Event ' + this.record.data.title,
             iconCls: 'icon_editEvent',
             modal: true,
-            height: 500,
-            width: 800,
+            height: 100,
+            width: 350,
             layout: 'fit',
             items: [
                 Ext.create('widget.formcreateevent', {
@@ -54,5 +55,9 @@ Ext.define('BIS.view.CtxMnuEvent', {
                 })
             ]
         }).show();
+        tmpWindow.on( 'eventCreated', function( data ) {
+            tmpWindow.close();
+            Ext.getCmp('eventTreePanel').getStore().load();
+        });
     }
 });
