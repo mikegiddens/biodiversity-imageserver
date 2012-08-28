@@ -44,7 +44,7 @@ Responses are returned in the format indicated by the output flag within the URL
 1. This example request creates a new storage device.
 
 {{{
- http://{path_to_software}/api/api.php?cmd=addStorageDevice&name=storageDeviceAdd&type=local&baseUrl={url_to_storage_device}
+ http://{path_to_software}/api/api.php?cmd=storageDeviceAdd&name=storageDeviceAdd&type=local&baseUrl={url_to_storage_device}
 }}}
 
  Response:
