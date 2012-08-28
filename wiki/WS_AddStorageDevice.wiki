@@ -22,7 +22,7 @@ The API defines a request using the following URL parameters:
  * key (optional) - Key required for authentication.
  * active (optional) - Specifies whether device can be used or not. Default true.
  * default (optional) - Specifies whether the storage device should be the default one. Default false.
- * extra2 (optional) - Extra information about the storage device
+ * extra2 (reserved) - Reserved for future use.
 
 == Output Formats ==
 
