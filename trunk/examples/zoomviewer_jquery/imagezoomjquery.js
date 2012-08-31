@@ -63,8 +63,8 @@ var ImageZoom = function( config ) {
     },
     this.getTileByOffset = function() {
         if ( this.isImageLoaded ) {
-            var oX = this.el.offset().left - this.dragEl.offset().left;
-            var oY = this.el.offset().top - this.dragEl.offset().top;
+            var oX = this.el.position().left - this.dragEl.position().left;
+            var oY = this.el.position().top - this.dragEl.position().top;
             var offset = [ oX, oY ];
             var i = Math.ceil(offset[1]/this.currentLayer.tileSize);
             var j = Math.ceil(offset[0]/this.currentLayer.tileSize);
@@ -72,13 +72,13 @@ var ImageZoom = function( config ) {
             var columnTiles = Math.ceil(this.el.width()/this.currentLayer.tileSize);
             var totalTile = Math.floor(this.dragEl.width()/this.currentLayer.tileSize);
             var bottomrightX, bottomrightY;
-            oX = this.el.css('left');
-            oY = this.el.css('top');
+            oX = this.el.position().left;
+            oY = this.el.position().top;
             var elXY = [ oX, oY ];
             var bottomX = this.el.width() + elXY[0];
             var bottomY = this.el.height() + elXY[1];
-            oX = this.dragEl.css('left');
-            oY = this.dragEl.css('top');
+            oX = this.dragEl.position().left;
+            oY = this.dragEl.position().top;
             var xy = [ oX, oY ];
             var btmX = Math.ceil(Math.abs(xy[1]-bottomY)/this.currentLayer.tileSize);
             var btmY = Math.ceil(Math.abs(xy[0]-bottomX)/this.currentLayer.tileSize);
@@ -100,13 +100,13 @@ var ImageZoom = function( config ) {
                 { row: bottomrightX, column: bottomrightY }
             );
         }
-    },	
+    },
     this.initMouseEvent = function() {
         if ( this.dblClickZoom ) {
             this.enableDblClickZoom();
         }
         if ( this.isMouseScroll ) {
-            this.tileContainerEl.bind( 'mousewheel', this.onMouseWheel );
+            this.tileContainerEl.mousewheel( this.onMouseWheel );
             this.tileContainerEl.bind( 'mouseover', function(e) {
                 $('body').css('overflow','hidden');
             });
@@ -169,6 +169,7 @@ var ImageZoom = function( config ) {
         }
     },
     this.loadPanControl = function() {
+        var me = this;
         if ( this.panControl && this.isImageLoaded ) {
             this.tileContainerEl.prepend( '<map name="panmap"></map>' );
             this.mapTag = this.tileContainerEl.children('map:first');
@@ -184,73 +185,61 @@ var ImageZoom = function( config ) {
             this.southPan = this.mapTag.children('area:first');
 
             this.eastPan.click( function() {
-                this.moveDragContainer(50, 0);
+                me.moveDragContainer(50, 0);
             });
             this.northPan.click( function() {
-                this.moveDragContainer(0, -50);
+                me.moveDragContainer(0, -50);
             });
             this.centerPan.click( function() {
-                this.setCenterTile();
+                me.setCenterTile();
             });
             this.southPan.click( function() {
-                this.moveDragContainer(0, 50);
+                me.moveDragContainer(0, 50);
             });
             this.westPan.click( function() {
-                this.moveDragContainer(-50, 0);
+                me.moveDragContainer(-50, 0);
             });
-            this.tileContainerEl.prepend( '<img src="/resources/img/pan-control.gif" class="imagezoom-pancontrol" usemap="#panmap">' );
+            this.tileContainerEl.prepend( '<img src="resources/img/pan-control.gif" class="imagezoom-pancontrol" usemap="#panmap">' );
             this.pancontrol = this.tileContainerEl.children('img:first');
         }
     },
     this.loadZoomControl = function() {
+        var me = this;
         if ( this.zoomControl && this.isImageLoaded ) {
             var plusImage = 'resources/img/plus.png';
             this.zoomControlContainer.prepend( '<img src="resources/img/plus.png" class="imagezoom-zoomplus" title="Zoom In">' );
             this.zoomPlus = this.zoomControlContainer.children('img:first');
-            // insert zoom slider here
+            // insert zoom slider here (zoomContainer)
             this.zoomControlContainer.prepend( '<img src="resources/img/minus.png" class="imagezoom-zoomplus" title="Zoom Out">' );
             this.zoomMinus = this.zoomControlContainer.children('img:first');
             this.zoomPlus.click( function(e, ele) {
-                if (this.currentZoomLevel < this.zoomMax) {
-                        this.currentZoomLevel++;
-                        if (this.zoomControl) {
-                            this.zoomContainer.setValue(this.currentZoomLevel);
-                            this.zoomCenter(true);
+                if (me.currentZoomLevel < me.zoomMax) {
+                        me.currentZoomLevel++;
+                        if (me.zoomControl) {
+                            //me.zoomContainer.setValue(me.currentZoomLevel);
+                            me.zoomCenter(true);
                         }
                 }
             });
             this.zoomMinus.click( function(e, ele) {
-                if (this.currentZoomLevel > this.zoomMin) {
-                    this.currentZoomLevel--;
-                    if (this.zoomControl) {
-                        this.zoomContainer.setValue(this.currentZoomLevel);
-                        this.zoomCenter(false);
+                if (me.currentZoomLevel > me.zoomMin) {
+                    me.currentZoomLevel--;
+                    if (me.zoomControl) {
+                        //me.zoomContainer.setValue(me.currentZoomLevel);
+                        me.zoomCenter(false);
                     }
                 }
             });
         }
     },
-    this.onDrag = function(e) {
-        var xy = e.getXY();
-        this.scope.dragEl.setXY([this.cXY[0] - (this.currentPosition[0]-xy[0]), this.cXY[1] - (this.currentPosition[1]-xy[1])]);
-        this.scope.getTileByOffset();
-    },
-    this.onDragEnd = function(e) {
-        this.currentPosition = e.getXY();
-    },
-    this.onDragStart = function(e) {
-        this.currentPosition = e.getXY();
-        this.cXY = this.scope.dragEl.getXY();
-    },
-    this.onMouseWheel = function(e, el) {
-        var delta = e.getWheelDelta();
+    this.onMouseWheel = function(e, delta) {
         e.preventDefault();
         if (delta > 0) {
-            if(this.currentZoomLevel < this.zoomMax)
-                this.zoom(e, true);
+            if(me.currentZoomLevel < me.zoomMax)
+                me.zoom(e, true);
         } else if (delta < 0) {
-            if(this.currentZoomLevel > this.zoomMin)
-                this.zoom(e, false);
+            if(me.currentZoomLevel > me.zoomMin)
+                me.zoom(e, false);
         }
     },
     this.resetImage = function() {
@@ -304,9 +293,9 @@ var ImageZoom = function( config ) {
         this.getTileByOffset();
     },
     this.moveDragContainer = function( x, y ) {
-        var xy = this.dragEl.getXY();
-        this.dragEl.setX(xy[0] - x);
-        this.dragEl.setY(xy[1] - y);
+        var xy = [this.dragEl.position().left,this.dragEl.position().top];
+        this.dragEl.css('left',(xy[0] - x));
+        this.dragEl.css('top',(xy[1] - y));
     },
     this.updateCopyright = function(text) {
         if (this.copyRightControl && this.isImageLoaded){
@@ -316,14 +305,14 @@ var ImageZoom = function( config ) {
     },
     this.zoomCenter = function(isZoomIn) {
         if(this.isImageLoaded){
-            var tileContainerElXY = this.tileContainerEl.getXY();
-            var tileContainerHeight = this.tileContainerEl.getHeight();
-            var tileContainerWidth = this.tileContainerEl.getWidth();
+            var tileContainerElXY = [ this.tileContainerEl.position().left, this.tileContainerEl.position().top ];
+            var tileContainerHeight = this.tileContainerEl.height();
+            var tileContainerWidth = this.tileContainerEl.width();
             var x = parseFloat(tileContainerWidth/2) + tileContainerElXY[0];
             var y = parseFloat(tileContainerHeight/2) + tileContainerElXY[1];
             var xy = [x, y]
             this.zoomBox(xy, isZoomIn);
-            var dragXY = this.dragEl.getXY();
+            var dragXY = [ this.dragEl.position().left, this.dragEl.position().top ];
             var beforeImageSize = this.imageSize;
             var offsetX = Math.abs(xy[0] - dragXY[0]);
             var offsetY = Math.abs(xy[1] - dragXY[1]);
@@ -332,37 +321,40 @@ var ImageZoom = function( config ) {
             var newTileCount = afterImageSize / beforeImageSize;
             var newOffsetX = xy[0] - Math.ceil(offsetX * newTileCount);
             var newOffsetY = xy[1] - Math.ceil(offsetY * newTileCount);
-            this.dragEl.setXY([newOffsetX, newOffsetY]);
+            this.dragEl.css('left',newOffsetX);
+            this.dragEl.css('top',newOffsetY);
             this.getTileByOffset();
             this.fire('zoomChange', this.currentZoomLevel, this);
         }	
     },
     this.zoom = function(e, flag) {
         if(this.isImageLoaded){
-            var xy = e.getXY();
-            var dragXY = this.dragEl.getXY();
+            var xy = [ e.clientX, e.clientY ];
+            var dragXY = [ this.dragEl.position().left, this.dragEl.position().top ];
             var beforeImageSize = this.imageSize;
             var offsetX = Math.abs(xy[0] - dragXY[0]);
             var offsetY = Math.abs(xy[1] - dragXY[1]);
-            if(flag){
+            if ( flag ) {
                 this.zoomIn(e);
-            }else {
+            } else {
                 this.zoomOut(e);
             }
             var afterImageSize = this.imageSize;
             var newTileCount = afterImageSize / beforeImageSize;
             var newOffsetX = xy[0] - Math.ceil(offsetX * newTileCount);
             var newOffsetY = xy[1] - Math.ceil(offsetY * newTileCount);
-            this.dragEl.setXY([newOffsetX, newOffsetY]);
+            this.dragEl.css( 'left', newOffsetX );
+            this.dragEl.css( 'top', newOffsetY );
             this.getTileByOffset();
             this.fire('zoomChange', this.currentZoomLevel, this);
         }
     },
     this.zoomBox = function( xy, flag ) {
+        var me = this;
         if ( this.showZoomBox && this.isImageLoaded ){
-            this.zoomBoxTag.setHeight(74);
-            this.zoomBoxTag.setWidth(111);
-            this.zoomBoxTag.children('div').fadeIn('fast',function(){ this.zoomBoxTag.children('div').fadeOut('fast'); });
+            this.zoomBoxTag.height(74);
+            this.zoomBoxTag.width(111);
+            this.zoomBoxTag.children('div').fadeIn('fast',function(){ me.zoomBoxTag.children('div').fadeOut('fast'); });
             var zoomboxX = xy[0] - this.zoomBoxTag.width() / 2;
             var zoomboxY = xy[1] - this.zoomBoxTag.height() / 2;
             var currentXY = [zoomboxX, zoomboxY];
@@ -375,9 +367,9 @@ var ImageZoom = function( config ) {
             if ( this.currentZoomLevel < this.zoomMax ) {
                 this.currentZoomLevel++;
                 if ( this.zoomControl ) {
-                    this.zoomContainer.setValue( this.currentZoomLevel );
+                    //this.zoomContainer.setValue( this.currentZoomLevel );
                 }
-                this.zoomBox( e.getXY(), true );
+                this.zoomBox( [e.clientX, e.clientY], true );
                 this.zoomTile( this.currentZoomLevel );
             }
         }
@@ -387,9 +379,9 @@ var ImageZoom = function( config ) {
             if ( this.currentZoomLevel > this.zoomMin ) {
                 this.currentZoomLevel--;
                 if ( this.zoomControl ) {
-                    this.zoomContainer.setValue(this.currentZoomLevel);
+                    //this.zoomContainer.setValue(this.currentZoomLevel);
                 }
-                this.zoomBox( e.getXY(), false );
+                this.zoomBox( [e.clientX, e.clientY], false );
                 this.zoomTile( this.currentZoomLevel );
             }
         }
@@ -397,8 +389,9 @@ var ImageZoom = function( config ) {
     this.zoomTile = function(zoomLevel) {
         if ( this.isImageLoaded ) {
             if ( !this.tileLayers[zoomLevel-1] ) {
-                this.dragEl.append( '<div></div>' );
+                this.dragEl.append( '<div class="dragtile"></div>' );
                 this.tileLayers[zoomLevel-1] =  new ImageZoomLayer({
+                    parent: me,
                     el: this.dragEl.children('div:last'),
                     zoomLevel: zoomLevel,
                     tileTpl: this.tileTpl
@@ -420,8 +413,8 @@ var ImageZoom = function( config ) {
             }
             if ( this.preivousZoom != zoomLevel ) {
                 if ( this.previousLayer ) {
-                    this.previousLayer.el.addCls('hidden');
-                    this.currentLayer.el.removeCls('hidden');
+                    this.previousLayer.el.addClass('hidden');
+                    this.currentLayer.el.removeClass('hidden');
                 }
             }
             this.dragEl.width( this.currentLayer.el.width() );
@@ -449,20 +442,26 @@ var ImageZoomLayer = function( config ) {
     // init
     var me           =   this;
     this.tileSize    =   256;
-    this.style       =   'overflow:hidden; position:relative;';
+    this.el.css({overflow:'hidden',position:'relative'});
     this.tiles       =   [];
 
-    // listeners
+    // dragging logic w/o using jQuery UI
+    this.el.drag( function( ev, dd ) {
+        $(this).parent().css({
+            left: dd.offsetX,
+            top: dd.offsetY
+        });
+        me.parent.getTileByOffset();
+    });
+
     this.createTiles = function( zoomLevel ) {
         this.zoomLevel = zoomLevel;
         var tileCount = Math.pow(zoomLevel, 2);
         for (var i=1; i <= tileCount; i++) {
             this.tiles[i] = [];
             for (var j=1; j <= tileCount; j++) {
-                var newTile = this.tileTpl.replace('{2}',this.zoomLevel);
-                newTile = newTile.replace('{3}',i+''+j);
-                this.el.append( '<img src="'+newTile+'" class="tile" style="width:256px; height:256px;">' );
-                this.tiles[i][j] = '';
+                this.el.append( '<img src="data:image/gif;base64,R0lGODlhAQABAID/AMDAwAAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==" class="tile" style="width:256px; height:256px;">' );
+                this.tiles[i][j] = this.el.children('img:last');
             }
         }
         this.el.append( '<div style="clear:both"></div>' );
@@ -486,7 +485,7 @@ var ImageZoomLayer = function( config ) {
     },
     this.setImage = function( x, y, url ) {
         if ( this.tiles[x] && this.tiles[x][y] && !this.tiles[x][y].rendered ) {
-            this.tiles[x][y].src = url;
+            this.tiles[x][y].attr('src', url);
             this.tiles[x][y].rendered = true;
         }
     },
@@ -516,7 +515,7 @@ var ImageZoomLayer = function( config ) {
         }
     },
     this.hideTile = function( x, y ) {
-        this.setImage(x, y, '');
+        this.setImage(x, y, 'data:image/gif;base64,R0lGODlhAQABAID/AMDAwAAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==');
     }
 
     this.tiles = [];
