@@ -9,6 +9,10 @@
     * [WS_UpdateStorageDevice Update Storage Device]
     * [WS_SetDefaultStorageDevice Set Default Storage Device]
   * Collections
+    * [WS_AddCollection Add Collection]
+    * [WS_DeleteCollection Delete Collection]
+    * [WS_ListCollection List Collections]
+    * [WS_UpdateCollection Update Collection]
   * Attributes (metadata)
     * [WS_AddImageAttribute Add Image Attribute]
     * [WS_DeleteImageAttribute Delete Image Attribute]
