@@ -1,6 +1,7 @@
 <?php
 
 	$config['version'] = '1.0.0';
+	$config['copyright'] = 'Copyright (&copy;) SilverBiology.com';
 
 	# DB details
 	$config['mysql']['host'] = 'localhost';

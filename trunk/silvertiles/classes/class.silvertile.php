@@ -1,13 +1,15 @@
 <?php
-require_once('./config.php');
 class SilverTile {
 
 	function __construct($path = "", $image = "", $sharpenFlag = false, $tileSize = 256) {
+		global $config;
 		$record = array();
 		if ($path != "") $this->set("sourcePath", $path);
 		if ($image != "") $this->set("image", $image);
 		is_bool($sharpenFlag) ? $this->set("sharpenFlag", $sharpenFlag) : false;
 		is_int($tileSize) ? $this->set("tileSize", $tileSize) : 256;
+		$this->set("pathCache", $config['path']['tiles']);
+		$this->set("tileUrl", $config['tileUrl']);
 	}
 
 	function mkdir_recursive($pathname) {
@@ -50,9 +52,9 @@ class SilverTile {
 	}
 	
 	function getTileLocation() {
-		$this->mkdir_recursive(PATH_CACHE);
+		$this->mkdir_recursive($this->get("pathCache"));
 		$file_parts = pathinfo($this->get("image"));
-		return(PATH_CACHE . strtolower($file_parts["filename"]) . "/");
+		return($this->get("pathCache") . strtolower($file_parts["filename"]) . "/");
 	}
 
 	private function createTileLocation() {
@@ -79,7 +81,7 @@ class SilverTile {
 
 	function getUrl() {
 		$file_parts = pathinfo($this->get("image"));
-		return(BASE_URL . 'cache/' . strtolower($file_parts["filename"]) . "/");
+		return($this->get("tileUrl") . 'cache/' . strtolower($file_parts["filename"]) . "/");
 	}
 
 	function getTempFileLocation() {

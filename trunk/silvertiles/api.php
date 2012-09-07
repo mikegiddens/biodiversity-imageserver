@@ -24,21 +24,26 @@ foreach ($expected as $formvar)
 $valid = true;
 $code = 0;
 
+include('../config.php');
+
 switch($cmd) {
 
 	case 'loadImage':
 		$timeStart = time();
  		include_once('./classes/class.silvertile.php');
- 		include_once('./classes/functions.php');
 
 		if($filename == '') {
 			$valid = false;
 			$code = 102;
 		}
 
+		if($absolutePath == '') {
+			$valid = false;
+			$code = 103;
+		}
+
 		if($valid) {
 			$sharpenFlag = (trim($_REQUEST['sharpen']) == 'true') ? true : false;
-			$path_images = ($absolutePath == '') ? PATH_IMAGES . barcode_path($filename) : $absolutePath;
 			$tile = new SilverTile($path_images, $filename, $sharpenFlag);
 	
 			if(!$tile->cacheExist()) {
@@ -52,7 +57,7 @@ switch($cmd) {
 	
 			$time = time() - $timeStart;
 	
-			$ar = array('success' => true, 'processTime' => $time, 'copyright' => COPYRIGHT, 'url' => $urlPath, 'width' => $dimensions['width'], 'height' => $dimensions['height'], 'zoomLevel' => $tile->getZoomLevel());
+			$ar = array('success' => true, 'processTime' => $time, 'copyright' => $config['copyright'], 'url' => $urlPath, 'width' => $dimensions['width'], 'height' => $dimensions['height'], 'zoomLevel' => $tile->getZoomLevel());
 		} else {
 			$ar = array('success' => false, 'error' => array('code' => $code, 'message' => getError($code)));
 		}
@@ -69,9 +74,9 @@ switch($cmd) {
  		include_once('./classes/class.silvertile.php');
 		$tile = new SilverTile;
 
-		$path_cache = PATH_CACHE;
-		if(!defined('PATH_CACHE') || $path_cache == '' ) {
-			$path_cache = '/var/www/cache/';
+		$path_cache = $config['path']['tiles'];
+		if($path_cache == '' || $path_cache == '/') {
+			$path_cache = '/var/www/cache/tiles/';
 		}
 		$folderCount = 0;
 		$file = $tile->findOldestFile($path_cache);
@@ -114,6 +119,7 @@ function getError($code) {
 	$ar = array(
 		  101 => 'No Command Given'
 		, 102 => 'filename Not Given'
+		, 103 => 'absolutePath Not Given'
 	);
 	return $ar[$code];
 }
