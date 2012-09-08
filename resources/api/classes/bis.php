@@ -178,7 +178,7 @@
 				, 191 => 'rating out of range.'
 				, 192 => 'Valid metadatapackages path not set in config.'
 				, 193 => 'Process Queue Not Cleared.'
-				, 194 => 'userId should be given.'
+				, 194 => 'userId should be provided.'
 				, 195 => 'Set already exists.'
 				, 196 => 'Set could not be added.'
 				, 197 => 'setId should be provided.'
@@ -194,6 +194,8 @@
 				, 207 => 'category and attribute should be provided.'
 				, 208 => 'No sets defined.'
 				, 209 => 'Logs not Loaded'
+				, 210 => 'imageId or barcode should be provided'
+				, 211 => 'Invalid barcode provided'
 			);
 			return $ar[$errorCode];
 		}

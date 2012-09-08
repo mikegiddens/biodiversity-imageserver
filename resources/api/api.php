@@ -2128,13 +2128,17 @@
 			
 		case 'imageTilesGet':
 			$imageId = trim($imageId);
+			$barcode = trim($barcode);
 			$_TMP = ($config['path']['tmp'] != '') ? $config['path']['tmp'] : sys_get_temp_dir() . '/';
-			if($imageId == "") {
+			if($imageId == "" && $barcode == '') {
 				$valid = false;
-				$errorCode = 157;
-			} elseif(!$si->image->imageLoadById($imageId)) {
+				$errorCode = 210;
+			} elseif($imageId != "" && !$si->image->imageLoadById($imageId)) {
 				$valid = false;
 				$errorCode = 158;
+			} elseif($barcode != "" && !$si->image->imageLoadByBarcode($barcode)) {
+				$valid = false;
+				$errorCode = 211;
 			}
 			if($valid) {
 				$barcode = $si->image->imageGetName();
@@ -2192,6 +2196,7 @@
 		# example : cmd=imageTilesLoad&filename=USMS000018155&zoom=2&index=tile_14.jpg
 		case 'imageTilesLoad';
 			$filename = @strtolower($filename);
+			$filename = @basename($filename,'.jpg');
 			$index = @str_replace('tile_','',@basename($index,'.jpg'));
 			$it = new imgTiles($config['path']['imgTiles'] . $filename . '.sqlite');
 			$result = $it->getTileData($zoom, $index);

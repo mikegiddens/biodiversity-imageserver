@@ -98,12 +98,12 @@ class SilverTile {
 		$this->createTileLocation();
 		$timeStart = time();
 		for($i=$this->getTileLevels(),$j=0; $i>=1; $i--) {
-		$time = time() - $timeStart;
+			$time = time() - $timeStart;
 			$x = pow($i,2);
 			$width = $height = $this->get("tileSize") * $x;
 			$tmpCachePath = $this->getTileLocation() . $i . '/';
-			if(!file_exists($tmpCachePath)) @mkdir($tmpCachePath, 0775);
 
+			if(!file_exists($tmpCachePath)) @mkdir($tmpCachePath, 0775);
 			if($this->tempFileExist()) {
 				$source = $this->getTempFileLocation();
 				$tmp = sprintf("convert %s -resize 50%% %s", $source, $source);
@@ -113,7 +113,6 @@ class SilverTile {
 				$tmp = copy($source, $this->getTempFileLocation());
 				$source = $this->getTempFileLocation();
 			}
-
 			if($i == 1) {
 				$tmp = sprintf("convert %s -background transparent -gravity center -resize %sx%s -extent %sx%s %s  %s%s_%s.jpg"
 					,	$source
