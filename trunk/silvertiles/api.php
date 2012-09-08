@@ -44,8 +44,7 @@ switch($cmd) {
 
 		if($valid) {
 			$sharpenFlag = (trim($_REQUEST['sharpen']) == 'true') ? true : false;
-			$tile = new SilverTile($path_images, $filename, $sharpenFlag);
-	
+			$tile = new SilverTile($absolutePath, $filename, $sharpenFlag);
 			if(!$tile->cacheExist()) {
 				$tile->createTiles();
 			} else {
@@ -61,7 +60,6 @@ switch($cmd) {
 		} else {
 			$ar = array('success' => false, 'error' => array('code' => $code, 'message' => getError($code)));
 		}
-
 		if ($callback) {
 			print_j($ar,$callback);
 		} else {
