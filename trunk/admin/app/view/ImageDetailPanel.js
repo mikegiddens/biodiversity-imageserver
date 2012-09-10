@@ -117,15 +117,26 @@ Ext.define('BIS.view.ImageDetailPanel', {
         // get geography
         // get sets
 		var properties = [];
-		for ( var p in record ) {
-			properties.push( p );
-		}
-		this.addProperties({
-			metadata: properties,
-			events: properties,
-			geography: properties,
-			sets: properties
-		});
+        Ext.Ajax.request({
+            url: 'http://bis.silverbiology.com/dev/resources/api/api.php',
+            params: {
+                cmd: 'imageDetails',
+                imageId: record.imageId
+            },
+            scope: this,
+            success: function( res ) {
+                var data = Ext.decode( res.responseText ).results;
+                Ext.each( data.attributes, function( attr ) {
+                    properties.push( '<span style="font-weight: bold">' + attr.attrib + '</span>: ' + attr.value );
+                });
+                this.addProperties({
+                    metadata: properties,
+                    events: [],
+                    geography: [],
+                    sets: []
+                });
+            }
+        });
 	},
 
 	addProperties: function( data ) {
