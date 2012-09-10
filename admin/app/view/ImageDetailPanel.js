@@ -14,14 +14,9 @@ Ext.define('BIS.view.ImageDetailPanel', {
 			tpl: new Ext.XTemplate('<tpl>'+
 					'{message}'+
 					'<div class="imagePropertyGroupHeader">Metadata</div>'+
-							'<div class="imagePropertyGroupContainer">'+
-									'<tpl for="metadata">'+
-											'<span class="imgmetadata imagePropertyPill">'+
-													'<span class="imagePropertyPillText">{.}</span>'+
-													'<span catdata="metadata" pilldata="{.}" class="del imagePropertyPillRemove"></span>'+
-											'</span>'+
-									'</tpl>'+
-							'</div>'+
+                    '<div class="imagePropertyGroupContainer">'+
+                            '<tpl for="metadata">{[this.renderMetadata(values)]}</tpl>'+
+                    '</div>'+
 					'<div class="imagePropertyGroupHeader">Events</div>'+
 							'<div class="imagePropertyGroupContainer">'+
 									'<tpl for="events">'+
@@ -49,7 +44,15 @@ Ext.define('BIS.view.ImageDetailPanel', {
 											'</span>'+
 									'</tpl>'+
 							'</div>'+
-			'</tpl>'),
+			'</tpl>',
+            {
+                renderMetadata: function( i ) {
+                    return '<span class="imgmetadata imagePropertyPill">'+
+                                '<span class="imagePropertyPillText"><span style="font-weight:bold">' + i.key + '</span>: ' + i.value + '</span>'+
+                                '<span catdata="metadata" pilldata="' + i.key + '" class="del imagePropertyPillRemove"></span>'+
+                        '</span>'
+                }
+            }),
 
 			listeners: {
 				scope: this,
@@ -127,7 +130,7 @@ Ext.define('BIS.view.ImageDetailPanel', {
             success: function( res ) {
                 var data = Ext.decode( res.responseText ).results;
                 Ext.each( data.attributes, function( attr ) {
-                    properties.push( '<span style="font-weight: bold">' + attr.attrib + '</span>: ' + attr.value );
+                    properties.push({ key: attr.attrib, value: attr.value });
                 });
                 this.addProperties({
                     metadata: properties,
