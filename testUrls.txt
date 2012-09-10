@@ -202,6 +202,11 @@ http://bis.silverbiology.com/dev/resources/api/api.php?cmd=metadataPackageImport
 metadataPackageList:
 http://bis.silverbiology.com/dev/resources/api/api.php?cmd=metadataPackageList
 
+processQueue:
+http://bis.silverbiology.com/dev/resources/api/api.php?cmd=processQueue
+http://bis.silverbiology.com/dev/resources/api/api.php?cmd=processQueue&imageId=3
+http://bis.silverbiology.com/dev/resources/api/api.php?cmd=processQueue&imageId=[4,5]
+
 processQueueList:
 http://bis.silverbiology.com/dev/resources/api/api.php?cmd=processQueueList&value=all&limit=2&group=imageId&dir=desc
 http://bis.silverbiology.com/dev/resources/api/api.php?cmd=processQueueList

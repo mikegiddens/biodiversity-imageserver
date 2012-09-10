@@ -200,7 +200,7 @@ class Event
 	}
 	
 	public function eventsListImages($eventId,$size = 'l',$attributesFlag = true) {
-		$query = sprintf("SELECT e.`imageId`, i.`fileName`, i.`barcode`, i.`storageDeviceId`, i.`path`  FROM `eventImages` e LEFT OUTER JOIN image i ON e.`imageId` = i.`imageId` WHERE e.`eventId` = '%s';", mysql_escape_string($eventId));
+		$query = sprintf("SELECT e.`imageId`, i.`filename`, i.`barcode`, i.`storageDeviceId`, i.`path`  FROM `eventImages` e LEFT OUTER JOIN image i ON e.`imageId` = i.`imageId` WHERE e.`eventId` = '%s';", mysql_escape_string($eventId));
 		$records = $this->db->query_all($query);
 		if(count($records)) {
 			$storage = new StorageDevice($this->db);
@@ -216,23 +216,23 @@ class Event
 			
 			foreach($records as &$record) {
 				$device = $storage->storageDeviceGet($record->storageDeviceId);
-				$tmpFilename = explode(".",$record->fileName);
+				$tmpFilename = explode(".",$record->filename);
 				$tmpFilename[0] .= $size;
-				$record->fileName = implode(".", $tmpFilename);
+				$record->filename = implode(".", $tmpFilename);
 
 				$record->url = $device['baseUrl'];
 				switch(strtolower($device['type'])) {
 					case 's3':
 						$record->path = substr($record->path, 0, 1) == '/' ? substr($record->path, 1, strlen($record->path)-1) : $record->path;
 						$record->baseUrl = $device['baseUrl'] . $record->path . '/';
-						$record->url = $device['baseUrl'] . $record->path . '/' . $record->fileName;
+						$record->url = $device['baseUrl'] . $record->path . '/' . $record->filename;
 						break;
 					case 'local':
 						if(substr($device['baseUrl'], strlen($url['url'])-1, 1) == '/') {
 							$record->url = substr($device['baseUrl'],0,strlen($device['baseUrl'])-1);
 						}
 						$record->baseUrl = $record->url . $record->path . '/';
-						$record->url .= $record->path . '/' . $record->fileName;
+						$record->url .= $record->path . '/' . $record->filename;
 						break;
 				}
 				if($attributesFlag) {
