@@ -181,7 +181,7 @@ class StorageDevice {
 					if($response->isOK()) {
 						$result['imageId'] = $img->imageGetId($storageFileName, $storageFilePath, 1);
 						if(!$result['imageId']) {
-							$img->imageSetProperty('fileName',$storageFileName);
+							$img->imageSetProperty('filename',$storageFileName);
 							$img->imageSetProperty('storageDeviceId', 1);
 							$img->imageSetProperty('path', $storageFilePath);
 							$img->imageSetProperty('originalFilename', $storageFileName);
@@ -207,7 +207,7 @@ class StorageDevice {
 							$ar = @getimagesize($device['basePath'].$storageFilePath.'/'.$storageFileName);
 							$img->imageSetProperty('width',$ar[0]);
 							$img->imageSetProperty('height',$ar[1]);
-							$img->imageSetProperty('fileName',$storageFileName);
+							$img->imageSetProperty('filename',$storageFileName);
 							$img->imageSetProperty('storageDeviceId', 2);
 							$img->imageSetProperty('path', $storageFilePath);
 							$img->imageSetProperty('originalFilename', $storageFileName);

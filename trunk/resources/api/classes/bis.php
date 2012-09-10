@@ -193,9 +193,10 @@
 				, 206 => 'setId, attributeId and setValueId should be provided.'
 				, 207 => 'category and attribute should be provided.'
 				, 208 => 'No sets defined.'
-				, 209 => 'Logs not Loaded'
-				, 210 => 'imageId or barcode should be provided'
-				, 211 => 'Invalid barcode provided'
+				, 209 => 'Logs not Loaded.'
+				, 210 => 'imageId or barcode should be provided.'
+				, 211 => 'Invalid barcode provided.'
+				, 212 => 'Invalid path value set in config for tiles or imgTiles.'
 			);
 			return $ar[$errorCode];
 		}

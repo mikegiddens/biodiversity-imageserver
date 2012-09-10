@@ -904,14 +904,21 @@
 			} elseif(trim($category) == '') {
 				$valid = false;
 				$errorCode = 160;
-			} elseif(trim($attribute) == "") {
+			} elseif(trim($attribute) == '') {
 				$valid = false;
 				$errorCode = 159;
 			} else {
 				if(false === ($data['categoryId'] = $si->imageCategory->imageCategoryGetBy($category,$categoryType))) {
-					$valid = false;
-					$errorCode = 147;
-				} else if(false === ($data['attributeId'] = $si->imageAttribute->imageAttributeGetBy($attribute,$attributeType))) {
+					if ($force) {
+						$si->imageCategory->imageCategorySetProperty($categoryType,$category);
+						$id = $si->imageCategory->imageCategoryAdd();
+						$data['categoryId'] = $id;
+					} else {
+						$valid = false;
+						$errorCode = 147;
+					}
+				}
+				if(false === ($data['attributeId'] = $si->imageAttribute->imageAttributeGetBy($attribute,$attributeType,$data['categoryId']))) {
 					if ($force && $attribType == 'name') {
 						$si->imageAttribute->imageAttributeSetProperty('name',$attribute);
 						$si->imageAttribute->imageAttributeSetProperty('categoryId',$data['categoryId']);
@@ -1222,6 +1229,7 @@
 			break;
 
 		case 'imageAddFromServer':
+			checkAuth();
 			$flag = false;
 			$loadFlag =  (@strtolower($loadFlag) == 'move') ?'move' : 'copy';
 			# destinationPath and imagePath relative to the storage path
@@ -2133,12 +2141,22 @@
 			if($imageId == "" && $barcode == '') {
 				$valid = false;
 				$errorCode = 210;
-			} elseif($imageId != "" && !$si->image->imageLoadById($imageId)) {
+			} else if($imageId != "" && !$si->image->imageLoadById($imageId)) {
 				$valid = false;
 				$errorCode = 158;
-			} elseif($barcode != "" && !$si->image->imageLoadByBarcode($barcode)) {
+			} else if($barcode != "" && !$si->image->imageLoadByBarcode($barcode)) {
 				$valid = false;
 				$errorCode = 211;
+			} else if(!(isset($config['path']['imgTiles']) && $config['path']['imgTiles'] != '') || !(isset($config['path']['tiles']) && $config['path']['tiles'] != '')) {
+				$valid = false;
+				$errorCode = 212;
+			} else {
+				$si->image->imageMkdirRecursive($config['path']['imgTiles']);
+				$si->image->imageMkdirRecursive($config['path']['tiles']);
+				if(!file_exists($config['path']['imgTiles']) || !file_exists($config['path']['tiles'])) {
+					$valid = false;
+					$errorCode = 212;
+				}
 			}
 			if($valid) {
 				$barcode = $si->image->imageGetName();
@@ -2384,7 +2402,7 @@
 			if($valid) {
 				$count = 0;
 				while($data = fgetcsv($fp, NULL, ",")) {
-					if($si->image->imageMetaDataPackageImport($data)) {
+					if($si->imageCategory->imageMetaDataPackageImport($data)) {
 						$count++;
 					}
 				}
