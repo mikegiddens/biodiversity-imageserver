@@ -23,7 +23,7 @@
 	margin: 3px;
 }
 .imagePropertyPillText {
-	display: inline-block;
+	display: inline;
 	font-size: 12px;
 }
 .imagePropertyPillRemove {
