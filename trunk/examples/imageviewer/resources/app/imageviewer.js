@@ -9,14 +9,15 @@ BIS.ImageViewer = function( config ) {
 	// main functions
     this.loadCollections = function( callback ) {
         $.ajax({
-            url: this.webportal + 'resources/api/api.php?cmd=collections&filter=[{"data":{"type":"list","value":"27,28,29"},"field":"collection_id"}]&sort=code&dir=desc',
+            url: this.webportal + 'resources/api/api.php?cmd=collectionList&collectionId=[27,28,29]&sort=code&dir=desc',
             dataType: 'jsonp',
             success: function( collections ) {
                 var threshold = collections.records.length;
                 var counter = 0;
                 var firstCollection;
                 var executeCallback = function() {
-                    if ( counter == threshold ) {
+                    if ( counter >= threshold ) {
+                        if ( !firstCollection ) firstCollection = collections.records[0];
                         callback( firstCollection );
                         me.currentCollection = firstCollection;
                         $('.collectionBox').click( me.selectCollection );
@@ -32,15 +33,15 @@ BIS.ImageViewer = function( config ) {
                     var record = collections.records[i];
                     me.collectionStore[record.code] = record;
                     $.ajax({
-                        url: me.webportal + 'resources/api/api.php?cmd=images&collectionCode='+record.code+'&limit=1&useRating=true',
+                        url: me.webportal + 'resources/api/api.php?cmd=imageList&collectionCode='+record.code+'&limit=1&useRating=true',
                         col: record,
                         dataType: 'jsonp',
                         success: function( data ) {
-                            if ( (!($.isEmptyObject(data.data))) ) {
-                                var image = data.data[0];
+                            if ( (!($.isEmptyObject(data.records))) ) {
+                                var image = data.records[0];
                                 me.imageCollectionViewEl.append('<div class="collectionBox" bis-data-code="'+this.col.code+'"><img class="squished" src="'+me.panel.composeThumbnailPath(image.path,image.filename,image.ext)+'"><div class="collectionBoxMask">'+this.col.name+'</div></div>');
                             }
-                            incr( this.col, !($.isEmptyObject(data.data)) );
+                            incr( this.col, !($.isEmptyObject(data.records)) );
                         }
                     });
                 }
@@ -54,7 +55,7 @@ BIS.ImageViewer = function( config ) {
         if ( collection ) {
             this.currentCollection = collection;
         }
-        var route = this.webportal + 'resources/api/api.php?cmd=images&collectionCode='+me.currentCollection.code+'&useRating=true&start='+this.pageStart+'&stop='+this.pageStop+'&limit='+this.pageLimit;
+        var route = this.webportal + 'resources/api/api.php?cmd=imageList&collectionCode='+me.currentCollection.code+'&useRating=true&start='+this.pageStart+'&stop='+this.pageStop+'&limit='+this.pageLimit;
         if ( values ) {
             me.cacheValues = JSON.stringify(values.split(',').join('","'));
             route += '&characters=['+me.cacheValues+']';
@@ -67,7 +68,7 @@ BIS.ImageViewer = function( config ) {
             url: route,
             dataType: 'jsonp',
             success: function( data ) {
-                var returnedCount = data.data.length;
+                var returnedCount = data.records.length;
                 me.pageCount = returnedCount;
                 me.totalCount = data.totalCount;
                 $('.pagingLabel').html('Viewing '+me.pageStart+' to '+((me.totalCount < me.pageStop) ? me.totalCount : me.pageStop)+' of '+me.totalCount+' images.');
@@ -75,7 +76,7 @@ BIS.ImageViewer = function( config ) {
                 if ( me.pageStart > 0 ) { $('.pagePrev').removeClass('disabled') }
                 if ( me.pageStart <= 0 ) { $('.pagePrev').addClass('disabled') }
                 if ( me.pageStop < me.totalCount ) { $('.pageNext').removeClass('disabled') }
-                me.panel.loadImages( me.currentCollection, data.data );
+                me.panel.loadImages( me.currentCollection, data.records );
             }
         });
     }

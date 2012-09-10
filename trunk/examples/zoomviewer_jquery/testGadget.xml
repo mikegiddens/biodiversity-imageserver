@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Module>
+    <ModulePrefs title="Biodiversity Image Server - Interactive Viewer"
+                description=""
+                author="SilverBiology"
+                author_affiliation="www.SilverBiology.com"
+                screenshot="/ig/modules/spreadsheet.png"
+                thumbnail="/ig/modules/spreadsheet-thm.png" > 
+         <Require feature="idi"/>
+         <Require feature="locked-domain" />
+    </ModulePrefs>
+    <UserPref name="_table_query_url" display_name="__MSG_tablequeryurl__" required="true" />
+    <UserPref name="title" display_name="__MSG_title__" required="false" />
+    <UserPref name="_table_query_refresh_interval" display_name="__MSG_tablequeryrefreshinterval__" default_value="300" datatype="enum" required="false">
+      <EnumValue value="0" display_value="__MSG_never__" />
+      <EnumValue value="60" display_value="1" />
+      <EnumValue value="300" display_value="5" />
+      <EnumValue value="1800" display_value="30" />
+    </UserPref>
+    <Content type="url" href="https://s3.amazonaws.com/cdn.silverbiology/bis/imageviewerJquery/index.html" />
+</Module>
