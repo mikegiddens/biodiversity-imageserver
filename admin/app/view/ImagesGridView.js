@@ -60,10 +60,10 @@ Ext.define('BIS.view.ImagesGridView', {
 		this.tplBoth = new Ext.XTemplate(
 			'<tpl for=".">'+
 			'<div class="imageSelector">' +
-				'<div style="display:inline-block;width:100px;margin:5px 10px 5px 5px;">'+
+				'<div style="width:100px;margin:5px 10px 5px 5px;">'+
                     '<img src="{[this.renderThumbnail(values.path,values.filename,values.ext)]}">'+
                 '</div>'+
-				'<div style="display:inline-block">'+
+				'<div>'+
                     '<div unselectable="on">{barcode} {family}<br/>{genus} {specificEpithet}<br/>'+
                         '<tpl if="barcode != 0">'+
                             '<span>Barcode: {barcode}</span><br>'+
@@ -85,13 +85,13 @@ Ext.define('BIS.view.ImagesGridView', {
 		this.tplSmallIcons = new Ext.XTemplate(
 			'<tpl for=".">'+
 			'<div class="imageSelector">' +
-			'<div style="display:inline-block; width:100px;height:100px"><img ' +
-				'<tpl if="family != \'\' || genus != \'\' || specificEpithet != \'\' ">'+
-					' ext:qtip="' +
-					'<tpl if="Family != \'\' " >{family}<br></tpl>'+
-					'<tpl if="Genus != \'\' " >{genus} {specificEpithet}"</tpl>'+
-				'</tpl>' +
-				'src="{[this.renderThumbnail(values.path,values.filename,values.ext)]}" /></div>'+
+                '<div width:100px;height:100px"><img ' +
+                    '<tpl if="family != \'\' || genus != \'\' || specificEpithet != \'\' ">'+
+                        ' ext:qtip="' +
+                        '<tpl if="Family != \'\' " >{family}<br></tpl>'+
+                        '<tpl if="Genus != \'\' " >{genus} {specificEpithet}"</tpl>'+
+                    '</tpl>' +
+                    'src="{[this.renderThumbnail(values.path,values.filename,values.ext)]}" /></div>'+
 			'</div>'+
 			'</tpl>', {
 			renderThumbnail: function( path, filename, ext ) {
@@ -101,10 +101,10 @@ Ext.define('BIS.view.ImagesGridView', {
 		this.tplTileIcons = new Ext.XTemplate(
 			'<tpl for=".">'+
 			'<div class="imageSelector">' +
-			'<div style="display:inline-block; padding: 5px;">'+
-				'<div unselectable="on">{barcode}<br/> {family}<span>{genus} {specificEpithet}</span></div>'+
-				'<div style="border-bottom: solid thin #9F9F9F; width: 275px; height: 276px;"><img src="{[this.renderThumbnail(values.path,values.filename,values.ext)]}"></div>'+
-			'</div>'+
+                '<div style="padding: 5px;">'+
+                    '<div unselectable="on">{barcode}<br/> {family}<span>{genus} {specificEpithet}</span></div>'+
+                    '<div style="border-bottom: solid thin #9F9F9F; width: 275px; height: 276px;"><img src="{[this.renderThumbnail(values.path,values.filename,values.ext)]}"></div>'+
+                '</div>'+
 			'</div>'+
 			'</tpl>', {
 			renderThumbnail: function( path, filename, ext ) {

@@ -87,19 +87,19 @@ Ext.define('BIS.view.CtxMnuImage', {
         me.callParent(arguments);
     },
     remove: function() {
-        var cmd = 'imageDelete'
-            params = { imageId: this.record.imageId }
+        var cmd = 'imageDelete';
+        var params = { imageId: this.record.imageId };
     },
     rotateCW: function() {
-        var cmd = 'imageRotateCW'
-            params = { imageId: this.record.imageId }
+        var cmd = 'imageModifyRotate';
+        var params = { imageId: this.record.imageId, degree: 90 };
     },
     rotateCCW: function() {
-        var cmd = 'imageRotateCCW'
-            params = { imageId: this.record.imageId }
+        var cmd = 'imageModifyRotate';
+        var params = { imageId: this.record.imageId, degree: 180 };
     },
     rotate180: function() {
-        var cmd = 'imageRotate180'
-            params = { imageId: this.record.imageId }
+        var cmd = 'imageModifyRotate';
+        var params = { imageId: this.record.imageId, degree: 270 };
     }
 });

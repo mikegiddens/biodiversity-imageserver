@@ -36,6 +36,10 @@
 .imagePropertyPillRemove:hover {
 	background-image:url(../img/closedn.png);
 }
+.imageSelector {
+	display: inline-block;
+	margin: 5px;
+}
 
 /*===============================
 /* Zoom Viewer Styles
