@@ -197,6 +197,10 @@
 				, 210 => 'imageId or barcode should be provided.'
 				, 211 => 'Invalid barcode provided.'
 				, 212 => 'Invalid path value set in config for tiles or imgTiles.'
+				, 213 => 'ip should be provided.'
+				, 214 => 'remoteAccessId should be provided.'
+				, 215 => 'Invalid remoteAccessId.'
+				, 216 => 'Remote Access could not be deleted.'
 			);
 			return $ar[$errorCode];
 		}

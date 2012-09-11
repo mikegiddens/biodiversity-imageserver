@@ -21,6 +21,24 @@ Class RemoteAccess {
 			return(false);
 		}
 	}
+
+	public function remoteAccessLoadById($remoteAccessId) {
+		if($remoteAccessId == '' || !is_numeric($remoteAccessId) || is_null($remoteAccessId)) return false;
+		$query = sprintf("SELECT * FROM `remoteAccess` WHERE `remoteAccessId` = %d", mysql_escape_string($remoteAccessId) );
+		$ret = $this->db->query_one( $query );
+		if ($ret != NULL) {
+			foreach( $ret as $field => $value ) {
+				$this->remoteAccessSetProperty($field, $value);
+			}
+			return(true);
+		} else {
+			return(false);
+		}
+	}
+	
+	public function remoteAccessKeyGenerate() {
+		return uniqid();
+	}
 	
 	public function remoteAccessSave() {
 		if($this->remoteAccessCheckDuplicate($this->remoteAccessGetProperty('ip'),$this->remoteAccessGetProperty('key'))) {
@@ -32,7 +50,7 @@ Class RemoteAccess {
 			, mysql_escape_string($this->remoteAccessGetProperty('active'))
 			);
 			if($this->db->query($query)) {
-				return(true);
+				return($this->db->insert_id);
 			} else {
 				return (false);
 			}
@@ -43,6 +61,16 @@ Class RemoteAccess {
 		$query = "SELECT * FROM remoteAccess";
 		$ret = $this->db->query($query);
 		return $ret;
+	}
+
+	public function remoteAccessDelete($remoteAccessId) {
+			$query = sprintf("DELETE FROM `remoteAccess` WHERE `remoteAccessId` = '%s' ;"
+			, mysql_escape_string($remoteAccessId));
+			if($this->db->query($query)) {
+				return(true);
+			} else {
+				return(false);
+			}
 	}
 	
 	public function remoteAccessCheck($ip, $tmpKey) {
