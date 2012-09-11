@@ -212,8 +212,15 @@ http://bis.silverbiology.com/dev/resources/api/api.php?cmd=processQueueList&valu
 http://bis.silverbiology.com/dev/resources/api/api.php?cmd=processQueueList
 
 -------------
+
+remoteAccessKeyDelete:
+http://bis.silverbiology.com/dev/resources/api/api.php?cmd=remoteAccessKeyDelete&remoteAccessId=9
+
 remoteAccessKeyList:
 http://bis.silverbiology.com/dev/resources/api/api.php?cmd=remoteAccessKeyList
+
+remoteAccessKeyGenerate:
+http://bis.silverbiology.com/dev/resources/api/api.php?cmd=remoteAccessKeyGenerate&ip=59.93.37.36
 
 -------------------
 

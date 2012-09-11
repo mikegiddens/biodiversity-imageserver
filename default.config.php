@@ -29,7 +29,7 @@
 	$config['path']['files'] = '/var/www/logs/';
 	$config['path']['processed_files'] = '/var/www/logs_processed/';
 	$config['path']['error'] = '';
-	$config['path']['imgTiles'] = '{server/path/to/website}/imgTiles/';
+	$config['path']['tilesDb'] = '{server/path/to/website}/tilesDb/';
 	$config['path']['tiles'] = '{server/path/to/website}/tiles/';
 	$config['path']['tmp'] = '';
 	$config['path']['metadatapackages'] = $config['path']['base'] . 'resources/metadatapackages/';

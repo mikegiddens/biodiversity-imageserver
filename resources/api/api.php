@@ -14,6 +14,7 @@
 
 	$expected = array (
 			'accountName'
+		,	'active'
 		,	'admin0'
 		,	'admin1'
 		,	'admin2'
@@ -59,6 +60,7 @@
 		,	'imageId'
 		,	'imagePath'
 		,	'index'
+		,	'ip'
 		,	'key'
 		,	'limit'
 		,	'loadFlag'
@@ -73,6 +75,7 @@
 		,	'password'
 		,	'rank'
 		,	'rating'
+		,	'remoteAccessId'
 		,	'searchFormat'
 		,	'searchType'
 		,	'searchValue'
@@ -2147,13 +2150,13 @@
 			} else if($barcode != "" && !$si->image->imageLoadByBarcode($barcode)) {
 				$valid = false;
 				$errorCode = 211;
-			} else if(!(isset($config['path']['imgTiles']) && $config['path']['imgTiles'] != '') || !(isset($config['path']['tiles']) && $config['path']['tiles'] != '')) {
+			} else if(!(isset($config['path']['tilesDb']) && $config['path']['tilesDb'] != '') || !(isset($config['path']['tiles']) && $config['path']['tiles'] != '')) {
 				$valid = false;
 				$errorCode = 212;
 			} else {
-				$si->image->imageMkdirRecursive($config['path']['imgTiles']);
+				$si->image->imageMkdirRecursive($config['path']['tilesDb']);
 				$si->image->imageMkdirRecursive($config['path']['tiles']);
-				if(!file_exists($config['path']['imgTiles']) || !file_exists($config['path']['tiles'])) {
+				if(!file_exists($config['path']['tilesDb']) || !file_exists($config['path']['tiles'])) {
 					$valid = false;
 					$errorCode = 212;
 				}
@@ -2186,9 +2189,9 @@
 				}
 				
 				if(in_array(@strtolower($tiles),array('create','createclear'))) {
-					$si->image->imageMkdirRecursive( $config['path']['imgTiles'] );
+					// $si->image->imageMkdirRecursive( $config['path']['tilesDb'] );
 					$tileFolder = @strtolower($t3[0]);
-					$it = new imgTiles($config['path']['imgTiles'] . $tileFolder . '.sqlite');
+					$it = new imgTiles($config['path']['tilesDb'] . $tileFolder . '.sqlite');
 
 					$handle = @opendir($config['path']['tiles'] . $tileFolder);
 					while (false !== ($zoom = @readdir($handle))) {
@@ -2216,7 +2219,7 @@
 			$filename = @strtolower($filename);
 			$filename = @basename($filename,'.jpg');
 			$index = @str_replace('tile_','',@basename($index,'.jpg'));
-			$it = new imgTiles($config['path']['imgTiles'] . $filename . '.sqlite');
+			$it = new imgTiles($config['path']['tilesDb'] . $filename . '.sqlite');
 			$result = $it->getTileData($zoom, $index);
 			$type = 'image/jpeg';
 			header('Content-Type:' . $type);
@@ -2488,6 +2491,29 @@
 			}
 			break;
 			
+		case 'remoteAccessKeyDelete':
+			$whitelist=  array('localhost',  '127.0.0.1');
+			if(!in_array($_SERVER['HTTP_HOST'],  $whitelist)){
+				// $valid = false;
+				$errorCode = 150;
+			} else if($remoteAccessId == '') {
+				$valid = false;
+				$errorCode = 214;
+			} else if(!$si->remoteAccess->remoteAccessLoadById($remoteAccessId)) {
+				$valid = false;
+				$errorCode = 215;
+			}
+			if($valid) {
+				if($si->remoteAccess->remoteAccessDelete($remoteAccessId)) {
+					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart) ) );
+				} else {
+					print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray(216)) ));
+				}
+			} else {
+				print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray($errorCode)) ));
+			}
+			break;
+			
 		case 'remoteAccessKeyList':
 			$whitelist=  array('localhost',  '127.0.0.1');
 			if(!in_array($_SERVER['HTTP_HOST'],  $whitelist)){
@@ -2499,12 +2525,36 @@
 				$listArray = array();
 				while($record = $list->fetch_object())
 				{
+					$item['remoteAccessId'] = $record->remoteAccessId;
 					$item['ip'] = $record->ip;
 					$item['key'] = $record->key;
 					$item['active'] = $record->active;
 					$listArray[] = $item;
 				}
 				print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart, 'records' => $listArray ) ) );
+			} else {
+				print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray($errorCode)) ));
+			}
+			break;
+			
+		case 'remoteAccessKeyGenerate':
+			$whitelist=  array('localhost',  '127.0.0.1');
+			if(!in_array($_SERVER['HTTP_HOST'],  $whitelist)){
+				// $valid = false;
+				$errorCode = 150;
+			} else if($ip == '') {
+				$valid = false;
+				$errorCode = 213;
+			}
+			if($valid) {
+				$active = ($active == 'false') ? 'false' : 'true';
+				$ip = ip2long($ip);
+				$key = $si->remoteAccess->remoteAccessKeyGenerate();
+				$si->remoteAccess->remoteAccessSetProperty('ip',$ip);
+				$si->remoteAccess->remoteAccessSetProperty('key',$key);
+				$si->remoteAccess->remoteAccessSetProperty('active',$active);
+				$id = $si->remoteAccess->remoteAccessSave();
+				print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart, 'remoteAccessId' => $id) ) );
 			} else {
 				print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray($errorCode)) ));
 			}
