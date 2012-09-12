@@ -24,6 +24,7 @@
 		,	'attribType'
 		,	'attribute'
 		,	'attributeId'
+		,	'authMode'
 		,	'barcode'
 		,	'baseUrl'
 		,	'basePath'
@@ -129,7 +130,7 @@
 	}
 	
 	function checkAuth() {
-		global $si,$userAccess;
+		global $si,$userAccess,$key;
 		switch($si->authMode) {
 			case 'key':
 				if(!$si->remoteAccess->remoteAccessCheck(ip2long($_SERVER['REMOTE_ADDR']), $key)) {
@@ -921,7 +922,7 @@
 						$errorCode = 147;
 					}
 				}
-				if(false === ($data['attributeId'] = $si->imageAttribute->imageAttributeGetBy($attribute,$attributeType,$data['categoryId']))) {
+				if(false === ($data['attributeId'] = $si->imageAttribute->imageAttributeGetBy($attribute,$attribType,$data['categoryId']))) {
 					if ($force && $attribType == 'name') {
 						$si->imageAttribute->imageAttributeSetProperty('name',$attribute);
 						$si->imageAttribute->imageAttributeSetProperty('categoryId',$data['categoryId']);
@@ -933,6 +934,11 @@
 					}
 				}
 			}
+			// echo '<pre>';
+			// echo ' Force : ';var_dump($force);
+			// echo '<br>';
+			// print_r($data);
+			// exit;
 			if($valid) {
 				$si->image->imageSetData($data);
 				if($si->image->imageAttributeAdd()) {
