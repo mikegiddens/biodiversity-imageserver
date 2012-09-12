@@ -103,7 +103,7 @@ Ext.define('BIS.view.MainViewport', {
 					store: 'QueueStore',
 					columns: [{
 						text:'Identifier',
-						dataIndex:'image_id',
+						dataIndex:'imageId',
 						flex:2
 					},{
 						text:'Completed?',

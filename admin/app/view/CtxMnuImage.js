@@ -54,6 +54,9 @@ Ext.define('BIS.view.CtxMnuImage', {
                 case 'mirror':
                     this.rotate180();
                     break;
+                case 'queue':
+                    this.queue();
+                    break;
             }
         }
     },
@@ -87,6 +90,11 @@ Ext.define('BIS.view.CtxMnuImage', {
                     text: 'Rotate 180&#176;',
                     iconCls: 'icon_arrowAlternating',
                     identifier: 'mirror'
+                },
+                {
+                    text: 'Queue Image',
+                    iconCls: 'icon_arrowAlternating',
+                    identifier: 'queue'
                 }
             ]
         });
@@ -132,6 +140,15 @@ Ext.define('BIS.view.CtxMnuImage', {
                 cmd: 'imageModifyRotate',
                 imageId: this.record.data.imageId,
                 degree: 270
+            }
+        });
+    },
+    queue: function() {
+        Ext.Ajax.request({
+            url: Config.baseUrl + 'resources/api/api.php',
+            params: {
+                cmd: 'imageModifyRechop',
+                imageId: this.record.data.imageId
             }
         });
     }
