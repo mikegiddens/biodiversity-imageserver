@@ -254,7 +254,7 @@ Class ProcessQueue {
 	public function processQueueProcessType($record) {
 		global $config;
 		$this->image->imageLoadById($record->imageId);
-		$device = $this->storage->storageDeviceGet($record->imageId);
+		$device = $this->storage->storageDeviceGet($this->image->record['storageDeviceId']);		
 		if(!$device) return false;
 /*		
 		if(strtolower($this->storage->storageDeviceGetType($this->image->imageGetProperty('storageDeviceId'))) == 'local') {
