@@ -31,6 +31,11 @@ Ext.define('BIS.view.FormCreateEventType', {
                     readOnly: true,
                     fieldCls: 'x-item-disabled',
                     hidden: this.mode == 'add'
+                },
+                {
+                    xtype: 'hiddenfield',
+                    name: 'cmd',
+                    value: (this.mode == 'add') ? 'eventTypeAdd' : 'eventTypeUpdate'
                 }
             ],
             dockedItems: [
@@ -43,6 +48,12 @@ Ext.define('BIS.view.FormCreateEventType', {
                             text: ( this.mode == 'add' ) ? 'Add' : 'Update',
                             scope: this,
                             handler: this.submitForm
+                        },
+                        '->',
+                        {
+                            text: 'Cancel',
+                            scope: this,
+                            handler: this.cancel
                         }
                     ]
                 }
@@ -60,24 +71,21 @@ Ext.define('BIS.view.FormCreateEventType', {
         }
     },
 	submitForm: function() {
-		var route = 'resources/api/api.php?cmd=';
-		if ( this.mode == 'add' ) {
-			route += 'eventTypeAdd';
-		} else {
-			// edit
-			route += 'eventTypeUpdate';
-		}
-		var form = this.up('form').getForm();
-		form.url = Config.baseUrl + route;
+        var me = this;
+		var form = Ext.getCmp('formCreateEventType').getForm();
+		form.url = Config.baseUrl + 'resources/api/api.php';
 		if ( form.isValid() ) {
 			form.submit({
 				success: function(form, action) {
-                    this.ownerCt.fireEvent('eventTypeAdded',action);
+                    me.ownerCt.fireEvent('eventTypeAdded',action);
 				},
 				failure: function(form, action) {
 			        Ext.Msg.alert('Failed', 'Request Failed');
 				}
 			});
 		}
-	}
+	},
+    cancel: function() {
+        this.ownerCt.fireEvent('cancel');
+    }
 });

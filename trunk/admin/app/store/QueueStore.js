@@ -23,7 +23,7 @@ Ext.define('BIS.store.QueueStore', {
                 url: Config.baseUrl + 'resources/api/api.php',
                 type: 'ajax',
                 extraParams: {
-                    cmd: 'queueList'
+                    cmd: 'processQueueList'
                 },
                 reader: {
                     type: 'json',

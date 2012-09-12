@@ -49,7 +49,7 @@ Ext.define('BIS.view.ImageDetailPanel', {
                 renderMetadata: function( i ) {
                     return '<span class="imgmetadata imagePropertyPill">'+
                                 '<span class="imagePropertyPillText"><span style="font-weight:bold">' + i.key + '</span>: ' + i.value + '</span>'+
-                                '<span catdata="metadata" pilldata="' + i.key + '" class="del imagePropertyPillRemove"></span>'+
+                                '<span catdata="metadata" pilldata="' + i.id + '" class="del imagePropertyPillRemove"></span>'+
                         '</span>'
                 }
             }),
@@ -82,9 +82,11 @@ Ext.define('BIS.view.ImageDetailPanel', {
 						id: 'propertySeachCombo',
 						disabled: true,
 						emptyText: 'Type to search attributes or add a new one.',
-						store: 'ImagesStore',
-						displayField: 'fileName',
+						store: 'PropertiesStore',
+						displayField: 'title',
 						typeAhead: false,
+                        queryParam: 'value',
+                        minChars: 2,
 						hideLabel: true,
 						hideTrigger: true,
 						flex: 1,
@@ -93,17 +95,32 @@ Ext.define('BIS.view.ImageDetailPanel', {
 								emptyText: 'No matching properties found.',
 								getInnerTpl: function() {
 										return '<div class="propertySearchItem">'+
-												'<h3><span>{fileName}</h3>'+
-												'{path}'+
+												'<h3><span>{title}</h3>'+
+												'( Category {categoryId} )'+
 										'</div>';
 								}
 						},
 						pageSize: 5,
 						listeners: {
+                            scope: this,
 							select: function(combo, selection) {
 								var property = selection[0];
 								if ( property ) {
-									console.log( 'selected', property );
+                                    Ext.Ajax.request({
+                                        url: Config.baseUrl + 'resources/api/api.php',
+                                        params: {
+                                            cmd: 'imageAddAttribute',
+                                            attributeId: property.data.attributeId,
+                                            imageId: this.image.imageId
+                                        },
+                                        scope: this,
+                                        success: function( data ) {
+                                            if ( data.success ) {
+                                                // reload details
+                                                this.loadImage( this.image );
+                                            }
+                                        }
+                                    });
 								}
 							}
 						}
@@ -114,8 +131,6 @@ Ext.define('BIS.view.ImageDetailPanel', {
 	},
 	
 	loadImage: function( record ) {
-        // get metadata
-        //  
         // get events
         // get geography
         // get sets
@@ -124,13 +139,15 @@ Ext.define('BIS.view.ImageDetailPanel', {
             url: 'http://bis.silverbiology.com/dev/resources/api/api.php',
             params: {
                 cmd: 'imageDetails',
+                // flags for associations
                 imageId: record.imageId
             },
             scope: this,
             success: function( res ) {
                 var data = Ext.decode( res.responseText ).results;
+                this.image = data;
                 Ext.each( data.attributes, function( attr ) {
-                    properties.push({ key: attr.attrib, value: attr.value });
+                    properties.push({ key: attr.attrib, value: attr.value, id: attr.attributeId });
                 });
                 this.addProperties({
                     metadata: properties,
@@ -152,7 +169,18 @@ Ext.define('BIS.view.ImageDetailPanel', {
 	},
 
 	removeProperty: function( type, id ) {
-		console.log( 'removing', type, id );
+        switch ( type ) {
+            case 'metadata':
+                Ext.Ajax.request({
+                    url: Config.baseUrl + 'resources/api/api.php',
+                    params: {
+                        cmd: 'imageDeleteAttribute',
+                        attributeId: id,
+                        imageId: this.image.imageId
+                    }
+                });
+                break;
+        }
 	}
 
 });

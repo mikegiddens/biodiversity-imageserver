@@ -4,16 +4,16 @@ Ext.define('BIS.model.QueueModel', {
 
     fields: [
         {
-            name: 'image_id'
+            name: 'imageId'
         },
         {
-            name: 'process_type'
+            name: 'processType'
         },
         {
             name: 'extra'
         },
         {
-            name: 'date_added'
+            name: 'dateAdded'
         },
         {
             name: 'processed'
@@ -22,7 +22,7 @@ Ext.define('BIS.model.QueueModel', {
             name: 'errors'
         },
         {
-            name: 'error_details'
+            name: 'errorDetails'
         }
     ]
 });

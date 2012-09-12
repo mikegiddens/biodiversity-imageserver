@@ -35,12 +35,17 @@ Ext.define('BIS.view.FormCreateEvent', {
                 {
                     xtype: 'textfield',
                     name: 'eventTypeId',
+                    value: this.record.data.eventTypeId,
                     fieldLabel: 'Type Identifier',
                     labelAlign: 'right',
                     anchor: '100%',
                     readOnly: true,
-                    fieldCls: 'x-item-disabled',
-                    hidden: this.mode == 'add'
+                    fieldCls: 'x-item-disabled'
+                },
+                {
+                    xtype: 'hiddenfield',
+                    name: 'cmd',
+                    value: (this.mode == 'add') ? 'eventAdd' : 'eventUpdate'
                 }
             ],
             dockedItems: [
@@ -53,6 +58,12 @@ Ext.define('BIS.view.FormCreateEvent', {
                             text: ( this.mode == 'add' ) ? 'Add' : 'Update',
                             scope: this,
                             handler: this.submitForm
+                        },
+                        '->',
+                        {
+                            text: 'Cancel',
+                            scope: this,
+                            handler: this.cancel
                         }
                     ]
                 }
@@ -65,31 +76,26 @@ Ext.define('BIS.view.FormCreateEvent', {
         afterrender: function() {
             if ( this.mode != 'add' ) {
                 // edit
-                console.log( this.record.data );
                 Ext.getCmp('formCreateEvent').loadRecord( this.record );
             }
         }
     },
 	submitForm: function() {
-		var route = 'resources/api/api.php?cmd=';
-        console.log( this, this.mode );
-		if ( this.mode == 'add' ) {
-			route += 'eventAdd';
-		} else {
-			// edit
-			route += 'eventUpdate';
-		}
-		var form = this.up('form').getForm();
-		form.url = Config.baseUrl + route;
+        var me = this;
+		var form = Ext.getCmp('formCreateEvent').getForm();
+		form.url = Config.baseUrl + 'resources/api/api.php';
 		if ( form.isValid() ) {
 			form.submit({
 				success: function(form, action) {
-                    this.ownerCt.fireEvent('eventAdded',action);
+                    me.ownerCt.fireEvent('eventAdded',action);
 				},
 				failure: function(form, action) {
-						Ext.Msg.alert('Failed', 'Request Failed');
+                    Ext.Msg.alert('Failed', 'Request Failed');
 				}
 			});
 		}
-	}
+	},
+    cancel: function() {
+        this.ownerCt.fireEvent('cancel');
+    }
 });

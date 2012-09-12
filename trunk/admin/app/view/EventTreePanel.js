@@ -97,12 +97,16 @@ Ext.define('BIS.view.EventTreePanel', {
 			layout: 'fit',
 			items: [{
 				xtype: 'formcreateeventtype',
+                border: false,
 				mode: 'add'
 			}]
 		}).show();
         tmpWindow.on('eventTypeAdded',function(data){
             tmpWindow.close();
             Ext.getCmp('eventTreePanel').getStore().load();
+        });
+        tmpWindow.on('cancel',function(data){
+            tmpWindow.close();
         });
 	}
 });

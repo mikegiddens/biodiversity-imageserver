@@ -14,7 +14,8 @@ Ext.define('BIS.view.MainViewport', {
 		'BIS.view.CategoryTreePanel',
 		'BIS.view.CollectionTreePanel',
 		'BIS.view.EventTreePanel',
-		'BIS.view.ImageDetailPanel'
+		'BIS.view.ImageDetailPanel',
+        'BIS.view.KeyManagerPanel'
 	],
 	layout: {
 		type: 'border'
@@ -105,7 +106,7 @@ Ext.define('BIS.view.MainViewport', {
 						dataIndex:'image_id',
 						flex:2
 					},{
-						text:'Compeleted?',
+						text:'Completed?',
 						dataIndex:'processed',
 						renderer: function( value ) {
 							if ( value ) { 
@@ -119,7 +120,22 @@ Ext.define('BIS.view.MainViewport', {
 						show: function( el, opts ) {
 							Ext.getCmp('viewsPagingTitle').setText('Queue');
 						}
-					}
+					},
+                    dockedItems: [
+                        {
+                            xtype: 'toolbar',
+                            dock: 'top',
+                            items: [
+                                {
+                                    text: 'Refresh Queue',
+                                    iconCls: 'icon_arrowAlternating',
+                                    handler: function() {
+                                        Ext.getCmp('queuePanel').getStore().load();
+                                    }
+                                }
+                            ]
+                        }
+                    ]
 				},{
 					xtype: 'panel',
 					id: 'geographyPanel',
@@ -197,6 +213,10 @@ Ext.define('BIS.view.MainViewport', {
 								iconCls: 'icon_users',
 								handler: this.openUserManager
 							},{
+                                text: 'Key Manager',
+                                iconCls: 'icon_key',
+                                handler: this.openKeyManager
+                            },{
 								text: 'Server Information',
 								iconCls: 'icon_info',
 								handler: this.openServerInfo
@@ -274,6 +294,21 @@ Ext.define('BIS.view.MainViewport', {
 				bodyBorder: false,
 				items: [{
 					xtype: 'usermanagerpanel' 
+				}]
+			}).show();
+    },
+    openKeyManager: function( menuItem, e ) {
+			Ext.create('Ext.window.Window', {
+				title: 'Access Key Management',
+				iconCls: 'icon_key',
+				modal: true,
+				resizeable: false,
+				height: 500,
+				width: 800,
+				layout: 'fit',
+				bodyBorder: false,
+				items: [{
+                    xtype: 'keymanagerpanel' 
 				}]
 			}).show();
     },

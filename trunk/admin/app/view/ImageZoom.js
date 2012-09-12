@@ -187,7 +187,10 @@ Ext.define('BIS.view.ImageZoom', {
         Ext.Ajax.request({
             url: url,
             scope: this,
-            success: this.loadAllControls
+            success: this.loadAllControls,
+            failure: function() {
+                this.el.update( '<div style="padding:20px;">Cannot load image tiles at this time.</div>' );
+            }
         });
     },
     loadAllControls: function( data ) {
@@ -216,6 +219,7 @@ Ext.define('BIS.view.ImageZoom', {
                 this.myMask.hide();
             }
         } else {
+            this.el.update( '<div padding="20px">Cannot load image tiles at this time.</div>' );
             this.fireEvent( 'loaderror', this );
             if (this.showMask) {
                 this.myMask.hide();

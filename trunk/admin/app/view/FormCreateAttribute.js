@@ -9,7 +9,7 @@ Ext.define('BIS.view.FormCreateAttribute', {
             items: [
                 {
                     xtype: 'textfield',
-                    name: 'value',
+                    name: 'name',
                     fieldLabel: 'Name',
                     labelAlign: 'right',
                     allowBlank: false,
@@ -17,13 +17,23 @@ Ext.define('BIS.view.FormCreateAttribute', {
                 },
                 {
                     xtype: 'textfield',
-                    name: 'identifier',
+                    name: 'attributeId',
                     fieldLabel: 'Identifier',
                     labelAlign: 'right',
                     anchor: '100%',
                     readOnly: true,
                     fieldCls: 'x-item-disabled',
                     hidden: this.mode == 'add'
+                },
+                {
+                    xtype: 'textfield',
+                    name: 'categoryId',
+                    value: this.record.data.categoryId,
+                    fieldLabel: 'Category',
+                    labelAlign: 'right',
+                    anchor: '100%',
+                    readOnly: true,
+                    fieldCls: 'x-item-disabled'
                 },
                 {
                     xtype: 'hiddenfield',
@@ -41,7 +51,13 @@ Ext.define('BIS.view.FormCreateAttribute', {
                             text: ( this.mode == 'add' ) ? 'Add' : 'Update',
                             scope: this,
                             handler: this.submitForm
-                        }
+                        },
+                        '->',
+                        {
+                            text: 'Cancel',
+                            scope: this,
+                            handler: this.cancel
+                        },
                     ]
                 }
             ]
@@ -59,18 +75,21 @@ Ext.define('BIS.view.FormCreateAttribute', {
     },
 
 	submitForm: function() {
-		var form = this.up('form').getForm();
+        var me = this;
+		var form = Ext.getCmp('formCreateAttribute').getForm();
 		form.url = Config.baseUrl + 'resources/api/api.php';
 		if ( form.isValid() ) {
 			form.submit({
 				success: function(form, action) {
-                     this.fireEvent('attributeCreated', action);
+                     me.ownerCt.fireEvent('attributeCreated', action);
 				},
 				failure: function(form, action) {
-						Ext.Msg.alert('Failed', 'Request Failed');
+                    Ext.Msg.alert('Failed', 'Request Failed');
 				}
 			});
 		}
-	}    
-
+    },
+    cancel: function() {
+        this.ownerCt.fireEvent('cancel');
+    }
 });

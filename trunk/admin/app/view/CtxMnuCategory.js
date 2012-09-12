@@ -24,6 +24,9 @@ Ext.define('BIS.view.CtxMnuCategory', {
                         tmpWindow.close();
                         Ext.getCmp('categoryTreePanel').getStore().load();
                     });
+                    tmpWindow.on( 'cancel', function( data ) {
+                        tmpWindow.close();
+                    });
                     break;
                 case 'update':
                     var me = this;
@@ -31,7 +34,7 @@ Ext.define('BIS.view.CtxMnuCategory', {
                         title: 'Edit ' + this.record.data.title,
                         iconCls: 'icon_editCategory',
                         modal: true,
-                        height: 100,
+                        height: 150,
                         width: 350,
                         layout: 'fit',
                         items: [
@@ -41,14 +44,17 @@ Ext.define('BIS.view.CtxMnuCategory', {
                             })
                         ]
                     }).show();
-                    tmpWindow.on('attributeCreated', function( data ) {
+                    tmpWindow.on('categoryCreated', function( data ) {
                         tmpWindow.close();
                         Ext.getCmp('categoryTreePanel').getStore().load();
                     });
+                    tmpWindow.on( 'cancel', function( data ) {
+                        tmpWindow.close();
+                    });
                     break;
                 case 'delete':
-                    Ext.Msg.confirm('Remove ' + this.record.data.title + '?', 'Are you sure you want remove ' + this.record.data.title + '?', function( btn, nothing, item ) {
-                        this.remove();
+                    Ext.Msg.confirm('Remove Category', 'Are you sure you want remove "' + this.record.data.title + '"?', function( btn, nothing, item ) {
+                        if ( btn == 'yes' ) this.remove();
                     }, this);
                     break;
             }
@@ -82,13 +88,16 @@ Ext.define('BIS.view.CtxMnuCategory', {
     remove: function() {
         Ext.Ajax.request({
             method: 'POST',
-            url: Config.baseUrl + 'resources/api/api.php?cmd=categoryDelete',
-            params: { categoryId: this.record.data.categoryId },
+            url: Config.baseUrl + 'resources/api/api.php',
+            params: {
+                cmd: 'categoryDelete',
+                categoryId: this.record.data.categoryId
+            },
             scope: this,
             success: function( resObj ) {
                 var res = Ext.decode( resObj.responseText );
                 if ( res.success ) {
-                    this.fireEvent('categoryCreated', res);
+                    Ext.getCmp('categoryTreePanel').getStore().load();
                 }
             },
             failure: function( form, action ) {

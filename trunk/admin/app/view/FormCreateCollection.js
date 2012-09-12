@@ -32,6 +32,11 @@ Ext.define('BIS.view.FormCreateCollection', {
                     readOnly: 'true',
                     fieldCls: 'x-item-disabled',
                     hidden: this.mode == 'add'
+                },
+                {
+                    xtype: 'hiddenfield',
+                    name: 'cmd',
+                    value: (this.mode == 'add') ? 'collectionAdd' : 'collectionUpdate'
                 }
             ],
             dockedItems: [
@@ -44,6 +49,12 @@ Ext.define('BIS.view.FormCreateCollection', {
                             text: ( this.mode == 'add' ) ? 'Add' : 'Update',
                             scope: this,
                             handler: this.submitForm
+                        },
+                        '->',
+                        {
+                            text: 'Cancel',
+                            scope: this,
+                            handler: this.cancel
                         }
                     ]
                 }
@@ -60,26 +71,21 @@ Ext.define('BIS.view.FormCreateCollection', {
         }
     },
 	submitForm: function() {
-		var route = 'resources/api/api.php?cmd=';
-		if ( this.mode == 'add' ) {
-			route += 'collectionAdd';
-		} else {
-			// edit
-			route += 'collectionUpdate';
-		}
-		var form = this.up('form').getForm();
-		form.url = Config.baseUrl + route;
+        var me = this;
+		var form = Ext.getCmp('formCreateCollection').getForm();
+		form.url = Config.baseUrl + 'resources/api/api.php';
 		if ( form.isValid() ) {
 			form.submit({
 				success: function(form, action) {
-					 Ext.Msg.alert('Success', action.result.msg);
-					 // fire event, close window
-					 // DO NOT refresh any list here it should be done from the list copmonent by listening to the event.
+                    me.ownerCt.fireEvent( 'collectionCreated', Ext.decode(action.response.responseText) );
 				},
 				failure: function(form, action) {
 						Ext.Msg.alert('Failed', 'Request Failed');
 				}
 			});
 		}
-	}
+	},
+    cancel: function() {
+        this.ownerCt.fireEvent('cancel');
+    }
 });
