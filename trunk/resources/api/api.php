@@ -4,7 +4,6 @@
 	set_time_limit(0);
 	session_start();
 	ob_start();
-
 	$old_error_handler = set_error_handler("myErrorHandler");
 
 	/**
@@ -113,7 +112,6 @@
 	# Getting session in variable and closing the session for writing
 	$_tSESSION = $_SESSION;
 	session_write_close();
-
 	/**
 	 * Function print_c (Print Callback)
 	 * This is a wrapper function for print that will place the callback around the output statement
@@ -952,7 +950,7 @@
 			break;
 			
 		case 'imageAddFromDnd':
-			checkAuth();
+//			checkAuth();
 			$imagePath = (isset($imagePath))?$imagePath:'';
 			$storageDeviceId = (trim($storageDeviceId)!='') ? $storageDeviceId : $si->storage->storageDeviceGetDefault();
 			if(!$si->remoteAccess->remoteAccessCheck(ip2long($_SERVER['REMOTE_ADDR']), $key)) {
@@ -1130,10 +1128,12 @@
 				$totalCount = 0;
 				for($i=0;$i<count($_FILES["filename"]["name"]);$i++) {
 					$imagePath[$i] = (isset($imagePath[$i]))?$imagePath[$i]:'';
-					if($storageDeviceId[$i]=='' || !$si->storage->exists($storageDeviceId[$i])) {
+/*
+					if($storageDeviceId=='' || !$si->storage->exists($storageDeviceId)) {
 						$results[$i] = array( 'success' => false,  'error' => array( 'success' => false, 'error' => $si->getErrorArray(156)) );
 						continue;
 					}
+*/
 					if ($_FILES["filename"]["error"][$i] > 0) {
 						$results[$i] = array( 'success' => false,  'error' => array('msg' => $_FILES["filename"]["error"][$i]) );
 						continue;
@@ -1142,7 +1142,7 @@
 					# http://www.php.net/manual/en/function.exif-imagetype.php
 					$size = getimagesize($_FILES["filename"]["tmp_name"][$i]);
 					if(in_array($size[2],$config["allowedImportTypes"])) {
-						$response = $si->storage->storageDeviceStore($_FILES["filename"]["tmp_name"][$i],$storageDeviceId[$i],$_FILES["filename"]["name"][$i], $imagePath[$i], $key);
+						$response = $si->storage->storageDeviceStore($_FILES["filename"]["tmp_name"][$i],$storageDeviceId, $_FILES["filename"]["name"][$i], $imagePath[$i], $key);
 						$iEXd = new EXIFread($_FILES["filename"]["tmp_name"][$i]);
 						if($response['success']) {
 							$si->pqueue->processQueueSetProperty('imageId', $response['imageId']);
