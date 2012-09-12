@@ -57,6 +57,20 @@ Class RemoteAccess {
 		}
 	}
 	
+	public function remoteAccessUpdate() {
+		$query = sprintf("UPDATE `remoteAccess` SET `ip` = '%s', `key` = '%s', `active` = '%s' WHERE `remoteAccessId` = '%s' ;"
+		, mysql_escape_string($this->remoteAccessGetProperty('ip'))
+		, mysql_escape_string($this->remoteAccessGetProperty('key'))
+		, mysql_escape_string($this->remoteAccessGetProperty('active'))
+		, mysql_escape_string($this->remoteAccessGetProperty('remoteAccessId'))
+		);
+		if($this->db->query($query)) {
+			return(true);
+		} else {
+			return (false);
+		}
+	}
+	
 	public function remoteAccessList() {
 		$query = "SELECT * FROM remoteAccess";
 		$ret = $this->db->query($query);
