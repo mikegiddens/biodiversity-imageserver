@@ -201,6 +201,7 @@
 				, 214 => 'remoteAccessId should be provided.'
 				, 215 => 'Invalid remoteAccessId.'
 				, 216 => 'Remote Access could not be deleted.'
+				, 217 => 'Remote Access could not be Updated.'
 			);
 			return $ar[$errorCode];
 		}

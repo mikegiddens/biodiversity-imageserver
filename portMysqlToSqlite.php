@@ -56,8 +56,8 @@
 				$unionTerm = '';
 				$dataFlag = false;
 				$insertQuery = ' INSERT INTO ' . $table . ' ( "' . implode('","',$cols) . '" ) ';
-				$result = mysql_query(" SELECT * FROM {$table} LIMIT 5 ");
-				// $result = mysql_query(" SELECT * FROM {$table} ");
+				// $result = mysql_query(" SELECT * FROM {$table} LIMIT 5 ");
+				$result = mysql_query(" SELECT * FROM {$table} ");
 				while($row = mysql_fetch_row($result)) {
 					$dataFlag = true;
 					$count++;
@@ -68,7 +68,7 @@
 						}
 					}
 					$tmpArray[] = ' SELECT ' . implode(',',$tmpAr);
-					if($count > 10) {
+					if($count > 10000) {
 						$insertQuery = $insertQuery . ' ' . $unionTerm . implode(' UNION ',$tmpArray);
 						fwrite($fp,$insertQuery);
 						$count = 0;
@@ -104,7 +104,7 @@
 		$count = 0;
 		$unionTerm = '';
 		$dataFlag = false;
-		$insertQuery = ' INSERT INTO ' . $table . ' ( "' . implode('","',$cols) . '" ) ';
+		$insertQuery = ' INSERT INTO users ( "' . implode('","',$cols) . '" ) ';
 		$result = mysql_query(" SELECT * FROM users ");
 		while($row = mysql_fetch_row($result)) {
 			$dataFlag = true;
@@ -116,7 +116,7 @@
 				}
 			}
 			$tmpArray[] = ' SELECT ' . implode(',',$tmpAr);
-			if($count > 10) {
+			if($count > 10000) {
 				$insertQuery = $insertQuery . ' ' . $unionTerm . implode(' UNION ',$tmpArray);
 				fwrite($fp,$insertQuery);
 				$count = 0;

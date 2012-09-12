@@ -46,7 +46,7 @@ CREATE TABLE IF NOT EXISTS `bis2Hs` (
 CREATE TABLE IF NOT EXISTS `collection` (
   `collectionId` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL,
-  `code` varchar(10) NOT NULL,
+  `code` varchar(60) NOT NULL,
   `collectionSize` int(11) NOT NULL,
   PRIMARY KEY (`collectionId`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
@@ -187,7 +187,7 @@ CREATE TABLE IF NOT EXISTS `image` (
   `nameFinderFlag` tinyint(4) NOT NULL DEFAULT '0',
   `nameFinderValue` text,
   `scientificName` varchar(30) DEFAULT NULL,
-  `collectionCode` varchar(10) DEFAULT NULL,
+  `collectionCode` varchar(60) DEFAULT NULL,
   `catalogueNumber` int(11) DEFAULT NULL,
   `guessFlag` tinyint(4) NOT NULL DEFAULT '0',
   `tmpFamily` varchar(20) DEFAULT NULL,

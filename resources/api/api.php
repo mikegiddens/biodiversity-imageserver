@@ -1296,7 +1296,7 @@
 						print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray(173)) ));
 					}
 				} else {
-					print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray(163)) ));
+					print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray(166)) ));
 				}
 			} else {
 				print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray($errorCode)) ));
@@ -2502,6 +2502,10 @@
 			if(!in_array($_SERVER['HTTP_HOST'],  $whitelist)){
 				// $valid = false;
 				$errorCode = 150;
+			}
+			if(!($userAccess->is_logged_in() && $userAccess->get_accessLevel() == 10)){
+				$errorCode = 104;
+				$valid = false;
 			} else if($remoteAccessId == '') {
 				$valid = false;
 				$errorCode = 214;
@@ -2520,6 +2524,62 @@
 			}
 			break;
 			
+		case 'remoteAccessKeyDisable':
+			$whitelist=  array('localhost',  '127.0.0.1');
+			if(!in_array($_SERVER['HTTP_HOST'],  $whitelist)){
+				// $valid = false;
+				$errorCode = 150;
+			}
+			if(!($userAccess->is_logged_in() && $userAccess->get_accessLevel() == 10)){
+				$errorCode = 104;
+				$valid = false;
+			} else if($remoteAccessId == '') {
+				$valid = false;
+				$errorCode = 214;
+			} else if(!$si->remoteAccess->remoteAccessLoadById($remoteAccessId)) {
+				$valid = false;
+				$errorCode = 215;
+			}
+			if($valid) {
+				$si->remoteAccess->remoteAccessSetProperty('active','false');
+				if($si->remoteAccess->remoteAccessUpdate()) {
+					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart) ) );
+				} else {
+					print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray(217)) ));
+				}
+			} else {
+				print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray($errorCode)) ));
+			}
+			break;
+			
+		case 'remoteAccessKeyEnable':
+			$whitelist=  array('localhost',  '127.0.0.1');
+			if(!in_array($_SERVER['HTTP_HOST'],  $whitelist)){
+				// $valid = false;
+				$errorCode = 150;
+			}
+			if(!($userAccess->is_logged_in() && $userAccess->get_accessLevel() == 10)){
+				$errorCode = 104;
+				$valid = false;
+			} else if($remoteAccessId == '') {
+				$valid = false;
+				$errorCode = 214;
+			} else if(!$si->remoteAccess->remoteAccessLoadById($remoteAccessId)) {
+				$valid = false;
+				$errorCode = 215;
+			}
+			if($valid) {
+				$si->remoteAccess->remoteAccessSetProperty('active','true');
+				if($si->remoteAccess->remoteAccessUpdate()) {
+					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart) ) );
+				} else {
+					print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray(217)) ));
+				}
+			} else {
+				print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray($errorCode)) ));
+			}
+			break;
+		
 		case 'remoteAccessKeyList':
 			$whitelist=  array('localhost',  '127.0.0.1');
 			if(!in_array($_SERVER['HTTP_HOST'],  $whitelist)){
@@ -2548,6 +2608,10 @@
 			if(!in_array($_SERVER['HTTP_HOST'],  $whitelist)){
 				// $valid = false;
 				$errorCode = 150;
+			}
+			if(!($userAccess->is_logged_in() && $userAccess->get_accessLevel() == 10)){
+				$errorCode = 104;
+				$valid = false;
 			} else if($ip == '') {
 				$valid = false;
 				$errorCode = 213;
