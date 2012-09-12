@@ -33,8 +33,8 @@
 	// echo '<pre>';
 	// echo '<br>';
 	// print_r($tables);
-	
-	$tables = array('users');
+// exit;	
+	// $tables = array('log');
 	
 	# Tables
 	if(file_exists($config['port']['sqlPath'])){
@@ -54,9 +54,12 @@
 				$tmpArray = array();
 				$count = 0;
 				$unionTerm = '';
+				$dataFlag = false;
 				$insertQuery = ' INSERT INTO ' . $table . ' ( "' . implode('","',$cols) . '" ) ';
 				$result = mysql_query(" SELECT * FROM {$table} LIMIT 5 ");
+				// $result = mysql_query(" SELECT * FROM {$table} ");
 				while($row = mysql_fetch_row($result)) {
+					$dataFlag = true;
 					$count++;
 					$tmpAr = array();
 					if(is_array($row) && count($row)) {
@@ -65,7 +68,7 @@
 						}
 					}
 					$tmpArray[] = ' SELECT ' . implode(',',$tmpAr);
-					if($count > 100) {
+					if($count > 10) {
 						$insertQuery = $insertQuery . ' ' . $unionTerm . implode(' UNION ',$tmpArray);
 						fwrite($fp,$insertQuery);
 						$count = 0;
@@ -78,20 +81,72 @@
 					$insertQuery = $insertQuery . ' ' . $unionTerm . implode(' UNION ',$tmpArray);
 					fwrite($fp,$insertQuery);
 				}
-				fclose($fp);
+				if($dataFlag) fwrite($fp,';');
 			}
 		}
+		fclose($fp);
 	}
+	
+	# Users table
+	if(file_exists($config['port']['usersSqlPath'])){
+		unlink($config['port']['usersSqlPath']);
+	}
+	if(false !== $fp = fopen($config['port']['usersSqlPath'],'a')) {
+		$columns = array();
+		$cols = array();
+		$query = " SHOW columns FROM `users` ";
+		$result1 = mysql_query($query);
+		while($row = mysql_fetch_row($result1)) {
+			$columns[] = array('value' => $row[0], 'type' => $row[1]);
+			$cols[] = $row[0];
+		}
+		$tmpArray = array();
+		$count = 0;
+		$unionTerm = '';
+		$dataFlag = false;
+		$insertQuery = ' INSERT INTO ' . $table . ' ( "' . implode('","',$cols) . '" ) ';
+		$result = mysql_query(" SELECT * FROM users ");
+		while($row = mysql_fetch_row($result)) {
+			$dataFlag = true;
+			$count++;
+			$tmpAr = array();
+			if(is_array($row) && count($row)) {
+				for($i = 0; $i < count($row); $i++) {
+					$tmpAr[] = (isStringType($columns[$i]['type'])) ? "'{$row[$i]}'" : "{$row[$i]}" ;
+				}
+			}
+			$tmpArray[] = ' SELECT ' . implode(',',$tmpAr);
+			if($count > 10) {
+				$insertQuery = $insertQuery . ' ' . $unionTerm . implode(' UNION ',$tmpArray);
+				fwrite($fp,$insertQuery);
+				$count = 0;
+				$insertQuery = '';
+				$unionTerm = ' UNION ';
+				$tmpArray = array();
+			}
+		}
+		if(count($tmpArray)) {
+			$insertQuery = $insertQuery . ' ' . $unionTerm . implode(' UNION ',$tmpArray);
+			fwrite($fp,$insertQuery);
+		}
+		if($dataFlag) fwrite($fp,';');
+		fclose($fp);
+	}
+	
 	
 	function isStringType($value) {
 		$value = strtolower($value);
-		if(in_array(substr($value,0,4),array('varc','char','date','enum'))) {
+		if(in_array(substr($value,0,4),array('varc','char','date','enum','blob'))) {
 			return true;
 		} else {
 			return false;
 		}
 	}	
 
-echo '<br> SQL Files created.';	
+echo '<br> SQL Files created.';
+echo '<br>';
+echo $config['port']['sqlPath'];
+echo '<br>';
+echo $config['port']['usersSqlPath'];
 
 ?>
