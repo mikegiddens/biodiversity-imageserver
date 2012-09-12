@@ -52,7 +52,7 @@ class phpBIS
 		} else {
 			$this->lastError['code'] = $result['error']['code'];
 			$this->lastError['msg'] = $result['error']['msg'];
-			return false;
+			return $result;
 		}
 	}
 */
@@ -60,6 +60,7 @@ class phpBIS
 		$data['storageDeviceId'] = $storageDeviceId;
 		$data['imagePath'] = $imagePath;
 		$data['filename'] = $filename;
+		$data['authMode'] = 'key';
 		$data['key'] = $this->key;
 		$data['cmd'] = 'imageAddFromExisting';
 		$result = $this->CURL($this->server . '/api.php', $data);
@@ -69,13 +70,14 @@ class phpBIS
 		} else {
 			$this->lastError['code'] = $result['error']['code'];
 			$this->lastError['msg'] = $result['error']['msg'];
-			return false;
+			return $result;
 		}
 	}
 	public function imageAddFromUrl($url, $storageDeviceId, $path) {
 		$data['url'] = $url;
 		$data['storageDeviceId'] = $storageDeviceId;
 		$data['imagePath'] = (trim($path) != '') ? $path : '';
+		$data['authMode'] = 'key';
 		$data['key'] = $this->key;
 		$data['cmd'] = 'imageAddFromUrl';
 		$result = $this->CURL($this->server . '/api.php', $data);
@@ -85,7 +87,27 @@ class phpBIS
 		} else {
 			$this->lastError['code'] = $result['error']['code'];
 			$this->lastError['msg'] = $result['error']['msg'];
-			return false;
+			return $result;
+		}
+	}
+	public function imageAddFromServer($filename,$sourcePath,$destinationPath,$storageDeviceId,$loadFlag = 'copy') {
+		$loadFlag =  (@strtolower($loadFlag) == 'move') ?'move' : 'copy';
+		$data['filename'] = $filename;
+		$data['imagePath'] = $sourcePath;
+		$data['destinationPath'] = $destinationPath;
+		$data['storageDeviceId'] = $storageDeviceId;
+		$data['loadFlag'] = $loadFlag;
+		$data['authMode'] = 'key';
+		$data['key'] = $this->key;
+		$data['cmd'] = 'imageAddFromServer';
+		$result = $this->CURL($this->server . '/api.php', $data);
+		$result = json_decode($result, true);
+		if($result['success'] == true) {
+			return $result;
+		} else {
+			$this->lastError['code'] = $result['error']['code'];
+			$this->lastError['msg'] = $result['error']['msg'];
+			return $result;
 		}
 	}
 	public function imageGetUrl($type, $code, $size) {
@@ -98,6 +120,8 @@ class phpBIS
 				$data['barcode'] = $code;
 				break;
 		}
+		$data['authMode'] = 'key';
+		$data['key'] = $this->key;
 		$data['cmd'] = 'imageGetUrl';
 		$data['size'] = (trim($size) != '') ? $size: '';
 		$res = $this->CURL($this->server . '/api.php',$data);
@@ -105,18 +129,19 @@ class phpBIS
 		if((isset($result['success'])) && ($result['success'] == false)) {
 			$this->lastError['code'] = $result['error']['code'];
 			$this->lastError['msg'] = $result['error']['msg'];
-			return false;
+			return $result;
 		} else {
-			return $res;
+			return $result;
 		}
 	}
-	public function imageAddAttribute($imageId, $categoryType, $category, $attributeType, $attribute) {
+	public function imageAddAttribute($imageId, $categoryType, $category, $attributeType, $attribute, $force = false) {
 		$data = array();
 		$data['imageId'] = $imageId;
-		$data['attributeType'] = $attributeType;
+		$data['attribType'] = $attributeType;
 		$data['attribute'] = $attribute;
 		$data['categoryType'] = $categoryType;
 		$data['category'] = $category;
+		$data['force'] = ($force === true) ? 'true' : 'false';
 		$data['cmd'] = 'imageAddAttribute';
 		/* if(PHP_SAPI == 'cli') */{
 			$data['authMode'] = 'key';
@@ -129,7 +154,7 @@ class phpBIS
 		} else {
 			$this->lastError['code'] = $result['error']['code'];
 			$this->lastError['msg'] = $result['error']['msg'];
-			return false;
+			return $result;
 		}
 	}
 	public function imageDeleteAttribute($imageId, $attributeId) {
@@ -148,7 +173,7 @@ class phpBIS
 		} else {
 			$this->lastError['code'] = $result['error']['code'];
 			$this->lastError['msg'] = $result['error']['msg'];
-			return false;
+			return $result;
 		}
 	}
 	public function imageListAttribute($imageId) {
@@ -161,7 +186,7 @@ class phpBIS
 		} else {
 			$this->lastError['code'] = $result['error']['code'];
 			$this->lastError['msg'] = $result['error']['msg'];
-			return false;
+			return $result;
 		}
 	}
 	public function categoryAdd($title = '',$description = '',$elementSet = '',$term = '') {
@@ -182,7 +207,7 @@ class phpBIS
 		} else {
 			$this->lastError['code'] = $result['error']['code'];
 			$this->lastError['msg'] = $result['error']['msg'];
-			return false;
+			return $result;
 		}
 	}
 	public function categoryUpdate($categoryId,$title = '',$description = '',$elementSet = '',$term = '') {
@@ -204,7 +229,7 @@ class phpBIS
 		} else {
 			$this->lastError['code'] = $result['error']['code'];
 			$this->lastError['msg'] = $result['error']['msg'];
-			return false;
+			return $result;
 		}
 	}
 	public function categoryDelete($categoryId) {
@@ -222,7 +247,7 @@ class phpBIS
 		} else {
 			$this->lastError['code'] = $result['error']['code'];
 			$this->lastError['msg'] = $result['error']['msg'];
-			return false;
+			return $result;
 		}
 	}
 	public function categoryList($categoryId='',$value='',$searchFormat='',$start='',$limit='') {
@@ -240,7 +265,7 @@ class phpBIS
 		} else {
 			$this->lastError['code'] = $result['error']['code'];
 			$this->lastError['msg'] = $result['error']['msg'];
-			return false;
+			return $result;
 		}
 	}
 	public function attributeAdd($categoryId,$name) {
@@ -259,7 +284,7 @@ class phpBIS
 		} else {
 			$this->lastError['code'] = $result['error']['code'];
 			$this->lastError['msg'] = $result['error']['msg'];
-			return false;
+			return $result;
 		}
 	}
 	public function attributeUpdate($attributeId,$name,$categoryId) {
@@ -279,7 +304,7 @@ class phpBIS
 		} else {
 			$this->lastError['code'] = $result['error']['code'];
 			$this->lastError['msg'] = $result['error']['msg'];
-			return false;
+			return $result;
 		}
 	}
 	public function attributeDelete($attributeId) {
@@ -297,7 +322,7 @@ class phpBIS
 		} else {
 			$this->lastError['code'] = $result['error']['code'];
 			$this->lastError['msg'] = $result['error']['msg'];
-			return false;
+			return $result;
 		}
 	}
 	public function attributeList($categoryId,$showNames=true,$value='',$searchFormat='',$start='',$limit='') {
@@ -315,7 +340,7 @@ class phpBIS
 		} else {
 			$this->lastError['code'] = $result['error']['code'];
 			$this->lastError['msg'] = $result['error']['msg'];
-			return false;
+			return $result;
 		}
 	}
 	public function eventAdd($eventId, $title, $eventTypeId, $geographyId, $description) {
@@ -336,7 +361,7 @@ class phpBIS
 		} else {
 			$this->lastError['code'] = $result['error']['code'];
 			$this->lastError['msg'] = $result['error']['msg'];
-			return false;
+			return $result;
 		}
 		
 	}
@@ -356,7 +381,7 @@ class phpBIS
 		} else {
 			$this->lastError['code'] = $result['error']['code'];
 			$this->lastError['msg'] = $result['error']['msg'];
-			return false;
+			return $result;
 		}
 	}
 	public function eventDelete($eventId) {
@@ -373,7 +398,7 @@ class phpBIS
 		} else {
 			$this->lastError['code'] = $result['error']['code'];
 			$this->lastError['msg'] = $result['error']['msg'];
-			return false;
+			return $result;
 		}
 	}
 	public function imageAddToEvent($eventId, $imageId) {
@@ -391,7 +416,7 @@ class phpBIS
 		} else {
 			$this->lastError['code'] = $result['error']['code'];
 			$this->lastError['msg'] = $result['error']['msg'];
-			return false;
+			return $result;
 		}
 	}
 	public function imageDeleteFromEvent($eventId, $imageId) {
@@ -409,7 +434,7 @@ class phpBIS
 		} else {
 			$this->lastError['code'] = $result['error']['code'];
 			$this->lastError['msg'] = $result['error']['msg'];
-			return false;
+			return $result;
 		}
 	}
 	public function imageListByEvent($eventId,$size,$attributesFlag) {
@@ -424,7 +449,7 @@ class phpBIS
 		} else {
 			$this->lastError['code'] = $result['error']['code'];
 			$this->lastError['msg'] = $result['error']['msg'];
-			return false;
+			return $result;
 		}
 	}
 	public function eventTypeAdd($title, $description) {
@@ -442,7 +467,7 @@ class phpBIS
 		} else {
 			$this->lastError['code'] = $result['error']['code'];
 			$this->lastError['msg'] = $result['error']['msg'];
-			return false;
+			return $result;
 		}
 	}
 	public function eventTypeList($eventTypeId, $value='',$searchFormat='',$start='',$limit='',$group = '',$dir = 'ASC') {
@@ -461,7 +486,7 @@ class phpBIS
 		} else {
 			$this->lastError['code'] = $result['error']['code'];
 			$this->lastError['msg'] = $result['error']['msg'];
-			return false;
+			return $result;
 		}
 	}
 	public function eventTypeDelete($eventTypeId) {
@@ -478,7 +503,7 @@ class phpBIS
 		} else {
 			$this->lastError['code'] = $result['error']['code'];
 			$this->lastError['msg'] = $result['error']['msg'];
-			return false;
+			return $result;
 		}
 	}
 	public function setAdd($name, $description) {
@@ -517,7 +542,7 @@ class phpBIS
 		} else {
 			$this->lastError['code'] = $result['error']['code'];
 			$this->lastError['msg'] = $result['error']['msg'];
-			return false;
+			return $result;
 		}
 	}
 	public function setDelete($setId) {
@@ -534,13 +559,15 @@ class phpBIS
 		} else {
 			$this->lastError['code'] = $result['error']['code'];
 			$this->lastError['msg'] = $result['error']['msg'];
-			return false;
+			return $result;
 		}
 	}
 	public function setList($setId='', $value='',$searchFormat='') {
 		$data['setId'] = $setId;
 		$data['searchFormat'] = $searchFormat;
 		$data['value'] = $value;
+		$data['authMode'] = 'key';
+		$data['key'] = $this->key;
 		$data['cmd'] = 'setList';
 		$result = $this->CURL($this->server . '/api.php', $data);
 		$result = json_decode($result, true);
@@ -549,7 +576,7 @@ class phpBIS
 		} else {
 			$this->lastError['code'] = $result['error']['code'];
 			$this->lastError['msg'] = $result['error']['msg'];
-			return false;
+			return $result;
 		}
 	}
 	public function setValueAdd($setId, $attributeId, $rank) {
@@ -568,7 +595,7 @@ class phpBIS
 		} else {
 			$this->lastError['code'] = $result['error']['code'];
 			$this->lastError['msg'] = $result['error']['msg'];
-			return false;
+			return $result;
 		}
 	}
 	public function setValueUpdate($setValueId, $setId, $valueId, $rank) {
@@ -588,7 +615,7 @@ class phpBIS
 		} else {
 			$this->lastError['code'] = $result['error']['code'];
 			$this->lastError['msg'] = $result['error']['msg'];
-			return false;
+			return $result;
 		}
 	}
 	public function setValueDelete($setValueId) {
@@ -605,7 +632,7 @@ class phpBIS
 		} else {
 			$this->lastError['code'] = $result['error']['code'];
 			$this->lastError['msg'] = $result['error']['msg'];
-			return false;
+			return $result;
 		}
 	}
 	public function imageListBySet($setId) {
@@ -618,7 +645,7 @@ class phpBIS
 		} else {
 			$this->lastError['code'] = $result['error']['code'];
 			$this->lastError['msg'] = $result['error']['msg'];
-			return false;
+			return $result;
 		}
 	}
 	public function imageListBySetKeyValue($category, $attribute) {
@@ -632,7 +659,7 @@ class phpBIS
 		} else {
 			$this->lastError['code'] = $result['error']['code'];
 			$this->lastError['msg'] = $result['error']['msg'];
-			return false;
+			return $result;
 		}
 	}
 	public function imageList( $properties = array()) {
@@ -662,12 +689,14 @@ class phpBIS
 		} else {
 			$this->lastError['code'] = $result['error']['code'];
 			$this->lastError['msg'] = $result['error']['msg'];
-			return false;
+			return $result;
 		}
 	}
 	public function collectionAdd($name, $code) {
 		$data['name'] = $name;
 		$data['code'] = $code;
+		$data['authMode'] = 'key';
+		$data['key'] = $this->key;
 		$data['cmd'] = 'collectionAdd';
 		$result = $this->CURL($this->server . '/api.php', $data);
 		$result = json_decode($result, true);
@@ -676,12 +705,14 @@ class phpBIS
 		} else {
 			$this->lastError['code'] = $result['error']['code'];
 			$this->lastError['msg'] = $result['error']['msg'];
-			return false;
+			return $result;
 		}
 	}
 	public function imageAddToCollection($imageId, $code) {
 		$data['imageId'] = $imageId;
 		$data['code'] = $code;
+		$data['authMode'] = 'key';
+		$data['key'] = $this->key;
 		$data['cmd'] = 'imageAddToCollection';
 		$result = $this->CURL($this->server . '/api.php', $data);
 		$result = json_decode($result, true);
@@ -690,12 +721,14 @@ class phpBIS
 		} else {
 			$this->lastError['code'] = $result['error']['code'];
 			$this->lastError['msg'] = $result['error']['msg'];
-			return false;
+			return $result;
 		}
 	}
 	public function imageAddBarcode($imageId, $barcode) {
 		$data['imageId'] = $imageId;
 		$data['params'] = json_encode(array('barcode' => $barcode));
+		$data['authMode'] = 'key';
+		$data['key'] = $this->key;
 		$data['cmd'] = 'imageUpdate';
 		$result = $this->CURL($this->server . '/api.php', $data);
 		$result = json_decode($result, true);
@@ -704,11 +737,13 @@ class phpBIS
 		} else {
 			$this->lastError['code'] = $result['error']['code'];
 			$this->lastError['msg'] = $result['error']['msg'];
-			return false;
+			return $result;
 		}
 	}
 	public function populateOcrProcessQueue($imageIds) {
 		$data['imageId'] = json_encode($imageIds);
+		$data['authMode'] = 'key';
+		$data['key'] = $this->key;
 		$data['cmd'] = 'populateOcrProcessQueue';
 		$result = $this->CURL($this->server . '/backup_services.php', $data);
 		$result = json_decode($result, true);
@@ -717,7 +752,7 @@ class phpBIS
 		} else {
 			$this->lastError['code'] = $result['error']['code'];
 			$this->lastError['msg'] = $result['error']['msg'];
-			return false;
+			return $result;
 		}
 	}
 	public function getLastError() {
