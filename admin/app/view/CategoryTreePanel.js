@@ -111,6 +111,9 @@ Ext.define('BIS.view.CategoryTreePanel', {
             tmpWindow.close();
             me.getStore().load();
         });
+        tmpWindow.on( 'cancel', function( data ) {
+            tmpWindow.close();
+        });
 	}
 
 });

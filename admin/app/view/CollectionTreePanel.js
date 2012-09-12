@@ -20,7 +20,7 @@ Ext.define('BIS.view.CollectionTreePanel', {
 				dataIndex: 'code',
 				sortable: true
 			},{
-				text: 'Size',
+				text: 'Images',
 				flex: 1,
 				dataIndex: 'collectionSize',
 				sortable: true,
@@ -38,9 +38,6 @@ Ext.define('BIS.view.CollectionTreePanel', {
 					e.stopEvent();
 					var ctx = Ext.create('BIS.view.CtxMnuCollection', {record: record});
 					ctx.showAt(e.getXY());
-				},
-				itemclick: function( tree, record, el, ind, e, opts ) {
-					Ext.getCmp('imagesGrid').setFilter({collectionCode: record.data.code}, true);
 				}
 			},
 			dockedItems: [{
@@ -58,11 +55,12 @@ Ext.define('BIS.view.CollectionTreePanel', {
 	},
 
 	createCollection: function() {
-		Ext.create('Ext.window.Window', {
+        var me = this;
+        var tmpWindow = Ext.create('Ext.window.Window', {
 			title: 'Create Collection',
 			iconCls: 'icon_newCollection',
 			modal: true,
-			height: 100,
+			height: 150,
 			width: 350,
 			layout: 'fit',
 			items: [{
@@ -70,6 +68,12 @@ Ext.define('BIS.view.CollectionTreePanel', {
 				mode: 'add'
 			}]
 		}).show();
+        tmpWindow.on( 'collectionCreated', function( data ) {
+            tmpWindow.close();
+            me.getStore().load();
+        });
+        tmpWindow.on( 'cancel', function( data ) {
+            tmpWindow.close();
+        });
 	}
-
 });

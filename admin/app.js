@@ -1,8 +1,7 @@
 Ext.Loader.setConfig({
     enabled: true
 });
-
-Ext.application({					
+Ext.application({
     models: [
         'SetModel',
         'CategoryModel',
@@ -13,22 +12,26 @@ Ext.application({
         'UserModel',
         'CollectionModel',
         'StorageDeviceModel',
-        'QueueModel'
+        'QueueModel',
+        'KeyModel'
     ],
     stores: [
         'SetTreeStore',
         'CategoryTreeStore',
+        'PropertiesStore',
         'EventTreeStore',
         'ImagesStore',
         'UserStore',
         'CollectionsTreeStore',
         'StorageDevicesStore',
-        'QueueStore'
+        'QueueStore',
+        'KeyStore'
     ],
     views: [
         'MainViewport',
         'StorageSettingsPanel',
         'UserManagerPanel',
+        'KeyManagerPanel',
         'ImagesGridView',
         'CtxMnuCollection',
         'CtxMnuCategory',
@@ -37,6 +40,7 @@ Ext.application({
         'CtxMnuEvent',
         'CtxMnuDevice',
         'CtxMnuUser',
+        'CtxMnuKey',
         'FormCreateCategory',
         'FormCreateAttribute',
         'FormCreateCollection',
@@ -47,5 +51,10 @@ Ext.application({
         'ImagesPanel'
     ],
     autoCreateViewport: true,
-    name: 'BIS'
+    name: 'BIS',
+    launch: function() {
+        // Remove Loading Div
+        Ext.get('loading').remove();
+        Ext.get('loading-mask').fadeOut({remove:true});
+    }
 });

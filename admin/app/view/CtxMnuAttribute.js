@@ -9,7 +9,7 @@ Ext.define('BIS.view.CtxMnuAttribute', {
                     break;
                 case 'delete':
                     Ext.Msg.confirm('Remove ' + this.record.data.title + '?', 'Are you sure you want remove ' + this.record.data.title + '?', function( btn, nothing, item ) {
-                        this.remove();
+                        if ( btn == 'yes' ) this.remove();
                     }, this);
                     break;
             }

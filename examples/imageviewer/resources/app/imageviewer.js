@@ -144,7 +144,7 @@ BIS.ImageViewer = function( config ) {
         // #autocomplete_url: is the same as #source: in the jquery ui autocomplete plugin
         autocomplete_url: function( request, response ) {
             $.ajax({
-                url: me.webportal + 'resources/api/api.php?cmd=listAttributes&searchFormat=left&limit=5',
+                url: me.webportal + 'resources/api/api.php?cmd=attributeList&searchFormat=left&limit=5',
                 dataType: "jsonp",
                 data: {
                     value: request.term
