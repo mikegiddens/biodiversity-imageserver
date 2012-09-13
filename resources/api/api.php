@@ -128,6 +128,7 @@
 	}
 	
 	function checkAuth() {
+	// die($_SERVER['REMOTE_ADDR']);
 		global $si,$userAccess,$key;
 		switch($si->authMode) {
 			case 'key':
@@ -932,17 +933,140 @@
 					}
 				}
 			}
-			// echo '<pre>';
-			// echo ' Force : ';var_dump($force);
-			// echo '<br>';
-			// print_r($data);
-			// exit;
 			if($valid) {
 				$si->image->imageSetData($data);
 				if($si->image->imageAttributeAdd()) {
 					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart ) ) );
 				} else {
 					print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray(161)) ));
+				}
+			} else {
+				print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray($errorCode)) ));
+			}
+			break;
+
+		case 'imageAddFromLocal':
+			$imagePath = (isset($imagePath))?$imagePath:'';
+			$storageDeviceId = (trim($storageDeviceId)!='') ? $storageDeviceId : $si->storage->storageDeviceGetDefault();
+			if(!$si->remoteAccess->remoteAccessCheck(ip2long($_SERVER['REMOTE_ADDR']), $key)) {
+				$errorCode = 103;
+				$valid = false;
+			} else if($storageDeviceId == '' || !$si->storage->storageDeviceExists($storageDeviceId)) {
+				$errorCode = 156;
+				$valid = false;
+			} elseif($filename=='') {
+				$errorCode = 163;
+				$valid = false;
+			} else {
+				$config['allowedImportTypes'] = array(1,2,3); //GIF, JPEG, PNG
+				# http://www.php.net/manual/en/function.exif-imagetype.php
+				$stream = ($stream != '') ? $stream : '';
+				if((strpos($filename,'/')) !== false) {
+					$tmpFilename = explode('/', $filename);
+					$filename = $tmpFilename[count($tmpFilename)-1];
+				}
+				file_put_contents($filename, $stream);
+				$size = getimagesize($filename);
+				if(!in_array($size[2],$config['allowedImportTypes'])) {
+					$errorCode = 164;
+					$valid = false;
+				}
+			}
+			if($valid) {
+				$response = $si->storage->storageDeviceStore($filename,$storageDeviceId,$filename, $imagePath, $key);
+				$iEXd = new EXIFread($filename);
+				unlink($filename);
+				if($response['success']) {
+					$si->pqueue->processQueueSetProperty('imageId', $response['imageId']);
+					$si->pqueue->processQueueSetProperty('processType','all');
+					$si->pqueue->processQueueSave();
+					
+					if($barcode != '' || $code != '') {
+						if($si->image->imageLoadById($response['imageId'])) {
+							$si->image->imageSetProperty('barcode',$barcode);
+							if($si->collection->collectionCodeExists($code)) {
+								$si->image->imageSetProperty('collectionCode',$code);
+							}
+							$si->image->imageSave();
+						}
+					}
+					
+					# Add latitude and longitude - Start
+					if($gps = $iEXd->getGPS()) {
+						$catId = 0;
+						$atrId = 0;
+						$catArray = $si->imageCategory->imageCategoryList();
+						if(is_array($catArray)) {
+							foreach($catArray as $cat) {
+								if($cat['title'] == 'Latitude') {
+									$catId = $cat['categoryId'];
+									break;
+								}
+							}
+						}
+						if(!$catId) {
+							$si->imageCategory->imageCategorySetProperty('title', 'Latitude');
+							$catId = $si->imageCategory->imageCategoryAdd();
+						}
+						$atrArray = $si->imageAttribute->imageAttributeList($catId);
+						if(is_array($atrArray)) {
+							foreach($atrArray as $atr) {
+								if($atr['name'] == $gps['Latitude']) {
+									$atrId = $atr['attributeId'];
+									break;
+								}
+							}
+						}
+						if(!$atrId) {
+							$si->imageAttribute->imageAttributeSetProperty('name',$gps['Latitude']);
+							$si->imageAttribute->imageAttributeSetProperty('categoryId',$catId);
+							$atrId = $si->imageAttribute->imageAttributeAdd();
+						}
+						$data['imageId'] = $response['imageId'];
+						$data['attributeId'] = $atrId;
+						$data['categoryId'] = $catId;
+						$si->image->imageSetData($data);
+						$si->image->imageAttributeAdd();
+						
+						$catId = 0;
+						$atrId = 0;
+						if(is_array($catArray)) {
+							foreach($catArray as $cat) {
+								if($cat['title'] == 'Longitude') {
+									$catId = $cat['categoryId'];
+									break;
+								}
+							}
+						}
+						if(!$catId) {
+							$si->imageCategory->imageCategorySetProperty('title', 'Longitude');
+							$catId = $si->imageCategory->imageCategoryAdd();
+						}
+						$atrArray = $si->imageAttribute->imageAttributeList($catId);
+						if(is_array($atrArray)) {
+							foreach($atrArray as $atr) {
+								if($atr['name'] == $gps['Longitude']) {
+									$atrId = $atr['attributeId'];
+									break;
+								}
+							}
+						}
+						if(!$atrId) {
+							$si->imageAttribute->imageAttributeSetProperty('name',$gps['Longitude']);
+							$si->imageAttribute->imageAttributeSetProperty('categoryId',$catId);
+							$atrId = $si->imageAttribute->imageAttributeAdd();
+						}
+						$data['imageId'] = $response['imageId'];
+						$data['attributeId'] = $atrId;
+						$data['categoryId'] = $catId;
+						$si->image->imageSetData($data);
+						$si->image->imageAttributeAdd();
+					}
+					# Add latitude and longitude - End
+					
+					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart, 'imageId' => $response['imageId'] ) ) );
+				} else {
+					print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray(165)) ));
 				}
 			} else {
 				print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray($errorCode)) ));
@@ -956,7 +1080,7 @@
 			if(!$si->remoteAccess->remoteAccessCheck(ip2long($_SERVER['REMOTE_ADDR']), $key)) {
 				$errorCode = 103;
 				$valid = false;
-			} elseif($storageDeviceId == '' || !$si->storage->storageDeviceExists($storageDeviceId)) {
+			} else if($storageDeviceId == '' || !$si->storage->storageDeviceExists($storageDeviceId)) {
 				$errorCode = 156;
 				$valid = false;
 			} elseif($filename=='') {
@@ -1126,19 +1250,20 @@
 			if($valid) {
 				$results = array();
 				$totalCount = 0;
+
+				$config["allowedImportTypes"] = array(1,2,3); //GIF, JPEG, PNG
+				$storageDeviceId = (trim($storageDeviceId)!='') ? $storageDeviceId : $si->storage->storageDeviceGetDefault();
+				if($storageDeviceId=='' || !$si->storage->storageDeviceExists($storageDeviceId)) {
+					$results[$i] = array( 'success' => false,  'error' => array( 'success' => false, 'error' => $si->getErrorArray(156)) );
+					continue;
+				}
+				
 				for($i=0;$i<count($_FILES["filename"]["name"]);$i++) {
 					$imagePath[$i] = (isset($imagePath[$i]))?$imagePath[$i]:'';
-/*
-					if($storageDeviceId=='' || !$si->storage->exists($storageDeviceId)) {
-						$results[$i] = array( 'success' => false,  'error' => array( 'success' => false, 'error' => $si->getErrorArray(156)) );
-						continue;
-					}
-*/
 					if ($_FILES["filename"]["error"][$i] > 0) {
 						$results[$i] = array( 'success' => false,  'error' => array('msg' => $_FILES["filename"]["error"][$i]) );
 						continue;
 					}
-					$config["allowedImportTypes"] = array(1,2,3); //GIF, JPEG, PNG
 					# http://www.php.net/manual/en/function.exif-imagetype.php
 					$size = getimagesize($_FILES["filename"]["tmp_name"][$i]);
 					if(in_array($size[2],$config["allowedImportTypes"])) {
@@ -1148,6 +1273,15 @@
 							$si->pqueue->processQueueSetProperty('imageId', $response['imageId']);
 							$si->pqueue->processQueueSetProperty('processType','all');
 							$si->pqueue->processQueueSave();
+
+							if($code != '') {
+								if($si->image->imageLoadById($response['imageId'])) {
+									if($si->collection->collectionCodeExists($code)) {
+										$si->image->imageSetProperty('collectionCode',$code);
+									}
+									$si->image->imageSave();
+								}
+							}
 							
 							# Add latitude and longitude - Start
 							if($gps = $iEXd->getGPS()) {
@@ -1244,6 +1378,7 @@
 			# destinationPath and imagePath relative to the storage path
 			$destinationPath = ($destinationPath == '') ? '/serverimages/' : $destinationPath; 
 			$imgPath = $destinationPath;
+			$storageDeviceId = (trim($storageDeviceId)!='') ? $storageDeviceId : $si->storage->storageDeviceGetDefault();
 			if($storageDeviceId == '' || $imagePath == '' || $filename == '') {
 				$valid = false;
 				$errorCode = 172;
