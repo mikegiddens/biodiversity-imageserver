@@ -7,6 +7,7 @@ Ext.define('BIS.view.ImagesPanel', {
 	],
 	id: 'imagesGrid',
 	autoScroll: true,
+    bodyStyle: 'overflow-x:hidden ! important;',
 	store: 'ImagesStore',
     viewType: 'imagesgridview',
 	listeners: {
@@ -89,7 +90,7 @@ Ext.define('BIS.view.ImagesPanel', {
 				},{
 					xtype: 'searchfield',
 					name: 'searchval',
-					emptyText: 'Search images',
+					emptyText: 'Query OCR',
 					handlerCmp: this,
 					width: 200,
 					scope: this
@@ -114,7 +115,9 @@ Ext.define('BIS.view.ImagesPanel', {
 			this.getView().setTpl( item.type );
 		}
 	},
+    // this is called by searchfield (plugin was hacked)
 	search: function( val ) {
+        /* no longer using internal filters - use api search
 		this.getStore().filterBy(function( record, id ) {
 			for ( var p in record.data ) {
 				if ( String(record.data[p]).indexOf(val) > 0 ) {
@@ -122,5 +125,10 @@ Ext.define('BIS.view.ImagesPanel', {
 				}
 			}
 		});
-	}
+        */
+        this.searchOcr( val );
+	},
+    searchOcr: function( val ) {
+        // no route?
+    }
 });

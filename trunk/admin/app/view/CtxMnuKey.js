@@ -9,6 +9,9 @@ Ext.define('BIS.view.CtxMnuKey', {
                         if ( btn == 'yes' ) this.remove();
                     }, this);
                     break;
+                case 'enable':
+                case 'disable':
+                    this.toggleActive();
             }
         }
     },
@@ -21,6 +24,11 @@ Ext.define('BIS.view.CtxMnuKey', {
                     text: 'Remove',
                     iconCls: 'icon_removeKey',
                     identifier: 'remove'
+                },
+                {
+                    text: ( this.record.data.active ) ? 'Disable Key' : 'Enable Key',
+                    iconCls: ( this.record.data.active ) ? 'icon_locked' : 'icon_unlocked',
+                    identifier: ( this.record.data.active ) ? 'disable' : 'enable'
                 }
             ]
         });
@@ -29,15 +37,31 @@ Ext.define('BIS.view.CtxMnuKey', {
     remove: function() {
         Ext.Ajax.request({
             method: 'POST',
-            url: Config.baseUrl + 'resouces/api/api.php',
+            url: Config.baseUrl + 'resources/api/api.php',
             params: {
                 cmd: 'remoteAccessKeyDelete',
-                remoteAccessId: this.record.data.id
+                remoteAccessId: this.record.data.remoteAccessId
             },
             scope: this,
             success: function( resObj ) {
                 var res = Ext.decode( resObj.responseText );
-                console.log( res );
+                if ( res.success ) {
+                    Ext.getCmp('keyGrid').getStore().load();
+                }
+            }
+        });
+    },
+    toggleActive: function() {
+        Ext.Ajax.request({
+            method: 'POST',
+            url: Config.baseUrl + 'resources/api/api.php',
+            params: {
+                cmd: ( this.record.data.active ) ? 'remoteAccessKeyDisable' : 'remoteAccessKeyEnable',
+                remoteAccessId: this.record.data.remoteAccessId
+            },
+            scope: this,
+            success: function( resObj ) {
+                var res = Ext.decode( resObj.responseText );
                 if ( res.success ) {
                     Ext.getCmp('keyGrid').getStore().load();
                 }

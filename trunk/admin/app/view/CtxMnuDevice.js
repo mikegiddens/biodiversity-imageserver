@@ -12,6 +12,9 @@ Ext.define('BIS.view.CtxMnuDevice', {
                         this.remove();
                     }, this);
                     break;
+                case 'default':
+                    this.makeDefault();
+                    break;
             }
         }
     },
@@ -21,12 +24,19 @@ Ext.define('BIS.view.CtxMnuDevice', {
         Ext.applyIf(me, {
             items: [
                 {
-                    text: 'Edit',
+                    text: 'Edit Device',
                     iconCls: 'icon_editDevice',
                     identifier: 'update'
                 },
                 {
-                    text: 'Remove',
+                    text: 'Make Default',
+                    iconCls: 'icon_defaultDevice',
+                    identifier: 'default',
+                    disabled: this.record.data.defaultStorage == '1'
+                },
+                '-',
+                {
+                    text: 'Remove Device',
                     iconCls: 'icon_removeDevice',
                     identifier: 'delete'
                 }
@@ -38,11 +48,10 @@ Ext.define('BIS.view.CtxMnuDevice', {
         Ext.Ajax.request({
             method: 'POST',
             url: Config.baseUrl + 'resources/api/api.php',
-            params: { storageId: this.record.storageId, cmd: 'storageDeviceDelete' },
+            params: { storageDeviceId: this.record.data.storageDeviceId, cmd: 'storageDeviceDelete' },
             scope: this,
             success: function( resObj ) {
                 var res = Ext.decode( resObj.responseText );
-                console.log( res );
                 if ( res.success ) {
                     this.fireEvent('deviceDeleted');
                 }
@@ -69,5 +78,19 @@ Ext.define('BIS.view.CtxMnuDevice', {
             tmpWindow.close();
         });
         tmpWindow.show();
+    },
+    makeDefault: function() {
+        Ext.Ajax.request({
+            method: 'POST',
+            url: Config.baseUrl + 'resources/api/api.php',
+            params: { storageDeviceId: this.record.data.storageDeviceId, cmd: 'storageDeviceSetDefault' },
+            scope: this,
+            success: function( resObj ) {
+                var res = Ext.decode( resObj.responseText );
+                if ( res.success ) {
+                    this.fireEvent('deviceUpdated');
+                }
+            }
+        });
     }
 });

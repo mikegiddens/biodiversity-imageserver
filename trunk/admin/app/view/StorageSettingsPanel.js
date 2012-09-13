@@ -44,55 +44,57 @@ Ext.define('BIS.view.StorageSettingsPanel', {
                                 Ext.getCmp('storageDevicesGrid').getStore().load();
                                 tmpWindow.close();
                             });
+                            tmpWindow.on('cancel', function( data ) {
+                                tmpWindow.close();
+                            });
                             tmpWindow.show();
                         },
                         itemcontextmenu: function(view, record, item, index, e) {
                             e.stopEvent();
                             var tmpCtx = Ext.create('BIS.view.CtxMnuDevice', {record: record});
-                            tmpCtx.on('deviceDeleted', function( data ) {
-                                Ext.getCmp('storageDevicesGrid').getStore().load();
-                            });
                             tmpCtx.showAt( e.getXY() );
                         }
                     },
 					columns: [{
-						text: 'Identifier',
-						dataIndex: 'storage_id'
-					},{
 						text: 'Name',
 						flex: 2,
 						dataIndex: 'name',
 					},{
-						text: 'Description',
-						flex: 2,
-						dataIndex: 'description',
-					},{
 						text: 'Type',
 						dataIndex: 'type',
+                        flex: 2
 					},{
 						text: 'Base URL',
-						flex: 2,
+						flex: 3,
 						dataIndex: 'baseUrl',
 					},{
 						text: 'Base Path',
-						flex: 2,
+						flex: 3,
 						dataIndex: 'basePath',
 					},{
 						text: 'Username',
-						dataIndex: 'user',
+						dataIndex: 'userName',
+                        flex: 2
 					},{
 						text: 'Password',
-						dataIndex: 'pw',
+						dataIndex: 'password',
+                        flex: 2
 					},{
 						text: 'Active?',
 						dataIndex: 'active',
 						renderer: function( value ) {
 							if ( value ) { return 'Yes' }
 							return ' ';
-						}
+						},
+                        flex: 1
 					},{
-						text: 'Notes',
-						dataIndex: 'extra2',
+						text: 'Default?',
+						dataIndex: 'defaultStorage',
+						renderer: function( value ) {
+							if ( value == '1' ) { return 'Yes' }
+							return ' ';
+						},
+                        flex: 1
 					}]
                 }],
 				dockedItems: [{
@@ -126,6 +128,9 @@ Ext.define('BIS.view.StorageSettingsPanel', {
 		});
         tmpWindow.on('deviceCreated', function( data ) {
             Ext.getCmp('storageDevicesGrid').getStore().load();
+            tmpWindow.close();
+        });
+        tmpWindow.on('cancel', function( data ) {
             tmpWindow.close();
         });
         tmpWindow.show();

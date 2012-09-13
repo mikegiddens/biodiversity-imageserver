@@ -27,7 +27,9 @@ Ext.define('BIS.store.QueueStore', {
                 },
                 reader: {
                     type: 'json',
-                    root: 'records',
+                    //change back to records
+                    //root: 'records',
+                    root: 'results',
                     successProperty: 'success'
                 }
             }

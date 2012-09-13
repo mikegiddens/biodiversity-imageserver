@@ -1,0 +1,34 @@
+<html>
+<head>
+  <title>California Academy of Sciences</title>
+  <link rel='stylesheet' href='resources/css/style.css'>
+  <link rel='stylesheet' href='resources/css/jquery.fancybox.css'>
+  <link rel='stylesheet' href='resources/css/jquery.fancybox-thumbs.css'>
+  <link rel='stylesheet' href='resources/css/rateit.css'>
+  <link rel='stylesheet' href='resources/css/jquery.tagsinput.css'>
+  <link rel='stylesheet' href='http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.21/themes/ui-darkness/jquery-ui.css'>
+  <script type="application/javascript">
+    function init() {
+      program = new BIS.ImageViewer({
+        webportal: 'http://bis.silverbiology.com/dev/',
+        containerId: 'container'
+      });
+    }
+  </script>
+</head>
+<body onLoad="init()">
+  <div style="float: left; margin: 10px;"><img src="resources/img/logo.png"></div>
+  <div id="container"></div>
+
+
+  <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+  <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.21/jquery-ui.min.js"></script>
+  <script src='resources/js/eventtarget.js'></script>
+  <script src='resources/js/jsonToSql.js'></script>
+  <script src='resources/js/jquery.fancybox.pack.js'></script>
+  <script src='resources/js/jquery.fancybox-thumbs.js'></script>
+  <script src='resources/js/jquery.rateit.min.js'></script>
+  <script src='resources/js/jquery.tagsinput.min.js'></script>
+  <script src='resources/app/imageviewer.js'></script>
+</body>
+</html>

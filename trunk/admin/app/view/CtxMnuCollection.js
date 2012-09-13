@@ -6,7 +6,7 @@ Ext.define('BIS.view.CtxMnuCollection', {
             switch( item.identifier ) {
                 case 'filter':
                     Ext.getCmp('imagesGrid').setFilter({
-                        collectionCode: this.record.data.code
+                        code: this.record.data.code
                     }, true);
                     break;
                 case 'update':
