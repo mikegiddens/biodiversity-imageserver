@@ -11,7 +11,6 @@ Ext.define('BIS.view.ImagesGridView', {
 	selectedItemCls: 'imageRowSelected',
     overItemCls: 'highlight',
     trackOver: true,
-	autoScroll: true,
 	multiSelect: true,
 	listeners: {
 		afterrender: function( gridview, e ) {
@@ -103,7 +102,11 @@ Ext.define('BIS.view.ImagesGridView', {
 			'</div><br/>'+
 			'</tpl>', {
             renderDate: function( date ) {
-                return Ext.Date.format( new Date(date), 'j M Y' );
+                try {
+                    return Ext.Date.format( new Date(date), 'j M Y' );
+                } catch( err ) {
+                    return date;
+                }
             },
 			renderThumbnail: function( path, filename, ext ) {
                 return path + filename.substr( 0, filename.indexOf('.') ) + '_s.' + ext;

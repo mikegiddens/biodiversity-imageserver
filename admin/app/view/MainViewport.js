@@ -40,7 +40,7 @@ Ext.define('BIS.view.MainViewport', {
 			},{
 				xtype: 'panel',
 				id: 'viewsPanel',
-				activeItem: 0,
+				activeItem: 1,
 				border: false,
 				layout: {
 					type: 'card'
@@ -74,7 +74,7 @@ Ext.define('BIS.view.MainViewport', {
 						style: 'text-align: center',
 						cls: 'x-panel-header-text x-panel-header-text-default-framed',
 						id: 'viewsPagingTitle',
-						text: 'Sets'
+						text: 'Categories'
 					},{
 						xtype: 'button',
 						flex: 1,
@@ -102,18 +102,12 @@ Ext.define('BIS.view.MainViewport', {
 					id: 'queuePanel',
 					store: 'QueueStore',
 					columns: [{
-						text:'Identifier',
-						dataIndex:'imageId',
-						flex:2
+						text:'Job',
+						dataIndex:'processType',
+						flex: 1
 					},{
-						text:'Completed?',
-						dataIndex:'processed',
-						renderer: function( value ) {
-							if ( value ) { 
-								return 'Yes' 
-							} 
-							return ' ';
-						},
+						text:'Notes',
+						dataIndex:'extra',
 						flex: 1
 					}],
 					listeners: {
@@ -128,7 +122,7 @@ Ext.define('BIS.view.MainViewport', {
                             items: [
                                 {
                                     text: 'Refresh Queue',
-                                    iconCls: 'icon_arrowAlternating',
+                                    iconCls: 'icon_refresh',
                                     handler: function() {
                                         Ext.getCmp('queuePanel').getStore().load();
                                     }
@@ -222,8 +216,11 @@ Ext.define('BIS.view.MainViewport', {
 								handler: this.openServerInfo
 							}]
 						}
-					},{
-							xtype: 'tbfill'
+					},'->',{
+                        text: 'Sign Out',
+                        iconCls: 'icon_logout',
+					    style: 'margin-right: 20px;',
+                        handler: this.signout
 					},{
 						xtype: 'label',
 						style: 'font-weight: bold;',
@@ -327,6 +324,8 @@ Ext.define('BIS.view.MainViewport', {
 					tpl: new Ext.XTemplate('<div>Server Info</div>')
 				}]
 			}).show();
-    }
+    },
+    logout: function() {
 
+    }
 });

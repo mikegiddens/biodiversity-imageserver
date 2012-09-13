@@ -220,6 +220,12 @@ img {
 .icon_removeDevice {
 	background-image:url(../img/ico/drive_delete.png) !important;
 }
+.icon_saveDevice {
+	background-image:url(../img/ico/drive_disk.png) !important;
+}
+.icon_defaultDevice {
+	background-image:url(../img/ico/drive_go.png) !important;
+}
 .icon_newCategory {
 	background-image:url(../img/ico/table_add.png) !important;
 }
@@ -327,4 +333,22 @@ img {
 }
 .icon_picture {
 	background-image:url(../img/ico/picture.png) !important;
+}
+.icon_locked {
+	background-image:url(../img/ico/lock.png) !important;
+}
+.icon_unlocked {
+	background-image:url(../img/ico/lock_open.png) !important;
+}
+.icon_ocr {
+	background-image:url(../img/ico/page_white_camera.png) !important;
+}
+.icon_evernote {
+	background-image:url(../img/ico/evernote.png) !important;
+}
+.icon_refresh {
+	background-image:url(../img/ico/refresh.png) !important;
+}
+.icon_logout {
+	background-image:url(../img/ico/door_out.png) !important;
 }

@@ -4,7 +4,7 @@ Ext.define('BIS.model.StorageDeviceModel', {
 
     fields: [
         {
-            name: 'storageId'
+            name: 'storageDeviceId'
         },
         {
             name: 'name'
@@ -22,10 +22,10 @@ Ext.define('BIS.model.StorageDeviceModel', {
             name: 'basePath'
         },
         {
-            name: 'user'
+            name: 'userName'
         },
         {
-            name: 'pw'
+            name: 'password'
         },
         {
             name: 'key'
@@ -34,7 +34,7 @@ Ext.define('BIS.model.StorageDeviceModel', {
             name: 'active'
         },
         {
-            name: 'default_storage'
+            name: 'defaultStorage'
         },
         {
             name: 'extra2'

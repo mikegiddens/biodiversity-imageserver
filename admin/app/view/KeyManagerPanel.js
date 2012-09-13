@@ -20,6 +20,9 @@ Ext.define('BIS.view.KeyManagerPanel', {
 					id: 'keyGrid',
 					border: false,
 					store: 'KeyStore',
+                    viewConfig: {
+                        enableTextSelection: true
+                    },
 					columns: [
                         {
                             dataIndex: 'ip',
@@ -33,8 +36,8 @@ Ext.define('BIS.view.KeyManagerPanel', {
                         },
                         {
                             xtype: 'booleancolumn',
-                            dataIndex: 'bool',
-                            text: 'Active?',
+                            dataIndex: 'active',
+                            text: 'Enabled?',
                             flex: 1,
                             falseText: 'No',
                             trueText: 'Yes',
@@ -63,24 +66,24 @@ Ext.define('BIS.view.KeyManagerPanel', {
 		me.callParent(arguments);
 	},
 	createKey: function() {
-        Ext.Msg.prompt('Generate Access Key', 'Please enter the IP address for the new key.', function( value ) {
-            console.log( value );
-            Ext.Ajax.request({
-                method: 'POST',
-                url: Config.baseUrl + 'resouces/api/api.php',
-                params: {
-                    cmd: 'remoteAccessKeyGenerate',
-                    ip: value
-                },
-                scope: this,
-                success: function( resObj ) {
-                    var res = Ext.decode( resObj.responseText );
-                    console.log( res );
-                    if ( res.success ) {
-                        Ext.getCmp('keyGrid').getStore().load();
+        Ext.Msg.prompt('Generate Access Key', 'Please enter the IP address for the new key.', function( btn, val, dialog ) {
+            if ( btn == 'ok' ) {
+                Ext.Ajax.request({
+                    method: 'POST',
+                    url: Config.baseUrl + 'resources/api/api.php',
+                    params: {
+                        cmd: 'remoteAccessKeyGenerate',
+                        ip: val
+                    },
+                    scope: this,
+                    success: function( resObj ) {
+                        var res = Ext.decode( resObj.responseText );
+                        if ( res.success ) {
+                            Ext.getCmp('keyGrid').getStore().load();
+                        }
                     }
-                }
-            });
+                });
+            }
         });
 	}
 });

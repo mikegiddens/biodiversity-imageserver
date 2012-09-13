@@ -17,7 +17,7 @@ Ext.define('BIS.view.FormCreateDevice', {
 		Ext.applyIf(me, {
             items: [{
                 fieldLabel: 'Identifier',
-                name: 'storage_id',
+                name: 'storageDeviceId',
                 readOnly: true,
                 fieldCls: 'x-item-disabled',
                 hidden: (this.mode == 'add')
@@ -38,10 +38,10 @@ Ext.define('BIS.view.FormCreateDevice', {
                 name: 'basePath'
             },{
                 fieldLabel: 'Username',
-                name: 'user'
+                name: 'userName'
             },{
                 fieldLabel: 'Password',
-                name: 'pw'
+                name: 'password'
             },{
                 xtype: 'checkbox',
                 fieldLabel: 'Active?',
@@ -58,14 +58,22 @@ Ext.define('BIS.view.FormCreateDevice', {
                 xtype: 'toolbar',
                 dock: 'bottom',
                 ui: 'footer',
-                items: [{ 
-                    xtype: 'component', flex: 1 
-                },{
-                    width: 80,
-                    text: ( this.mode == 'add' ) ? 'Add Device' : 'Update Settings',
-                    scope: this,
-                    handler: this.submitForm
-                }]
+                items: [
+                    {
+                        width: 80,
+                        text: ( this.mode == 'add' ) ? 'Add Device' : 'Update Settings',
+                        iconCls: 'icon_saveDevice',
+                        scope: this,
+                        handler: this.submitForm
+                    },
+                    '->',
+                    {
+                        width: 80,
+                        text: 'Cancel',
+                        scope: this,
+                        handler: this.cancel
+                    }
+                ]
             }],	
             listeners: {
                 afterrender: function() {
@@ -77,14 +85,15 @@ Ext.define('BIS.view.FormCreateDevice', {
         });
 		me.callParent(arguments);        
     },
-	submitForm: function() {
+    submitForm: function() {
+        var me = this;
 		var form = this.getForm();
 		form.url = Config.baseUrl + 'resources/api/api.php';
 		if ( form.isValid() ) {
 			form.submit({
                 scope: this,
 				success: function(form, action) {
-                     this.ownerCt.fireEvent( 'deviceCreated', Ext.decode(action.response.responseText) );
+                     me.ownerCt.fireEvent( 'deviceCreated', Ext.decode(action.response.responseText) );
 				},
 				failure: function(form, action) {
                     var res = Ext.decode(action.response.responseText);
@@ -92,6 +101,9 @@ Ext.define('BIS.view.FormCreateDevice', {
 				}
 			});
 		}
+	},
+	cancel: function() {
+        this.ownerCt.fireEvent( 'cancel' );
 	}
 });
 

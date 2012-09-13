@@ -57,6 +57,12 @@ Ext.define('BIS.view.CtxMnuImage', {
                 case 'queue':
                     this.queue();
                     break;
+                case 'ocr':
+                    this.showOcrData();
+                    break;
+                case 'evernote':
+                    this.showEvernoteData();
+                    break;
             }
         }
     },
@@ -71,8 +77,21 @@ Ext.define('BIS.view.CtxMnuImage', {
                     identifier: 'open'
                 },
                 {
+                    text: 'View OCR',
+                    iconCls: 'icon_ocr',
+                    identifier: 'ocr',
+                    disabled: this.record.data.ocrFlag == '0'
+                },
+                {
+                    text: 'View Evernote',
+                    iconCls: 'icon_evernote',
+                    identifier: 'evernote',
+                    disabled: this.record.data.enFlag == '0'
+                },
+                '-',
+                {
                     text: 'Remove Image',
-                    iconCls: 'icon_editCategory',
+                    iconCls: 'icon_removeImage',
                     identifier: 'delete'
                 },
                 '-',
@@ -93,7 +112,7 @@ Ext.define('BIS.view.CtxMnuImage', {
                 },
                 {
                     text: 'Queue Image',
-                    iconCls: 'icon_arrowAlternating',
+                    iconCls: 'icon_refresh',
                     identifier: 'queue'
                 }
             ]
@@ -139,7 +158,7 @@ Ext.define('BIS.view.CtxMnuImage', {
             params: {
                 cmd: 'imageModifyRotate',
                 imageId: this.record.data.imageId,
-                degree: 270
+                degree: 180
             }
         });
     },
@@ -149,6 +168,71 @@ Ext.define('BIS.view.CtxMnuImage', {
             params: {
                 cmd: 'imageModifyRechop',
                 imageId: this.record.data.imageId
+            }
+        });
+    },
+    showOcrData: function() {
+        Ext.Ajax.request({
+            url: Config.baseUrl + 'resources/api/api.php',
+            params: {
+                cmd: 'imageGetOcr',
+                imageId: this.record.data.imageId
+            },
+            success: function( data ) {
+                console.log( data );
+                Ext.create('Ext.window.Window', {
+                    title: 'Optical Character Recognition from ' + this.record.data.filename,
+                    iconCls: 'icon_ocr',
+                    bodyCls: 'x-docked-noborder-top x-docked-noborder-bottom x-docked-noborder-right x-docked-noborder-left',
+                    modal: true,
+                    height: 500,
+                    width: 800,
+                    layout: 'fit',
+                    maximizable: true,
+                    items: [
+                        {
+                            xtype: 'panel',
+                            border: false,
+                            title: false,
+                            autoScroll: true,
+                            html: data
+                        }
+                    ]
+                }).show();
+            }
+        });
+    },
+    showEvernoteData: function() {
+        Ext.Ajax.request({
+            url: Config.baseUrl + 'resources/api/api.php',
+            // process on Evernote
+            //Config.baseUrl + 'resources/api/backup_services.php', 'cmd=populateEvernoteProcessQueue&imageId='+this.record.data.imageId
+            //Config.baseUrl + 'resources/api/backup_services.php', 'cmd=processEvernoteProcessQueue'
+            params: {
+                cmd: 'imageRetrieveEvernoteData',
+                imageId: this.record.data.imageId
+            },
+            success: function( data ) {
+                console.log( data );
+                Ext.create('Ext.window.Window', {
+                    title: 'Evernote Data from ' + this.record.data.filename,
+                    iconCls: 'icon_evernote',
+                    bodyCls: 'x-docked-noborder-top x-docked-noborder-bottom x-docked-noborder-right x-docked-noborder-left',
+                    modal: true,
+                    height: 500,
+                    width: 800,
+                    layout: 'fit',
+                    maximizable: true,
+                    items: [
+                        {
+                            xtype: 'panel',
+                            border: false,
+                            title: false,
+                            autoScroll: true,
+                            html: data
+                        }
+                    ]
+                }).show();
             }
         });
     }
