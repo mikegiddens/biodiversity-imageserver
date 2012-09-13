@@ -1,0 +1,23 @@
+<html>
+<head>
+<title> Form Upload Test </title>
+</head>
+<body>
+<h3>Upload an image To Test</h3>
+<hr>
+<br>
+<br>
+<form action="http://bis.silverbiology.com/dev/resources/api/api.php" method="post" enctype="multipart/form-data">
+<input type="hidden" name="cmd" id="cmd" value="imageAddFromForm">
+<input type="hidden" name="authMode" id="authMode" value="key">
+<input type="hidden" name="key" id="key" value="5051b9c3a5967">
+<input type="hidden" name="storageId" id="storageId" value="2">
+<input type="hidden" name="code" id="code" value="TSTCN">
+
+<input type="hidden" name="imagePath[]" value="/formupload">
+<input type="file" name="filename[]">
+
+<input type="submit" name="submit" value="Submit">
+</form>
+</body>
+</html>

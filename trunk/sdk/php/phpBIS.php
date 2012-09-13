@@ -56,6 +56,37 @@ class phpBIS
 		}
 	}
 */
+
+	public function imageAddFromLocal($source, $destinationPath, $params = array()) {
+		$stream = file_get_contents($source);
+		if((strpos($source, '/')) !== false) {
+			$source = explode('/', $source);
+			$filename = $source[count($source)-1];
+		} else if((strpos($source, '\\')) !== false) {
+			$source = explode('\\', $source);
+			$filename = $source[count($source)-1];
+		} else {
+			$filename = $source;
+		}
+		$data['key'] = $this->key;
+		$data['imagePath'] = $destinationPath;
+		$data['storageDeviceId'] = (isset($params['storageDeviceId']) && $params['storageDeviceId'] != '') ? $params['storageDeviceId'] : '';
+		$data['barcode'] = (isset($params['barcode']) && $params['barcode'] != '') ? $params['barcode'] : '';
+		$data['code'] = (isset($params['code']) && $params['code'] != '') ? $params['code'] : '';
+		$data['filename'] = $filename;
+		$data['stream'] = $stream;
+		$data['cmd'] = 'imageAddFromLocal';
+		$result = $this->CURL($this->server . '/api.php',$data);
+		$result = json_decode($result,true);
+		if($result['success'] == true) {
+			return $result;
+		} else {
+			$this->lastError['code'] = $result['error']['code'];
+			$this->lastError['msg'] = $result['error']['msg'];
+			return $result;
+		}
+	}
+
 	public function imageAddFromExisting($storageDeviceId, $imagePath, $filename) {
 		$data['storageDeviceId'] = $storageDeviceId;
 		$data['imagePath'] = $imagePath;
@@ -90,7 +121,7 @@ class phpBIS
 			return $result;
 		}
 	}
-	public function imageAddFromServer($filename,$sourcePath,$destinationPath,$storageDeviceId,$loadFlag = 'copy') {
+	public function imageAddFromServer($filename,$sourcePath,$destinationPath,$storageDeviceId = '',$loadFlag = 'copy') {
 		$loadFlag =  (@strtolower($loadFlag) == 'move') ?'move' : 'copy';
 		$data['filename'] = $filename;
 		$data['imagePath'] = $sourcePath;
@@ -715,6 +746,7 @@ class phpBIS
 		$data['key'] = $this->key;
 		$data['cmd'] = 'imageAddToCollection';
 		$result = $this->CURL($this->server . '/api.php', $data);
+// die($result);
 		$result = json_decode($result, true);
 		if($result['success'] == true) {
 			return $result;

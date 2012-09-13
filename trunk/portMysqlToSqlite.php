@@ -1,14 +1,18 @@
 <?php
 	ini_set('display_errors', 1);
 	error_reporting(E_ALL ^ E_NOTICE);
+	
 	// include('config.php');
+	
+		// or
+	
 	$config['mysql']['host'] = 'localhost';
 	$config['mysql']['name'] = 'silverimage';
 	$config['mysql']['user'] = 'root';
 	$config['mysql']['pass'] = '';
 	
-	$config['port']['sqlPath'] = 'G:\\wamp\\www\\test\\portSI.sql';
-	$config['port']['usersSqlPath'] = 'G:\\wamp\\www\\test\\portUsersSI.sql';
+	$config['port']['sqlPath'] = 'G:\\wamp\\www\\test\\sqlfiles\\portSI.sql';
+	$config['port']['usersSqlPath'] = 'G:\\wamp\\www\\test\\sqlfiles\\portUsersSI.sql';
 	
 	
 	
@@ -30,16 +34,11 @@
 		('users' != $row[0]) ? $tables[] = $row[0] : $userTable = $row[0];
 	}
 	
-	// echo '<pre>';
-	// echo '<br>';
-	// print_r($tables);
-// exit;	
-	// $tables = array('log');
-	
 	# Tables
 	if(file_exists($config['port']['sqlPath'])){
 		unlink($config['port']['sqlPath']);
 	}
+	mkdirRecursive(dirname($config['port']['sqlPath']));
 	if(false !== $fp = fopen($config['port']['sqlPath'],'a')) {
 		if(count($tables)) {
 			foreach($tables as $table) {
@@ -91,6 +90,7 @@
 	if(file_exists($config['port']['usersSqlPath'])){
 		unlink($config['port']['usersSqlPath']);
 	}
+	mkdirRecursive(dirname($config['port']['usersSqlPath']));
 	if(false !== $fp = fopen($config['port']['usersSqlPath'],'a')) {
 		$columns = array();
 		$cols = array();
@@ -143,6 +143,11 @@
 		}
 	}	
 
+	function mkdirRecursive( $pathname ) {
+		is_dir(dirname($pathname)) || mkdirRecursive(dirname($pathname));
+		return is_dir($pathname) || @mkdir($pathname, 0775);
+	}
+	
 echo '<br> SQL Files created.';
 echo '<br>';
 echo $config['port']['sqlPath'];

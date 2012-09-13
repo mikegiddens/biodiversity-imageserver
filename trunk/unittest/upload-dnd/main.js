@@ -140,7 +140,7 @@ function uploadFile(file, totalFiles) {
 			 * is wrong and we need to forget this upload.
 			 */
 			if(base64StartIndex < data.length) {
-				var postString = "cmd=addImageByDND&imagePath=/uploadform&filename="+file.name+"&stream="+data.substr(base64StartIndex);
+				var postString = "cmd=imageAddFromDnd&imagePath=/uploaddnd&key=5051cf05d06ff&filename="+file.name+"&stream="+data.substr(base64StartIndex);
 				$.ajax({
 					type: 'POST',
 					url: '../../resources/api/api.php',
