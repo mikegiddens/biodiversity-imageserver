@@ -139,6 +139,14 @@ Ext.define('BIS.view.CtxMnuImage', {
                 cmd: 'imageModifyRotate',
                 imageId: this.record.data.imageId,
                 degree: 90
+            },
+            scope: this,
+            success: function( data ) {
+                console.log( data );
+                if ( data.success ) {
+                } else {
+                    Ext.Msg.alert('Unable to Process Request', 'You do not have permission to rotate images.');
+                }
             }
         });
     },
@@ -149,6 +157,14 @@ Ext.define('BIS.view.CtxMnuImage', {
                 cmd: 'imageModifyRotate',
                 imageId: this.record.data.imageId,
                 degree: 270
+            },
+            scope: this,
+            success: function( data ) {
+                console.log( data );
+                if ( data.success ) {
+                } else {
+                    Ext.Msg.alert('Unable to Process Request', 'You do not have permission to rotate images.');
+                }
             }
         });
     },
@@ -159,6 +175,14 @@ Ext.define('BIS.view.CtxMnuImage', {
                 cmd: 'imageModifyRotate',
                 imageId: this.record.data.imageId,
                 degree: 180
+            },
+            scope: this,
+            success: function( data ) {
+                console.log( data );
+                if ( data.success ) {
+                } else {
+                    Ext.Msg.alert('Unable to Process Request', 'You do not have permission to rotate images.');
+                }
             }
         });
     },
@@ -178,8 +202,8 @@ Ext.define('BIS.view.CtxMnuImage', {
                 cmd: 'imageGetOcr',
                 imageId: this.record.data.imageId
             },
+            scope: this,
             success: function( data ) {
-                console.log( data );
                 Ext.create('Ext.window.Window', {
                     title: 'Optical Character Recognition from ' + this.record.data.filename,
                     iconCls: 'icon_ocr',
@@ -195,7 +219,7 @@ Ext.define('BIS.view.CtxMnuImage', {
                             border: false,
                             title: false,
                             autoScroll: true,
-                            html: data
+                            html: this.parseLineBreaks( data.responseText )
                         }
                     ]
                 }).show();
@@ -212,8 +236,9 @@ Ext.define('BIS.view.CtxMnuImage', {
                 cmd: 'imageRetrieveEvernoteData',
                 imageId: this.record.data.imageId
             },
+            scope: this,
             success: function( data ) {
-                console.log( data );
+                data = Ext.decode( data.responseText );
                 Ext.create('Ext.window.Window', {
                     title: 'Evernote Data from ' + this.record.data.filename,
                     iconCls: 'icon_evernote',
@@ -235,5 +260,8 @@ Ext.define('BIS.view.CtxMnuImage', {
                 }).show();
             }
         });
+    },
+    parseLineBreaks: function( str ) {
+        return str.replace(/([^>\r\n]?)(\r\n|\n\r|\r|\n)/g, '$1<br>$2');
     }
 });
