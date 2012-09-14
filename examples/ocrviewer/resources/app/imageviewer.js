@@ -22,6 +22,11 @@ BIS.ImageViewer = function( config ) {
                         me.currentCollection = firstCollection;
                         $('.collectionBox').click( me.selectCollection );
                         $('.collectionBox[bis-data-code="'+firstCollection.code+'"]').addClass('glow');
+                        if ( firstCollection.code != 'DBG-SLIDES' ) {
+                            me.hideEvernoteSearch();
+                        } else {
+                            me.showEvernoteSearch();
+                        }
                     }
                 }
                 var incr = function( collection, hasImages ) {
@@ -51,7 +56,7 @@ BIS.ImageViewer = function( config ) {
             }
         });
     }
-    this.loadImageView = function( collection, values ) {
+    this.loadImageView = function( collection, values, callback ) {
         if ( collection ) {
             this.currentCollection = collection;
         }
@@ -59,7 +64,7 @@ BIS.ImageViewer = function( config ) {
         if ( values == '' || typeof values == 'undefined' ) {
             route = this.webportal + 'resources/api/api.php?cmd=imageList&code='+me.currentCollection.code+'&start='+this.pageStart+'&stop='+this.pageStop+'&limit='+this.pageLimit;
         } else {
-            route = this.webportal + 'resources/api/api.php?cmd=evernoteSearchByLabel&code='+me.currentCollection.code+'&start='+this.pageStart+'&stop='+this.pageStop+'&limit='+this.pageLimit;
+            route = this.webportal + 'resources/api/api.php?cmd=evernoteSearchByLabel&value='+values+'&enAccountId=6&start='+this.pageStart+'&stop='+this.pageStop+'&limit='+this.pageLimit; 
             if ( values ) {
                 me.cacheValues = JSON.stringify(values.split(',').join('","'));
                 route += '&value=['+me.cacheValues+']';
@@ -77,16 +82,19 @@ BIS.ImageViewer = function( config ) {
                     var returnedCount = data.records.length;
                     me.pageCount = returnedCount;
                     me.totalCount = data.totalCount;
-                    $('.pagingLabel').html('Viewing '+me.pageStart+' to '+((me.totalCount < me.pageStop) ? me.totalCount : me.pageStop)+' of '+me.totalCount+' images.');
+                    $('.pagingLabel').html('Viewing '+((me.pageStart == 0) ? 1 : me.pageStart)+' to '+((me.totalCount < me.pageStop) ? me.totalCount : me.pageStop)+' of '+me.totalCount+' images.');
                     if ( me.pageStop >= me.totalCount ) { $('.pageNext').addClass('disabled') }
                     if ( me.pageStart > 0 ) { $('.pagePrev').removeClass('disabled') }
                     if ( me.pageStart <= 0 ) { $('.pagePrev').addClass('disabled') }
                     if ( me.pageStop < me.totalCount ) { $('.pageNext').removeClass('disabled') }
                     me.panel.loadImages( me.currentCollection, data.records );
+                    if ( callback ) callback( true );
                 } else {
-                    me.panel.el.html( '<p style="color:white; padding: 10px;">Unable to load images at this time.</p>' );
+                    me.panel.el.html( '<p style="padding: 10px;">Unable to load images at this time.</p>' );
+                    if ( callback ) callback( false );
                 }
-            }
+            },
+            error: function() { if ( callback ) callback( false ); }
         });
     }
     this.submitSearch = function( e ) {
@@ -95,7 +103,10 @@ BIS.ImageViewer = function( config ) {
         me.pageStop = me.pageLimit;
         me.pageCount = 0;
         me.totalCount = 0;
-        me.loadImageView( me.currentCollection, $('#search').attr('value') );
+        $('#searchButton').button('option','label','Searching...').button('disable');
+        me.loadImageView( me.currentCollection, $('#search').attr('value'), function( success ) {
+            $('#searchButton').button('option','label','Search:').button('enable');
+        });
     }
     this.submitSearchRemove = function( e ) {
         me.cacheValues = null;
@@ -120,7 +131,19 @@ BIS.ImageViewer = function( config ) {
         me.pageStop = me.pageLimit;
         me.pageCount = 0;
         me.totalCount = 0;
+        $('#search').importTags('');
+        if ( me.currentCollection.code != 'DBG-SLIDES' ) {
+            me.hideEvernoteSearch();
+        } else {
+            me.showEvernoteSearch();
+        }
         me.loadImageView( me.currentCollection );
+    }
+    this.showEvernoteSearch = function() {
+        $('#evernoteSearchContainer').addClass('disabled');
+    }
+    this.hideEvernoteSearch = function() {
+        $('#evernoteSearchContainer').removeClass('disabled');
     }
     // init
 	if ( config ) $.extend( this, config );
@@ -134,12 +157,12 @@ BIS.ImageViewer = function( config ) {
             '<div id="imagecollectionview"></div>'+
             '<hr style="width: 80%; margin-top: 10px; margin-bottom: 10px;">'+
             '<div>'+
-                '<div style="float: left;">'+
-                    '<span class="galleryTitle" style="color: white; font-weight: bold; font-size: 24px;"></span>'+
+                '<div style="float: left; height: 72px;">'+
+                    '<span class="galleryTitle" style="font-weight: bold; font-size: 24px;"></span>'+
                     '<br>'+
-                    '<span class="pagingLabel" style="color: white; font-size: 16px; padding-top: 5px;"></span>'+
+                    '<span class="pagingLabel" style="font-size: 16px; padding-top: 5px;"></span>'+
                 '</div>'+
-                '<span style="float: right"><button id="searchButton" style="float: left; padding-right: 5px;">Search:</button><input id="search" class="searchfield" type="text"></span>'+
+                '<span id="evernoteSearchContainer" style="float: right"><button id="searchButton" style="float: left; padding-right: 5px; width: 135px;">Search:</button><input id="search" class="searchfield" type="text"></span>'+
             '</div>'+
             '<div id="imagedataview"></div>'+
             '<div class="ui-state-default ui-corner-all pagePrev" style="position: absolute" title="Previous Page"><span class="ui-icon ui-icon-triangle-1-w"></span></div>'+
@@ -249,7 +272,7 @@ BIS.ImageDataView = function( config ) {
             });
             */
         } else {
-            this.el.html( '<span style="padding: 10px; color: white;">There are no images for '+ collection.name +'.' );
+            this.el.html( '<span style="padding: 10px;">There are no images for '+ collection.name +'.' );
         }
     }
 
