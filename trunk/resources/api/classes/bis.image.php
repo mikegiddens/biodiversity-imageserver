@@ -737,7 +737,10 @@ Class Image {
 	}
 
 	public function imgeGetNonProcessedRecords($filter='') {
-		$query = " SELECT * FROM `image` WHERE `processed` = 0 OR `processed` IS NULL ";
+		$query = " SELECT * FROM `image` WHERE ( `processed` = 0 OR `processed` IS NULL ) ";
+		if($filter['collectionCode'] != '') {
+			$query .= sprintf(" AND `collectionCode` = '%s' ", $filter['collectionCode']);
+		}
 		if(trim($filter['start']) != '' && trim($filter['limit']) != '') {
 			$query .= build_limit(trim($filter['start']),trim($filter['limit']));
 		}
@@ -1061,12 +1064,9 @@ Class Image {
 			}
 		}
 
-		
-/*
 		if($this->data['field'] != '' && $this->data['value'] != '') {
 			$where .= sprintf(" AND `%s` = '%s' ", mysql_escape_string($this->data['field']), mysql_escape_string($this->data['value']));
 		}
-*/
 
 		$this->query .= $where;
 		$this->queryCount .= $where;
