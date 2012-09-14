@@ -7,9 +7,6 @@ To populate and process Ocr:
 http://bis.silverbiology.com/dev/resources/api/backup_services.php?cmd=populateOcrProcessQueue
 http://bis.silverbiology.com/dev/resources/api/backup_services.php?cmd=processOCR&limit=2
 
-To Create New EN account (I created a new one SB-Cards for the cards with the GUID of the DBG-CARDS folder).
-http://bis.silverbiology.com/dev/resources/api/api.php?cmd=evernoteAccountAdd&accountName=SB-Cards&userName=silverbiology&password=herbariumocr&consumerKey=silverbiologyclient&consumerSecret=b6b3ee3ec35bc0f7&notebookGuid=6a799a4e-9712-4c4c-8278-ab2f43c6b5d2
-
 To Populate and process label EN:
 The populate command takes processed = 0 image records(no other flag present for this currently), so best to do this before running processQueue, or might need to gives needed imageIds in json encoded form as imageId parameter
 http://bis.silverbiology.com/dev/resources/api/backup_services.php?cmd=populateEvernoteProcessQueue&collectionCode=DGB-CARDS&limit=4
