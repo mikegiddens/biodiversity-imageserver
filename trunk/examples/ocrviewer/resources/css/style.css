@@ -23,9 +23,9 @@ body {
 	position: relative;
 }
 .imageDataViewBox:hover {
-	-webkit-box-shadow: 0 0 15px #FEFFBF; 
-	-moz-box-shadow: 0 0 15px #FEFFBF; 
-	box-shadow: 0 0 15px #FEFFBF; 
+	-webkit-box-shadow: 0 0 15px #6EE95B; 
+	-moz-box-shadow: 0 0 15px #6EE95B; 
+	box-shadow: 0 0 15px #6EE95B; 
 }
 .collectionBox {
 	width: 198px;
@@ -53,9 +53,9 @@ body {
 	min-height: 200px;
 }
 .glow {
-	-webkit-box-shadow: 0 0 15px #ffffff;
-	-moz-box-shadow: 0 0 15px #ffffff;
-	box-shadow: 0 0 15px #ffffff;
+	-webkit-box-shadow: 0 0 15px #6EE95B;
+	-moz-box-shadow: 0 0 15px #6EE95B;
+	box-shadow: 0 0 15px #6EE95B;
 }
 #container {
 	float: left;
