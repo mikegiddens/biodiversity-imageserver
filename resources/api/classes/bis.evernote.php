@@ -77,7 +77,7 @@ Class EvernoteAccounts {
  * Call to this function must be preceeded with a call to the load_byenIid function
  */
 	public function evernoteAccountsGetDetails() {
-		return array('userName' => $this->evernoteAccountsGetProperty('userName')
+		return array('username' => $this->evernoteAccountsGetProperty('userName')
 			, 'password' => $this->evernoteAccountsGetProperty('password')
 			, 'consumerKey' => $this->evernoteAccountsGetProperty('consumerKey')
 			, 'consumerSecret' => $this->evernoteAccountsGetProperty('consumerSecret')
@@ -95,7 +95,7 @@ Class EvernoteAccounts {
 		$acnts = $this->db->query_all($query);
 		if(is_array($acnts) && count($acnts)) {
 			foreach($acnts as $acnt) {
-				$accounts[] = array('userName' => $acnt->userName
+				$accounts[] = array('username' => $acnt->userName
 						, 'password' => $acnt->password
 						, 'consumerKey' => $acnt->consumerKey
 						, 'consumerSecret' => $acnt->consumerSecret
@@ -221,7 +221,7 @@ Class EvernoteAccounts {
 				$accounts[] = array(
 						'enAccountId' => $acnt->enAccountId
 						,'accountName' => $acnt->accountName
-						,'userName' => $acnt->userName
+						,'username' => $acnt->userName
 						, 'password' => $acnt->password
 						, 'consumerKey' => $acnt->consumerKey
 						, 'consumerSecret' => $acnt->consumerSecret
@@ -269,12 +269,12 @@ Class EvernoteAccounts {
 	
 	public function evernoteTagsAdd($tagName, $tagGuid) {
 		if($tagName=='' || $tagGuid=='') return false;
-		if(!$this->existTagGuid($tagGuid)) {
+		if(!$this->evernoteTagsExistGuid($tagGuid)) {
 			$query = sprintf("INSERT INTO `evernoteTags` SET `tagName` = '%s', `tagGuid` = '%s'"
 					, mysql_escape_string($tagName)
 					, mysql_escape_string($tagGuid)
 					);
-			$this->db->query($query);
+			return ($this->db->query($query)) ? true : false;
 		}
 		return true;
 	}

@@ -8,14 +8,14 @@ ini_set('display_errors', '1');
 	ini_set('memory_limit','128M');
 
 	$expected=array(
-		  'cmd'
-		, 'barcode'
+		  'barcode'
+		, 'cmd'
+		, 'collectionCode'
+		, 'enAccountId'
 		, 'id'
-		, 'image_id'
+		, 'imageId'
 		, 'limit'
 		, 'stop' # stop is the number of seconds that the loop should run
-		, 'collection'
-		, 'enId'
 	);
 
 	// Initialize allowed variables
@@ -70,13 +70,13 @@ ini_set('display_errors', '1');
 	$path = $config['path']['base'] . "resources/api/classes/";
 	set_include_path(get_include_path() . PATH_SEPARATOR . $path);
 	require_once("classes/phpFlickr/phpFlickr.php");
-	require_once("classes/class.master.php");
-	require_once("classes/class.picassa.php");
-	require_once("classes/class.misc.php");
-	require_once("classes/class.gbif.php");
+	require_once("classes/bis.php");
+	require_once("classes/bis.picassa.php");
+	require_once("classes/bis.misc.php");
+	require_once("classes/bis.gbif.php");
 
 	$si = new SilverImage($config['mysql']['name']);
-	$time_start = microtime(true);	
+	$timeStart = microtime(true);	
 
 	switch($cmd) {
 		case 'populateBoxDetect':
@@ -85,14 +85,14 @@ ini_set('display_errors', '1');
 				print json_encode(array('success' => false, 'error' => array('code' => 137, 'message' => $si->getError(137))));
 				exit;
 			}
-			$time_start = microtime(true);
+			$timeStart = microtime(true);
 			$count = 0;
 			$filter['start'] = 0;
 			$filter['limit'] = $limit;
 	
 			$flag = false;
 			$idArray = array();
-			$imageIds = json_decode(@stripslashes(trim($image_id)), true);
+			$imageIds = json_decode(@stripslashes(trim($imageId)), true);
 			if(is_array($imageIds) && count($imageIds)) {
 				$flag = true;
 				$idArray = @array_fill_keys($imageIds,'id');
@@ -105,12 +105,12 @@ ini_set('display_errors', '1');
 			if($flag) {
 				if(is_array($idArray) && count($idArray)) {
 					foreach($idArray as $id => $code) {
-						$func = ($code == 'id') ? 'load_by_id' : 'load_by_barcode';
+						$func = ($code == 'id') ? 'imageLoadById' : 'imageLoadByBarcode';
 						if(!$si->image->{$func}($id)) continue;
-						if(!$si->pqueue->field_exists($si->image->get('barcode'),'box_add')) {
-							$si->pqueue->set('image_id', $si->image->get('barcode'));
-							$si->pqueue->set('process_type', 'box_add');
-							$si->pqueue->save();
+						if(!$si->pqueue->processQueueFieldExists($si->image->imageGetProperty('barcode'),'box_add')) {
+							$si->pqueue->processQueueSetProperty('imageId', $si->image->imageGetProperty('barcode'));
+							$si->pqueue->processQueueSetProperty('processType', 'box_add');
+							$si->pqueue->processQueueSave();
 							$count++;
 						}
 					}
@@ -119,10 +119,10 @@ ini_set('display_errors', '1');
 				$ret = $si->image->getBoxRecords($filter);
 				$countFlag = true;
 				while(($record = $ret->fetch_object()) && ($countFlag)) {
-					if(!$si->pqueue->field_exists($record->barcode,'box_add')) {
-						$si->pqueue->set('image_id', $record->barcode);
-						$si->pqueue->set('process_type', 'box_add');
-						$si->pqueue->save();
+					if(!$si->pqueue->processQueueFieldExists($record->barcode,'box_add')) {
+						$si->pqueue->processQueueSetProperty('imageId', $record->barcode);
+						$si->pqueue->processQueueSetProperty('processType', 'box_add');
+						$si->pqueue->processQueueSave();
 						$count++;
 						if($limit != '' && $count >= $limit) {
 							$countFlag = false;
@@ -130,12 +130,12 @@ ini_set('display_errors', '1');
 					}
 				}
 			}
-			$time = microtime(true) - $time_start;
-			print json_encode(array('success' => true, 'process_time' => $time, 'total_records_added' => $count));
+			$time = microtime(true) - $timeStart;
+			print json_encode(array('success' => true, 'processTime' => $time, 'totalCount' => $count));
 			break;
 	
 		case 'populateNameFinderProcessQueue':
-			$time_start = microtime(true);
+			$timeStart = microtime(true);
 			$count = 0;
 			$filter['start'] = 0;
 			$filter['limit'] = $limit;
@@ -143,52 +143,52 @@ ini_set('display_errors', '1');
 			$ret = $si->image->getNameFinderRecords($filter);
 			$countFlag = true;
 			while(($record = $ret->fetch_object()) && ($countFlag)) {
-				if(!$si->pqueue->field_exists($record->barcode,'name_add')) {
-					$si->pqueue->set('image_id', $record->barcode);
-					$si->pqueue->set('process_type', 'name_add');
-					$si->pqueue->save();
+				if(!$si->pqueue->processQueueFieldExists($record->barcode,'name_add')) {
+					$si->pqueue->processQueueSetProperty('imageId', $record->barcode);
+					$si->pqueue->processQueueSetProperty('processType', 'name_add');
+					$si->pqueue->processQueueSave();
 					$count++;
 					if($limit != '' && $count >= $limit) {
 						$countFlag = false;
 					}
 				}
 			}
-			$time = microtime(true) - $time_start;
-			print json_encode(array('success' => true, 'process_time' => $time, 'total_records_added' => $count));
+			$time = microtime(true) - $timeStart;
+			print json_encode(array('success' => true, 'processTime' => $time, 'totalCount' => $count));
 			break;
 		case 'populateOcrProcessQueue':
-			$time_start = microtime(true);
+			$timeStart = microtime(true);
 			$count = 0;
 			$filter['start'] = 0;
 			$filter['limit'] = $limit;
-			if(trim($image_id) != '') {
-				$imageIds = json_decode(stripslashes($image_id),true);
+			if(trim($imageId) != '') {
+				$imageIds = json_decode(stripslashes($imageId),true);
 				if(is_array($imageIds) && count($imageIds)) {
 					foreach($imageIds as $imageId) {
 						$loadFlag = false;
 						if(!is_numeric($imageId)) {
-							$loadFlag = $si->image->load_by_barcode($imageId);
+							$loadFlag = $si->image->imageLoadByBarcode($imageId);
 						} else {
-							$loadFlag = $si->image->load_by_id($imageId);
+							$loadFlag = $si->image->imageLoadById($imageId);
 						}
 						if($loadFlag) {
-							if(!$si->pqueue->field_exists($si->image->get('image_id'),'ocr_add')) {
-								$si->pqueue->set('image_id', $si->image->get('image_id'));
-								$si->pqueue->set('process_type', 'ocr_add');
-								$si->pqueue->save();
+							if(!$si->pqueue->processQueueFieldExists($si->image->imageGetProperty('imageId'),'ocr_add')) {
+								$si->pqueue->processQueueSetProperty('imageId', $si->image->imageGetProperty('imageId'));
+								$si->pqueue->processQueueSetProperty('processType', 'ocr_add');
+								$si->pqueue->processQueueSave();
 								$count++;
 							}
 						}
 					}
 				}
 			} else {
-				$ret = $si->image->getOcrRecords($filter);
+				$ret = $si->image->imageGetOcrRecords($filter);
 				$countFlag = true;
 				while(($record = $ret->fetch_object()) && ($countFlag)) {
-					if(!$si->pqueue->field_exists($record->image_id,'ocr_add')) {
-						$si->pqueue->set('image_id', $record->image_id);
-						$si->pqueue->set('process_type', 'ocr_add');
-						$si->pqueue->save();
+					if(!$si->pqueue->processQueueFieldExists($record->imageId,'ocr_add')) {
+						$si->pqueue->processQueueSetProperty('imageId', $record->imageId);
+						$si->pqueue->processQueueSetProperty('processType', 'ocr_add');
+						$si->pqueue->processQueueSave();
 						$count++;
 						if($limit != '' && $count >= $limit) {
 							$countFlag = false;
@@ -196,64 +196,64 @@ ini_set('display_errors', '1');
 					}
 				}
 			}
-			$time = microtime(true) - $time_start;
-			print json_encode(array('success' => true, 'process_time' => $time, 'total_records_added' => $count));
+			$time = microtime(true) - $timeStart;
+			print json_encode(array('success' => true, 'processTime' => $time, 'totalCount' => $count));
 			break;
 		case 'populateFlickrProcessQueue':
 		# populate the queue for uploading to flickr
-			$time_start = microtime(true);
+			$timeStart = microtime(true);
 			$count = 0;
 	
-			$ret = $si->image->getFlickrRecords();
+			$ret = $si->image->imageGetFlickrRecords();
 			$countFlag = true;
 			while(($record = $ret->fetch_object()) && ($countFlag)) {
-				if(!$si->pqueue->field_exists($record->barcode,'flickr_add')) {
-					$si->pqueue->set('image_id', $record->barcode);
-					$si->pqueue->set('process_type', 'flickr_add');
-					$si->pqueue->save();
+				if(!$si->pqueue->processQueueFieldExists($record->barcode,'flickr_add')) {
+					$si->pqueue->processQueueSetProperty('imageId', $record->barcode);
+					$si->pqueue->processQueueSetProperty('processType', 'flickr_add');
+					$si->pqueue->processQueueSave();
 					$count++;
 					if($limit != '' && $count >= $limit) {
 						$countFlag = false;
 					}
 				}
 			}
-			$time = microtime(true) - $time_start;
-			print json_encode(array('success' => true, 'process_time' => $time, 'total_records_added' => $count));
+			$time = microtime(true) - $timeStart;
+			print json_encode(array('success' => true, 'processTime' => $time, 'totalCount' => $count));
 			break;
 		case 'populatePicassaProcessQueue':
 		# populate the queue for uploading to picassa
-			$time_start = microtime(true);
+			$timeStart = microtime(true);
 			$count = 0;
-			$ret = $si->image->getPicassaRecords();
+			$ret = $si->image->imageGetPicassaRecords();
 			$countFlag = true;
 			while(($record = $ret->fetch_object()) && ($countFlag)) {
-				if(!$si->pqueue->field_exists($record->barcode,'picassa_add')) {
-					$si->pqueue->set('image_id', $record->barcode);
-					$si->pqueue->set('process_type', 'picassa_add');
-					$si->pqueue->save();
+				if(!$si->pqueue->processQueueFieldExists($record->barcode,'picassa_add')) {
+					$si->pqueue->processQueueSetProperty('imageId', $record->barcode);
+					$si->pqueue->processQueueSetProperty('processType', 'picassa_add');
+					$si->pqueue->processQueueSave();
 					$count++;
 					if($limit != '' && $count >= $limit) {
 						$countFlag = false;
 					}
 				}
 			}
-			$time = microtime(true) - $time_start;
-			print json_encode(array('success' => true, 'process_time' => $time, 'total records added' => $count));
+			$time = microtime(true) - $timeStart;
+			print json_encode(array('success' => true, 'processTime' => $time, 'totalCount' => $count));
 			break;
 		case 'populateGTileProcessQueue':
 		# populate the queue for creating Google Map Tiles
-			$time_start = microtime(true);
+			$timeStart = microtime(true);
 			$count = 0;
 	
-			$ret = $si->image->getGTileRecords();
+			$ret = $si->image->imageGetGTileRecords();
 			if (is_object($ret)) {
 				$record = array();
 				$countFlag = true;
 				while(($record = $ret->fetch_object()) && $countFlag){
-					if(!$si->pqueue->field_exists($record->barcode,'google_tile')) {
-						$si->pqueue->set('image_id', $record->barcode);
-						$si->pqueue->set('process_type', 'google_tile');
-						$si->pqueue->save();
+					if(!$si->pqueue->processQueueFieldExists($record->barcode,'google_tile')) {
+						$si->pqueue->processQueueSetProperty('imageId', $record->barcode);
+						$si->pqueue->processQueueSetProperty('processType', 'google_tile');
+						$si->pqueue->processQueueSave();
 						$count++;
 						if($limit != '' && $count >= $limit) {
 							$countFlag = false;
@@ -261,52 +261,52 @@ ini_set('display_errors', '1');
 					}
 				}
 			}
-			$time = microtime(true) - $time_start;
-			print json_encode(array('success' => true, 'process_time' => $time, 'total_records_added' => $count));
+			$time = microtime(true) - $timeStart;
+			print json_encode(array('success' => true, 'processTime' => $time, 'totalCount' => $count));
 			break;
 		case 'populateZoomifyProcessQueue':
 		# populate the queue for Zoomify process
-			$time_start = microtime(true);
+			$timeStart = microtime(true);
 			$count = 0;
 	
-			$ret = $si->image->getZoomifyRecords();
+			$ret = $si->image->imageGetZoomifyRecords();
 			$countFlag = true;
 			while(($record = $ret->fetch_object()) && $countFlag) {
-				if(!$si->pqueue->field_exists($record->barcode,'zoomify')) {
-					$si->pqueue->set('image_id', $record->barcode);
-					$si->pqueue->set('process_type', 'zoomify');
-					$si->pqueue->save();
+				if(!$si->pqueue->processQueueFieldExists($record->barcode,'zoomify')) {
+					$si->pqueue->processQueueSetProperty('imageId', $record->barcode);
+					$si->pqueue->processQueueSetProperty('processType', 'zoomify');
+					$si->pqueue->processQueueSave();
 					$count++;
 					if($limit != '' && $count >= $limit) {
 						$countFlag = false;
 					}
 				}
 			}
-			$time = microtime(true) - $time_start;
-			print json_encode(array('success' => true, 'process_time' => $time, 'total_records_added' => $count));
+			$time = microtime(true) - $timeStart;
+			print json_encode(array('success' => true, 'processTime' => $time, 'totalCount' => $count));
 			break;
 		case 'populateProcessQueue':
 		# populate the queue with non-processed images
-			$time_start = microtime(true);
+			$timeStart = microtime(true);
 			$count = 0;
 			$filter['start'] = 0;
 			$filter['limit'] = $limit;
-			$ret = $si->image->getNonProcessedRecords($filter);
+			$ret = $si->image->imgeGetNonProcessedRecords($filter);
 			$countFlag = true;
 			while(($record = $ret->fetch_object()) && $countFlag) {
-				if(!$si->pqueue->field_exists($record->barcode,'all')) {
-					$si->pqueue->set('image_id', $record->barcode);
-					$si->pqueue->set('process_type', 'all');
-					$si->pqueue->save();
+				if(!$si->pqueue->processQueueFieldExists($record->barcode,'all')) {
+					$si->pqueue->processQueueSetProperty('imageId', $record->barcode);
+					$si->pqueue->processQueueSetProperty('processType', 'all');
+					$si->pqueue->processQueueSave();
 					$count++;
 					if($limit != '' && $count >= $limit) {
 						$countFlag = false;
 					}
 				}
 			}
-			$time = microtime(true) - $time_start;
+			$time = microtime(true) - $timeStart;
 			header('Content-type: application/json');
-			print json_encode(array('success' => true, 'process_time' => $time, 'total_records_added' => $count));
+			print json_encode(array('success' => true, 'processTime' => $time, 'totalCount' => $count));
 			break;
 		case 'processOCR':
 			if(!$config['tesseractEnabled']) {
@@ -316,45 +316,51 @@ ini_set('display_errors', '1');
 			}
 			$_TMP = ($config['path']['tmp'] != '') ? $config['path']['tmp'] : sys_get_temp_dir() . '/';
 	
-			$time_start = microtime(true);
+			$timeStart = microtime(true);
 			$tStart = time();
-			$loop_flag = true;
-			$images_array = array();$image_count = 0;
-			while($loop_flag) {
+			$loopFlag = true;
+			$images_array = array();$imageCount = 0;
+			while($loopFlag) {
 				$tDiff = time() - $tStart;
-				if( ($stop != '') && ( $tDiff > $stop) ) $loop_flag = false;
+				if( ($stop != '') && ( $tDiff > $stop) ) $loopFlag = false;
 	
 				if($limit != '') {
 					if($limit == 0) break;
 				}
-				if($limit != '' && $image_count >= ($limit - 1)) $loop_flag = false;
+				if($limit != '' && $imageCount >= ($limit - 1)) $loopFlag = false;
 	
-				$record = $si->pqueue->popQueue('ocr_add');
+				$record = $si->pqueue->processQueuePop('ocr_add');
 				if($record === false) {
-					$loop_flag = false;
+					$loopFlag = false;
 				} else {
-					$si->image->load_by_id($record->image_id);
-					$device = $si->storage->get($si->image->get('storage_id'));
+					$si->image->imageLoadById($record->imageId);
+					$device = $si->storage->storageDeviceGet($si->image->imageGetProperty('storageDeviceId'));
 					switch(strtolower($device['type'])) {
 						case 's3':
 							$tmpFileName = 'Img_' . uniqid();
 							$tmpFilePath = $_TMP . $tmpFileName . '.jpg';
 							$tmpFile = $tmpFilePath;
-							$key = $si->image->get('path') . '/' . $si->image->get('filename');
+							$key = $si->image->imageGetProperty('path') . '/' . $si->image->imageGetProperty('filename');
 							$key = (substr($key, 0, 1)=='/') ? (substr($key, 1, strlen($key)-1)) : ($key);
 							$si->amazon->get_object($device['basePath'], $key, array('fileDownload' => $tmpFile));
 							break;
 						case 'local':
-							$tmpFilePath = $device['basePath'] . $si->image->get('path') . '/' . $si->image->get('filename');
+							$tmpFilePath = $device['basePath'] . $si->image->imageGetProperty('path') . '/' . $si->image->imageGetProperty('filename');
 							$tmpFile = $tmpFilePath;
 							break;
 					}
+					
+// echo '<br> Temp File : ' . $tmpFile;
+// echo (file_exists($tmpFile)) ? '<br> Temp File Exists ' : '<br> Temp File Doe Not Exist ';
+					
 	
 					if($config['image_processing'] == 1) {
 						$tmpImage = $tmpFilePath . '_tmp.jpg';
 						$cd = "convert " . $tmpFile . " -colorspace Gray  -contrast-stretch 15% " . $tmpImage;
+// echo '<br> Command : ' . $cd;						
 						exec($cd);
 						$command = sprintf("%s %s %s", $config['tesseractPath'], $tmpImage, $tmpFilePath);
+// echo '<br> Command : ' . $command;
 						exec($command);
 						@unlink($tmpImage);
 					} else {
@@ -363,13 +369,15 @@ ini_set('display_errors', '1');
 					}
 	
 					if(@file_exists($tmpFilePath . '.txt')){
+// echo '<br>'.$tmpFilePath . '.txt' . ' Present ';
 						$value = file_get_contents($tmpFilePath . '.txt');
-						$images_array[] = array('image_id' => $si->image->get('image_id'), 'barcode' => $si->image->get('barcode'));
-						$image_count++;
+// echo '<br>Value : ' . $value;
+						$images_array[] = array('imageId' => $si->image->imageGetProperty('imageId'), 'barcode' => $si->image->imageGetProperty('barcode'));
+						$imageCount++;
 	
-						$si->image->set('ocr_flag',1);
-						$si->image->set('ocr_value',$value);
-						$si->image->save();
+						$si->image->imageSetProperty('ocrFlag',1);
+						$si->image->imageSetProperty('ocrValue',$value);
+						$si->image->imageSave();
 					}
 	
 					if(strtolower($device['type']) == 's3') {
@@ -379,9 +387,11 @@ ini_set('display_errors', '1');
 	
 				}
 			}
-			$time_taken = microtime(true) - $time_start;
+			$time_taken = microtime(true) - $timeStart;
+// echo '<pre>';
+// print_r($images_array);
 			header('Content-type: application/json');
-			print json_encode(array('success' => true, 'process_time' => $time_taken, 'total' => $image_count, 'images' => $images_array));
+			print json_encode(array('success' => true, 'processTime' => $time_taken, 'totalCount' => $imageCount, 'records' => $images_array));
 			break;
 		case 'processBoxDetect':
 			header('Content-type: application/json');
@@ -391,14 +401,14 @@ ini_set('display_errors', '1');
 			}
 			$_TMP = ($config['path']['tmp'] != '') ? $config['path']['tmp'] : sys_get_temp_dir() . '/';
 	
-			$time_start = microtime(true);
+			$timeStart = microtime(true);
 			$tStart = time();
-			$loop_flag = true;
-			$images_array = array();$image_count = 0;
+			$loopFlag = true;
+			$images_array = array();$imageCount = 0;
 	
 			$flag = false;
 			$idArray = array();
-			$imageIds = json_decode(@stripslashes(trim($image_id)),true);
+			$imageIds = json_decode(@stripslashes(trim($imageId)),true);
 			if(is_array($imageIds) && count($imageIds)) {
 				$flag = true;
 				$idArray = @array_fill_keys($imageIds,'id');
@@ -411,12 +421,12 @@ ini_set('display_errors', '1');
 			if($flag) {
 				if(is_array($idArray) && count($idArray)) {
 					foreach($idArray as $id => $code) {
-						$func = ($code == 'id') ? 'load_by_id' : 'load_by_barcode';
+						$func = ($code == 'id') ? 'imageLoadById' : 'imageLoadByBarcode';
 						if(!$si->image->{$func}($id)) continue;
 						# getting image
 						if($config['mode'] == 's3') {
-							$tmpPath = $_TMP . $si->image->get('filename');
-							$key = $si->image->barcode_path($si->image->get('barcode')) . $si->image->get('filename');
+							$tmpPath = $_TMP . $si->image->imageGetProperty('filename');
+							$key = $si->image->imageBarcodePath($si->image->imageGetProperty('barcode')) . $si->image->imageGetProperty('filename');
 							$si->amazon->get_object($config['s3']['bucket'], $key, array('fileDownload' => $tmpPath));
 							$image = $tmpPath;
 						} else {
@@ -427,8 +437,8 @@ ini_set('display_errors', '1');
 						$data = exec(sprintf("%s %s", $config['boxDetectPath'], $image));
 						# putting the json data
 						if($config['mode'] == 's3') {
-							$tmpJson = $_TMP . $si->image->get('barcode') . '_box.json';
-							$key = $si->image->barcode_path($si->image->get('barcode')) . $si->image->get('barcode') . '_box.json';
+							$tmpJson = $_TMP . $si->image->imageGetProperty('barcode') . '_box.json';
+							$key = $si->image->imageBarcodePath($si->image->imageGetProperty('barcode')) . $si->image->imageGetProperty('barcode') . '_box.json';
 							@file_put_contents($tmpJson,$data);
 							$response = $si->amazon->create_object ($config['s3']['bucket'], $key, array('fileUpload' => $tmpJson,'acl' => AmazonS3::ACL_PUBLIC,'storage' => AmazonS3::STORAGE_REDUCED) );
 							@unlink($tmpJson);
@@ -436,31 +446,31 @@ ini_set('display_errors', '1');
 						} else {
 							@file_put_contents($config['path']['images'] . $key,$data);
 						}
-						$images_array[] = array('image_id' => $si->image->get('image_id'), 'barcode' => $si->image->get('barcode'));
-						$image_count++;
-						$si->pqueue->deleteProcessQueue($si->image->get('barcode'),'box_add');
-						$si->image->set('box_flag',1);
-						$si->image->save();
+						$images_array[] = array('imageId' => $si->image->imageGetProperty('imageId'), 'barcode' => $si->image->imageGetProperty('barcode'));
+						$imageCount++;
+						$si->pqueue->deleteProcessQueue($si->image->imageGetProperty('barcode'),'box_add');
+						$si->image->imageSetProperty('boxFlag',1);
+						$si->image->imageSave();
 					}
 				}
 			} else {
-				while($loop_flag) {
+				while($loopFlag) {
 					$tDiff = time() - $tStart;
-					if( ($stop != '') && ( $tDiff > $stop) ) $loop_flag = false;
+					if( ($stop != '') && ( $tDiff > $stop) ) $loopFlag = false;
 					if($limit != '') {
 						if($limit == 0) break;
 					}
-					if($limit != '' && $image_count >= ($limit - 1)) $loop_flag = false;
-					$record = $si->pqueue->popQueue('box_add');
+					if($limit != '' && $imageCount >= ($limit - 1)) $loopFlag = false;
+					$record = $si->pqueue->processQueuePop('box_add');
 					if($record === false) {
-						$loop_flag = false;
+						$loopFlag = false;
 					} else {
-						$si->image->load_by_barcode($record->image_id );
+						$si->image->imageLoadByBarcode($record->imageId );
 	
 						# getting image
 						if($config['mode'] == 's3') {
-							$tmpPath = $_TMP . $si->image->get('filename');
-							$key = $si->image->barcode_path($si->image->get('barcode')) . $si->image->get('filename');
+							$tmpPath = $_TMP . $si->image->imageGetProperty('filename');
+							$key = $si->image->imageBarcodePath($si->image->imageGetProperty('barcode')) . $si->image->imageGetProperty('filename');
 							$fp = fopen($tmpPath, "w+b");
 							$si->amazon->get_object($config['s3']['bucket'], $key, array('fileDownload' => $tmpPath));
 							fclose($fp);
@@ -473,8 +483,8 @@ ini_set('display_errors', '1');
 						$data = exec(sprintf("%s %s", $config['boxDetectPath'], $image));
 						# putting the json data
 						if($config['mode'] == 's3') {
-							$tmpJson = $_TMP . $si->image->get('barcode') . '_box.json';
-							$key = $si->image->barcode_path($si->image->get('barcode')) . $si->image->get('barcode') . '_box.json';
+							$tmpJson = $_TMP . $si->image->imageGetProperty('barcode') . '_box.json';
+							$key = $si->image->imageBarcodePath($si->image->imageGetProperty('barcode')) . $si->image->imageGetProperty('barcode') . '_box.json';
 							@file_put_contents($tmpJson,$data);
 							$response = $si->amazon->create_object ($config['s3']['bucket'], $key, array('fileUpload' => $tmpJson,'acl' => AmazonS3::ACL_PUBLIC,'storage' => AmazonS3::STORAGE_REDUCED) );
 							@unlink($tmpJson);
@@ -482,98 +492,98 @@ ini_set('display_errors', '1');
 						} else {
 							@file_put_contents($config['path']['images'] . $key,$data);
 						}
-						$images_array[] = array('image_id' => $si->image->get('image_id'), 'barcode' => $si->image->get('barcode'));
-						$image_count++;
-						$si->image->set('box_flag',1);
-						$si->image->save();
+						$images_array[] = array('imageId' => $si->image->imageGetProperty('imageId'), 'barcode' => $si->image->imageGetProperty('barcode'));
+						$imageCount++;
+						$si->image->imageSetProperty('boxFlag',1);
+						$si->image->imageSave();
 					}
 				} # while
 			}
-			$time_taken = microtime(true) - $time_start;
-			print json_encode(array('success' => true, 'process_time' => $time_taken, 'total' => $image_count, 'images' => $images_array));
+			$time_taken = microtime(true) - $timeStart;
+			print json_encode(array('success' => true, 'processTime' => $time_taken, 'totalCount' =>$imageCount, 'records' => $images_array));
 			break;
 		case 'processNameFinder':
-			$time_start = microtime(true);
+			$timeStart = microtime(true);
 			$tStart = time();
-			$loop_flag = true;
-			$image_count = 0;
-			while($loop_flag) {
+			$loopFlag = true;
+			$imageCount = 0;
+			while($loopFlag) {
 				$tDiff = time() - $tStart;
-				if( ($stop != '') && ( $tDiff > $stop) ) $loop_flag = false;
-				if($limit != '' && $image_count >= $limit) $loop_flag = false;
-				$record = $si->pqueue->popQueue('name_add');
+				if( ($stop != '') && ( $tDiff > $stop) ) $loopFlag = false;
+				if($limit != '' && $imageCount >= $limit) $loopFlag = false;
+				$record = $si->pqueue->processQueuePop('name_add');
 				if($record === false) {
-					$loop_flag = false;
+					$loopFlag = false;
 				} else {
 	
-					$ret = getNames($record->image_id);
-					$si->image->load_by_barcode($record->image_id);
+					$ret = getNames($record->imageId);
+					$si->image->imageLoadByBarcode($record->imageId);
 					if($ret['success']) {
-						$si->image->set('Family',$ret['data']['family']);
-						$si->image->set('Genus',$ret['data']['genus']);
-						$si->image->set('ScientificName',$ret['data']['scientificName']);
-						$si->image->set('SpecificEpithet',$ret['data']['specificEpithet']);
-						$si->image->set('namefinder_value',$ret['data']['rawData']);
+						$si->image->imageSetProperty('family',$ret['data']['family']);
+						$si->image->imageSetProperty('genus',$ret['data']['genus']);
+						$si->image->imageSetProperty('scientificName',$ret['data']['scientificName']);
+						$si->image->imageSetProperty('specificEpithet',$ret['data']['specificEpithet']);
+						$si->image->imageSetProperty('nameFinderValue',$ret['data']['rawData']);
 					}
-					$si->image->set('namefinder_flag',1);
-					$si->image->save();
+					$si->image->imageSetProperty('nameFinderFlag',1);
+					$si->image->imageSave();
 	
-					$image_count++;
+					$imageCount++;
 				}
 			}
-			$time_taken = microtime(true) - $time_start;
-			print json_encode(array('success' => true, 'process_time' => $time_taken, 'total' => $image_count));
+			$time_taken = microtime(true) - $timeStart;
+			print json_encode(array('success' => true, 'processTime' => $time_taken, 'totalCount' => $imageCount));
 			
 			break;
 	
 		case 'uploadFlickr':
 			$_TMP = ($config['path']['tmp'] != '') ? $config['path']['tmp'] : sys_get_temp_dir() . '/';
 	
-			$time_start = microtime(true);
+			$timeStart = microtime(true);
 			$tStart = time();
-			$loop_flag = true;
+			$loopFlag = true;
 			$f = new phpFlickr($config['flkr']['key'],$config['flkr']['secret']);
 			if( $f->auth_checkToken() === false) {
 				$f->auth('write');
 			}
 	
-			$images_array = array();$image_count = 0;
-			while($loop_flag) {
+			$images_array = array();$imageCount = 0;
+			while($loopFlag) {
 				$tDiff = time() - $tStart;
-				if( ($stop != '') && ( $tDiff > $stop) ) $loop_flag = false;
-				if($limit != '' && $image_count >= $limit) $loop_flag = false;
-				$record = $si->pqueue->popQueue('flickr_add');
+				if( ($stop != '') && ( $tDiff > $stop) ) $loopFlag = false;
+				if($limit != '' && $imageCount >= $limit) $loopFlag = false;
+				$record = $si->pqueue->processQueuePop('flickr_add');
 				if($record === false) {
-					$loop_flag = false;
+					$loopFlag = false;
 				} else {
 	
 					if($config['mode'] == 's3') {
 						$tmpFileName = 'Img_' . time();
 						$tmpFilePath = $_TMP . $tmpFileName;
 						$image = $tmpFilePath . '.jpg';
-						$key = $si->image->barcode_path($record->image_id) . $record->image_id . '.jpg';
+						$key = $si->image->imageBarcodePath($record->imageId) . $record->imageId . '.jpg';
 						$si->amazon->get_object($config['s3']['bucket'], $key, array('fileDownload' => $image));
 					} else {
-						$image = $config['path']['images'] . $si->image->barcode_path($record->image_id) . $record->image_id . '.jpg';
+						$image = $config['path']['images'] . $si->image->imageBarcodePath($record->imageId) . $record->imageId . '.jpg';
 					}
 					# change setting photo to private while uploading
-					$res = $f->sync_upload( $image, $record->image_id, '', '', 0 );
+					$res = $f->sync_upload( $image, $record->imageId, '', '', 0 );
 					if( $res != false ) {
 	
 						$flkrData = $f->photos_getInfo($res);
 						$flickr_details = json_encode(array('server' => $flkrData['server'],'farm' => $flkrData['farm'],'secret' => $flkrData['secret']));
 	
-						$tags = "{$record->image_id} copyright:(CyberFlora-Louisiana)";
+						$tags = "{$record->imageId} copyright:(CyberFlora-Louisiana)";
 						$f->photos_addTags($res,$tags);
-						$si->image->load_by_barcode($record->image_id);
+						$si->image->imageLoadByBarcode($record->imageId);
 	
-						$images_array[] = array('image_id' => $si->image->get('image_id'), 'barcode' => $si->image->get('barcode'));
-						$image_count++;
+						$images_array[] = array('imageId' => $si->image->imageGetProperty('imageId'), 'barcode' => $si->image->imageGetProperty('barcode'));
+						$imageCount++;
 	
-						$si->image->set('flickr_PlantID',$res);
-						$si->image->set('flickr_modified',date('Y-m-d H:i:s'));
-						$si->image->set('flickr_details',$flickr_details);
-						$si->image->save();
+						$si->image->imageSetProperty('flickrPlantId',$res);
+						$si->image->imageSetProperty('flickrModified',date('Y-m-d H:i:s'));
+						$si->image->imageSetProperty('flickrDetails',$flickr_details);
+						$si->image->imageSave();
 					}
 	
 					if($config['mode'] == 's3') {
@@ -582,16 +592,16 @@ ini_set('display_errors', '1');
 	
 				}
 			}
-			$time_taken = microtime(true) - $time_start;
-			print json_encode(array('success' => true, 'process_time' => $time_taken, 'total' => $image_count, 'images' => $images_array));
+			$time_taken = microtime(true) - $timeStart;
+			print json_encode(array('success' => true, 'processTime' => $time_taken, 'totalCount' =>$imageCount, 'records' => $images_array));
 	
 			break;
 		case 'uploadPicassa':
 			$_TMP = ($config['path']['tmp'] != '') ? $config['path']['tmp'] : sys_get_temp_dir() . '/';
 	
-			$time_start = microtime(true);
+			$timeStart = microtime(true);
 			$tStart = time();
-			$loop_flag = true;
+			$loopFlag = true;
 	
 			$picassa = new PicassaWeb;
 			
@@ -602,51 +612,51 @@ ini_set('display_errors', '1');
 			
 			$picassa->clientLogin();
 	
-			$images_array = array();$image_count = 0;
+			$images_array = array();$imageCount = 0;
 	
-			while($loop_flag) {
-				if( ($stop != "") && ((time() - $tStart) > $stop) ) $loop_flag = false;
-				if($limit != '' && $image_count >= $limit) $loop_flag = false;
-				$record = $si->pqueue->popQueue('picassa_add');
+			while($loopFlag) {
+				if( ($stop != "") && ((time() - $tStart) > $stop) ) $loopFlag = false;
+				if($limit != '' && $imageCount >= $limit) $loopFlag = false;
+				$record = $si->pqueue->processQueuePop('picassa_add');
 				if($record === false) {
-					$loop_flag = false;
+					$loopFlag = false;
 				} else {
 					$image = array();
 					if($config['mode'] == 's3') {
 						$tmpFile = $_TMP . 'Img_' . time() . '.jpg';
-						$key = $si->image->barcode_path($record->image_id) . $record->image_id . '.jpg';
+						$key = $si->image->imageBarcodePath($record->imageId) . $record->imageId . '.jpg';
 						$si->amazon->get_object($config['s3']['bucket'], $key, array('fileDownload' => $tmpFile));
 						$image['tmp_name'] = $tmpFile;
 					} else {
-						$image['tmp_name'] = $config['path']['images'] . $si->image->barcode_path($record->image_id) . $record->image_id . '.jpg';
+						$image['tmp_name'] = $config['path']['images'] . $si->image->imageBarcodePath($record->imageId) . $record->imageId . '.jpg';
 					}
-					$image['name'] = $record->image_id;
+					$image['name'] = $record->imageId;
 					$image['type'] = 'image/jpeg';
-					$image['tags'] = $record->image_id;
+					$image['tags'] = $record->imageId;
 					$album_id = $picassa->getAlbumID();
 					$res = $picassa->addPhoto($image);
 					if( $res != false ) {
 						
-						$si->image->load_by_barcode($record->image_id);
+						$si->image->imageLoadByBarcode($record->imageId);
 	
-						$images_array[] = array('image_id' => $si->image->get('image_id'), 'barcode' => $si->image->get('barcode'));
-						$image_count++;
+						$images_array[] = array('imageId' => $si->image->imageGetProperty('imageId'), 'barcode' => $si->image->imageGetProperty('barcode'));
+						$imageCount++;
 	
-						$si->image->set('picassa_PlantID',$res);
-						$si->image->set('picassa_modified',date('Y-m-d H:i:s'));
-						$si->image->save();
+						$si->image->imageSetProperty('picassaPlantId',$res);
+						$si->image->imageSetProperty('picassaModified',date('Y-m-d H:i:s'));
+						$si->image->imageSave();
 					}
 				}
 				if($config['mode'] == 's3') {
 					@unlink($tmpFile);
 				}
 			}
-			$time_taken = microtime(true) - $time_start;
-			print json_encode(array('success' => true, 'process_time' => $time_taken, 'total' => $image_count, 'images' => $images_array));
+			$time_taken = microtime(true) - $timeStart;
+			print json_encode(array('success' => true, 'processTime' => $time_taken, 'totalCount' =>$imageCount, 'records' => $images_array));
 			break;
 	
 		case 'populateEnLabels':
-			$time_start = microtime(true);
+			$timeStart = microtime(true);
 			$start_date = $si->s2l->getLatestDate();
 
 			$url = $config['hsUrl'] . '?task=getEnLabels&start_date=' . $start_date; echo $url; exit;
@@ -657,53 +667,53 @@ ini_set('display_errors', '1');
 				$labels = $jsonObject['results'];
 				if(is_array($labels) && count($labels)) {
 					foreach($labels as $label) {
-						$si->s2l->set('labelId',$label['label_id']);
-						$si->s2l->set('evernoteAccountId',$label['evernote_account']);
-						$si->s2l->set('barcode',$label['barcode']);
-						$si->s2l->set('dateAdded',$label['date_added']);
-						if($si->s2l->save()) {
+						$si->s2l->Specimen2LabelSetProperty('labelId',$label['label_id']);
+						$si->s2l->Specimen2LabelSetProperty('evernoteAccountId',$label['evernote_account']);
+						$si->s2l->Specimen2LabelSetProperty('barcode',$label['barcode']);
+						$si->s2l->Specimen2LabelSetProperty('dateAdded',$label['date_added']);
+						if($si->s2l->Specimen2LabelSave()) {
 							$labelCount++;
 						}
 					}
 				}
 			}
-			$time_taken = microtime(true) - $time_start;
-			print json_encode(array('success' => true, 'process_time' => $time_taken, 'labelCount' => $labelCount));
+			$time_taken = microtime(true) - $timeStart;
+			print json_encode(array('success' => true, 'processTime' => $time_taken, 'labelCount' => $labelCount));
 			break;
 	
 		case 'populateGuessTaxaProcessQueue':
-			$time_start = microtime(true);
+			$timeStart = microtime(true);
 			$count = 0;
 			$filter['start'] = 0;
 			$filter['limit'] = $limit;
-			if(trim($image_id) != '') {
-				$imageIds = json_decode(stripslashes($image_id),true);
+			if(trim($imageId) != '') {
+				$imageIds = json_decode(stripslashes($imageId),true);
 				if(is_array($imageIds) && count($imageIds)) {
 					foreach($imageIds as $imageId) {
 						$loadFlag = false;
 						if(!is_numeric($imageId)) {
-							$loadFlag = $si->image->load_by_barcode($imageId);
+							$loadFlag = $si->image->imageLoadByBarcode($imageId);
 						} else {
-							$loadFlag = $si->image->load_by_id($imageId);
+							$loadFlag = $si->image->imageLoadById($imageId);
 						}
 						if($loadFlag) {
-							if(!$si->pqueue->field_exists($si->image->get('barcode'),'guess_add')) {
-								$si->pqueue->set('image_id', $si->image->get('barcode'));
-								$si->pqueue->set('process_type', 'guess_add');
-								$si->pqueue->save();
+							if(!$si->pqueue->processQueueFieldExists($si->image->imageGetProperty('barcode'),'guess_add')) {
+								$si->pqueue->processQueueSetProperty('imageId', $si->image->imageGetProperty('barcode'));
+								$si->pqueue->processQueueSetProperty('processType', 'guess_add');
+								$si->pqueue->processQueueSave();
 								$count++;
 							}
 						}
 					}
 				}
 			} else {
-				$ret = $si->image->getGuessTaxaRecords($filter);
+				$ret = $si->image->imageGetGuessTaxaRecords($filter);
 				$countFlag = true;
 				while(($record = $ret->fetch_object()) && ($countFlag)) {
-					if(!$si->pqueue->field_exists($record->barcode,'guess_add')) {
-						$si->pqueue->set('image_id', $record->barcode);
-						$si->pqueue->set('process_type', 'guess_add');
-						$si->pqueue->save();
+					if(!$si->pqueue->processQueueFieldExists($record->barcode,'guess_add')) {
+						$si->pqueue->processQueueSetProperty('imageId', $record->barcode);
+						$si->pqueue->processQueueSetProperty('processType', 'guess_add');
+						$si->pqueue->processQueueSave();
 						$count++;
 						if($limit != '' && $count >= $limit) {
 							$countFlag = false;
@@ -711,8 +721,8 @@ ini_set('display_errors', '1');
 					}
 				}
 			}
-			$time = microtime(true) - $time_start;
-			print json_encode(array('success' => true, 'process_time' => $time, 'total_records_added' => $count));
+			$time = microtime(true) - $timeStart;
+			print json_encode(array('success' => true, 'processTime' => $time, 'totalCount' => $count));
 			break;
 	
 		case 'processGuessTaxa':
@@ -723,37 +733,37 @@ ini_set('display_errors', '1');
 			}
 			$_TMP = ($config['path']['tmp'] != '') ? $config['path']['tmp'] : sys_get_temp_dir() . '/';
 	
-			$time_start = microtime(true);
+			$timeStart = microtime(true);
 			$tStart = time();
-			$loop_flag = true;
-			$images_array = array();$image_count = 0;
-			while($loop_flag) {
+			$loopFlag = true;
+			$images_array = array();$imageCount = 0;
+			while($loopFlag) {
 				$tDiff = time() - $tStart;
-				if( ($stop != '') && ( $tDiff > $stop) ) $loop_flag = false;
+				if( ($stop != '') && ( $tDiff > $stop) ) $loopFlag = false;
 	
 				if($limit != '') {
 					if($limit == 0) break;
 				}
-				if($limit != '' && $image_count >= ($limit - 1)) $loop_flag = false;
+				if($limit != '' && $imageCount >= ($limit - 1)) $loopFlag = false;
 	
-				$record = $si->pqueue->popQueue('guess_add');
+				$record = $si->pqueue->processQueuePop('guess_add');
 				if($record === false) {
-					$loop_flag = false;
+					$loopFlag = false;
 				} else {
-					$imageId = $record->image_id;
-					$si->image->load_by_barcode($imageId);
-					if(!($si->image->get('ocr_flag')))
+					$imageId = $record->imageId;
+					$si->image->imageLoadByBarcode($imageId);
+					if(!($si->image->imageGetProperty('ocr_flag')))
 					{
 					//Perform ocr and store values
 						if($config['mode'] == 's3') {
 							$tmpFileName = 'Img_' . microtime();
 							$tmpFilePath = $_TMP . $tmpFileName;
 							$tmpFile = $tmpFilePath . '.jpg';
-							$key = $si->image->barcode_path($record->image_id) . $record->image_id . '.jpg';
+							$key = $si->image->imageBarcodePath($record->imageId) . $record->imageId . '.jpg';
 	
 							$si->amazon->get_object($config['s3']['bucket'], $key, array('fileDownload' => $tmpFile));
 						} else {
-							$tmpFilePath = $config['path']['images'] . $si->image->barcode_path($record->image_id) . $record->image_id;
+							$tmpFilePath = $config['path']['images'] . $si->image->imageBarcodePath($record->imageId) . $record->imageId;
 							$tmpFile = $tmpFilePath . '.jpg';
 						}
 	
@@ -771,22 +781,22 @@ ini_set('display_errors', '1');
 	
 						if(@file_exists($tmpFilePath . '.txt')){
 							$value = file_get_contents($tmpFilePath . '.txt');
-							$si->image->load_by_barcode($record->image_id);
-							$images_array[] = array('image_id' => $si->image->get('image_id'), 'barcode' => $si->image->get('barcode'));
-							$image_count++;
+							$si->image->imageLoadByBarcode($record->imageId);
+							$images_array[] = array('imageId' => $si->image->imageGetProperty('imageId'), 'barcode' => $si->image->imageGetProperty('barcode'));
+							$imageCount++;
 	
-							$si->image->set('ocr_flag',1);
-							$si->image->set('ocr_value',$value);
-							$si->image->save();
+							$si->image->imageSetProperty('ocrFlag',1);
+							$si->image->imageSetProperty('ocrValue',$value);
+							$si->image->imageSave();
 						}
 						if($config['mode'] == 's3') {
 							@unlink($tmpFile);
 							@unlink($tmpFilePath . '.txt');
 						}
 					}
-					$si->image->load_by_barcode($imageId);
-					$image_count++;
-					$array = gbifNameFinder($si->image->get('ocr_value'));
+					$si->image->imageLoadByBarcode($imageId);
+					$imageCount++;
+					$array = gbifNameFinder($si->image->imageGetProperty('ocrValue'));
 					if($array) {
 						foreach($array as $names) {
 							$array1 = gbifChecklistBank($names);
@@ -795,18 +805,18 @@ ini_set('display_errors', '1');
 							if(strtolower($array2['taxonomicStatus']=='synonym')) {
 								if(in_array(strtolower($array1['rank']),$expectedRank))
 								{
-									$si->image->set('tmp'.ucfirst($array1['rank']),$array2['canonicalName']);
-									$si->image->set('guess_flag',1);
-									$si->image->save();
+									$si->image->imageSetProperty('tmp'.ucfirst($array1['rank']),$array2['canonicalName']);
+									$si->image->imageSetProperty('guessFlag',1);
+									$si->image->imageSave();
 								}
 							}
 							else
 							{
 								if(in_array(strtolower($array1['rank']),$expectedRank))
 								{
-									$si->image->set('tmp'.ucfirst($array1['rank']).'Accepted',$array2['higherTaxon']);
-									$si->image->set('guess_flag',1);
-									$si->image->save();
+									$si->image->imageSetProperty('tmp'.ucfirst($array1['rank']).'Accepted',$array2['higherTaxon']);
+									$si->image->imageSetProperty('guessFlag',1);
+									$si->image->imageSave();
 								}
 							}
 						}
@@ -814,45 +824,45 @@ ini_set('display_errors', '1');
 					
 				}
 			}
-			$time_taken = microtime(true) - $time_start;
+			$time_taken = microtime(true) - $timeStart;
 			header('Content-type: application/json');
-			print json_encode(array('success' => true, 'process_time' => $time_taken, 'total' => $image_count, 'images' => $images_array));
+			print json_encode(array('success' => true, 'processTime' => $time_taken, 'totalCount' => $imageCount, 'images' => $images_array));
 			break;
 			
 		case 'populateEvernoteProcessQueue':
-			$time_start = microtime(true);
+			$timeStart = microtime(true);
 			$count = 0;
 			$filter['start'] = 0;
 			$filter['limit'] = $limit;
-			$filter['collection'] = (trim($collection!='')) ? $collection : '';
-			if(trim($image_id) != '') {
-				$imageIds = json_decode(stripslashes($image_id),true);
+			$filter['collectionCode'] = (trim($collectionCode!='')) ? $collectionCode : '';
+			if(trim($imageId) != '') {
+				$imageIds = json_decode(stripslashes($imageId),true);
 				if(is_array($imageIds) && count($imageIds)) {
 					foreach($imageIds as $imageId) {
 						$loadFlag = false;
 						if(!is_numeric($imageId)) {
-							$loadFlag = $si->image->load_by_barcode($imageId);
+							$loadFlag = $si->image->imageLoadByBarcode($imageId);
 						} else {
-							$loadFlag = $si->image->load_by_id($imageId);
+							$loadFlag = $si->image->imageLoadById($imageId);
 						}
 						if($loadFlag) {
-							if(!$si->pqueue->field_exists($si->image->get('image_id'),'evernote')) {
-								$si->pqueue->set('image_id', $si->image->get('image_id'));
-								$si->pqueue->set('process_type', 'evernote');
-								$si->pqueue->save();
+							if(!$si->pqueue->processQueueFieldExists($si->image->imageGetProperty('imageId'),'evernote')) {
+								$si->pqueue->processQueueSetProperty('imageId', $si->image->imageGetProperty('imageId'));
+								$si->pqueue->processQueueSetProperty('processType', 'evernote');
+								$si->pqueue->processQueueSave();
 								$count++;
 							}
 						}
 					}
 				}
 			} else {
-				$ret = $si->image->getNonENProcessedRecords($filter);
+				$ret = $si->image->imgeGetNonProcessedRecords($filter);
 				$countFlag = true;
 				while(($record = $ret->fetch_object()) && $countFlag) {
-					if(!$si->pqueue->field_exists($record->image_id,'evernote')) {
-						$si->pqueue->set('image_id', $record->image_id);
-						$si->pqueue->set('process_type', 'evernote');
-						$si->pqueue->save();
+					if(!$si->pqueue->processQueueFieldExists($record->imageId,'evernote')) {
+						$si->pqueue->processQueueSetProperty('imageId', $record->imageId);
+						$si->pqueue->processQueueSetProperty('processType', 'evernote');
+						$si->pqueue->processQueueSave();
 						$count++;
 						if($limit != '' && $count >= $limit) {
 							$countFlag = false;
@@ -860,54 +870,55 @@ ini_set('display_errors', '1');
 					}
 				}
 			}
-			$time = microtime(true) - $time_start;
+			$time = microtime(true) - $timeStart;
 			header('Content-type: application/json');
-			print json_encode(array('success' => true, 'process_time' => $time, 'total_records_added' => $count));
+			print json_encode(array('success' => true, 'processTime' => $time, 'totalCount' => $count));
 			break;
 			
 		case 'processEvernoteProcessQueue':
-			$time_start = microtime(true);
+			$timeStart = microtime(true);
 			$tStart = time();
-			$loop_flag = true;
-			$image_count = 0;
-			if(!$si->en->load_by_enId( $enId )) {
+			$loopFlag = true;
+			$imageCount = 0;
+			if(!$si->en->evernoteAccountsLoadById( $enAccountId )) {
 				print json_encode(array('success' => false, 'message' => 'No valid evernote account id given'));
 				exit;
 			}
-			while($loop_flag) {
+			while($loopFlag) {
 				$tDiff = time() - $tStart;
-				if( ($stop != '') && ( $tDiff > $stop) ) $loop_flag = false;
-				if($limit != '' && $image_count >= $limit) $loop_flag = false;
-				$record = $si->pqueue->popQueue('evernote');
+				if( ($stop != '') && ( $tDiff > $stop) ) $loopFlag = false;
+				$record = $si->pqueue->processQueuePop('evernote');
 				if($record === false) {
-					$loop_flag = false;
+					$loopFlag = false;
 				} else {
-					$si->image->load_by_id($record->image_id);
+					$si->image->imageLoadById($record->imageId);
 					
 					$url = $config['evernoteUrl']."?cmd=add_note";
-					$url .= "&title=".$si->image->get('barcode');
-					if($si->image->get('CollectionCode') != '') {
-						$tagName = "CollectionCode:".$si->image->get('CollectionCode');
+					$url .= "&title=".$si->image->imageGetProperty('barcode');
+					if($si->image->imageGetProperty('collectionCode') != '') {
+						$tagName = "CollectionCode:".$si->image->imageGetProperty('collectionCode');
 						$url .= "&tag=[\"".$tagName."\"]";
 					}
-					$label = $si->image->getUrl($record->image_id);
+					$label = $si->image->imageGetUrl($record->imageId);
 					$url .= "&label=".$label['url'];
-					$url .= "&auth=[".json_encode($si->en->getEvernoteDetails()).']';
+					$url .= "&auth=[".json_encode($si->en->evernoteAccountsGetDetails()).']';
 					$result = file_get_contents($url);
 					$result = json_decode($result, true);
 					if($result['success']) {
-						$si->s2l->set('labelId',$result['noteRet']['noteRet']['updateSequenceNum']);
-						$si->s2l->set('evernoteAccountId',$enId);
-						$si->s2l->set('barcode',$si->image->get('barcode'));
-						$si->s2l->save();
-						if($si->image->get('CollectionCode') != '')
-						$si->en->addTag($tagName, $result['noteRet']['noteRet']['tagGuids'][0]);
-						$image_count++;
+						$si->s2l->Specimen2LabelSetProperty('labelId',$result['noteRet']['noteRet']['updateSequenceNum']);
+						$si->s2l->Specimen2LabelSetProperty('evernoteAccountId',$enAccountId);
+						$si->s2l->Specimen2LabelSetProperty('barcode',$si->image->imageGetProperty('barcode'));
+						$si->s2l->Specimen2LabelSave();
+						if($si->image->imageGetProperty('collectionCode') != '')
+						$si->en->evernoteTagsAdd($tagName, $result['noteRet']['noteRet']['tagGuids'][0]);
+						$imageCount++;
 					}
 				}
+				if($limit != '' && $imageCount >= $limit) $loopFlag = false;
 			}
-			$time_taken = microtime(true) - $time_start;
-			print json_encode(array('success' => true, 'process_time' => $time_taken, 'total' => $image_count));
+			$time_taken = microtime(true) - $timeStart;
+			header('Content-type: application/json');
+			print json_encode(array('success' => true, 'processTime' => $time_taken, 'totalCount' =>$imageCount));
 			break;
 	
 	# Test Tasks
@@ -928,7 +939,7 @@ ini_set('display_errors', '1');
 		$sourceUrl = 'http://namefinding.ubio.org/find?';
 		$sourceUrl2 = 'http://tools.gbif.org/ws/taxonfinder?';
 		
-		$url = $url . $si->image->barcode_path($barcode) . $barcode . '.txt';
+		$url = $url . $si->image->imageBarcodePath($barcode) . $barcode . '.txt';
 		$netiParams = array('input' => $url, 'type' => 'url', 'format' => 'json', 'client' => 'neti');
 		$taxonParams = array('input' => $url, 'type' => 'url', 'format' => 'json');
 		$getUrl = @http_build_query($netiParams);

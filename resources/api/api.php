@@ -832,7 +832,7 @@
 			if($value == '') {
 				$valid = false;
 				$errorCode = 102;
-			} elseif($enAccountId!='' && !$si->en->evernoteAccountsFieldExists($enAccountId)) {
+			} else if($enAccountId!='' && !$si->en->evernoteAccountsFieldExists($enAccountId)) {
 				$valid = false;
 				$errorCode = 134;
 			}
@@ -860,6 +860,7 @@
 				$url = $config['evernoteUrl'];
 				$url .= '?cmd=findNotes&auth=[' . $evernote_details_json . ']&start=' . $start . '&limit=' . $limit . '&searchWord=' . urlencode($value);
 				if($tag != '') $url .= '&tag=[\"'.$tag.'\"]';
+// die($url);
 				$rr = json_decode(@file_get_contents($url),true);
 				if($rr['success']) {
 					//$totalNotes += $rr['totalNotes'];
@@ -868,16 +869,16 @@
 						foreach($labels as $label) {
 							if(!array_key_exists($label,$data)) {
 								$ar = array();
-								if(!$si->s2l->load_by_labelId($label)) continue;
+								if(!$si->s2l->Specimen2LabelLoadById($label)) continue;
 								$totalNotes++;
-								$si->image->imageSetData(array("field"=>"barcode", "value"=>$si->s2l->get('barcode'), "start"=>0, "limit"=>$limit));
+								$si->image->imageSetData(array("field"=>"barcode", "value"=>$si->s2l->Specimen2LabelGetProperty('barcode'), "start"=>0, "limit"=>$limit));
 								$ar = $si->image->imageList();
 								$ar = $ar[0];
 								$tmpPath = $si->image->imageGetUrl($ar->imageId);
 								$ar->path = $tmpPath['baseUrl'];
 								$fname = explode(".", $ar->filename);
 								$ar->ext = $fname[1];
-								$ar->en_flag = ($si->s2l->load_by_barcode($ar->barcode)) ? 1 : 0;
+								$ar->en_flag = ($si->s2l->Specimen2LabelLoadByBarcode($ar->barcode)) ? 1 : 0;
 								$data[$label] = $ar;
 							}
 						}
