@@ -49,7 +49,7 @@ Ext.define('BIS.view.ImageDetailPanel', {
                 renderMetadata: function( i ) {
                     return '<span class="imgmetadata imagePropertyPill">'+
                                 '<span class="imagePropertyPillText"><span style="font-weight:bold">' + i.key + '</span>: ' + i.value + '</span>'+
-                                '<span catdata="metadata" pilldata="' + i.id + '" class="del imagePropertyPillRemove"></span>'+
+                                '<span catdata="metadata" pilldata="' + i.aid + '" class="del imagePropertyPillRemove"></span>'+
                         '</span>'
                 }
             }),
@@ -110,13 +110,17 @@ Ext.define('BIS.view.ImageDetailPanel', {
                                         url: Config.baseUrl + 'resources/api/api.php',
                                         params: {
                                             cmd: 'imageAddAttribute',
-                                            attributeId: property.data.attributeId,
+                                            //attributeId: property.data.attributeId,
+                                            category: property.data.categoryId,
+                                            attribType: 'name',
+                                            attribute: property.data.title,
+                                            force: true,
                                             imageId: this.image.imageId
                                         },
                                         scope: this,
                                         success: function( data ) {
+                                            data = Ext.decode( data.responseText );
                                             if ( data.success ) {
-                                                // reload details
                                                 this.loadImage( this.image );
                                             }
                                         }
@@ -131,23 +135,21 @@ Ext.define('BIS.view.ImageDetailPanel', {
 	},
 	
 	loadImage: function( record ) {
-        // get events
-        // get geography
-        // get sets
-		var properties = [];
         Ext.Ajax.request({
             url: 'http://bis.silverbiology.com/dev/resources/api/api.php',
+            method: 'GET',
             params: {
-                cmd: 'imageDetails',
-                // flags for associations
-                imageId: record.imageId
+                cmd: 'imageList',
+                imageId: record.imageId,
+                associations: Ext.encode(['attributes','events','geography','sets'])
             },
             scope: this,
             success: function( res ) {
-                var data = Ext.decode( res.responseText ).results;
+                var properties = [], events = [], geography = [], sets = [];
+                var data = Ext.decode( res.responseText ).records[0];
                 this.image = data;
                 Ext.each( data.attributes, function( attr ) {
-                    properties.push({ key: attr.attrib, value: attr.value, id: attr.attributeId });
+                    properties.push({ key: attr.category, value: attr.attribute, aid: attr.attributeId, cid: attr.categoryId });
                 });
                 this.addProperties({
                     metadata: properties,
@@ -164,19 +166,27 @@ Ext.define('BIS.view.ImageDetailPanel', {
 		for ( var category in data ) {
 			Ext.select('span.img'+category).select('.del').on('click', function( e, el, opts ) {
 				Ext.getCmp('imageDetailsPanel').removeProperty( el.getAttribute('catdata'), el.getAttribute('pilldata') );
+                new Ext.Element(el).parent().remove();
 			});
 		}
 	},
 
-	removeProperty: function( type, id ) {
+	removeProperty: function( type, data1, data2 ) {
         switch ( type ) {
             case 'metadata':
                 Ext.Ajax.request({
                     url: Config.baseUrl + 'resources/api/api.php',
                     params: {
                         cmd: 'imageDeleteAttribute',
-                        attributeId: id,
+                        attributeId: data1,
                         imageId: this.image.imageId
+                    },
+                    scope: this,
+                    success: function( data ) {
+                        data = Ext.decode( data.responseText );
+                        if ( data.success ) {
+                            this.loadImage( this.image );
+                        }
                     }
                 });
                 break;

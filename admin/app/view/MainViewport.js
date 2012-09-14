@@ -15,7 +15,8 @@ Ext.define('BIS.view.MainViewport', {
 		'BIS.view.CollectionTreePanel',
 		'BIS.view.EventTreePanel',
 		'BIS.view.ImageDetailPanel',
-        'BIS.view.KeyManagerPanel'
+        'BIS.view.KeyManagerPanel',
+        'BIS.view.EvernoteSettingsPanel'
 	],
 	layout: {
 		type: 'border'
@@ -211,6 +212,10 @@ Ext.define('BIS.view.MainViewport', {
                                 iconCls: 'icon_key',
                                 handler: this.openKeyManager
                             },{
+                                text: 'Evernote Settings',
+                                iconCls: 'icon_evernote',
+                                handler: this.openEvernoteSettings
+                            },{
 								text: 'Server Information',
 								iconCls: 'icon_info',
 								handler: this.openServerInfo
@@ -306,6 +311,21 @@ Ext.define('BIS.view.MainViewport', {
 				bodyBorder: false,
 				items: [{
                     xtype: 'keymanagerpanel' 
+				}]
+			}).show();
+    },
+    openEvernoteSettings: function( menuItem, e ) {
+			Ext.create('Ext.window.Window', {
+				title: 'Evernote Account Management',
+				iconCls: 'icon_evernote',
+				modal: true,
+				resizeable: false,
+				height: 500,
+				width: 800,
+				layout: 'fit',
+				bodyBorder: false,
+				items: [{
+                    xtype: 'evernotesettingspanel' 
 				}]
 			}).show();
     },

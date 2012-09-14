@@ -104,7 +104,7 @@ http://bis.silverbiology.com/dev/resources/api/api.php?cmd=evernoteAccountAdd&ac
 evernoteAccountDelete:
 http://bis.silverbiology.com/dev/resources/api/api.php?cmd=evernoteAccountDelete&enAccountId=4
 
-evernoteAccountsList:
+evernoteAccountList:
 http://bis.silverbiology.com/dev/resources/api/api.php?cmd=evernoteAccountList&enAccountId=[1,2,3]&value=bio
 http://bis.silverbiology.com/dev/resources/api/api.php?cmd=evernoteAccountList&enAccountId=[1,2,3,4]&value=Test&searchFormat=left
 
