@@ -101,17 +101,21 @@ class LogClass
 	}
 
 	public function logSave() {
-		$query = sprintf("INSERT IGNORE INTO `log` SET `action` = '%s', `table` = '%s', `query` = '%s', `lastModifiedBy` = '%s', `modifiedTime` = now() ;"
-		, mysql_escape_string($this->logGetProperty('action'))
-		, mysql_escape_string($this->logGetProperty('table'))
-		, mysql_escape_string($this->logGetProperty('query'))
-		, mysql_escape_string($this->logGetProperty('lastModifiedBy'))
-		);
-		if($this->db->query($query)) {
-			$this->insert_id = $this->db->insert_id;
-			return(true);
+		global $config;
+		if($config['logging']) {
+			$query = sprintf("INSERT IGNORE INTO `log` SET `action` = '%s', `table` = '%s', `query` = '%s', `lastModifiedBy` = '%s', `modifiedTime` = now() ;"
+			, mysql_escape_string($this->logGetProperty('action'))
+			, mysql_escape_string($this->logGetProperty('table'))
+			, mysql_escape_string($this->logGetProperty('query'))
+			, mysql_escape_string($this->logGetProperty('lastModifiedBy'))
+			);
+			if($this->db->query($query)) {
+				$this->insert_id = $this->db->insert_id;
+				return(true);
+			}
+			return (false);
 		}
-		return (false);
+		return(true);
 	}
 
 }

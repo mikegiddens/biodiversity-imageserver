@@ -1214,6 +1214,9 @@ Class Image {
 			$barcode = $this->imageGetProperty('barcode');
 			$device = $storage->storageDeviceGet($this->imageGetProperty('storageDeviceId'));
 			$filenameParts = explode('.', $this->imageGetProperty('filename'));
+			
+			$storage->storageDeviceDeleteFile($this->imageGetProperty('storageDeviceId'), $this->imageGetProperty('filename'), $this->imageGetProperty('path'));
+/*
 			switch(strtolower($device['type'])) {
 				case 's3':
 					$tmp = $this->imageGetProperty('path');
@@ -1241,6 +1244,18 @@ Class Image {
 						$path = implode('/', $parts);
 					}
 					break;
+			}
+*/
+			if(strtolower($device['type'] == 'local')) {
+				# Remove empty directories
+				$path = $this->imageGetProperty('path');
+				$parts = explode('/', $path);
+				while(count($parts)>0) {
+					if(!rmdir($device['basePath'] . $path . '/')) break;
+					$parts = explode('/', $path);
+					unset($parts[count($parts)-1]);
+					$path = implode('/', $parts);
+				}
 			}
 			
 			$query = sprintf("DELETE FROM `imageAttrib` WHERE `imageId` = '%s' ", mysql_escape_string($imageId));

@@ -1666,8 +1666,7 @@
 				$errorCode = 157;
 			}
 			if($valid) {
-				$data['obj'] = $si->amazon;
-				$imageId = (!is_numeric($imageId)) ? json_decode(stripslashes(trim($imageId)),true) : $imageId;
+				$imageId = (!is_numeric($imageId)) ? json_decode(stripslashes(trim($imageId)),true) : array($imageId);
 				$items = array();
 				if(is_array($imageId)) {
 					foreach($imageId as $imid) {
@@ -1686,23 +1685,7 @@
 							$ret['code'] = 170;
 						}
 					}
-				} else {
-					$data['imageId'] = $imageId;
-					$si->image->imageSetData($data);
-					if($si->image->imageLoadById($data['imageId'])) {
-						if(($si->image->imageGetProperty('remoteAccessKey') == $key) || ($key==0)) {
-							$ret = $si->image->imageDelete();
-							if($ret['success']) $items[] = $imageId;
-						} else {
-							$ret['success'] = false;
-							$ret['code'] = 171;
-						}
-					} else {
-						$ret['success'] = false;
-						$ret['code'] = 170;
-					}
 				}
-				
 				if(count($items)) {
 					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart, 'totalCount' => count($items), 'records' => $items ) ) );
 				} else {
@@ -1767,6 +1750,7 @@
 			break;
 
 		case 'imageDetails':
+			checkAuth();
 			$data['imageId'] = $imageId;
 			if ($data['imageId'] == '') {
 				$errorCode = 157;
@@ -1788,6 +1772,7 @@
 			break;
 
 		case 'imageDetectBarcode':
+			checkAuth();
 			if(!$config['zBarImgEnabled']) {
 				print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray(180)) ));
 				exit;
@@ -1850,6 +1835,7 @@
 			break;
 			
 		case 'imageDetectColorBox':
+			checkAuth();
 			$_TMP = ($config['path']['tmp'] != '') ? $config['path']['tmp'] : sys_get_temp_dir() . '/';
 			$loadFlag = $existsFlag = false;
 			if(trim($imageId) != '') {
@@ -2129,7 +2115,6 @@
 			break;
 
 		case 'imageListCharacters':
-			checkAuth();
 			$data['start'] = ($start == '') ? 0 : $start;
 			$data['limit'] = ($limit == '') ? 100 : $limit;
 			$data['browse'] = $browse;
@@ -2189,6 +2174,7 @@
 			break;
 
 		case 'imageModifyRechop':
+			checkAuth();
 			if($imageId == '') {
 				$valid = false;
 				$errorCode = 157;
@@ -2256,6 +2242,7 @@
 			break;
 			
 		case 'imageMoveExisting':
+			checkAuth();
 			if($imageId == '' || $newStorageId == '' || $newImagePath == '') {
 				$valid = false;
 				$errorCode = 189;
