@@ -51,6 +51,8 @@
 	$config['mode'] = 'local'; # local or s3
 	$config['email']['to'] = '';
 	$config['reportsavail'] = true;
+	
+	$config['logging'] = false; # Default false - Whether to log image changes and processes
 
 	# Amazon S3 details
 	$config['s3']['accessKey'] = '';

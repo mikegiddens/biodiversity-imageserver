@@ -238,17 +238,24 @@ class StorageDevice {
 			return false;
 		} else {
 			$device = $this->storageDeviceGet($storageDeviceId);
+			$ar = @explode('.',$storageFileName);
 			switch(strtolower($this->storageDeviceGetType($storageDeviceId))) {
 				case 's3':
 					$amazon = new AmazonS3(array('key' => $device['password'],'secret' => $device['key']));
 					$storageFilePath1 = substr($storageFilePath,0,1)=='/' ? substr($storageFilePath,1,strlen($storageFilePath)-1) : $storageFilePath;
 					$response = $amazon->delete_object ($device['basePath'], $storageFilePath1 . '/' .  $storageFileName);
+					foreach(array('_s','_m','_l','') as $postfix) {
+						$response = @$amazon->delete_object($device['basePath'], $storageFilePath1 . '/' .  $ar[0] . $postfix .'.'. $ar[1]);
+					}
 					break;
-				
 				case 'local':
 					@unlink($device['basePath']. rtrim($storageFilePath,'/') . '/' .  $storageFileName);
+					foreach(array('_s','_m','_l','') as $postfix) {
+						if(file_exists($imagePath.$filenameParts[0].$postfix.'.'.$filenameParts[1])) {
+							@unlink($device['basePath']. rtrim($storageFilePath,'/') . '/' .$ar[0].$postfix.'.'.$ar[1]);
+						}
+					}
 					break;
-					
 				default:
 					return false;
 					break;
