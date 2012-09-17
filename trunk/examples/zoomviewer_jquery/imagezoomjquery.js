@@ -571,39 +571,35 @@ var ImageZoom = function( config ) {
     this.el = config.container;
     this.el ? this.el = $('#'+this.el) : this.el = $('body');
 
-    $("<style type='text/css'>body{height:100%}.overlay{position:fixed;top:0;left:0;width:100%;height:100%;background-color:#000;opacity:.5;z-index:10000}.overlayMessage{position:fixed;top:50%;left:50%;z-index:10001;padding:10px;border-radius:10px;background-color:#fff}img{border:0;border-width:0;background-color:transparent}.imagezoom-tiles{width:256px;height:256px;border:thin solid #999;text-align:center;float:left}.tile{float:left;overflow:hidden;position:relative}.hidden{display:none}.imagezoom-opencursor{cursor:url(../images/icons/openhand_8_8.cur),pointer}.imagezoom-closecursor{cursor:url(../images/icons/closedhand_8_8.cur),pointer}.imagezoom-copyright{bottom:7px;color:grey;font-size:12px;position:absolute;right:8px;z-index:10000}.imagezoom-zoombox{border:medium none;-moz-user-select:none;z-index:10000;position:absolute;width:111px;height:74px;left:0;top:0}.imagezoom-rototecontrol{bottom:4px;left:40%;position:absolute;z-index:10000}.imagezoom-pancontrol{cursor:pointer;width:59px;height:59px;left:15px;position:absolute;top:20px;z-index:10000}.imagezoom-scaleBar{-moz-user-select:none;bottom:4px;color:grey;font-family:Arial,sans-serif;font-size:11px;height:26px;left:15px;position:absolute;width:114px;z-index:10000}.imagezoom-zoomcontrol{left:33px;position:absolute;top:100px;z-index:10000}.imagezoom-zoomplus{padding-bottom:5px;padding-left:2px;cursor:pointer}.imagezoom-zoomminus{padding-left:2px;cursor:pointer}</style>").appendTo('head');
-    if ( config.input ) {
-        this.el.append('<div style="position:absolute;top:0;left:0;border:1px solid black;padding: 5px;background-color:gray;z-index:900001;width: 100%;"><input id="imageviewerInput" style="width:50%" type="text"><input id="imageviewerUrlInput" style="width: 50%" type="text"></div>');
-        $('#imageviewerInput').bind('change', function() {
-            me.loadFromBarcode( $('#imageviewerUrlInput').val(), $(this).val() );
-        });
-    }
+    $("<style type='text/css'>.overlay{position:absolute;top:0;left:0;width:100%;height:100%;background-color:#000;opacity:.5;z-index:10000}.overlayMessage{position:absolute;bottom:10px;right:10px;z-index:10001;padding:10px;border-radius:10px;background-color:#fff}img{border:0;border-width:0;background-color:transparent}.imagezoom-tiles{width:256px;height:256px;border:thin solid #999;text-align:center;float:left}.tile{float:left;overflow:hidden;position:relative}.hidden{display:none}.imagezoom-opencursor{cursor:url(../images/icons/openhand_8_8.cur),pointer}.imagezoom-closecursor{cursor:url(../images/icons/closedhand_8_8.cur),pointer}.imagezoom-copyright{bottom:5px;color:gray;font-size:12px;position:absolute;left:5px;z-index:10000}.imagezoom-zoombox{border:medium none;-moz-user-select:none;z-index:10000;position:absolute;width:111px;height:74px;left:0;top:0}.imagezoom-pancontrol{cursor:pointer;width:59px;height:59px;left:15px;position:absolute;top:20px;z-index:10000}.imagezoom-scaleBar{-moz-user-select:none;bottom:4px;color:grey;font-family:Arial,sans-serif;font-size:11px;height:26px;left:15px;position:absolute;width:114px;z-index:10000}.imagezoom-zoomcontrol{left:33px;position:absolute;top:100px;z-index:10000}.imagezoom-zoomplus{padding-bottom:5px;padding-left:2px;cursor:pointer}.imagezoom-zoomminus{padding-left:2px;cursor:pointer}</style>").appendTo('head');
+
+    // valid config options
+    //
+    // backgroundColor
+    // loadMaskEnabled
+    // doubleClickZoomEnabled
+    // panControlEnabled
+    // zoomControlEnabled
+    // zoomBoxEnabled
+    // copyrightEnabled
     
     // init
-    this.style               =   'height: 100%; width: 100%';
-    this.draggable           =   true;
     this.isMouseScroll       =   true;
-    this.showZoomBox         =   true;
+    this.showZoomBox         =   ( config.hasOwnProperty('zoomBoxEnabled') ? config.zoomBoxEnabled : true );
     this.currentZoomLevel    =   1;
-    this.zoomControl         =   true;
-    this.rototeControl       =   false;
-    this.copyRightControl    =   true;
+    this.zoomControl         =   ( config.hasOwnProperty('zoomControlEnabled') ? config.zoomControlEnabled : true );
+    this.copyRightControl    =   ( config.hasOwnProperty('copyrightEnabled') ? config.copyrightEnabled : true );
     this.copyrightText       =   '';
-    this.panControl          =   true;
-    this.rototeMin           =   -180;
-    this.rototeMax           =   180;
+    this.panControl          =   ( config.hasOwnProperty('panControlEnabled') ? config.panControlEnabled : true );
     this.tileLayers          =   [];
     this.currentLayer        =   '';
-    this.currentCircle       =   '';
     this.previousLayer       =   '';
-    this.backgroundColor     =   '#EFEFEF';
+    this.backgroundColor     =   config.backgroundColor || '#EFEFEF';
     this.zoomMin             =   1;
     this.zoomMax             =   10;
-    this.dblClickZoom        =   true;
+    this.dblClickZoom        =   ( config.hasOwnProperty('doubleClickZoomEnabled') ? config.doubleClickZoomEnabled : true );
     this.isImageLoaded       =   false;
-    this.spaceHotkey         =   true;
-    this.showMask            =   true;
-    this.currentShape        =   '';
+    this.showLoadMask        =   ( config.hasOwnProperty('loadMaskEnabled') ? config.loadMaskEnabled : true );
 
     // listeners
     this.on('resize', function() {
@@ -622,10 +618,8 @@ var ImageZoom = function( config ) {
     // methods
     this.enableDblClickZoom = function() {
         this.dragEl.dblclick( function(e) {
-            if (this.currentShape != 'polygon' && this.currentShape != 'polyline') {
-                if (this.currentZoomLevel < this.zoomMax) {
-                    this.zoom(e, true);
-                }
+            if (this.currentZoomLevel < this.zoomMax) {
+                this.zoom(e, true);
             }
         });
     },
@@ -639,23 +633,24 @@ var ImageZoom = function( config ) {
         if ( this.isImageLoaded ) {
             var oX = this.el.position().left - this.dragEl.position().left;
             var oY = this.el.position().top - this.dragEl.position().top;
-            var offset = [ oX, oY ];
-            var i = Math.ceil(offset[1]/this.currentLayer.tileSize);
-            var j = Math.ceil(offset[0]/this.currentLayer.tileSize);
-            var rowTiles = Math.ceil(this.el.height()/this.currentLayer.tileSize);
-            var columnTiles = Math.ceil(this.el.width()/this.currentLayer.tileSize);
-            var totalTile = Math.floor(this.dragEl.width()/this.currentLayer.tileSize);
+            //var offset = [ oX, oY ];
+            offset = [ this.dragEl.position().left, this.dragEl.position().top ];
+            var i = Math.ceil( offset[1] / this.currentLayer.tileSize );
+            var j = Math.ceil( offset[0] / this.currentLayer.tileSize );
+            var rowTiles = Math.ceil( this.el.height() / this.currentLayer.tileSize );
+            var columnTiles = Math.ceil( this.el.width() / this.currentLayer.tileSize );
+            var totalTile = Math.floor( this.dragEl.width() / this.currentLayer.tileSize );
             var bottomrightX, bottomrightY;
-            oX = this.el.position().left;
-            oY = this.el.position().top;
+            oX = 0//this.el.position().left;
+            oY = 0//this.el.position().top;
             var elXY = [ oX, oY ];
             var bottomX = this.el.width() + elXY[0];
             var bottomY = this.el.height() + elXY[1];
             oX = this.dragEl.position().left;
             oY = this.dragEl.position().top;
             var xy = [ oX, oY ];
-            var btmX = Math.ceil(Math.abs(xy[1]-bottomY)/this.currentLayer.tileSize);
-            var btmY = Math.ceil(Math.abs(xy[0]-bottomX)/this.currentLayer.tileSize);
+            var btmX = Math.ceil( Math.abs(xy[1]-bottomY) / this.currentLayer.tileSize );
+            var btmY = Math.ceil( Math.abs(xy[0]-bottomX) / this.currentLayer.tileSize );
             btmX = (btmX > totalTile) ? totalTile : btmX;
             btmY = (btmY > totalTile) ? totalTile : btmY;
             btmX = (btmX < 1) ? 1 : btmX;
@@ -700,25 +695,28 @@ var ImageZoom = function( config ) {
         if ( this.showZoomBox && this.isImageLoaded ) {
                 this.tileContainerEl.prepend( '<div class="imagezoom-zoombox"></div>' );
                 this.zoomBoxTag = this.tileContainerEl.children('.imagezoom-zoombox:first');
-                this.zoomBoxTag.prepend( '<div class="zoomboxCornor" style="width: 8px; opacity: 0; filter:(opacity=0); height: 6px; line-height: 1px; font-size: 1px; position: absolute; border-width: 0px 0px 2px 2px; border-style: none none solid solid; border-color: red; left: 0px; top: 67px;"></div>' );
+                this.zoomBoxTag.prepend( '<div class="zoomboxCornor hidden" style="width: 8px; height: 6px; line-height: 1px; font-size: 1px; position: absolute; border-width: 0px 0px 2px 2px; border-style: none none solid solid; border-color: red; left: 0px; top: 67px;"></div>' );
                 this.zoomBoxBottomLeft = this.zoomBoxTag.children('div:first');
-                this.zoomBoxTag.prepend( '<div class="zoomboxCornor" style="width: 8px; opacity: 0; filter:(opacity=0); height: 6px; line-height: 1px; font-size: 1px; position: absolute; border-width: 0px 2px 2px 0px; border-style: none solid solid none; border-color: red; left: 100px; top: 67px;"></div>' );
+                this.zoomBoxTag.prepend( '<div class="zoomboxCornor hidden" style="width: 8px; height: 6px; line-height: 1px; font-size: 1px; position: absolute; border-width: 0px 2px 2px 0px; border-style: none solid solid none; border-color: red; left: 100px; top: 67px;"></div>' );
                 this.zoomBoxBottomRight = this.zoomBoxTag.children('div:first');
-                this.zoomBoxTag.prepend( '<div class="zoomboxCornor" style="width: 8px; opacity: 0; filter:(opacity=0); height: 6px; line-height: 1px; font-size: 1px; position: absolute; border-width: 2px 2px 0px 0px; border-style: solid solid none none; border-color: red; left: 100px; top: 0px;"></div>' );
+                this.zoomBoxTag.prepend( '<div class="zoomboxCornor hidden" style="width: 8px; height: 6px; line-height: 1px; font-size: 1px; position: absolute; border-width: 2px 2px 0px 0px; border-style: solid solid none none; border-color: red; left: 100px; top: 0px;"></div>' );
                 this.zoomBoxTopRight = this.zoomBoxTag.children('div:first');
-                this.zoomBoxTag.prepend( '<div class="zoomboxCornor" style="width: 8px; opacity: 0; filter:(opacity=0); height: 6px; line-height: 1px; font-size: 1px; position: absolute; border-width: 2px 0px 0px 2px; border-style: solid none none solid; border-color: red; left: 0px; top: 0px;"></div>' );
+                this.zoomBoxTag.prepend( '<div class="zoomboxCornor hidden" style="width: 8px; height: 6px; line-height: 1px; font-size: 1px; position: absolute; border-width: 2px 0px 0px 2px; border-style: solid none none solid; border-color: red; left: 0px; top: 0px;"></div>' );
                 this.zoomBoxTopLeft = this.zoomBoxTag.children('div:first');
         }
     },
     this.showOverlay = function( message ) {
-        $('body').append( '<div class="overlay"></div>' );
-        if ( message ) {
-            $('body').append( '<div class="overlayMessage">' + message + '</div>' );
+        if ( this.showLoadMask ) {
+            var innerEl = this.el.children().first();
+            innerEl.append( '<div class="overlay"></div>' );
+            if ( message ) {
+                innerEl.append( '<div class="overlayMessage">' + message + '</div>' );
+            }
         }
     }
     this.hideOverlay = function() {
-        $('.overlay').remove();
-        $('.overlayMessage').remove();
+        this.el.find('.overlay').remove();
+        this.el.find('.overlayMessage').remove();
     }
     this.loadImage = function( url, params ) {
         var me = this;
@@ -733,7 +731,7 @@ var ImageZoom = function( config ) {
                     me.loadTemplate( data );
                     me.hideOverlay();
                 } else {
-                    $('.overlayMessage').html( 'Unable to load image from<br>' + url );
+                    me.el.find('.overlayMessage').html( 'Unable to load image from<br>' + url );
                 }
             },
             error: function() {
@@ -783,7 +781,8 @@ var ImageZoom = function( config ) {
     this.loadPanControl = function() {
         var me = this;
         if ( this.panControl && this.isImageLoaded ) {
-            this.tileContainerEl.prepend( '<map name="panmap"></map>' );
+            var mapId = new Date().getTime();
+            this.tileContainerEl.prepend( '<map name="panmap'+mapId+'"></map>' );
             this.mapTag = this.tileContainerEl.children('map:first');
             this.mapTag.prepend( '<area shape="rect" coords="40,20,55,38" title="Pan Right">' );
             this.eastPan = this.mapTag.children('area:first');
@@ -811,7 +810,7 @@ var ImageZoom = function( config ) {
             this.westPan.click( function() {
                 me.moveDragContainer(-50, 0);
             });
-            this.tileContainerEl.prepend( '<img src="data:image/gif;base64,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" class="imagezoom-pancontrol" usemap="#panmap">' );
+            this.tileContainerEl.prepend( '<img src="data:image/gif;base64,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" class="imagezoom-pancontrol" usemap="#panmap'+mapId+'">' );
             this.pancontrol = this.tileContainerEl.children('img:first');
         }
     },
@@ -884,11 +883,9 @@ var ImageZoom = function( config ) {
     this.resetObject = function() {
         this.pancontrol = '';
         this.zoomContainer = '';
-        this.rototeContainer = '';
         this.copyrightDiv = '';
         this.tileLayers = [];
         this.mapTag = '';
-        this.rototeDiv = '';
         this.zoomPlus = '';
         this.zoomMinus = '';
         this.zoomBoxTag = '';
@@ -898,10 +895,10 @@ var ImageZoom = function( config ) {
         this.el.css('background-color', color);
     },
     this.setCenterTile = function() {
-        var x = (this.el.width()/2)-(this.dragEl.width()/2);
-        var y = (this.el.height()/2)-(this.dragEl.height()/2);
-        this.dragEl.css('top', y );
-        this.dragEl.css('left', x );
+        var x = ( this.el.width() / 2 ) - ( this.dragEl.width() / 2 );
+        var y = ( this.el.height() / 2 ) - ( this.dragEl.height() / 2 );
+        this.dragEl.css( 'left', x );
+        this.dragEl.css( 'top', y );
         this.getTileByOffset();
     },
     this.moveDragContainer = function( x, y ) {
@@ -915,26 +912,26 @@ var ImageZoom = function( config ) {
             this.copyrightText = text;
         }
     },
-    this.zoomCenter = function(isZoomIn) {
-        if(this.isImageLoaded){
+    this.zoomCenter = function( isZoomIn ) {
+        if ( this.isImageLoaded ) {
             var tileContainerElXY = [ this.tileContainerEl.position().left, this.tileContainerEl.position().top ];
             var tileContainerHeight = this.tileContainerEl.height();
             var tileContainerWidth = this.tileContainerEl.width();
             var x = parseFloat(tileContainerWidth/2) + tileContainerElXY[0];
             var y = parseFloat(tileContainerHeight/2) + tileContainerElXY[1];
-            var xy = [x, y]
-            this.zoomBox(xy, isZoomIn);
+            var xy = [ x, y ];
+            this.zoomBox( xy, isZoomIn );
             var dragXY = [ this.dragEl.position().left, this.dragEl.position().top ];
             var beforeImageSize = this.imageSize;
-            var offsetX = Math.abs(xy[0] - dragXY[0]);
-            var offsetY = Math.abs(xy[1] - dragXY[1]);
-            this.zoomTile(this.currentZoomLevel);
+            var offsetX = Math.abs( xy[0] - dragXY[0] );
+            var offsetY = Math.abs( xy[1] - dragXY[1] );
+            this.zoomTile( this.currentZoomLevel );
             var afterImageSize = this.imageSize;
             var newTileCount = afterImageSize / beforeImageSize;
-            var newOffsetX = xy[0] - Math.ceil(offsetX * newTileCount);
-            var newOffsetY = xy[1] - Math.ceil(offsetY * newTileCount);
-            this.dragEl.css('left',newOffsetX);
-            this.dragEl.css('top',newOffsetY);
+            var newOffsetX = xy[0] - Math.ceil( offsetX * newTileCount );
+            var newOffsetY = xy[1] - Math.ceil( offsetY * newTileCount );
+            this.dragEl.css( 'left', newOffsetX );
+            this.dragEl.css( 'top', newOffsetY );
             this.getTileByOffset();
             this.fire('zoomChange', this.currentZoomLevel, this);
         }	
@@ -942,10 +939,11 @@ var ImageZoom = function( config ) {
     this.zoom = function(e, flag) {
         if(this.isImageLoaded){
             var xy = [ e.clientX, e.clientY ];
-            var dragXY = [ this.dragEl.position().left, this.dragEl.position().top ];
+            // var dragXY = [ this.dragEl.position().left, this.dragEl.position().top ];
+            var dragXY = [ this.dragEl.position().left + this.el.position().left, this.dragEl.position().top + this.el.position().top ];
             var beforeImageSize = this.imageSize;
-            var offsetX = Math.abs(xy[0] - dragXY[0]);
-            var offsetY = Math.abs(xy[1] - dragXY[1]);
+            var offsetX = Math.abs( xy[0] - dragXY[0] );
+            var offsetY = Math.abs( xy[1] - dragXY[1] );
             if ( flag ) {
                 this.zoomIn(e);
             } else {
@@ -953,25 +951,24 @@ var ImageZoom = function( config ) {
             }
             var afterImageSize = this.imageSize;
             var newTileCount = afterImageSize / beforeImageSize;
-            var newOffsetX = xy[0] - Math.ceil(offsetX * newTileCount);
-            var newOffsetY = xy[1] - Math.ceil(offsetY * newTileCount);
-            this.dragEl.css( 'left', newOffsetX );
-            this.dragEl.css( 'top', newOffsetY );
+            var newOffsetX = xy[0] - Math.ceil( offsetX * newTileCount );
+            var newOffsetY = xy[1] - Math.ceil( offsetY * newTileCount );
+            this.dragEl.css( 'left', newOffsetX - this.el.position().left);
+            this.dragEl.css( 'top', newOffsetY - this.el.position().top);
             this.getTileByOffset();
             this.fire('zoomChange', this.currentZoomLevel, this);
         }
     },
     this.zoomBox = function( xy, flag ) {
         var me = this;
-        if ( this.showZoomBox && this.isImageLoaded ){
-            this.zoomBoxTag.height(74);
-            this.zoomBoxTag.width(111);
-            this.zoomBoxTag.children('div').fadeIn('fast',function(){ me.zoomBoxTag.children('div').fadeOut('fast'); });
+        if ( this.showZoomBox && this.isImageLoaded ) {
+            this.zoomBoxTag.height( 74 );
+            this.zoomBoxTag.width( 111 );
             var zoomboxX = xy[0] - this.zoomBoxTag.width() / 2;
             var zoomboxY = xy[1] - this.zoomBoxTag.height() / 2;
-            var currentXY = [zoomboxX, zoomboxY];
-            this.zoomBoxTag.css('left', currentXY.x );
-            this.zoomBoxTag.css('top', currentXY.y );
+            this.zoomBoxTag.css('left', zoomboxX );
+            this.zoomBoxTag.css('top', zoomboxY );
+            this.zoomBoxTag.children().fadeIn('fast',function(){ me.zoomBoxTag.children().fadeOut('fast'); });
         }
     },
     this.zoomIn = function(e) {
@@ -1045,6 +1042,13 @@ var ImageZoom = function( config ) {
     this.setBackgroundColor(this.backgroundColor);
     this.el.addClass('imagezoom-opencursor');
 
+    if ( config.input ) {
+        this.el.children().first().append('<div style="position:absolute;top:0;left:0;border:1px solid black;padding: 5px;background-color:gray;z-index:900001;width: 100%;"><input id="imageviewerInput" style="width:45%" type="text"><input id="imageviewerUrlInput" style="width: 45%;margin-left:4%" type="text"></div>');
+        $('#imageviewerInput').bind('change', function() {
+            me.loadFromBarcode( $('#imageviewerUrlInput').val(), $(this).val() );
+        });
+    }
+
 }
 
 var ImageZoomLayer = function( config ) {
@@ -1060,8 +1064,8 @@ var ImageZoomLayer = function( config ) {
     // dragging logic w/o using jQuery UI
     this.el.drag( function( ev, dd ) {
         $(this).parent().css({
-            left: dd.offsetX,
-            top: dd.offsetY
+            left: dd.offsetX - me.parent.el.position().left,
+            top: dd.offsetY - me.parent.el.position().top
         });
         me.parent.getTileByOffset();
     });

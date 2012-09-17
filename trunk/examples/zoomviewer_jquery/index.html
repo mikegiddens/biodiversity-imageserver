@@ -3,37 +3,37 @@
   <head>
     <title>jQuery Image Zoom Widget Example</title>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <!--
-    <link rel="stylesheet" type="text/css" href='./resources/css/style.css'>
-    -->
-    <!--http://cdn.silverbiology.s3.amazonaws.com/bis/imageviewerJquery-->
-    <script src="./jquery.min.js"></script>
-    <!--
-    <script src='./eventtarget.js'></script>
-    <script src='./jquery.event.drag-2.2.js'></script>
-    <script src='./jquery.mousewheel.js'></script>
-    -->
-    <script src='./imagezoomjquery.js'></script>
+
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.1/jquery.min.js"></script>
+    <script src="imagezoomjquery.js"></script>
+
     <script>
       init = function() {
-        a = new ImageZoom({container:'zoomer',input:true});
-        /*
-        function getURLParameter(name) {
-           return decodeURI(
-               (RegExp(name + '=' + '(.+?)(&|$)').exec(location.search)||[,null])[1]
-           );
-        }
-        var barcode;
-        if ( barcode = getURLParameter('barcode') ) {
-          if ( barcode != 'null' ) {
-            a.loadFromBarcode( barcode );
-          }
-        }
-        */
+        zoomer = new ImageZoom({container:'zoomer'});
+        zoomer2 = new ImageZoom({container:'zoomer2'});
+        zoomer3 = new ImageZoom({container:'zoomer3'});
+        zoomer4 = new ImageZoom({container:'zoomer4'});
+        zoomer5 = new ImageZoom({container:'zoomer5'});
+        zoomer6 = new ImageZoom({container:'zoomer6'});
+        zoomer.loadImage( 'http://bis.silverbiology.com/dev/resources/api/api.php?cmd=imageTilesGet&imageId=1' );
+        zoomer2.loadImage( 'http://bis.silverbiology.com/dev/resources/api/api.php?cmd=imageTilesGet&imageId=2' );
+        zoomer3.loadImage( 'http://bis.silverbiology.com/dev/resources/api/api.php?cmd=imageTilesGet&imageId=7' );
+        zoomer4.loadImage( 'http://bis.silverbiology.com/dev/resources/api/api.php?cmd=imageTilesGet&imageId=8' );
+        zoomer5.loadImage( 'http://bis.silverbiology.com/dev/resources/api/api.php?cmd=imageTilesGet&imageId=10' );
+        zoomer6.loadImage( 'http://bis.silverbiology.com/dev/resources/api/api.php?cmd=imageTilesGet&imageId=6' );
       }
     </script>
+
   </head>
   <body onload=init()>
-    <div id='zoomer' style='width: 100%; height: 100%;'></div>
+
+    <div id='zoomer' style='width: 400px; height: 300px; display: inline-block; padding: 5px;'></div>
+    <div id='zoomer2' style='width: 400px; height: 300px; display: inline-block; padding: 5px;'></div>
+    <div id='zoomer3' style='width: 400px; height: 300px; display: inline-block; padding: 5px;'></div>
+    <br>
+    <div id='zoomer4' style='width: 400px; height: 300px; display: inline-block; padding: 5px;'></div>
+    <div id='zoomer5' style='width: 400px; height: 300px; display: inline-block; padding: 5px;'></div>
+    <div id='zoomer6' style='width: 400px; height: 300px; display: inline-block; padding: 5px;'></div>
+
   </body>
 </html>
