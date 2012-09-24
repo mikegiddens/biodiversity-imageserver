@@ -598,6 +598,7 @@ var ImageZoom = function( config ) {
     this.zoomMin             =   1;
     this.zoomMax             =   10;
     this.dblClickZoom        =   ( config.hasOwnProperty('doubleClickZoomEnabled') ? config.doubleClickZoomEnabled : true );
+    this.isMouseScroll       =   ( config.hasOwnProperty('mouseZoomEnabled') ? config.mouseZoomEnabled : true );
     this.isImageLoaded       =   false;
     this.showLoadMask        =   ( config.hasOwnProperty('loadMaskEnabled') ? config.loadMaskEnabled : true );
 
@@ -618,8 +619,8 @@ var ImageZoom = function( config ) {
     // methods
     this.enableDblClickZoom = function() {
         this.dragEl.dblclick( function(e) {
-            if (this.currentZoomLevel < this.zoomMax) {
-                this.zoom(e, true);
+            if ( me.currentZoomLevel < me.zoomMax ) {
+                me.zoom(e, true);
             }
         });
     },
@@ -676,12 +677,6 @@ var ImageZoom = function( config ) {
         }
         if ( this.isMouseScroll ) {
             this.tileContainerEl.mousewheel( this.onMouseWheel );
-            this.tileContainerEl.bind( 'mouseover', function(e) {
-                $('body').css('overflow','hidden');
-            });
-            this.tileContainerEl.bind( 'mouseout', function(e) {
-                $('body').css('overflow','auto');
-            });
         }
     },
     this.loadCopyRight = function() {
@@ -936,25 +931,27 @@ var ImageZoom = function( config ) {
             this.fire('zoomChange', this.currentZoomLevel, this);
         }	
     },
-    this.zoom = function(e, flag) {
-        if(this.isImageLoaded){
+    this.zoom = function( e, isZoomIn ) {
+        if ( this.isImageLoaded ) {
             var xy = [ e.clientX, e.clientY ];
-            // var dragXY = [ this.dragEl.position().left, this.dragEl.position().top ];
-            var dragXY = [ this.dragEl.position().left + this.el.position().left, this.dragEl.position().top + this.el.position().top ];
-            var beforeImageSize = this.imageSize;
+            var dragXY = [ this.dragEl.offset().left, this.dragEl.offset().top ];
+            // var dragXY = [ this.dragEl.position().left + this.el.position().left, this.dragEl.position().top + this.el.position().top ];
             var offsetX = Math.abs( xy[0] - dragXY[0] );
             var offsetY = Math.abs( xy[1] - dragXY[1] );
-            if ( flag ) {
+            var beforeImageSize = this.imageSize;
+            if ( isZoomIn ) {
                 this.zoomIn(e);
             } else {
                 this.zoomOut(e);
             }
             var afterImageSize = this.imageSize;
             var newTileCount = afterImageSize / beforeImageSize;
-            var newOffsetX = xy[0] - Math.ceil( offsetX * newTileCount );
-            var newOffsetY = xy[1] - Math.ceil( offsetY * newTileCount );
-            this.dragEl.css( 'left', newOffsetX - this.el.position().left);
-            this.dragEl.css( 'top', newOffsetY - this.el.position().top);
+            //var newOffsetX = xy[0] - Math.ceil( offsetX * newTileCount );
+            //var newOffsetY = xy[1] - Math.ceil( offsetY * newTileCount );
+            var newOffsetX = offsetX / newTileCount;
+            var newOffsetY = offsetY / newTileCount;
+            this.dragEl.css( 'left', newOffsetX /*- this.el.position().left */);
+            this.dragEl.css( 'top', newOffsetY /*- this.el.position().top */);
             this.getTileByOffset();
             this.fire('zoomChange', this.currentZoomLevel, this);
         }
