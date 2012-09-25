@@ -45,6 +45,7 @@
 		,	'description'
 		,	'destinationPath'
 		,	'dir'
+		,	'elementSet'
 		,	'enAccountId'
 		,	'eventId'
 		,	'eventTypeId'
@@ -91,6 +92,7 @@
 		,	'storageDeviceId'
 		,	'stream'
 		,	'tag'
+		,	'term'
 		,	'tiles'
 		,	'type'
 		,	'types'
@@ -102,7 +104,6 @@
 		,	'userId'
 		,	'value'
 		,	'zoom'
-
 	);
 
 	# Initialize allowed variables
@@ -832,7 +833,7 @@
 			if($value == '') {
 				$valid = false;
 				$errorCode = 102;
-			} else if($enAccountId!='' && !$si->en->evernoteAccountsFieldExists($enAccountId)) {
+			} elseif($enAccountId!='' && !$si->en->evernoteAccountsFieldExists($enAccountId)) {
 				$valid = false;
 				$errorCode = 134;
 			}
@@ -860,7 +861,6 @@
 				$url = $config['evernoteUrl'];
 				$url .= '?cmd=findNotes&auth=[' . $evernote_details_json . ']&start=' . $start . '&limit=' . $limit . '&searchWord=' . urlencode($value);
 				if($tag != '') $url .= '&tag=[\"'.$tag.'\"]';
-// die($url);
 				$rr = json_decode(@file_get_contents($url),true);
 				if($rr['success']) {
 					//$totalNotes += $rr['totalNotes'];
@@ -869,16 +869,16 @@
 						foreach($labels as $label) {
 							if(!array_key_exists($label,$data)) {
 								$ar = array();
-								if(!$si->s2l->Specimen2LabelLoadById($label)) continue;
+								if(!$si->s2l->load_by_labelId($label)) continue;
 								$totalNotes++;
-								$si->image->imageSetData(array("field"=>"barcode", "value"=>$si->s2l->Specimen2LabelGetProperty('barcode'), "start"=>0, "limit"=>$limit));
+								$si->image->imageSetData(array("field"=>"barcode", "value"=>$si->s2l->get('barcode'), "start"=>0, "limit"=>$limit));
 								$ar = $si->image->imageList();
 								$ar = $ar[0];
 								$tmpPath = $si->image->imageGetUrl($ar->imageId);
 								$ar->path = $tmpPath['baseUrl'];
 								$fname = explode(".", $ar->filename);
 								$ar->ext = $fname[1];
-								$ar->en_flag = ($si->s2l->Specimen2LabelLoadByBarcode($ar->barcode)) ? 1 : 0;
+								$ar->en_flag = ($si->s2l->load_by_barcode($ar->barcode)) ? 1 : 0;
 								$data[$label] = $ar;
 							}
 						}
@@ -1360,10 +1360,10 @@
 							$results[$i] =  array( 'success' => true, 'processTime' => microtime(true) - $timeStart, 'imageId' => $response['imageId'] );
 							$totalCount++;
 						} else {
-							print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray(165)) ));
+							$results[$i] =  array( 'success' => false, 'error' => $si->getErrorArray(165));
 						}
 					} else {
-						print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray(164)) ));
+						$results[$i] =  array( 'success' => false, 'error' => $si->getErrorArray(164));
 					}
 				}
 				print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart, 'totalCount' => $totalCount, 'records' => $results ) ) );
@@ -1666,7 +1666,8 @@
 				$errorCode = 157;
 			}
 			if($valid) {
-				$imageId = (!is_numeric($imageId)) ? json_decode(stripslashes(trim($imageId)),true) : array($imageId);
+				$data['obj'] = $si->amazon;
+				$imageId = (!is_numeric($imageId)) ? json_decode(stripslashes(trim($imageId)),true) : $imageId;
 				$items = array();
 				if(is_array($imageId)) {
 					foreach($imageId as $imid) {
@@ -1685,7 +1686,23 @@
 							$ret['code'] = 170;
 						}
 					}
+				} else {
+					$data['imageId'] = $imageId;
+					$si->image->imageSetData($data);
+					if($si->image->imageLoadById($data['imageId'])) {
+						if(($si->image->imageGetProperty('remoteAccessKey') == $key) || ($key==0)) {
+							$ret = $si->image->imageDelete();
+							if($ret['success']) $items[] = $imageId;
+						} else {
+							$ret['success'] = false;
+							$ret['code'] = 171;
+						}
+					} else {
+						$ret['success'] = false;
+						$ret['code'] = 170;
+					}
 				}
+				
 				if(count($items)) {
 					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart, 'totalCount' => count($items), 'records' => $items ) ) );
 				} else {
@@ -1750,7 +1767,6 @@
 			break;
 
 		case 'imageDetails':
-			checkAuth();
 			$data['imageId'] = $imageId;
 			if ($data['imageId'] == '') {
 				$errorCode = 157;
@@ -1772,7 +1788,6 @@
 			break;
 
 		case 'imageDetectBarcode':
-			checkAuth();
 			if(!$config['zBarImgEnabled']) {
 				print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray(180)) ));
 				exit;
@@ -1835,7 +1850,6 @@
 			break;
 			
 		case 'imageDetectColorBox':
-			checkAuth();
 			$_TMP = ($config['path']['tmp'] != '') ? $config['path']['tmp'] : sys_get_temp_dir() . '/';
 			$loadFlag = $existsFlag = false;
 			if(trim($imageId) != '') {
@@ -2115,6 +2129,7 @@
 			break;
 
 		case 'imageListCharacters':
+			checkAuth();
 			$data['start'] = ($start == '') ? 0 : $start;
 			$data['limit'] = ($limit == '') ? 100 : $limit;
 			$data['browse'] = $browse;
@@ -2174,7 +2189,6 @@
 			break;
 
 		case 'imageModifyRechop':
-			checkAuth();
 			if($imageId == '') {
 				$valid = false;
 				$errorCode = 157;
@@ -2242,7 +2256,6 @@
 			break;
 			
 		case 'imageMoveExisting':
-			checkAuth();
 			if($imageId == '' || $newStorageId == '' || $newImagePath == '') {
 				$valid = false;
 				$errorCode = 189;

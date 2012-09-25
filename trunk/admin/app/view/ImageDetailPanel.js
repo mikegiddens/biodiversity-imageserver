@@ -136,7 +136,7 @@ Ext.define('BIS.view.ImageDetailPanel', {
 	
 	loadImage: function( record ) {
         Ext.Ajax.request({
-            url: 'http://bis.silverbiology.com/dev/resources/api/api.php',
+            url: Config.baseUrl + 'resources/api/api.php',
             method: 'GET',
             params: {
                 cmd: 'imageList',
