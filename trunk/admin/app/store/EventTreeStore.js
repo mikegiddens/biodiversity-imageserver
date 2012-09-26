@@ -2,7 +2,6 @@ Ext.define('BIS.store.EventTreeStore', {
     extend: 'Ext.data.TreeStore',
     requires: [
         'BIS.model.EventModel',
-        'BIS.model.EventTypeModel'
     ],
     autoLoad: true,
     constructor: function(cfg) {
@@ -10,7 +9,7 @@ Ext.define('BIS.store.EventTreeStore', {
         cfg = cfg || {};
         me.callParent([Ext.apply({
             storeId: 'eventTreeStore',
-            model: 'BIS.model.EventTypeModel',
+            model: 'BIS.model.EventModel',
             defaultRootId: 'results',
             listeners: {
                 load: function( store, records, isSuccessful, operation, opts ) {
