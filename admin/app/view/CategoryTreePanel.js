@@ -2,11 +2,22 @@ Ext.define('BIS.view.CategoryTreePanel', {
 	extend: 'Ext.tree.TreePanel',
 	alias: ['widget.categorytreepanel'],
 	requires: [
+        'Ext.tree.plugin.TreeViewDragDrop'
 	],
+    uses: [
+        'Ext.tree.ViewDropZone'
+    ],
 	id: 'categoryTreePanel',
     rootVisible: false,
+    viewConfig: {
+       plugins: [{
+           ddGroup: 'imageDD',
+           ptype: 'treeviewdragdrop'
+       }]
+    },
 	initComponent: function() {
 		var me = this;
+
 		Ext.applyIf(me, {
 			store: 'CategoryTreeStore',
 			useArrows: true,
@@ -15,30 +26,17 @@ Ext.define('BIS.view.CategoryTreePanel', {
 			viewConfig: {
 				plugins: [
 					Ext.create('Ext.tree.plugin.TreeViewDragDrop', {
-						ddGroup: 'categoryDD',
+						ddGroup: 'imageDD',
+						dropGroup: 'imageDD',
 						enableDrop: true,
-						dragText: 'Copy attribute to another category.',
-						appendOnly: true
+						appendOnly: true,
+                        listeners: {
+                            drop: function( node, data, overModel, dropPos, e ) {
+                                console.log( 'drop', node, data, overModel, dropPos, e );
+                            }
+                        }
 					})
 				],
-				listeners: {
-					beforedrop: function( el, dragobj, targetNode, action, opts ) {
-						var record = dragobj.records[0].data;
-						var target = targetNode.data;
-						if ( action == 'append' ) {
-							if ( (record.modelClass == 'attribute') && (target.modelClass == 'category') ) {
-								if ( record.categoryId != target.categoryId ) {
-									// send attributeAdd with record info on target categoryId
-									return true;
-								}
-							}
-						}
-						return false;
-					},
-					isValidDropPoint: function( a,b,c,d,e ) {
-						console.log( a, b, c, d,e  );
-					}
-				},
 				copy: true,
 				loadMask: false
 			},
@@ -51,13 +49,31 @@ Ext.define('BIS.view.CategoryTreePanel', {
 			}],
 			scope: this,
 			listeners: {
+                drop: function( node, data, overModel, dropPos, e ) {
+                    console.log( 'drop2', node, data, overModel, dropPos, e );
+                },
+                beforedrop: function( node, data, overModel, dropPos, e ) {
+                    console.log( 'beforedrop2', node, data, overModel, dropPos, e );
+                },
 				show: function( el, opts ) {
                     this.getStore().load();
 					Ext.getCmp('viewsPagingTitle').setText('Categories');
 				},
+                itemappend: function( thisNode, newChildNode, index, eOpts ) {
+                    if ( eOpts && eOpts.isAttribute ) {
+                        //eOpts.isAttribute = false;
+                        newChildNode.set('modelClass', 'attribute');
+                        newChildNode.set('leaf', true);
+                        newChildNode.set('title', newChildNode.get('name'));
+                                                   
+                        //newChildNode.set('icon', newChildNode.get('profile_image_url'));
+                        //newChildNode.set('cls', 'demo-userNode');
+                        //newChildNode.set('iconCls', 'demo-userNodeIcon');
+                    }
+                },
 				beforeitemexpand: function( record, opts ) {
+                    opts.isAttribute = true;
                     // http://stackoverflow.com/questions/11413724/different-node-types-in-a-extjs-4-1-treestore
-					this.getStore().getProxy().getReader().setModel( 'BIS.model.AttributeModel' );
 					this.getStore().getProxy().extraParams.cmd = 'attributeList';
 					this.getStore().getProxy().extraParams.categoryId = record.data.categoryId;
 					this.getStore().getProxy().extraParams.showNames = false;

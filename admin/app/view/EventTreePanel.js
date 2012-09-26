@@ -54,10 +54,21 @@ Ext.define('BIS.view.EventTreePanel', {
                     this.getStore().load();
 					Ext.getCmp('viewsPagingTitle').setText('Events');
 				},
+                itemappend: function( thisNode, newChildNode, index, eOpts ) {
+                    if ( eOpts && eOpts.isEvent ) {
+                        //eOpts.isEvent = false;
+                        newChildNode.set('modelClass', 'event');
+                        newChildNode.set('leaf', true);
+                                                   
+                        //newChildNode.set('icon', newChildNode.get('profile_image_url'));
+                        //newChildNode.set('cls', 'demo-userNode');
+                        //newChildNode.set('iconCls', 'demo-userNodeIcon');
+                    }
+                },
 				beforeitemexpand: function( record, opts ) {
+                    opts.isEvent = true;
 					this.getStore().getProxy().extraParams.cmd = 'eventList';
-					this.getStore().getProxy().extraParams.filter = {eventTypeId: record.data.eventTypeId};
-					this.getStore().getProxy().setModel( 'BIS.model.EventModel' );
+					this.getStore().getProxy().extraParams.eventTypeId = record.data.eventTypeId;
 				},
 				itemcontextmenu: function(view, record, item, index, e) {
 					e.stopEvent();

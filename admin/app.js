@@ -6,6 +6,7 @@ Ext.application({
         'SetModel',
         'CategoryModel',
         'AttributeModel',
+        'CattributeModel',
         'EventModel',
         'EventTypeModel',
         'ImageModel',

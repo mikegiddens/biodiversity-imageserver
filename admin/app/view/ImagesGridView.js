@@ -4,8 +4,12 @@ Ext.define('BIS.view.ImagesGridView', {
 	requires: [
 		'BIS.view.ImageZoomViewer',
 		'BIS.view.CtxMnuImage',
-		'BIS.view.CtxMnuAttribute'
+		'BIS.view.CtxMnuAttribute',
+        'Ext.ux.DataView.Draggable'
 	],
+    mixins: {
+        draggable: 'Ext.ux.DataView.Draggable'
+    },
 	initialTpl: '<div>Loading...</div>',
 	itemSelector: 'div.imageSelector',
 	selectedItemCls: 'imageRowSelected',
@@ -82,6 +86,29 @@ Ext.define('BIS.view.ImagesGridView', {
 			ctx.showAt(e.getXY());
 		}
 	},
+    initComponent: function() {
+        this.mixins.draggable.init( this, {
+            ddConfig: {
+                ddGroup: 'imageDD'
+            },
+            ghostTpl: [ new Ext.XTemplate(
+                    '<tpl for=".">',
+                        '<img src="{[this.renderThumbnail(values.path,values.filename,values.ext)]}">',
+                    '</tpl>',
+                    '<div class="count">',
+                        '{[values.length]} images selected.',
+                    '<div>', {
+                        renderThumbnail: function( path, filename, ext ) {
+                            return path + filename.substr( 0, filename.indexOf('.') ) + '_s.' + ext;
+                        }
+                    }
+                )
+            ]
+        });
+
+        this.callParent( arguments );
+
+    },
 	constructor: function( config ) {
         this.table = this;
 		this.tplBoth = new Ext.XTemplate(
@@ -141,6 +168,7 @@ Ext.define('BIS.view.ImagesGridView', {
 				return path + filename.substr( 0, filename.indexOf('.') ) + '_m.' + ext;
 			}
         });
+
 		this.callParent( arguments );
 	},
 	onRowSelect: function( ind ) {

@@ -1,15 +1,14 @@
 Ext.define('BIS.store.CategoryTreeStore', {
     extend: 'Ext.data.TreeStore',
     requires: [
-        'BIS.model.CategoryModel',
-        'BIS.model.AttributeModel'
+        'BIS.model.CattributeModel'
     ],
     constructor: function(cfg) {
         var me = this;
         cfg = cfg || {};
         me.callParent([Ext.apply({
             storeId: 'categoryTreeStore',
-            model: 'BIS.model.CategoryModel',
+            model: 'BIS.model.CattributeModel',
             //defaultRootProperty: 'data', // for tree store to locate children
             listeners: {
                 load: function( store, records, isSuccessful, operation, opts ) {

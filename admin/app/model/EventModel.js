@@ -22,8 +22,14 @@ Ext.define('BIS.model.EventModel', {
             name: 'description'
         },
         {
+            name: 'lastModifiedBy'
+        },
+        {
+            name: 'modifiedTime'
+        },
+        {
             name: 'leaf',
-            defaultValue: true
+            defaultValue: false
         },
         {
             name: 'checked',
@@ -31,7 +37,7 @@ Ext.define('BIS.model.EventModel', {
         },
         {
             name: 'modelClass',
-            defaultValue: 'event'
+            defaultValue: 'eventtype'
         }
     ]
 });
