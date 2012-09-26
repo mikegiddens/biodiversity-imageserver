@@ -445,25 +445,25 @@ Ext.define('ImageZoom', {
         }	
     },
     zoom: function(e, flag) {
-        if(this.isImageLoaded){
-            var xy = e.getXY();
-            var dragXY = this.dragEl.getXY();
-            var beforeImageSize = this.imageSize;
-            var offsetX = Math.abs(xy[0] - dragXY[0]);
-            var offsetY = Math.abs(xy[1] - dragXY[1]);
-            if(flag){
-                this.zoomIn(e);
-            }else {
-                this.zoomOut(e);
-            }
-            var afterImageSize = this.imageSize;
-            var newTileCount = afterImageSize / beforeImageSize;
-            var newOffsetX = xy[0] - Math.ceil(offsetX * newTileCount);
-            var newOffsetY = xy[1] - Math.ceil(offsetY * newTileCount);
-            this.dragEl.setXY([newOffsetX, newOffsetY]);
-            this.getTileByOffset();
-            this.fireEvent('zoomChange', this.currentZoomLevel, this);
-        }
+			if(this.isImageLoaded){
+				var xy = e.getXY();
+				var dragXY = this.dragEl.getXY();
+				var beforeImageSize = this.imageSize;
+				var offsetX = Math.abs(xy[0] - dragXY[0]);
+				var offsetY = Math.abs(xy[1] - dragXY[1]);
+				if(flag){
+						this.zoomIn(e);
+				}else {
+						this.zoomOut(e);
+				}
+				var afterImageSize = this.imageSize;
+				var newTileCount = afterImageSize / beforeImageSize;
+				var newOffsetX = xy[0] - Math.ceil(offsetX * newTileCount);
+				var newOffsetY = xy[1] - Math.ceil(offsetY * newTileCount);
+				this.dragEl.setXY([newOffsetX, newOffsetY]);
+				this.getTileByOffset();
+				this.fireEvent('zoomChange', this.currentZoomLevel, this);
+			}
     },
     zoomBox: function(xy, flag) {
         if(this.showZoomBox && this.isImageLoaded){
