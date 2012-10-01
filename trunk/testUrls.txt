@@ -22,7 +22,7 @@ http://bis.silverbiology.com/dev/resources/api/api.php?cmd=evernoteSearchByLabel
 Test Urls - New Bis api:
 
 attributeAdd:
-http://bis.silverbiology.com/dev/resources/api/api.php?cmd=attributeAdd&value=Mike&categoryId=2
+http://bis.silverbiology.com/dev/resources/api/api.php?cmd=attributeAdd&name=Mike&categoryId=2
 
 attributeDelete:
 bis.silverbiology.com/dev/resources/api/api.php?cmd=attributeDelete&valueId=
@@ -34,7 +34,7 @@ attributeUpdate:
 http://bis.silverbiology.com/dev/resources/api/api.php?cmd=attributeUpdate&valueId=1&value=Robert
 
 categoryAdd:
-http://bis.silverbiology.com/dev/resources/api/api.php?cmd=categoryAdd&value=Test%20Category
+http://bis.silverbiology.com/dev/resources/api/api.php?cmd=categoryAdd&title=Test%20Category
 
 categoryList:
 http://bis.silverbiology.com/dev/resources/api/api.php?cmd=categoryList&categoryId=[2,3,5]
@@ -42,8 +42,11 @@ http://bis.silverbiology.com/dev/resources/api/api.php?cmd=categoryList&category
 http://bis.silverbiology.com/dev/resources/api/api.php?cmd=categoryList&value=Family
 http://bis.silverbiology.com/dev/resources/api/api.php?cmd=categoryList&value=ly&searchFormat=right&categoryId=[2,3,5]
 
+categoryDelete:
+http://bis.silverbiology.com/dev/resources/api/api.php?cmd=categoryDelete&authMode=key&key={your_key}&categoryId=39
+
 categoryUpdate:
-http://bis.silverbiology.com/dev/resources/api/api.php?cmd=categoryUpdate&categoryId=5&value=Location
+http://bis.silverbiology.com/dev/resources/api/api.php?cmd=categoryUpdate&categoryId=5&title=Location
 -------------
 
 collectionAdd:
