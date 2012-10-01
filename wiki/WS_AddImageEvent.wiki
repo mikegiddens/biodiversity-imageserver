@@ -5,7 +5,7 @@
 An API request must be of the following form:
 
 {{{
- http://{url_to_software}/api/api.php?cmd=addImageEvent&parameters
+ http://{url_to_software}/api/api.php?cmd=imageAddToEvent&parameters
 }}}
 
 Certain parameters are required while some are optional. As is standard in URLs, all parameters are separated using the ampersand (&) character. The list of parameters and their possible values are enumerated below.
@@ -32,7 +32,7 @@ Responses are returned in the format indicated by the output flag within the URL
  === JSON Output Formats ===
     * success (bool) - If response was successful or not. If it false see [http://code.google.com/p/biodiversity-imageserver/wiki/jsonErrorResponse JSON Error Response] for more details
     * processTime (float) - Time it takes to complete the request.
-    * new_id (int) - Db id of the new entry.
+    * eventImageId (int) - Db id of the new entry.
 
 ----
 == Example Requests ==
@@ -40,7 +40,7 @@ Responses are returned in the format indicated by the output flag within the URL
 1. This example request add image to an event.
 
 {{{
- http://{path_to_software}/api/api.php?cmd=addImageEvent&authMode=key&key={your_key}&imageId=12&eventId=3
+ http://{path_to_software}/api/api.php?cmd=imageAddToEvent&authMode=key&key={your_key}&imageId=12&eventId=3
 }}}
 
  Response:
@@ -48,6 +48,6 @@ Responses are returned in the format indicated by the output flag within the URL
 {
     "success":true,
     "processTime":0.0086948871612549,
-    "new_id":7
+    "eventImageId":7
 }
 }}}
