@@ -29,9 +29,10 @@ Responses are returned in the format indicated by the output flag within the URL
  === JSON Output Formats ===
     * success (bool) - If response was successful or not. If it false see [http://code.google.com/p/biodiversity-imageserver/wiki/jsonErrorResponse JSON Error Response] for more details
     * processTime (float) - Time it takes to complete the request.
-    * data (object) - Array of item objects.
+    * totalCount (int) - Total records.
+    * records (object) - Array of item objects.
 
-    * records (object)
+    * record (object)
         * categoryId
         * title
         * description
@@ -55,6 +56,7 @@ Responses are returned in the format indicated by the output flag within the URL
 {
     "success": true,
     "processTime": 0.0012769699,
+    "totalCount": 18,
     "records": [
         {
             "catgoryId": 2,
