@@ -5,7 +5,7 @@
 An API request must be of the following form:
 
 {{{
- http://{url_to_software}/api/api.php?cmd=delete-image&parameters
+ http://{url_to_software}/api/api.php?cmd=imageDelete&parameters
 }}}
 
 Certain parameters are required while some are optional. As is standard in URLs, all parameters are separated using the ampersand (&) character. The list of parameters and their possible values are enumerated below.
@@ -17,7 +17,7 @@ The API defines a request using the following URL parameters:
 
 Note that key is required only if authMode is set to key. If authMode is not set then the user must be logged in to make this API request.
 
- * image_id (required) - List of image Ids as JSON string.
+ * imageId (required) - List of image Ids as JSON string or a single image Id.
 
 == Output Formats ==
 
@@ -32,7 +32,7 @@ Responses are returned in the format indicated by the output flag within the URL
     * success (bool) - If response was successful or not. If it false see [http://code.google.com/p/biodiversity-imageserver/wiki/jsonErrorResponse JSON Error Response] for more details
     * processTime (float) - Time it takes to complete the request.
     * total (int) - Number of images deleted.
-    * data (object) - List of image ids of deleted images.
+    * records(object) - List of image ids of deleted images.
 
 ----
 == Example Requests ==
@@ -40,7 +40,7 @@ Responses are returned in the format indicated by the output flag within the URL
 1. This example request deletes an image.
 
 {{{
- http://{path_to_software}/api/api.php?cmd=delete-image&image_id=100
+ http://{path_to_software}/api/api.php?cmd=imageDelete&imageId=100
 }}}
 
  Response:
@@ -49,6 +49,6 @@ Responses are returned in the format indicated by the output flag within the URL
     "success":true,
     "processTime":0.013355016708374
     "total":1
-    "data":100
+    "records":[100]
 }
 }}}
