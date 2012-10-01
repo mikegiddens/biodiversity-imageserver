@@ -5,14 +5,14 @@
 An API request must be of the following form:
 
 {{{
- http://{url_to_software}/api/api.php?cmd=addExistingImage&parameters
+ http://{url_to_software}/api/api.php?cmd=imageAddFromExisting&parameters
 }}}
 
 Certain parameters are required while some are optional. As is standard in URLs, all parameters are separated using the ampersand (&) character. The list of parameters and their possible values are enumerated below.
 
 The API defines a request using the following URL parameters:
 
- * storage_id (required) - The storage device where image exists.
+ * storageDeviceId (required) - The storage device where image exists.
  * imagePath (required) - The path to the image.
  * filename (required) - The filename for the image.
 
@@ -28,7 +28,7 @@ Responses are returned in the format indicated by the output flag within the URL
  === JSON Output Formats ===
     * success (bool) - If response was successful or not. If it false see [http://code.google.com/p/biodiversity-imageserver/wiki/jsonErrorResponse JSON Error Response] for more details
     * processTime (float) - Time it takes to complete the request.
-    * image_id (int) - Id of the image.
+    * imageId (int) - Id of the image.
 
 ----
 == Example Requests ==
@@ -36,7 +36,7 @@ Responses are returned in the format indicated by the output flag within the URL
 1. This example request adds an existing image to database.
 
 {{{
- http://{path_to_software}/api/api.php?cmd=addExistingImage&storage_id=2&imagePath={/path_to_image}&filename={filename}
+ http://{path_to_software}/api/api.php?cmd=imageAddFromExisting&storageDeviceId=2&imagePath={/path_to_image}&filename={filename}
 }}}
 
  Response:
@@ -44,6 +44,6 @@ Responses are returned in the format indicated by the output flag within the URL
 {
     "success":true,
     "processTime":0.015973806381226,
-    "image_id":97
+    "imageId":97
 }
 }}}
