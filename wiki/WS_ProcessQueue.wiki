@@ -5,7 +5,7 @@
 An API request must be of the following form:
 
 {{{
- http://{url_to_software}/api/api.php?cmd=process_queue&parameters
+ http://{url_to_software}/api/api.php?cmd=processQueue&parameters
 }}}
 
 Certain parameters are required while some are optional. As is standard in URLs, all parameters are separated using the ampersand (&) character. The list of parameters and their possible values are enumerated below.
@@ -14,7 +14,7 @@ The API defines a request using the following URL parameters:
 
  * limit (optional) - Number of items to be processed from queue.
  * stop (optional) - {stop}
- * image_id (optional) - JSON array containing image ids to be processed.
+ * imageId (optional) - JSON array containing image ids to be processed.
 
  Note that if no parameters are provided, all items in process queue with process type 'all' will be processed.
    
@@ -29,8 +29,8 @@ Responses are returned in the format indicated by the output flag within the URL
 
  === JSON Output Formats ===
     * success (bool) - If response was successful or not. If it false see [http://code.google.com/p/biodiversity-imageserver/wiki/jsonErrorResponse JSON Error Response] for more details
-    * process_time (float) - Time it takes to complete the request.
-    * total_records (int) - Number of records processed.
+    * processTime (float) - Time it takes to complete the request.
+    * totalCount (int) - Number of records processed.
 
 ----
 == Example Requests ==
@@ -38,14 +38,14 @@ Responses are returned in the format indicated by the output flag within the URL
 1. This example request process all records in process queue with process type 'all'.
 
 {{{
- http://{path_to_software}/api/api.php?cmd=process_queue
+ http://{path_to_software}/api/api.php?cmd=processQueue
 }}}
 
  Response:
 {{{
 {
     "success":true,
-    "process_time":0.00035810470581055,
-    "total_records":1
+    "processTime":0.00035810470581055,
+    "totalCount":1
 }
 }}}
