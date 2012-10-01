@@ -44,6 +44,6 @@ Responses are returned in the format indicated by the output flag within the URL
 {
     "success":true,
     "processTime":0.011739015579224,
-	"totalCount": 50
+    "totalCount": 50
 }
 }}}
