@@ -655,8 +655,8 @@ class phpBIS
 		$data['authMode'] = 'key';
 		$data['key'] = $this->key;
 		$data['cmd'] = 'imageAddToCollection';
-		$result = $this->CURL($this->server . '/api.php', $data);
-// die($result);
+		$result = $this->CURL($this->server . '/apiTest.php', $data);
+// echo ($result);exit;
 		$result = json_decode($result, true);
 		if($result['success'] == true) {
 			return $result;
@@ -702,6 +702,7 @@ class phpBIS
 		$data['stream'] = $stream;
 		$data['cmd'] = 'imageAddFromLocal';
 		$result = $this->CURL($this->server . '/api.php',$data);
+		
 		$result = json_decode($result,true);
 		if($result['success'] == true) {
 			return $result;
