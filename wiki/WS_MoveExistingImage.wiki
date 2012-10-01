@@ -5,14 +5,14 @@
 An API request must be of the following form:
 
 {{{
- http://{url_to_software}/api/api.php?cmd=moveExistingImage&parameters
+ http://{url_to_software}/api/api.php?cmd=imageMoveExisting&parameters
 }}}
 
 Certain parameters are required while some are optional. As is standard in URLs, all parameters are separated using the ampersand (&) character. The list of parameters and their possible values are enumerated below.
 
 The API defines a request using the following URL parameters:
 
- * image_id (required) - Id of the image to be moved.
+ * imageId (required) - Id of the image to be moved.
  * newStorageId (required) - Id of the new storage device to be used.
  * newImagePath (required) - New path to be used for storage.
 
@@ -35,7 +35,7 @@ Responses are returned in the format indicates by the output flag within the URL
 1. This example request moves an image from one storage device to another.
 
 {{{
- http://{path_to_software}/api/api.php?cmd=moveExistingImage&image_id=18&newStorageId=2&newImagePath=/{path}
+ http://{path_to_software}/api/api.php?cmd=imageMoveExisting&imageId=18&newStorageId=2&newImagePath=/{path}
 }}}
 
  Response:
