@@ -39,7 +39,6 @@ Responses are returned in the format indicated by the output flag within the URL
         * elementSet
         * term
 
-},
 
 
 ----
