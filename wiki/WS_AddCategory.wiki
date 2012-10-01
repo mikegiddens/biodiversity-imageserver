@@ -34,7 +34,7 @@ Responses are returned in the format indicated by the output flag within the URL
  === JSON Output Formats ===
     * success (bool) - If response was successful or not. If it false see [http://code.google.com/p/biodiversity-imageserver/wiki/jsonErrorResponse JSON Error Response] for more details
     * processTime (float) - Time it takes to complete the request.
-    * new_id (int) - Id of the new category.
+    * categoryId (int) - Id of the new category.
 
 ----
 == Example Requests ==
