@@ -5,14 +5,14 @@
 An API request must be of the following form:
 
 {{{
- http://{url_to_software}/api/api.php?cmd=list_image_attributes&parameters
+ http://{url_to_software}/api/api.php?cmd=imageListAttribute&parameters
 }}}
 
 Certain parameters are required while some are optional. As is standard in URLs, all parameters are separated using the ampersand (&) character. The list of parameters and their possible values are enumerated below.
 
 The API defines a request using the following URL parameters:
 
- * imageID (required) - Id of the image.
+ * imageId (required) - Id of the image.
 
 == Output Formats ==
 
@@ -43,7 +43,7 @@ Responses are returned in the format indicated by the output flag within the URL
 1. This example request list attributes of an image.
 
 {{{
- http://{path_to_software}/api/api.php?cmd=list_image_attributes&imageID=50
+ http://{path_to_software}/api/api.php?cmd=imageListAttribute&imageId=50
 }}}
 
  Response:
@@ -51,7 +51,7 @@ Responses are returned in the format indicated by the output flag within the URL
 {
     "success": true,
     "processTime": 0.0015499592,
-    "data": [
+    "results": [
         {
             "id": 2,
             "key": "{category}",
