@@ -26,6 +26,7 @@
     * [WS_DeleteAttribute Delete Attribute]
     * [WS_ListAttributes List Attributes]
     * [WS_ImportMetaDataPackage Import Metadata Package]
+    * [WS_MetadataPackageList Metadata Package List]
   * Images
     * [WS_AddImage Add Image]
     * [WS_AddExistingImage Add Existing Image]
