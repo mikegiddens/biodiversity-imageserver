@@ -50,6 +50,7 @@
     * [WS_AddEvent Add Event]
     * [WS_ListEvents List Events]
     * [WS_DeleteEvent Delete Event]
+    * [WS_UpdateEvent Update Event]
     * [WS_AddImageEvent Add Image Event]
     * [WS_DeleteImageEvent Delete Image Event]
     * [WS_AddEventType Add Event Type]
