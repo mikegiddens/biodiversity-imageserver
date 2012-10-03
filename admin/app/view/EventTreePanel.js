@@ -51,6 +51,10 @@ Ext.define('BIS.view.EventTreePanel', {
             scope: this,
 			listeners: {
 				show: function( el, opts ) {
+                    if ( opts && opts.isAttribute ) delete opts.isEvent;
+                    this.getStore().getProxy().extraParams = {
+                        cmd: 'eventTypeList'
+                    };
                     this.getStore().load();
 					Ext.getCmp('viewsPagingTitle').setText('Events');
 				},
