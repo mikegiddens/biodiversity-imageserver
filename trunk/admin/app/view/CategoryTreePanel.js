@@ -56,12 +56,15 @@ Ext.define('BIS.view.CategoryTreePanel', {
                     console.log( 'beforedrop2', node, data, overModel, dropPos, e );
                 },
 				show: function( el, opts ) {
+                    if ( opts && opts.isAttribute ) delete opts.isAttribute;
+                    this.getStore().getProxy().extraParams = {
+                        cmd: 'categoryList'
+                    };
                     this.getStore().load();
 					Ext.getCmp('viewsPagingTitle').setText('Categories');
 				},
                 itemappend: function( thisNode, newChildNode, index, eOpts ) {
                     if ( eOpts && eOpts.isAttribute ) {
-                        //eOpts.isAttribute = false;
                         newChildNode.set('modelClass', 'attribute');
                         newChildNode.set('leaf', true);
                         newChildNode.set('title', newChildNode.get('name'));

@@ -148,6 +148,7 @@ Ext.define('BIS.view.ImageDetailPanel', {
                 var properties = [], events = [], geography = [], sets = [];
                 var data = Ext.decode( res.responseText ).records[0];
                 this.image = data;
+//                console.log( data );
                 Ext.each( data.attributes, function( attr ) {
                     properties.push({ key: attr.category, value: attr.attribute, aid: attr.attributeId, cid: attr.categoryId });
                 });
