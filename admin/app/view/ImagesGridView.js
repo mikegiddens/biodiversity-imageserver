@@ -54,7 +54,7 @@ Ext.define('BIS.view.ImagesGridView', {
 						title: 'Static Image',
 						iconCls: 'icon_image',
                         autoScroll: true,
-						html: '<img src="'+record.data.path + record.data.filename.substr( 0, record.data.filename.indexOf('.') ) + '_l.' + record.data.ext+'">'
+						html: '<img src="'+record.data.path + record.data.filename.substr( 0, record.data.filename.lastIndexOf('.') ) + '_l.' + record.data.ext+'">'
 					},{
 						xtype: 'imagezoomviewer',
                         border: false,
@@ -99,7 +99,7 @@ Ext.define('BIS.view.ImagesGridView', {
                         '{[values.length]} images selected.',
                     '<div>', {
                         renderThumbnail: function( path, filename, ext ) {
-                            return path + filename.substr( 0, filename.indexOf('.') ) + '_s.' + ext;
+                            return path + filename.substr( 0, filename.lastIndexOf('.') ) + '_s.' + ext;
                         }
                     }
                 )
@@ -136,7 +136,7 @@ Ext.define('BIS.view.ImagesGridView', {
                 }
             },
 			renderThumbnail: function( path, filename, ext ) {
-                return path + filename.substr( 0, filename.indexOf('.') ) + '_s.' + ext;
+                return path + filename.substr( 0, filename.lastIndexOf('.') ) + '_s.' + ext;
 			}
 		});
 		this.tplSmallIcons = new Ext.XTemplate(
@@ -148,7 +148,7 @@ Ext.define('BIS.view.ImagesGridView', {
 			'</div>'+
 			'</tpl>', {
 			renderThumbnail: function( path, filename, ext ) {
-                return path + filename.substr( 0, filename.indexOf('.') ) + '_s.' + ext;
+                return path + filename.substr( 0, filename.lastIndexOf('.') ) + '_s.' + ext;
 			}
 		});
 		this.tplTileIcons = new Ext.XTemplate(
@@ -165,7 +165,7 @@ Ext.define('BIS.view.ImagesGridView', {
 			'</div>'+
 			'</tpl>', {
 			renderThumbnail: function( path, filename, ext ) {
-				return path + filename.substr( 0, filename.indexOf('.') ) + '_m.' + ext;
+				return path + filename.substr( 0, filename.lastIndexOf('.') ) + '_m.' + ext;
 			}
         });
 
