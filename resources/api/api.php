@@ -2326,8 +2326,12 @@
 				$t2 = $t1[count($t1)-1];
 				unset($t1[count($t1)-1]);
 				$t1 = implode("/", $t1);
-				$url = $config['tileGenerator'] . '?cmd=loadImage&filename=' . $t2 . '&absolutePath=' . $t1.'/';
+				$url = $config['tileGenerator'] . '?cmd=loadImage&filename=' . str_replace(' ', '%20', $t2) . '&absolutePath=' . rtrim($t1,'/') . '/';
 				$t3 = explode(".", $t2);
+				if(count($t3) > 1) {
+					@array_pop($t3);
+				}
+				$fname = @implode('.',$t3);
 				$res = json_decode(trim(@file_get_contents($url)));
 				if(strtolower($si->storage->storageDeviceGetType($si->image->imageGetProperty('storageDeviceId'))) == 's3') {
 					@unlink($tmpPath);
@@ -2335,7 +2339,7 @@
 				
 				if(!$res->zoomLevel) {
 					$zoomlevel = 0;
-					$handles = @opendir($config['path']['tiles'] . strtolower($t3[0]));
+					$handles = @opendir($config['path']['tiles'] . strtolower($fname));
 					while (false !== ($zooml = @readdir($handles))) {
 						if( $zooml == '.' || $zooml == '..') continue;
 						$zoomlevel++;
@@ -2346,7 +2350,7 @@
 				
 				if(in_array(@strtolower($tiles),array('create','createclear'))) {
 					// $si->image->imageMkdirRecursive( $config['path']['tilesDb'] );
-					$tileFolder = @strtolower($t3[0]);
+					$tileFolder = @strtolower($fname);
 					$it = new imgTiles($config['path']['tilesDb'] . $tileFolder . '.sqlite');
 
 					$handle = @opendir($config['path']['tiles'] . $tileFolder);
@@ -2362,7 +2366,7 @@
 						$si->image->imageRmdirRecursive($config['path']['tiles'] . $tileFolder);
 					}
 				}
-				$url = $config['tileUrl'] . strtolower($t3[0]).'/';
+				$url = $config['tileUrl'] . strtolower($fname).'/';
 				$tpl = $url . '{z}/tile_{i}.jpg';
 				print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart, 'url' => $url, 'tpl' => $tpl, 'maxZoomLevel' => $zoomlevel) ) );
 			} else {

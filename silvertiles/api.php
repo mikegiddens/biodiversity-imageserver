@@ -41,7 +41,7 @@ switch($cmd) {
 			$valid = false;
 			$code = 103;
 		}
-
+// echo $filename; exit;
 		if($valid) {
 			$sharpenFlag = (trim($_REQUEST['sharpen']) == 'true') ? true : false;
 			$tile = new SilverTile($absolutePath, $filename, $sharpenFlag);
