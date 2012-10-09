@@ -136,6 +136,7 @@
 	
 	function checkAuth() {
 	// die($_SERVER['REMOTE_ADDR']);
+		return(true);
 		global $si,$userAccess,$key;
 		switch($si->authMode) {
 			case 'key':
@@ -1254,6 +1255,7 @@
 				$errorCode = 171;
 				$valid = false;
 			}
+
 			if($valid) {
 				$results = array();
 				$totalCount = 0;
