@@ -37,14 +37,20 @@ Ext.define('BIS.view.CtxMnuAttribute', {
     remove: function() {
         Ext.Ajax.request({
             method: 'POST',
-            url: Config.baseUrl + 'attributeDelete',
-            params: { attributeId: this.record.data.attributeId },
+            url: Config.baseUrl + 'resources/api/api.php',
+            params: {
+                cmd: 'attributeDelete',
+                attributeId: this.record.data.attributeId
+            },
             scope: this,
             success: function( resObj ) {
                 var res = Ext.decode( resObj.responseText );
-                console.log( res );
                 if ( res.success ) {
-                    
+                    Ext.getCmp('categoryTreePanel').getStore().load({
+                        node: this.record.parentNode//,
+                        // not really necessary to refresh the view
+                        //callback: function() { Ext.getCmp('categoryTreePanel').getView().refresh() }
+                    });
                 }
             }
         });
