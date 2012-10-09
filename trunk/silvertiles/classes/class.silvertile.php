@@ -106,7 +106,7 @@ class SilverTile {
 			if(!file_exists($tmpCachePath)) @mkdir($tmpCachePath, 0775);
 			if($this->tempFileExist()) {
 				$source = $this->getTempFileLocation();
-				$tmp = sprintf("convert %s -resize 50%% %s", $source, $source);
+				$tmp = sprintf("convert \"%s\" -resize 50%% \"%s\"", $source, $source);
 				$res = system($tmp);
 			} else {
 				$source = $this->get("sourcePath") . $this->get("image");
@@ -114,7 +114,7 @@ class SilverTile {
 				$source = $this->getTempFileLocation();
 			}
 			if($i == 1) {
-				$tmp = sprintf("convert %s -background transparent -gravity center -resize %sx%s -extent %sx%s %s  %s%s_%s.jpg"
+				$tmp = sprintf("convert \"%s\" -background transparent -gravity center -resize %sx%s -extent %sx%s %s  \"%s%s_%s.jpg\""
 					,	$source
 					,	$width
 					,	$height
@@ -128,7 +128,7 @@ class SilverTile {
 
 				$res = system($tmp);
 			} else {
-				$tmp = sprintf("convert %s -background transparent -gravity center -resize %sx%s -extent %sx%s %s   -crop %sx%s  %s%s_%%d.jpg"
+				$tmp = sprintf("convert \"%s\" -background transparent -gravity center -resize %sx%s -extent %sx%s %s   -crop %sx%s  \"%s%s_%%d.jpg\""
 					,	$source
 					,	$width
 					,	$height
@@ -143,7 +143,7 @@ class SilverTile {
 				);
 				$res = system($tmp);
 			}
-			$tmp = sprintf("rm %s", $this->getTempFileLocation());
+			$tmp = sprintf("rm \"%s\"", $this->getTempFileLocation());
 			$res = system($tmp);
 		}
 		$time = time() - $timeStart;
