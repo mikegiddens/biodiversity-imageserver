@@ -136,7 +136,6 @@
 	
 	function checkAuth() {
 	// die($_SERVER['REMOTE_ADDR']);
-		return(true);
 		global $si,$userAccess,$key;
 		switch($si->authMode) {
 			case 'key':
