@@ -155,45 +155,6 @@
 				break;
 		}
 	}
-	
-	/**
-	* Function myErrorHandler
-	* Used to catch any errors and send back a custom json error message.
-	*/
-	function myErrorHandler($errno, $errstr, $errfile, $errline) {
-		global $allowed_ips, $config;
-		switch ($errno) {
-
-			case E_USER_ERROR:
-				$msg = "ERROR [$errno] $errstr";
-				$msg .= "  Fatal error on line $errline in file $errfile";
-				$msg .= ", PHP " . PHP_VERSION . " (" . PHP_OS . ")";
-				$msg .= "Aborting...";
-				print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $msg , 'code' => $errno ) ) ) );
-				if($config['report_software_errors']) {
-					$get = urlencode(json_encode( array( 'datetime' => date('d-M-Y'), 'license' => $config['license'], 'version' => $config['version'], 'errorno' => $errno, 'errorstr' => $errstr, 'errline' => $errline, 'errfile' => $errfile ) ));
-					@file_get_contents( $config['error_report_path'] .  '?log=' . $get );
-				}
-				exit(1);
-				break;
-/*			
-			case E_USER_WARNING:
-				echo "<b>WARNING</b> [$errno] $errstr<br />\n";
-				break;
-			
-			case E_USER_NOTICE:
-				echo "<b>NOTICE</b> [$errno] $errstr<br />\n";
-				break;
-			
-			default:
-				echo "Unknown error type: [$errno] $errstr<br />\n";
-				break;
-*/
-		}
-		
-		/* Don't execute PHP internal error handler */
-		return true;
-	}
 
 	if (PHP_SAPI === 'cli') {
 	
@@ -240,6 +201,47 @@
 		include_once('../../config.php');
 	}
 
+	
+	/**
+	* Function myErrorHandler
+	* Used to catch any errors and send back a custom json error message.
+	*/
+	function myErrorHandler($errno, $errstr, $errfile, $errline) {
+		global $allowed_ips, $config;
+		switch ($errno) {
+
+			case E_USER_ERROR:
+				$msg = "ERROR [$errno] $errstr";
+				$msg .= "  Fatal error on line $errline in file $errfile";
+				$msg .= ", PHP " . PHP_VERSION . " (" . PHP_OS . ")";
+				$msg .= "Aborting...";
+				print_c( json_encode( array( 'success' => false,  'error' => array('msg' => $msg , 'code' => $errno ) ) ) );
+				if($config['report_software_errors']) {
+					$get = urlencode(json_encode( array( 'datetime' => date('d-M-Y'), 'license' => $config['license'], 'version' => $config['version'], 'errorno' => $errno, 'errorstr' => $errstr, 'errline' => $errline, 'errfile' => $errfile ) ));
+					@file_get_contents( $config['error_report_path'] .  '?log=' . $get );
+				}
+				exit(1);
+				break;
+/*			
+			case E_USER_WARNING:
+				echo "<b>WARNING</b> [$errno] $errstr<br />\n";
+				break;
+			
+			case E_USER_NOTICE:
+				echo "<b>NOTICE</b> [$errno] $errstr<br />\n";
+				break;
+			
+			default:
+				echo "Unknown error type: [$errno] $errstr<br />\n";
+				break;
+*/
+		}
+		
+		/* Don't execute PHP internal error handler */
+		return true;
+	}
+	
+	
 	$path = $config['path']['base'] . "resources/api/classes/";
 	set_include_path(get_include_path() . PATH_SEPARATOR . $path);
 
@@ -884,7 +886,7 @@
 								$tmpPath = $si->image->imageGetUrl($ar->imageId);
 								$ar->path = $tmpPath['baseUrl'];
 								$fname = explode(".", $ar->filename);
-								$ar->ext = $fname[1];
+								$ar->ext = @array_pop($fname);
 								$ar->en_flag = ($si->s2l->load_by_barcode($ar->barcode)) ? 1 : 0;
 								$data[$label] = $ar;
 							}
@@ -1816,7 +1818,9 @@
 				$key = $si->image->imageGetProperty('path') . '/' . $si->image->imageGetProperty('filename');
 				$cacheFlag = false;
 				$explodeFilename = explode(".", $si->image->imageGetProperty('filename'));
-				$cachePath = $si->image->imageGetProperty('path') . '/' . $explodeFilename[0] . "-barcodes.json";
+				@array_pop($explodeFilename);
+				$expFilename = implode('.',$explodeFilename);
+				$cachePath = $si->image->imageGetProperty('path') . '/' . $expFilename . "-barcodes.json";
 
 				if(strtolower($force) != 'true') {
 					$cacheFlag = $si->storage->storageDeviceFileExists($si->image->imageGetProperty('storageDeviceId'), $cachePath);
@@ -1849,7 +1853,7 @@
 					$command = sprintf("%s --version ", $config['zBarImgPath']);
 					$ver = exec($command);
 					$tmpJsonFile = json_encode(array('success' => true, 'processTime' => microtime(true) - $timeStart, 'totalCount' => count($data), 'lastTested' => time(), 'software' => 'zbarimg', 'version' => $ver, 'results' => $data));
-					$key = $si->image->imageGetProperty('path') . '/' . $explodeFilename[0] . '-barcodes.json';
+					$key = $si->image->imageGetProperty('path') . '/' . $expFilename . '-barcodes.json';
 
 					$si->storage->storageDeviceCreateFile($si->image->imageGetProperty('storageDeviceId'), $key, $tmpJsonFile);
 					print_c($tmpJsonFile);
@@ -1936,8 +1940,10 @@
 				}
 				$imageId = $si->image->imageGetProperty('imageId');
 				$tmpFilename = explode(".",$si->image->imageGetProperty('filename'));
-				$tmpFilename[0] .= $size;
-				$filename = implode(".", $tmpFilename);
+				$ext = @array_pop($tmpFilename);
+				$filename = implode('.',$tmpFilename) . $size . '.' . $ext;
+				// $filename = str_replace(' ','%20',$filename);
+				// echo $filename;exit;
 				if($si->image->imageExists($si->image->imageGetProperty('storageDeviceId'), $si->image->imageGetProperty('path'), $filename)) {
 					$url = $si->image->imageGetUrl($imageId);
 					header('Content-type: text/plain');
@@ -2004,7 +2010,7 @@
 						unset($dt->path);
 						$dt->path = $url;
 						$fname = explode(".", $dt->filename);
-						$dt->ext = $fname[1];
+						$dt->ext = @array_pop($fname);
 						$dt->enFlag = ($si->s2l->Specimen2LabelLoadByBarcode($dt->barcode)) ? 1 : 0;
 						
 						if(is_array($associations) && count($associations)) {
