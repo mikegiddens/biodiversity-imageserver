@@ -26,8 +26,8 @@ Class Image {
 
 	public function imageGetName( $field = 'name' ) {
 		if ($field == 'name' || $field == 'ext') {
-			$ext = explode('.', $this->imageGetProperty('filename'));
-			return($field == 'name') ? $ext[0] : $ext[1];
+			$path_parts = pathinfo($this->imageGetProperty('filename'));
+			return($field == 'name') ? $path_parts['filename'] : $path_parts['extension'];
 		} else {
 			return($this->$field);
 		}
