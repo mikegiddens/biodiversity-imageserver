@@ -195,11 +195,13 @@ Class Image {
 		$imageTmp = $image;
 		if($config['image_processing'] == 1) {
 			$destination =  $dtls['dirname'] . '/' . $dtls['filename'] . $details['postfix'] . $extension;
-			$tmp = sprintf("convert -limit memory 16MiB -limit map 32MiB %s -thumbnail %sx%s %s", $imageTmp,$details['width'],$details['height'],$destination);
+			$tmp = sprintf("convert -limit memory 16MiB -limit map 32MiB \"%s\" -thumbnail %sx%s \"%s\"", $imageTmp,$details['width'],$details['height'],$destination);
+			// $tmp = sprintf("convert -limit memory 16MiB -limit map 32MiB %s -thumbnail %sx%s %s", $imageTmp,$details['width'],$details['height'],$destination);
 			$res = exec($tmp);
 			$imageTmp = $destination;
 			$destination =  $dtls['dirname'] . '/' . $dtls['filename'] . $details['postfix'] . $extension;
-			$tmp = sprintf("convert %s %s",$imageTmp,$destination);
+			$tmp = sprintf("convert \"%s\" \"%s\"",$imageTmp,$destination);
+			// $tmp = sprintf("convert %s %s",$imageTmp,$destination);
 			$res = exec($tmp);
 		} else {
 			$func = 'imagecreatefrom' . (@strtolower($dtls['extension']) == 'jpg' ? 'jpeg' : @strtolower($dtls['extension']));
@@ -2034,15 +2036,15 @@ Class Image {
 			case 's3':
 				$tmp = $this->imageGetProperty('path');
 				$tmp = substr($tmp, 0, 1)=='/' ? substr($tmp, 1, strlen($tmp)-1) : $tmp;
-				$url['baseUrl'] = $url['url'] . $tmp . '/';
-				$url['url'].= $tmp . '/' . $this->imageGetProperty('filename');
+				$url['baseUrl'] = $url['url'] . rtrim($tmp,'/') . '/';
+				$url['url'].= rtrim($tmp,'/') . '/' . $this->imageGetProperty('filename');
 				break;
 			case 'local':
 				if(substr($url['url'], strlen($url['url'])-1, 1) == '/') {
 					$url['url'] = substr($url['url'],0,strlen($url['url'])-1);
 				}
-				$url['baseUrl'] = $url['url'] . $this->imageGetProperty('path') . '/';
-				$url['url'].= $this->imageGetProperty('path'). '/' .$this->imageGetProperty('filename');
+				$url['baseUrl'] = $url['url'] . rtrim($this->imageGetProperty('path'),'/') . '/';
+				$url['url'].= rtrim($this->imageGetProperty('path'),'/'). '/' .$this->imageGetProperty('filename');
 				break;
 		}
 		$url['filename'] = $this->imageGetProperty('filename');
@@ -2057,16 +2059,17 @@ Class Image {
 			case 's3':
 				$tmp = $imagePath;
 				$tmp = substr($tmp, 0, 1)=='/' ? substr($tmp, 1, strlen($tmp)-1) : $tmp;
-				$path.= $tmp . '/' . $filename;
+				$path.= rtrim($tmp,"/") . '/' . $filename;
 				break;
 			case 'local':
 				if(substr($path, strlen($path)-1, 1) == '/' ) {
 					$path = substr($path, 0, strlen($path)-1);
 				}
-				$path.= $imagePath . '/' . $filename;
+				$path.= rtrim($imagePath,"/") . '/' . $filename;
 				break;
 		}
-		$path = str_replace(' ', '+', $path);
+		// $path = str_replace(' ', '+', $path);
+		$path = str_replace(' ', '%20', $path);
 		$f = @fopen($path, "r");
 		if($f) {
 			fclose($f);

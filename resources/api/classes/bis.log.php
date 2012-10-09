@@ -102,7 +102,7 @@ class LogClass
 
 	public function logSave() {
 		global $config;
-		if($config['logging']) {
+		if(isset($config['log']) && in_array($config['log'],array(true,'true',1,'1'))) {
 			$query = sprintf("INSERT IGNORE INTO `log` SET `action` = '%s', `table` = '%s', `query` = '%s', `lastModifiedBy` = '%s', `modifiedTime` = now() ;"
 			, mysql_escape_string($this->logGetProperty('action'))
 			, mysql_escape_string($this->logGetProperty('table'))
