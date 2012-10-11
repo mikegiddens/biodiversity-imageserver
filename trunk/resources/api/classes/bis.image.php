@@ -1000,7 +1000,7 @@ Class Image {
 		$characters = $this->data['characters'];
 		$browse = $this->data['browse'];
 
-		$this->query = "SELECT I.imageId,I.filename,I.timestampModified, I.barcode, I.width,I.height,I.family,I.genus,I.specificEpithet,I.flickrPlantId, I.flickrModified,I.flickrDetails,I.picassaPlantId,I.picassaModified, I.gTileProcessed,I.zoomEnabled,I.processed,I.boxFlag,I.ocrFlag,I.rating";
+		$this->query = "SELECT I.imageId,I.filename,I.timestampModified, I.barcode, I.width,I.height,I.family,I.genus,I.specificEpithet,I.flickrPlantId, I.flickrModified,I.flickrDetails,I.picassaPlantId,I.picassaModified, I.gTileProcessed,I.zoomEnabled,I.processed,I.boxFlag,I.ocrFlag,I.rating, I.author, I.copyright";
 		if($this->data['showOCR']) {
 			$this->query .= ',I.ocrValue';
 		}
