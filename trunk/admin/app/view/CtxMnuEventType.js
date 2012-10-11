@@ -59,31 +59,43 @@ Ext.define('BIS.view.CtxMnuEventType', {
                 })
             ]
         }).show();
-        tmpWindow.on('eventAdded',function(data){
+        tmpWindow.on('eventCreated',function( data ) {
             tmpWindow.close();
-            Ext.getCmp('eventTreePanel').getStore().load();
+            var store = Ext.getCmp('eventTreePanel').getStore();
+            var node = store.getRootNode().findChild( 'eventTypeId', Number( data.eventTypeId ), true );
+            if ( node ) {
+                if ( node.isExpanded() ) {
+                    store.load({
+                        node: node
+                    });
+                } else {
+                    node.expand();
+                }
+            }
         });
-        tmpWindow.on('cancel',function(data){
+        tmpWindow.on('cancel',function( data ) {
             tmpWindow.close();
         });
     },
     remove: function() {
+        var me = this;
         Ext.Ajax.request({
             method: 'POST',
             url: Config.baseUrl + 'resources/api/api.php',
             params: {
                 cmd: 'eventTypeDelete',
-                eventTypeId: this.record.data.eventTypeId
+                eventTypeId: this.record.get('eventTypeId')
             },
             scope: this,
             success: function( resObj ) {
                 var res = Ext.decode( resObj.responseText );
                 if ( res.success ) {
-                    Ext.getCmp('eventTreePanel').getStore().load();
+                    me.record.remove();
                 }
             },
             failure: function( form, action ) {
-                Ext.Msg.alert('Failed', 'Request failed.');
+                var res = Ext.decode( action.response.responseText );
+                Ext.Msg.alert('Failed', res.error.msg);
             }
         });
     },
@@ -92,8 +104,8 @@ Ext.define('BIS.view.CtxMnuEventType', {
             title: 'Edit Event Type ' + this.record.data.title,
             iconCls: 'icon_editEventType',
             modal: true,
-            height: 150,
-            width: 250,
+            height: 225,
+            width: 350,
             layout: 'fit',
             items: [
                 Ext.create('widget.formcreateeventtype', {
@@ -103,9 +115,12 @@ Ext.define('BIS.view.CtxMnuEventType', {
                 })
             ]
         }).show();
-        tmpWindow.on('eventTypeAdded',function(data){
+        tmpWindow.on( 'eventTypeAdded', function( data ) {
             tmpWindow.close();
-            Ext.getCmp('eventTreePanel').getStore().load();
+            var store = Ext.getCmp('eventTreePanel').getStore();
+            store.load({
+                node: store.getRootNode()
+            });
         });
         tmpWindow.on( 'cancel', function( data ) {
             tmpWindow.close();

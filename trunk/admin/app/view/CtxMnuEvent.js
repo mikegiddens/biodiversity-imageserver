@@ -36,8 +36,27 @@ Ext.define('BIS.view.CtxMnuEvent', {
         me.callParent(arguments);
     },
     remove: function() {
-        var cmd = 'deleteEvent'
-            params = { eventTypeId: this.record.eventTypeId }
+        var me = this;
+        Ext.Ajax.request({
+            method: 'POST',
+            url: Config.baseUrl + 'resources/api/api.php',
+            params: {
+                cmd: 'eventDelete',
+                eventId: this.record.get('eventId'),
+                eventTypeId: this.record.get('eventTypeId')
+            },
+            scope: this,
+            success: function( resObj ) {
+                var res = Ext.decode( resObj.responseText );
+                if ( res.success ) {
+                    me.record.remove();
+                }
+            },
+            failure: function( form, action ) {
+                var res = Ext.decode( action.response.responseText );
+                Ext.Msg.alert('Failed', res.error.msg);
+            }
+        });
     },
     update: function() {
         var me = this;
@@ -45,7 +64,7 @@ Ext.define('BIS.view.CtxMnuEvent', {
             title: 'Edit Event ' + this.record.data.title,
             iconCls: 'icon_editEvent',
             modal: true,
-            height: 100,
+            height: 225,
             width: 350,
             layout: 'fit',
             items: [
@@ -57,7 +76,13 @@ Ext.define('BIS.view.CtxMnuEvent', {
         }).show();
         tmpWindow.on( 'eventCreated', function( data ) {
             tmpWindow.close();
-            Ext.getCmp('eventTreePanel').getStore().load();
+            var store = Ext.getCmp('eventTreePanel').getStore();
+            var node = store.getRootNode().findChild( 'eventTypeId', Number( me.record.get('eventTypeId') ), true );
+            if ( node ) {
+                store.load({
+                    node: node
+                });
+            }
         });
         tmpWindow.on( 'cancel', function( data ) {
             tmpWindow.close();

@@ -23,14 +23,8 @@ Ext.define('BIS.view.FormCreateEventType', {
                     anchor: '100%'
                 },
                 {
-                    xtype: 'textfield',
-                    name: 'eventTypeId',
-                    fieldLabel: 'Identifier',
-                    labelAlign: 'right',
-                    anchor: '100%',
-                    readOnly: true,
-                    fieldCls: 'x-item-disabled',
-                    hidden: this.mode == 'add'
+                    xtype: 'hiddenfield',
+                    name: 'eventTypeId'
                 },
                 {
                     xtype: 'hiddenfield',
@@ -46,6 +40,7 @@ Ext.define('BIS.view.FormCreateEventType', {
                     items: [
                         {
                             text: ( this.mode == 'add' ) ? 'Add' : 'Update',
+                            id: 'eventTypeSubmitButton',
                             scope: this,
                             handler: this.submitForm
                         },
@@ -59,7 +54,6 @@ Ext.define('BIS.view.FormCreateEventType', {
                 }
             ]
         });
-
         me.callParent(arguments)
     },
     listeners: {
@@ -75,12 +69,20 @@ Ext.define('BIS.view.FormCreateEventType', {
 		var form = Ext.getCmp('formCreateEventType').getForm();
 		form.url = Config.baseUrl + 'resources/api/api.php';
 		if ( form.isValid() ) {
+            Ext.getCmp('eventTypeSubmitButton').setText('Working...').disable();
 			form.submit({
 				success: function(form, action) {
-                    me.ownerCt.fireEvent('eventTypeAdded',action);
+                    var res = Ext.decode( action.response.responseText );
+                    var parentId;
+                    if ( me.record ) parentId = me.record.get('eventTypeId');
+                    me.ownerCt.fireEvent('eventTypeAdded', {
+                        eventTypeId: parentId
+                    });
 				},
-				failure: function(form, action) {
-			        Ext.Msg.alert('Failed', 'Request Failed');
+				failure: function( form, action ) {
+                    var res = Ext.decode( action.response.responseText );
+                    Ext.getCmp('eventTypeSubmitButton').setText( ( me.mode == 'add' ) ? 'Add' : 'Update' ).enable();
+			        Ext.Msg.alert( 'Failed', res.error.msg );
 				}
 			});
 		}

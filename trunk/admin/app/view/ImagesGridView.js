@@ -16,6 +16,7 @@ Ext.define('BIS.view.ImagesGridView', {
     overItemCls: 'highlight',
     trackOver: true,
 	multiSelect: true,
+    scope: this,
 	listeners: {
 		afterrender: function( gridview, e ) {
 			gridview.setTpl('both');
@@ -30,6 +31,8 @@ Ext.define('BIS.view.ImagesGridView', {
         */
 		// dd events
 		itemclick: function( gridview, record, el, ind, e, opts ) {
+            this.getSelectionModel().deselectAll();
+            this.getSelectionModel().select( ind );
 			var data = record.data;
 			Ext.getCmp('imageDetailsPanel').loadImage( data );
 			Ext.getCmp('propertySeachCombo').enable();
@@ -107,7 +110,6 @@ Ext.define('BIS.view.ImagesGridView', {
         });
 
         this.callParent( arguments );
-
     },
 	constructor: function( config ) {
         this.table = this;

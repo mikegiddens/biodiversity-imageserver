@@ -46,11 +46,12 @@ Ext.define('BIS.view.CtxMnuAttribute', {
             success: function( resObj ) {
                 var res = Ext.decode( resObj.responseText );
                 if ( res.success ) {
+                    /*
                     Ext.getCmp('categoryTreePanel').getStore().load({
-                        node: this.record.parentNode//,
-                        // not really necessary to refresh the view
-                        //callback: function() { Ext.getCmp('categoryTreePanel').getView().refresh() }
+                        node: this.record.parentNode
                     });
+                    */
+                    this.record.remove();
                 }
             }
         });
@@ -72,8 +73,12 @@ Ext.define('BIS.view.CtxMnuAttribute', {
         }).show();
         tmpWindow.on( 'attributeCreated', function( data ) {
             tmpWindow.close();
-            // this shouldn't reload the whole store - just the parent node
-            Ext.getCmp('categoryTreePanel').getStore().load();
+            Ext.getCmp('categoryTreePanel').getStore().load({
+                node: this.record.parentNode
+            });
+        });
+        tmpWindow.on( 'cancel', function( data ) {
+            tmpWindow.close();
         });
     }
 });

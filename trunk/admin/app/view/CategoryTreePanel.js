@@ -128,7 +128,10 @@ Ext.define('BIS.view.CategoryTreePanel', {
 		}).show();
         tmpWindow.on( 'categoryCreated', function( data ) {
             tmpWindow.close();
-            me.getStore().load();
+            var store = me.getStore();
+            store.load({
+                node: store.getRootNode()
+            });
         });
         tmpWindow.on( 'cancel', function( data ) {
             tmpWindow.close();
