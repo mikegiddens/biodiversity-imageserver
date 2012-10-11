@@ -171,7 +171,7 @@ CREATE TABLE IF NOT EXISTS `image` (
   `title` varchar(255) DEFAULT NULL,
   `description` text,
   `globalUniqueIdentifier` char(30) DEFAULT NULL,
-  `creativeCommons` varchar(10) NOT NULL DEFAULT 'by-nc',
+  `copyright` varchar(10) NOT NULL DEFAULT 'by-nc',
   `characters` text,
   `flickrPlantId` bigint(20) DEFAULT NULL,
   `flickrModified` datetime DEFAULT NULL,
