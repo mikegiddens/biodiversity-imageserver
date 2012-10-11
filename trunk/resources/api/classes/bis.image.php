@@ -569,7 +569,7 @@ Class Image {
 
 	public function imageSave() {
 		if($this->imageFieldExists($this->imageGetProperty('imageId'))) {
-			$query = sprintf("UPDATE `image` SET  `filename` = '%s', `timestampModified` = now(), `barcode` = '%s', `width` = '%s', `height` = '%s', `family` = '%s', `genus` = '%s', `specificEpithet` = '%s', `rank` = '%s', `author` = '%s', `title` = '%s', `description` = '%s', `globalUniqueIdentifier` = '%s', `creativeCommons` = '%s', `characters` = '%s', `flickrPlantId` = '%s', `flickrModified` = '%s', `flickrDetails` = '%s', `picassaPlantId` = '%s', `picassaModified` = '%s', `gTileProcessed` = '%s', `zoomEnabled` = '%s', `processed` = '%s', `boxFlag` = '%s', `ocrFlag` = '%s', `ocrValue` = '%s', `nameFinderFlag` = '%s', `nameFinderValue` = '%s', `scientificName` = '%s', `collectionCode` = '%s', `tmpfamily` = '%s', `tmpfamilyAccepted` = '%s', `tmpGenus` = '%s', `tmpGenusAccepted` = '%s', `guessFlag` = '%s', `storageDeviceId` = '%s', `path` = '%s', `originalFilename` = '%s', `remoteAccessKey` = '%s', `statusType` = '%s', `rating` = '%s'  WHERE imageId = '%s' ;"
+			$query = sprintf("UPDATE `image` SET  `filename` = '%s', `timestampModified` = now(), `barcode` = '%s', `width` = '%s', `height` = '%s', `family` = '%s', `genus` = '%s', `specificEpithet` = '%s', `rank` = '%s', `author` = '%s', `title` = '%s', `description` = '%s', `globalUniqueIdentifier` = '%s', `copyright` = '%s', `characters` = '%s', `flickrPlantId` = '%s', `flickrModified` = '%s', `flickrDetails` = '%s', `picassaPlantId` = '%s', `picassaModified` = '%s', `gTileProcessed` = '%s', `zoomEnabled` = '%s', `processed` = '%s', `boxFlag` = '%s', `ocrFlag` = '%s', `ocrValue` = '%s', `nameFinderFlag` = '%s', `nameFinderValue` = '%s', `scientificName` = '%s', `collectionCode` = '%s', `tmpfamily` = '%s', `tmpfamilyAccepted` = '%s', `tmpGenus` = '%s', `tmpGenusAccepted` = '%s', `guessFlag` = '%s', `storageDeviceId` = '%s', `path` = '%s', `originalFilename` = '%s', `remoteAccessKey` = '%s', `statusType` = '%s', `rating` = '%s'  WHERE imageId = '%s' ;"
 				, mysql_escape_string($this->imageGetProperty('filename'))
 				, mysql_escape_string($this->imageGetProperty('barcode'))
 				, mysql_escape_string($this->imageGetProperty('width'))
@@ -582,7 +582,7 @@ Class Image {
 				, mysql_escape_string($this->imageGetProperty('title'))
 				, mysql_escape_string($this->imageGetProperty('description'))
 				, mysql_escape_string($this->imageGetProperty('globalUniqueIdentifier'))
-				, mysql_escape_string($this->imageGetProperty('creativeCommons'))
+				, mysql_escape_string($this->imageGetProperty('copyright'))
 				, mysql_escape_string($this->imageGetProperty('characters'))
 				, mysql_escape_string($this->imageGetProperty('flickrPlantId'))
 				, mysql_escape_string($this->imageGetProperty('flickrModified'))
@@ -613,7 +613,7 @@ Class Image {
 				, mysql_escape_string($this->imageGetProperty('imageId'))
 			);
 		} else {
-			$query = sprintf("INSERT IGNORE INTO `image` SET `filename` = '%s', `timestampModified` = now(), `barcode` = '%s', `width` = '%s', `height` = '%s', `family` = '%s', `genus` = '%s', `specificEpithet` = '%s', `rank` = '%s', `author` = '%s', `title` = '%s', `description` = '%s', `globalUniqueIdentifier` = '%s', `creativeCommons` = '%s', `characters` = '%s', `flickrPlantId` = '%s', `flickrModified` = '%s', `flickrDetails` = '%s', `picassaPlantId` = '%s', `picassaModified` = '%s', `gTileProcessed` = '%s', `zoomEnabled` = '%s', `processed` = '%s', `boxFlag` = '%s', `ocrFlag` = '%s', `ocrValue` = '%s', `nameFinderFlag` = '%s', `nameFinderValue` = '%s', `scientificName` = '%s', `collectionCode` = '%s', `tmpfamily` = '%s', `tmpfamilyAccepted` = '%s', `tmpGenus` = '%s', `tmpGenusAccepted` = '%s', `guessFlag` = '%s', `storageDeviceId` = '%s', `path` = '%s', `originalFilename` = '%s', `remoteAccessKey` = '%s', `statusType` = '%s', `rating` = '%s' ;"
+			$query = sprintf("INSERT IGNORE INTO `image` SET `filename` = '%s', `timestampModified` = now(), `barcode` = '%s', `width` = '%s', `height` = '%s', `family` = '%s', `genus` = '%s', `specificEpithet` = '%s', `rank` = '%s', `author` = '%s', `title` = '%s', `description` = '%s', `globalUniqueIdentifier` = '%s', `copyright` = '%s', `characters` = '%s', `flickrPlantId` = '%s', `flickrModified` = '%s', `flickrDetails` = '%s', `picassaPlantId` = '%s', `picassaModified` = '%s', `gTileProcessed` = '%s', `zoomEnabled` = '%s', `processed` = '%s', `boxFlag` = '%s', `ocrFlag` = '%s', `ocrValue` = '%s', `nameFinderFlag` = '%s', `nameFinderValue` = '%s', `scientificName` = '%s', `collectionCode` = '%s', `tmpfamily` = '%s', `tmpfamilyAccepted` = '%s', `tmpGenus` = '%s', `tmpGenusAccepted` = '%s', `guessFlag` = '%s', `storageDeviceId` = '%s', `path` = '%s', `originalFilename` = '%s', `remoteAccessKey` = '%s', `statusType` = '%s', `rating` = '%s' ;"
 				, mysql_escape_string($this->imageGetProperty('filename'))
 				, mysql_escape_string($this->imageGetProperty('barcode'))
 				, mysql_escape_string($this->imageGetProperty('width'))
@@ -626,7 +626,7 @@ Class Image {
 				, mysql_escape_string($this->imageGetProperty('title'))
 				, mysql_escape_string($this->imageGetProperty('description'))
 				, mysql_escape_string($this->imageGetProperty('globalUniqueIdentifier'))
-				, mysql_escape_string($this->imageGetProperty('creativeCommons'))
+				, mysql_escape_string($this->imageGetProperty('copyright'))
 				, mysql_escape_string($this->imageGetProperty('characters'))
 				, mysql_escape_string($this->imageGetProperty('flickrPlantId'))
 				, mysql_escape_string($this->imageGetProperty('flickrModified'))

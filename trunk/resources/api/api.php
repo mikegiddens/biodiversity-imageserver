@@ -2395,7 +2395,7 @@
 				$errorCode = 158;
 			}
 			if($valid) {
-				$fieldsArray = array('filename','barcode','width','height','family','genus','specificEpithet','rank','author','title','description','globalUniqueIdentifier','creativeCommons','characters','flickrPlantID','flickrDetails','picassaPlantID','zoomEnabled','ScientificName','code','catalogueNumber','tmpFamily','tmpFamilyAccepted','tmpGenus','tmpGenusAccepted','storageDeviceId','path','originalFilename','remoteAccessKey','statusType','rating');
+				$fieldsArray = array('filename','barcode','width','height','family','genus','specificEpithet','rank','author','title','description','globalUniqueIdentifier','copyright','characters','flickrPlantID','flickrDetails','picassaPlantID','zoomEnabled','ScientificName','code','catalogueNumber','tmpFamily','tmpFamilyAccepted','tmpGenus','tmpGenusAccepted','storageDeviceId','path','originalFilename','remoteAccessKey','statusType','rating');
 				$params = @json_decode(@stripslashes(trim($params)),true);
 				if(is_array($params) && count($params)) {
 					foreach($params as $key => $value) {
