@@ -17,14 +17,8 @@ Ext.define('BIS.view.FormCreateCategory', {
                     anchor: '100%'
                 },
                 {
-                    xtype: 'textfield',
-                    name: 'categoryId',
-                    fieldLabel: 'Identifier',
-                    labelAlign: 'right',
-                    anchor: '100%',
-                    readOnly: true,
-                    fieldCls: 'x-item-disabled',
-                    hidden: this.mode == 'add'
+                    xtype: 'hiddenfield',
+                    name: 'categoryId'
                 },
                 {
                     xtype: 'hiddenfield',
@@ -39,6 +33,7 @@ Ext.define('BIS.view.FormCreateCategory', {
                 items: [
                     {
                         text: ( this.mode == 'add' ) ? 'Add' : 'Update',
+                        id: 'categorySubmitButton',
                         scope: this,
                         handler: this.submitForm
                     },
@@ -68,13 +63,24 @@ Ext.define('BIS.view.FormCreateCategory', {
 		var form = Ext.getCmp('formCreateCategory').getForm();
 		form.url = Config.baseUrl + 'resources/api/api.php';
 		if ( form.isValid() ) {
+            Ext.getCmp('categorySubmitButton').setText('Working...').disable();
 			form.submit({
                 scope: this,
 				success: function(form, action, a) {
-                    me.ownerCt.fireEvent( 'categoryCreated', Ext.decode(action.response.responseText) );
+                    var res = Ext.decode( action.response.responseText );
+                    var parentId;
+                    if ( me.mode != 'add' ) {
+                        // update
+                        parentId = me.record.get('categoryId');
+                    }
+                    me.ownerCt.fireEvent( 'categoryCreated', {
+                        categoryId: parentId
+                    });
 				},
 				failure: function(form, action) {
-						Ext.Msg.alert('Failed', 'Request Failed');
+                    var res = Ext.decode( action.response.responseText );
+                    Ext.getCmp('categorySubmitButton').setText(( me.mode == 'add' ) ? 'Add' : 'Update').enable();
+                    Ext.Msg.alert('Failed', res.error.msg);
 				}
 			});
 		}

@@ -23,24 +23,13 @@ Ext.define('BIS.view.FormCreateEvent', {
                     anchor: '100%'
                 },
                 {
-                    xtype: 'textfield',
-                    name: 'eventId',
-                    fieldLabel: 'Event Identifier',
-                    labelAlign: 'right',
-                    anchor: '100%',
-                    readOnly: true,
-                    fieldCls: 'x-item-disabled',
-                    hidden: this.mode == 'add'
+                    xtype: 'hiddenfield',
+                    name: 'eventId'
                 },
                 {
-                    xtype: 'textfield',
+                    xtype: 'hiddenfield',
                     name: 'eventTypeId',
-                    value: this.record.data.eventTypeId,
-                    fieldLabel: 'Type Identifier',
-                    labelAlign: 'right',
-                    anchor: '100%',
-                    readOnly: true,
-                    fieldCls: 'x-item-disabled'
+                    value: this.record.data.eventTypeId
                 },
                 {
                     xtype: 'hiddenfield',
@@ -56,6 +45,7 @@ Ext.define('BIS.view.FormCreateEvent', {
                     items: [
                         {
                             text: ( this.mode == 'add' ) ? 'Add' : 'Update',
+                            id: 'eventSubmitButton',
                             scope: this,
                             handler: this.submitForm
                         },
@@ -85,12 +75,18 @@ Ext.define('BIS.view.FormCreateEvent', {
 		var form = Ext.getCmp('formCreateEvent').getForm();
 		form.url = Config.baseUrl + 'resources/api/api.php';
 		if ( form.isValid() ) {
+            Ext.getCmp('eventSubmitButton').setText('Working...').disable();            
 			form.submit({
-				success: function(form, action) {
-                    me.ownerCt.fireEvent('eventAdded',action);
+				success: function( form, action ) {
+                    var res = Ext.decode( action.response.responseText );
+                    me.ownerCt.fireEvent('eventCreated', {
+                        eventTypeId: me.record.get('eventTypeId')
+                    });
 				},
 				failure: function(form, action) {
-                    Ext.Msg.alert('Failed', 'Request Failed');
+                    var res = Ext.decode( action.response.responseText );
+                    Ext.getCmp('eventSubmitButton').setText(( me.mode == 'add' ) ? 'Add' : 'Update').enable();
+                    Ext.Msg.alert('Failed', res.error.msg);
 				}
 			});
 		}

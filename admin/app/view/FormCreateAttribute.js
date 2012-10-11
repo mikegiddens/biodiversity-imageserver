@@ -16,24 +16,13 @@ Ext.define('BIS.view.FormCreateAttribute', {
                     anchor: '100%'
                 },
                 {
-                    xtype: 'textfield',
-                    name: 'attributeId',
-                    fieldLabel: 'Identifier',
-                    labelAlign: 'right',
-                    anchor: '100%',
-                    readOnly: true,
-                    fieldCls: 'x-item-disabled',
-                    hidden: this.mode == 'add'
+                    xtype: 'hiddenfield',
+                    name: 'attributeId'
                 },
                 {
-                    xtype: 'textfield',
+                    xtype: 'hiddenfield',
                     name: 'categoryId',
-                    value: this.record.data.categoryId,
-                    fieldLabel: 'Category',
-                    labelAlign: 'right',
-                    anchor: '100%',
-                    readOnly: true,
-                    fieldCls: 'x-item-disabled'
+                    value: this.record.get('categoryId')
                 },
                 {
                     xtype: 'hiddenfield',
@@ -49,6 +38,7 @@ Ext.define('BIS.view.FormCreateAttribute', {
                     items: [
                         {
                             text: ( this.mode == 'add' ) ? 'Add' : 'Update',
+                            id: 'attributeSubmitButton',
                             scope: this,
                             handler: this.submitForm
                         },
@@ -69,6 +59,7 @@ Ext.define('BIS.view.FormCreateAttribute', {
         afterrender: function() {
             if ( this.mode != 'add' ) {
                 // edit
+                console.log( this.record );
                 Ext.getCmp('formCreateAttribute').loadRecord( this.record );
             }
         }
@@ -79,12 +70,19 @@ Ext.define('BIS.view.FormCreateAttribute', {
 		var form = Ext.getCmp('formCreateAttribute').getForm();
 		form.url = Config.baseUrl + 'resources/api/api.php';
 		if ( form.isValid() ) {
+            Ext.getCmp('attributeSubmitButton').setText('Working...').disable();
 			form.submit({
 				success: function(form, action) {
-                     me.ownerCt.fireEvent('attributeCreated', action);
+                    var res = Ext.decode( action.response.responseText );
+                    me.ownerCt.fireEvent('attributeCreated', {
+                        // res contains attributeId
+                        categoryId: me.record.get('categoryId')
+                    });
 				},
 				failure: function(form, action) {
-                    Ext.Msg.alert('Failed', 'Request Failed');
+                    var res = Ext.decode( action.response.responseText );
+                    Ext.getCmp('attributeSubmitButton').setText(( me.mode == 'add' ) ? 'Add' : 'Update').enable();
+                    Ext.Msg.alert('Failed', res.error.msg);
 				}
 			});
 		}

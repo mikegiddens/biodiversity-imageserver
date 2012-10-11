@@ -51,7 +51,7 @@ Ext.define('BIS.view.EventTreePanel', {
             scope: this,
 			listeners: {
 				show: function( el, opts ) {
-                    if ( opts && opts.isAttribute ) delete opts.isEvent;
+                    if ( opts && opts.isEvent ) delete opts.isEvent;
                     this.getStore().getProxy().extraParams = {
                         cmd: 'eventTypeList'
                     };
@@ -107,7 +107,7 @@ Ext.define('BIS.view.EventTreePanel', {
 			title: 'Create Event Type',
 			iconCls: 'icon_newEventType',
 			modal: true,
-			height: 100,
+			height: 225,
 			width: 350,
 			layout: 'fit',
 			items: [{
@@ -116,9 +116,12 @@ Ext.define('BIS.view.EventTreePanel', {
 				mode: 'add'
 			}]
 		}).show();
-        tmpWindow.on('eventTypeAdded',function(data){
+        tmpWindow.on('eventTypeAdded',function( data ) {
             tmpWindow.close();
-            Ext.getCmp('eventTreePanel').getStore().load();
+            var store = Ext.getCmp('eventTreePanel').getStore();
+            store.load({
+                node: store.getRootNode()
+            });
         });
         tmpWindow.on('cancel',function(data){
             tmpWindow.close();
