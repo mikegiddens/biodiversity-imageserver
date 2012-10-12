@@ -315,6 +315,7 @@
 
 		case 'attributeList':
 				$showNames = (trim($showNames) == 'false') ? false : true;
+				$data['showNames'] = $showNames;
 				$data['start'] = (is_numeric($start)) ? $start : 0;
 				$data['limit'] = (is_numeric($limit)) ? $limit : 10;
 				// $data['code'] = $code;
@@ -347,7 +348,7 @@
 			if($attributeId == "") {
 				$valid = false;
 				$errorCode = 109;
-			} else if ($si->imageAttribute->imageAttributeLoadById($attributeId)) {
+			} else if (!$si->imageAttribute->imageAttributeLoadById($attributeId)) {
 				$valid = false;
 				$errorCode = 149;
 			}
@@ -721,6 +722,13 @@
 				$errorCode = 120;
 			}
 
+			if($title != '') {
+				if($si->eventType->eventTypesTitleExists($title)) {
+					$valid = false;
+					$errorCode = 218;
+				}
+			}
+			
 			if($valid) {
 				$si->eventType->lg->logSetProperty('action', 'addEventType');
 				$si->eventType->lg->logSetProperty('lastModifiedBy', $_SESSION['user_id']);
@@ -2746,6 +2754,7 @@
 				{
 					$item['remoteAccessId'] = $record->remoteAccessId;
 					$item['ip'] = $record->ip;
+					$item['original ip'] = long2ip($record->ip);
 					$item['key'] = $record->key;
 					$item['active'] = $record->active;
 					$listArray[] = $item;

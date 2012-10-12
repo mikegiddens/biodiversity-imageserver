@@ -307,6 +307,16 @@ class EventTypes
 			return(false);
 		}
 	}
+	
+	public function eventTypesTitleExists($title) {
+		$query = sprintf("SELECT `eventTypeId` FROM `eventTypes` WHERE `title` = '%s';", mysql_escape_string($title));
+		$ret = $this->db->query_one( $query );
+		if ($ret == NULL) {
+			return false;
+		} else {
+			return true;
+		}
+	}
 
 	public function eventTypesListRecords($queryFlag = true) {
 		$where = buildWhere($this->data['filter']);

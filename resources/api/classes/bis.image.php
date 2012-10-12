@@ -1698,12 +1698,76 @@ Class Image {
 			return false;
 		}
 	}
-	
+
+	public function crazyFilter($filter,$clearFlag = false) {
+		global $tables;
+		$str = '';
+		if($clearFlag) $tables = array('image');
+		switch($filter['node']) {
+			case 'group':
+				$ar =array();
+				if(is_array($filter['children']) && count($filter['children'])) {
+					foreach($filter['children'] as $child) {
+						$dt = crazyFilter($child);
+						($dt != '' ) ? $ar[] = crazyFilter($child) : '';
+					}
+				}
+				if(count($ar)) {
+					$str .= ' ( ' . implode($filter['logop'], $ar) . ' ) ';
+				}
+				break;
+			case 'condition':
+				// $filter['value'] = (is_null($filter['value'])) ? 'q' : $filter['value'];
+				switch($filter['object']) {
+					case 'attribute':
+						if($filter['key'] != '' && $filter['value'] != '') {
+							$str .= sprintf(" ( ia.`imageId` = i.`imageId` AND ia.`categoryId` = iat.`categoryId` AND iat.`name` = '%s' AND ia.`attributeId` = iav.`attributeId`  AND iav.`title` = '%s' ) " , $filter['key'], $filter['value']);
+						} else if($filter['key'] == '' && $filter['value'] != '') {
+							$str .= sprintf(" ( ia.`imageId` = i.`imageId` AND ia.`attributeId` = iav.`attributeId`  AND iav.`title` = '%s' ) " , $filter['value']);
+						} else if($filter['key'] != '' && $filter['value'] == '') {
+						
+						}
+					
+						break;
+					case 'collection':
+						// $str .= ' ( ' . $filter['key'] . ' ' . $filter['condition'] . ' ' . $filter['value'] . ' ) ';
+						break;
+					case 'clientStation':
+						// $str .= ' ( ' . $filter['key'] . ' ' . $filter['condition'] . ' ' . $filter['value'] . ' ) ';
+						break;
+					case 'event':
+						// $str .= ' ( ' . $filter['key'] . ' ' . $filter['condition'] . ' ' . $filter['value'] . ' ) ';
+						break;
+					case 'geography':
+						// $str .= ' ( ' . $filter['key'] . ' ' . $filter['condition'] . ' ' . $filter['value'] . ' ) ';
+						break;
+					case 'time':
+						$key = (strtolower($filter['key']) == 'added') ? '`timestampModified`' : '`timestampModified`'; // currently we have only `timestampModified`.
+						if(in_array($filter['condition'],array('=','!=','>','<','>=','<=')) && $filter['value'] != '' && !is_null($filter['value'])) {
+							$str .= sprintf(" ($key {$filter['condition']} '%s') ", $filter['value']);
+						} else if ($filter['condition'] == 'between' && $filter['value2'] != '' && !is_null($filter['value2'])) {
+							$str .= sprintf(" ($key BETWEEN '%s' AND '%s') ", $filter['value'], $filter['value2']);
+						}
+						break;
+				}
+				break;
+		}
+		return $str;
+	}
+
 	public function imageListAttributes($queryFlag = true) {
 		if($this->data['code'] != '') {
-			$query = sprintf(" SELECT iav.* FROM `imageAttribValue` iav, `image` i, `imageAttrib` ia WHERE 1=1 AND i.`imageId` = ia.`imageId` AND ia.`attributeId` = iav.`attributeId` AND i.`collectionCode` LIKE '%s%%' ", mysql_escape_string($this->data['code']));
+			if($this->data['showNames']) {
+				$query = sprintf(" SELECT iav.* FROM `imageAttribValue` iav, `image` i, `imageAttrib` ia WHERE 1=1 AND i.`imageId` = ia.`imageId` AND ia.`attributeId` = iav.`attributeId` AND i.`collectionCode` LIKE '%s%%' ", mysql_escape_string($this->data['code']));
+			} else {
+				$query = sprintf(" SELECT iav.*, iat.title  FROM `imageAttribValue` iav, `image` i, `imageAttrib` ia, `imageAttribType` iat WHERE 1=1 AND i.`imageId` = ia.`imageId` AND ia.`attributeId` = iav.`attributeId` AND iav.`categoryId` = iat.`categoryId` AND i.`collectionCode` LIKE '%s%%' ", mysql_escape_string($this->data['code']));
+			}
 		} else {
-			$query = ' SELECT iav.* FROM `imageAttribValue` iav WHERE 1=1 ';
+			if($this->data['showNames']) {
+				$query = ' SELECT iav.* FROM `imageAttribValue` iav WHERE 1=1 ';
+			} else {
+				$query = ' SELECT iav.*, iat.title FROM `imageAttribValue` iav, `imageAttribType` iat WHERE iav.`categoryId` = iat.`categoryId` ';
+			}
 		}
 		if(is_array($this->data['categoryId']) && count($this->data['categoryId'])) {
 			$query .= sprintf(" AND iav.`categoryId` IN (%s) ", implode(',',$this->data['categoryId']));
@@ -2364,14 +2428,14 @@ class ImageAttribValue
 
 	public function imageAttributeUpdate() {
 		$query = sprintf(" UPDATE `imageAttribValue` SET `name` = '%s', `categoryId` = %s WHERE `attributeId` = %s "
-			, mysql_escape_string($this->imageCategoryGetProperty('name'))
-			, mysql_escape_string($this->imageCategoryGetProperty('categoryId'))
-			, mysql_escape_string($this->imageCategoryGetProperty('attributeId'))
+			, mysql_escape_string($this->imageAttributeGetProperty('name'))
+			, mysql_escape_string($this->imageAttributeGetProperty('categoryId'))
+			, mysql_escape_string($this->imageAttributeGetProperty('attributeId'))
 			);
 		if($this->db->query($query)) {
 			$query1 = sprintf("INSERT INTO `imageLog` (action, afterDesc, query, dateCreated) VALUES (8, 'attributeId: %s, value: %s', '%s', NOW())"
-				, mysql_escape_string($this->imageCategoryGetProperty('attributeId'))
-				, mysql_escape_string($this->imageCategoryGetProperty('name'))
+				, mysql_escape_string($this->imageAttributeGetProperty('attributeId'))
+				, mysql_escape_string($this->imageAttributeGetProperty('name'))
 				, mysql_escape_string($query)
 				);
 			$this->db->query($query1);

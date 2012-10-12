@@ -202,6 +202,7 @@
 				, 215 => 'Invalid remoteAccessId.'
 				, 216 => 'Remote Access could not be deleted.'
 				, 217 => 'Remote Access could not be Updated.'
+				, 218 => 'Event Type title Already Exists.'
 			);
 			return $ar[$errorCode];
 		}
