@@ -1,9 +1,7 @@
 Ext.define('BIS.store.FilterTreeStore', {
     extend: 'Ext.data.TreeStore',
 
-    requires: [
-        'BIS.model.FilterModel'
-    ],
+    requires: [ 'BIS.model.FilterModel' ],
 
     constructor: function(cfg) {
         var me = this;
