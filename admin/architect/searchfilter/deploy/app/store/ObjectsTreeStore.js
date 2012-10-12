@@ -1,9 +1,7 @@
 Ext.define('BIS.store.ObjectsTreeStore', {
     extend: 'Ext.data.TreeStore',
 
-    requires: [
-        'BIS.model.ObjectModel'
-    ],
+    requires: [ 'BIS.model.ObjectModel' ],
 
     constructor: function(cfg) {
         var me = this;
