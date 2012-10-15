@@ -24,6 +24,7 @@
 		,	'admin1'
 		,	'admin2'
 		,	'admin3'
+		,	'advFilter'
 		,	'api'
 		,	'associations'
 		,	'attribType'
@@ -1971,6 +1972,9 @@
 				$dir = (trim($dir) == 'DESC') ? 'DESC' : 'ASC';
 				$data['dir'] = trim($dir);
 			}
+			
+			$data['advFilter'] = json_decode(stripslashes(trim($advFilter)),true);
+			
 			if(is_array($filter)) {
 				$data['filter'] = $filter;
 			} else {
@@ -2748,18 +2752,23 @@
 				$errorCode = 150;
 			}
 			if($valid) {
+				$data['start'] = (trim($start) == '') ? 0 : $start;
+				$data['limit'] = (trim($limit) == '') ? 100 : $limit;
+				$si->remoteAccess->remoteAccessSetData($data);
 				$list = $si->remoteAccess->remoteAccessList();
 				$listArray = array();
 				while($record = $list->fetch_object())
 				{
 					$item['remoteAccessId'] = $record->remoteAccessId;
+					$item['title'] = $record->title;
+					$item['description'] = $record->description;
+					$item['originalIp'] = $record->originalIp;
 					$item['ip'] = $record->ip;
-					$item['original ip'] = long2ip($record->ip);
 					$item['key'] = $record->key;
 					$item['active'] = $record->active;
 					$listArray[] = $item;
 				}
-				print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart, 'records' => $listArray ) ) );
+				print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart, 'totalCount' => $si->remoteAccess->db->query_total(), 'records' => $listArray ) ) );
 			} else {
 				print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray($errorCode)) ));
 			}
@@ -2777,12 +2786,22 @@
 			} else if($ip == '') {
 				$valid = false;
 				$errorCode = 213;
+			} else if($title == '') {
+				$valid = false;
+				$errorCode = 112;
+			} else if($si->remoteAccess->remoteAccessTitleExists($title)) {
+				$valid = false;
+				$errorCode = 219;
 			}
+			
 			if($valid) {
 				$active = ($active == 'false') ? 'false' : 'true';
-				$ip = ip2long($ip);
+				// $ip = ip2long($ip);
 				$key = $si->remoteAccess->remoteAccessKeyGenerate();
-				$si->remoteAccess->remoteAccessSetProperty('ip',$ip);
+				$si->remoteAccess->remoteAccessSetProperty('title',$title);
+				$si->remoteAccess->remoteAccessSetProperty('description',$description);
+				$si->remoteAccess->remoteAccessSetProperty('originalIp',$ip);
+				$si->remoteAccess->remoteAccessSetProperty('ip',ip2long($ip));
 				$si->remoteAccess->remoteAccessSetProperty('key',$key);
 				$si->remoteAccess->remoteAccessSetProperty('active',$active);
 				$id = $si->remoteAccess->remoteAccessSave();

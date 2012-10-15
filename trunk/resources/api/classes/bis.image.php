@@ -997,6 +997,21 @@ Class Image {
 
 	public function imageList($queryFlag = true) {
 
+		if(is_array($this->data['advFilter']) && count($this->data['advFilter'])) {
+			$query = $this->getByCrazyFilter($this->data['advFilter']);
+			// echo $query;exit;
+		
+			if($queryFlag) {
+				$ret = $this->db->query_all($query);
+				$this->total = $this->db->query_total();
+				return is_null($ret) ? array() : $ret;
+			} else {
+				$ret = $this->db->query( $query );
+				$this->total = $this->db->query_total();
+				return $ret;
+			}
+		}
+	
 		$characters = $this->data['characters'];
 		$browse = $this->data['browse'];
 
@@ -1091,7 +1106,7 @@ Class Image {
 			$ret = $this->db->query_all($this->query);
 			return is_null($ret) ? array() : $ret;
 		} else {
-			$ret = $this->db->query( $query );
+			$ret = $this->db->query( $this->query );
 			return $ret;
 		}
 	}
@@ -1708,8 +1723,8 @@ Class Image {
 				$ar =array();
 				if(is_array($filter['children']) && count($filter['children'])) {
 					foreach($filter['children'] as $child) {
-						$dt = crazyFilter($child);
-						($dt != '' ) ? $ar[] = crazyFilter($child) : '';
+						$dt = $this->crazyFilter($child);
+						($dt != '' ) ? $ar[] = $dt : '';
 					}
 				}
 				if(count($ar)) {
@@ -1720,29 +1735,121 @@ Class Image {
 				// $filter['value'] = (is_null($filter['value'])) ? 'q' : $filter['value'];
 				switch($filter['object']) {
 					case 'attribute':
+						$tables[] = 'attribute';
 						if($filter['key'] != '' && $filter['value'] != '') {
-							$str .= sprintf(" ( ia.`imageId` = i.`imageId` AND ia.`categoryId` = iat.`categoryId` AND iat.`name` = '%s' AND ia.`attributeId` = iav.`attributeId`  AND iav.`title` = '%s' ) " , $filter['key'], $filter['value']);
+							switch($filter['condition']) {
+								case '=':
+								case '!=':
+									$str .= sprintf(" ( at.`categoryId` = %d && at.`attributeId` %s %d ) " , $filter['key'], $filter['condition'], $filter['value']);
+									break;
+								case 'is':
+									$str .= sprintf(" ( at.`categoryId` = %d && at.`name` = '%s' ) " , $filter['key'], $filter['value']);
+									break;
+								case '%s':
+								case 's%':
+								case '%s%':
+									$op = str_replace('%','%%',$filter['condition']);
+									$op = str_replace('s','%s',$op);
+									$str .= sprintf(" ( at.`categoryId` = %d && at.`name` LIKE '$op' ) " , $filter['key'], $filter['value']);
+									break;
+								case 'in':
+									$str .= sprintf(" ( at.`categoryId` = %d && at.`name` IN (%s) ) " , $filter['key'], $filter['value']);
+									break;
+							}
 						} else if($filter['key'] == '' && $filter['value'] != '') {
-							$str .= sprintf(" ( ia.`imageId` = i.`imageId` AND ia.`attributeId` = iav.`attributeId`  AND iav.`title` = '%s' ) " , $filter['value']);
+							switch($filter['condition']) {
+								case '=':
+								case '!=':
+									$str .= sprintf(" ( at.`attributeId` %s %d ) ", $filter['condition'], $filter['value']);
+									break;
+								case 'is':
+									$str .= sprintf(" ( at.`attributeId` = '%s' ) ", $filter['value']);
+									break;
+								case '%s':
+								case 's%':
+								case '%s%':
+									$op = str_replace('%','%%',$filter['condition']);
+									$op = str_replace('s','%s',$op);
+									$str .= sprintf(" ( at.`name` LIKE '$op' ) ", $filter['value']);
+									break;
+								case 'in':
+									$str .= sprintf(" ( at.`name` IN (%s) ) ", $filter['value']);
+									break;
+							}
 						} else if($filter['key'] != '' && $filter['value'] == '') {
-						
+							switch($filter['condition']) {
+								case '=':
+								case '!=':
+									$str .= sprintf(" ( at.`categoryId` %s %d ) ", $filter['condition'], $filter['key']);
+									break;
+							}
 						}
 					
 						break;
 					case 'collection':
-						// $str .= ' ( ' . $filter['key'] . ' ' . $filter['condition'] . ' ' . $filter['value'] . ' ) ';
+
 						break;
 					case 'clientStation':
-						// $str .= ' ( ' . $filter['key'] . ' ' . $filter['condition'] . ' ' . $filter['value'] . ' ) ';
+
 						break;
 					case 'event':
-						// $str .= ' ( ' . $filter['key'] . ' ' . $filter['condition'] . ' ' . $filter['value'] . ' ) ';
+						$tables[] = 'event';
+						if($filter['key'] != '' && $filter['value'] != '') {
+							switch($filter['condition']) {
+								case '=':
+								case '!=':
+									$str .= sprintf(" ( ev.`eventTypeId` = %d && ev.`eventId` %s %d ) " , $filter['key'], $filter['condition'], $filter['value']);
+									break;
+								case 'is':
+									$str .= sprintf(" ( ev.`eventTypeId` = %d && ev.`title` = '%s' ) " , $filter['key'], $filter['value']);
+									break;
+								case '%s':
+								case 's%':
+								case '%s%':
+									$op = str_replace('%','%%',$filter['condition']);
+									$op = str_replace('s','%s',$op);
+									$str .= sprintf(" ( ev.`eventTypeId` = %d && ev.`title` LIKE '$op' ) " , $filter['key'], $filter['value']);
+									break;
+								case 'in':
+									$str .= sprintf(" ( ev.`eventTypeId` = %d && ev.`title` IN (%s) ) " , $filter['key'], $filter['value']);
+									break;
+							}
+						} else if($filter['key'] == '' && $filter['value'] != '') {
+							switch($filter['condition']) {
+								case '=':
+								case '!=':
+									$str .= sprintf(" ( ev.`eventId` %s %d ) ", $filter['condition'], $filter['value']);
+									break;
+								case 'is':
+									$str .= sprintf(" ( ev.`title` = '%s' ) ", $filter['value']);
+									break;
+								case '%s':
+								case 's%':
+								case '%s%':
+									$op = str_replace('%','%%',$filter['condition']);
+									$op = str_replace('s','%s',$op);
+									$str .= sprintf(" ( ev.`title` LIKE '$op' ) ", $filter['value']);
+									break;
+								case 'in':
+									$str .= sprintf(" ( ev.`title` IN (%s) ) ", $filter['value']);
+									break;
+							}
+						} else if($filter['key'] != '' && $filter['value'] == '') {
+							switch($filter['condition']) {
+								case '=':
+								case '!=':
+									$str .= sprintf(" ( ev.`eventTypeId` %s %d ) ", $filter['condition'], $filter['key']);
+									break;
+							}
+						}
+						
 						break;
 					case 'geography':
-						// $str .= ' ( ' . $filter['key'] . ' ' . $filter['condition'] . ' ' . $filter['value'] . ' ) ';
+
 						break;
 					case 'time':
-						$key = (strtolower($filter['key']) == 'added') ? '`timestampModified`' : '`timestampModified`'; // currently we have only `timestampModified`.
+
+						$key = (strtolower($filter['key']) == 'added') ? 'i.`timestampModified`' : 'i.`timestampModified`'; // currently we have only `timestampModified`.
 						if(in_array($filter['condition'],array('=','!=','>','<','>=','<=')) && $filter['value'] != '' && !is_null($filter['value'])) {
 							$str .= sprintf(" ($key {$filter['condition']} '%s') ", $filter['value']);
 						} else if ($filter['condition'] == 'between' && $filter['value2'] != '' && !is_null($filter['value2'])) {
@@ -1755,6 +1862,33 @@ Class Image {
 		return $str;
 	}
 
+	public function getByCrazyFilter ($filter) {
+		global $tables;
+		$tables = array();
+		// $filter = json_decode($filter,true);
+		$query = ' SELECT SQL_CALC_FOUND_ROWS i.* FROM image i ';
+		$where = $this->crazyFilter($filter);
+		$tables = array_unique($tables);
+		if(count($tables)) {
+			foreach($tables as $table) {
+				switch($table) {
+					case 'event':
+						$query .=' LEFT OUTER JOIN (SELECT ei.imageId,e.eventId,e.eventTypeId,e.title FROM eventImages ei, events e WHERE ei.eventId = e.eventId) ev ON i.imageId = ev.imageId ';
+						break;
+					case 'attribute':
+						$query .=' LEFT OUTER JOIN (SELECT ia.imageId,iav.attributeId,iav.categoryId,iav.name FROM imageAttrib ia, imageAttribValue iav WHERE ia.attributeId = iav.attributeId) at ON i.imageId = at.imageId ';
+						break;
+				}
+			}
+		}
+	
+		$where = ($where != '') ? ' WHERE  0=0 AND ' . $where : '';
+		$query = $query . $where;
+		$query .= ' GROUP BY i.`imageId` ';
+		return $query;
+	
+	}
+	
 	public function imageListAttributes($queryFlag = true) {
 		if($this->data['code'] != '') {
 			if($this->data['showNames']) {
