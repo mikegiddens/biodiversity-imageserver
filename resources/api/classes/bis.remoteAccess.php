@@ -21,6 +21,11 @@ Class RemoteAccess {
 			return(false);
 		}
 	}
+	
+	public function remoteAccessSetData($data) {
+		$this->data = $data;
+		return( true );
+	}
 
 	public function remoteAccessLoadById($remoteAccessId) {
 		if($remoteAccessId == '' || !is_numeric($remoteAccessId) || is_null($remoteAccessId)) return false;
@@ -35,6 +40,15 @@ Class RemoteAccess {
 			return(false);
 		}
 	}
+	public function remoteAccessTitleExists($title) {
+		$query = sprintf("SELECT `remoteAccessId` FROM `remoteAccess` WHERE `title` = '%s';", mysql_escape_string($title));
+		$ret = $this->db->query_one( $query );
+		if ($ret == NULL) {
+			return false;
+		} else {
+			return true;
+		}
+	}
 	
 	public function remoteAccessKeyGenerate() {
 		return uniqid();
@@ -44,7 +58,10 @@ Class RemoteAccess {
 		if($this->remoteAccessCheckDuplicate($this->remoteAccessGetProperty('ip'),$this->remoteAccessGetProperty('key'))) {
 			return true;
 		} else {
-			$query = sprintf("INSERT IGNORE INTO `remoteAccess` SET `ip` = '%s', `key` = '%s', `active` = '%s' ;"
+			$query = sprintf("INSERT IGNORE INTO `remoteAccess` SET `title` = '%s', `description` = '%s', `originalIp` = '%s', `ip` = '%s', `key` = '%s', `active` = '%s' ;"
+			, mysql_escape_string($this->remoteAccessGetProperty('title'))
+			, mysql_escape_string($this->remoteAccessGetProperty('description'))
+			, mysql_escape_string($this->remoteAccessGetProperty('originalIp'))
 			, mysql_escape_string($this->remoteAccessGetProperty('ip'))
 			, mysql_escape_string($this->remoteAccessGetProperty('key'))
 			, mysql_escape_string($this->remoteAccessGetProperty('active'))
@@ -58,7 +75,10 @@ Class RemoteAccess {
 	}
 	
 	public function remoteAccessUpdate() {
-		$query = sprintf("UPDATE `remoteAccess` SET `ip` = '%s', `key` = '%s', `active` = '%s' WHERE `remoteAccessId` = '%s' ;"
+		$query = sprintf("UPDATE `remoteAccess` SET `title` = '%s', `description` = '%s', `originalIp` = '%s', `ip` = '%s', `key` = '%s', `active` = '%s' WHERE `remoteAccessId` = '%s' ;"
+		, mysql_escape_string($this->remoteAccessGetProperty('title'))
+		, mysql_escape_string($this->remoteAccessGetProperty('description'))
+		, mysql_escape_string($this->remoteAccessGetProperty('originalIp'))
 		, mysql_escape_string($this->remoteAccessGetProperty('ip'))
 		, mysql_escape_string($this->remoteAccessGetProperty('key'))
 		, mysql_escape_string($this->remoteAccessGetProperty('active'))
@@ -72,7 +92,15 @@ Class RemoteAccess {
 	}
 	
 	public function remoteAccessList() {
-		$query = "SELECT * FROM remoteAccess";
+		$query = "SELECT SQL_CALC_FOUND_ROWS * FROM remoteAccess ";
+		$where = buildWhere($this->data['filter']);
+		if ($where != '') {
+			$where = " WHERE " . $where;
+		}
+		if(trim($this->data['start']) != '' && trim($this->data['limit']) != '') {
+			$where .= build_limit($this->data['start'], $this->data['limit']);
+		}
+		$query .= $where;
 		$ret = $this->db->query($query);
 		return $ret;
 	}

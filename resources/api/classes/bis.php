@@ -203,6 +203,7 @@
 				, 216 => 'Remote Access could not be deleted.'
 				, 217 => 'Remote Access could not be Updated.'
 				, 218 => 'Event Type title Already Exists.'
+				, 219 => 'Remote Access title Already Exists.'
 			);
 			return $ar[$errorCode];
 		}
