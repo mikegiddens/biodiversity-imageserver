@@ -5,6 +5,7 @@
 	 * @website http://www.silverbiology.com
 	*/
 
+	require_once( $config['path']['base'] . 'resources/api/classes/bis.advFilter.php');
 	require_once( $config['path']['base'] . 'resources/api/classes/bis.bis2hs.php');
 	require_once( $config['path']['base'] . 'resources/api/classes/bis.collection.php');
 	require_once( $config['path']['base'] . 'resources/api/classes/bis.events.php');
@@ -42,6 +43,7 @@
 			} else {
 				$this->amazon = NULL;
 			}
+			$this->advFilter = new AdvFilter($this->db);
 			$this->bis = new Bis2Hs($this->db);
 			$this->collection = new Collection($this->db);
 			$this->event = new Event($this->db);
@@ -204,6 +206,14 @@
 				, 217 => 'Remote Access could not be Updated.'
 				, 218 => 'Event Type title Already Exists.'
 				, 219 => 'Remote Access title Already Exists.'
+				, 220 => 'imageId or advFilter or advFilterId should be provided.'
+				, 221 => 'advFilter name Already Exists.'
+				, 222 => 'A valid filter should be provided.'
+				, 223 => 'advFilter Could Not be Added.'
+				, 224 => 'advFilter Could Not be Deleted.'
+				, 225 => 'advFilter Could Not be Updated.'
+				, 226 => 'advFilterId should be provided.'
+				, 227 => 'Invalid advFilterId provided.'
 			);
 			return $ar[$errorCode];
 		}

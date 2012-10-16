@@ -25,6 +25,7 @@
 		,	'admin2'
 		,	'admin3'
 		,	'advFilter'
+		,	'advFilterId'
 		,	'api'
 		,	'associations'
 		,	'attribType'
@@ -269,6 +270,109 @@
 
 	# Type of command to perform
 	switch( $cmd ) {
+
+		case 'advFilterAdd':
+			checkAuth();
+			if($name == '') {
+				$valid = false;
+				$errorCode = 148;
+			} else if ($si->advFilter->advFilterNameExists($name)) {
+				$valid = false;
+				$errorCode = 221;
+			}
+			$filter = stripslashes(trim($filter));
+			$filter1 = json_decode($filter,true);
+			if(!(is_array($filter1) && count($filter1))) {
+				$valid = false;
+				$errorCode = 222;
+			}
+			if($valid) {
+				$si->advFilter->advFilterSetProperty('name', $name);
+				$si->advFilter->advFilterSetProperty('description', $description);
+				$si->advFilter->advFilterSetProperty('filter', $filter);
+				$si->advFilter->advFilterSetProperty('lastModifiedBy', $_SESSION['user_id']);
+				if(false === ($id = $si->advFilter->advFilterSave())) {
+					print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray(223)) ));
+				} else {
+					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart, 'advFilterId' => $id ) ) );
+				}
+			} else {
+				print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray($errorCode)) ));
+			}
+			break;
+			
+		case 'advFilterDelete':
+			checkAuth();
+			if($advFilterId==''){
+				$valid = false;
+				$errorCode = 226;
+			} elseif(!$si->advFilter->advFilterLoadById($advFilterId)) {
+				$valid = false;
+				$errorCode = 227;
+			}
+			if($valid) {
+				if($si->advFilter->advFilterDelete($advFilterId)) {
+					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart ) ) );
+				} else {
+					print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray(224)) ));
+				}
+			} else {
+				print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray($errorCode)) ));
+			}
+			break;
+			
+		case 'advFilterList':
+			checkAuth();
+			$data['start'] = ($start == '') ? 0 : $start;
+			$data['limit'] = ($limit == '') ? 100 : $limit;
+			$data['advFilterId'] = (!is_numeric($advFilterId)) ? json_decode(stripslashes(trim($advFilterId)),true) : $advFilterId;
+			$data['name'] = $name;
+			$data['searchFormat'] = in_array(strtolower(trim($searchFormat)),array('exact','left','right','both')) ? strtolower(trim($searchFormat)) : 'both';
+			$data['value'] = str_replace('%','%%',trim($value));
+			$data['group'] = $group;
+			$data['dir'] = (strtoupper(trim($dir)) == 'DESC') ? 'DESC' : 'ASC';
+			$si->advFilter->advFilterSetData($data);
+			if($valid) {
+				$records = $si->advFilter->advFilterList();
+				if(is_array($records) && count($records)) {
+					foreach($records as &$record) {
+						$record->filter = json_decode($record->filter,true);
+					}
+				}
+				print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart, 'totalCount' => $si->advFilter->db->query_total(), 'records' => $records ) ) );
+			} else {
+				print_c( json_encode( array( 'success' => false, 'error' => $si->getErrorArray($errorCode) ) ) );
+			}
+			break;
+			
+		case 'advFilterUpdate':
+			checkAuth();
+			if($advFilterId ==''){
+				$valid = false;
+				$errorCode = 226;
+			} elseif(!$si->advFilter->advFilterLoadById($advFilterId)) {
+				$valid = false;
+				$errorCode = 227;
+			} else if ($name != '' && $name != $si->advFilter->advFilterGetProperty('name') && $si->advFilter->advFilterNameExists($name)) {
+				$valid = false;
+				$errorCode = 221;
+			}
+			if($valid) {
+				($name != '' ) ? $si->advFilter->advFilterSetProperty('name', $name) : '';
+				($description != '' ) ? $si->advFilter->advFilterSetProperty('description', $description) : '';
+				($filter != '' ) ? $si->advFilter->advFilterSetProperty('filter', $filter) : '';
+				$si->advFilter->advFilterSetProperty('lastModifiedBy', $_SESSION['user_id']);
+				
+				if($si->advFilter->advFilterUpdate()) {
+					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart ) ) );
+				} else {
+					print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray(225)) ));
+				}
+			} else {
+				print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray($errorCode)) ));
+			}
+			break;
+
 		case 'attributeAdd':
 			checkAuth();
 			if($categoryId == '') {
@@ -919,9 +1023,15 @@
 			$categoryType = in_array(trim($categoryType),array('categoryId','title','term')) ? trim($categoryType) : 'categoryId';
 			$attribType = in_array(trim($attribType),array('attributeId','name')) ? trim($attribType) : 'attributeId';
 			$force = (trim($force) == 'true') ? true : false;
-			if($data['imageId'] == "") {
+			if($advFilterId != '') {
+				if($si->advFilter->advFilterLoadById($advFilterId)) {
+					$advFilter  = $si->advFilter->advFilterGetProperty('filter');
+				}
+			}
+			$data['advFilter'] = json_decode(stripslashes(trim($advFilter)),true);
+			if($data['imageId'] == "" && !(is_array($data['advFilter']) && count($data['advFilter']))) {
 				$valid = false;
-				$errorCode = 157;
+				$errorCode = 220;
 			} elseif(trim($category) == '') {
 				$valid = false;
 				$errorCode = 160;
@@ -1971,6 +2081,12 @@
 				$data['sort'] = trim($sort);
 				$dir = (trim($dir) == 'DESC') ? 'DESC' : 'ASC';
 				$data['dir'] = trim($dir);
+			}
+			
+			if($advFilterId != '') {
+				if($si->advFilter->advFilterLoadById($advFilterId)) {
+					$advFilter  = $si->advFilter->advFilterGetProperty('filter');
+				}
 			}
 			
 			$data['advFilter'] = json_decode(stripslashes(trim($advFilter)),true);
