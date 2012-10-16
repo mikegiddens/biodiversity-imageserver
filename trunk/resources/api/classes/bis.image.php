@@ -998,7 +998,7 @@ Class Image {
 	public function imageList($queryFlag = true) {
 
 		if(is_array($this->data['advFilter']) && count($this->data['advFilter'])) {
-			$query = $this->getByCrazyFilter($this->data['advFilter']);
+			$query = $this->getByCrazyFilter($this->data['advFilter'], true);
 			// echo $query;exit;
 		
 			if($queryFlag) {
@@ -1665,7 +1665,13 @@ Class Image {
 		$imageIds = @explode(',', $this->data['imageId']);
 		$categoryId = $this->data['categoryId'];
 		$attributeId = $this->data['attributeId'];
-		if(count($imageIds)) {
+		
+		if(is_array($this->data['advFilter']) && count($this->data['advFilter'])) {
+			$qry = $this->getByCrazyFilter($this->data['advFilter']);
+			$query = " INSERT IGNORE INTO imageAttrib(imageId, categoryId, attributeId) SELECT im.imageId, $categoryId, $attributeId FROM ($qry) im ";
+			// echo $query; exit;
+			return ($this->db->query($query));
+		} else if(count($imageIds)) {
 			foreach($imageIds as $id) {
 				if($this->imageLoadById($id)) {
 					$query = sprintf("INSERT IGNORE INTO imageAttrib(imageId, categoryId, attributeId) VALUES(%s, %s, %s);"
@@ -1784,10 +1790,9 @@ Class Image {
 									break;
 							}
 						}
-					
 						break;
 					case 'collection':
-
+						$str .= sprintf(" ( i.`collectionCode` = '%s' ) ", mysql_escape_string($filter['key'])); 
 						break;
 					case 'clientStation':
 
@@ -1837,18 +1842,19 @@ Class Image {
 						} else if($filter['key'] != '' && $filter['value'] == '') {
 							switch($filter['condition']) {
 								case '=':
-								case '!=':
 									$str .= sprintf(" ( ev.`eventTypeId` %s %d ) ", $filter['condition'], $filter['key']);
+									break;
+								case '!=':
+									$str .= sprintf(" ( ev.`eventTypeId` %s %d OR ev.`eventTypeId` is null ) ", $filter['condition'], $filter['key']);
 									break;
 							}
 						}
-						
 						break;
 					case 'geography':
-
+					
 						break;
+						
 					case 'time':
-
 						$key = (strtolower($filter['key']) == 'added') ? 'i.`timestampModified`' : 'i.`timestampModified`'; // currently we have only `timestampModified`.
 						if(in_array($filter['condition'],array('=','!=','>','<','>=','<=')) && $filter['value'] != '' && !is_null($filter['value'])) {
 							$str .= sprintf(" ($key {$filter['condition']} '%s') ", $filter['value']);
@@ -1862,11 +1868,11 @@ Class Image {
 		return $str;
 	}
 
-	public function getByCrazyFilter ($filter) {
+	public function getByCrazyFilter ($filter, $totalFlag = false) {
 		global $tables;
 		$tables = array();
 		// $filter = json_decode($filter,true);
-		$query = ' SELECT SQL_CALC_FOUND_ROWS i.* FROM image i ';
+		$query = ($totalFlag) ? ' SELECT SQL_CALC_FOUND_ROWS i.* FROM image i ' : ' SELECT i.* FROM image i ';
 		$where = $this->crazyFilter($filter);
 		$tables = array_unique($tables);
 		if(count($tables)) {
@@ -1877,6 +1883,9 @@ Class Image {
 						break;
 					case 'attribute':
 						$query .=' LEFT OUTER JOIN (SELECT ia.imageId,iav.attributeId,iav.categoryId,iav.name FROM imageAttrib ia, imageAttribValue iav WHERE ia.attributeId = iav.attributeId) at ON i.imageId = at.imageId ';
+						break;
+					case 'geography':
+						// $query .=' LEFT OUTER JOIN (SELECT ei.`imageId`, e.`eventId`, e.`geographyId`, g.`country`, g.`countryIso`, g.`admin0`, g.`admin1`, g.`admin2`, g.`admin3` FROM `eventImages` ei, `events` e, `geography` g WHERE ei.`eventId` = e.`eventId` AND e.`geographyId` = g.`geographyId`) geo ON i.imageId = geo.imageId ';
 						break;
 				}
 			}

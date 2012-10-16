@@ -21,6 +21,19 @@ http://bis.silverbiology.com/dev/resources/api/api.php?cmd=evernoteSearchByLabel
 
 Test Urls - New Bis api:
 
+advFilterAdd:
+http://bis.silverbiology.com/dev/resources/api/api.php?cmd=advFilterAdd&filter={"node":"group","logop":"and","children":[{"node":"group","logop":"or","children":[{"node":"condition","object":"attribute","key":6,"value":"Robert","value2":null,"condition":"s%"},{"node":"condition","object":"event","key":null,"value":"safari","value2":null,"condition":"%s%"}]}]}&name=Event And Attribute Test&description=Testing Event and attribute filters.
+
+advFilterUpdate:
+http://bis.silverbiology.com/dev/resources/api/api.php?cmd=advFilterUpdate&filter={"node":"group","logop":"and","children":[{"node":"condition","object":"event","key":1,"value":1,"value2":null,"condition":"="}]}&name=Event Test&description=Image has an event that is equal to African Safari of type "Safari".&advFilterId=1
+
+advFilterList:
+http://bis.silverbiology.com/dev/resources/api/api.php?cmd=advFilterList
+
+advFilterDelete:
+http://bis.silverbiology.com/dev/resources/api/api.php?cmd=advFilterDelete&advFilterId=1
+
+
 attributeAdd:
 http://bis.silverbiology.com/dev/resources/api/api.php?cmd=attributeAdd&name=Mike&categoryId=2
 

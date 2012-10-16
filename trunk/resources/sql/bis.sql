@@ -20,6 +20,25 @@ SET time_zone = "+00:00";
 -- Database: `bis_dev`
 --
 
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `advFilter`
+--
+
+CREATE TABLE IF NOT EXISTS `advFilter` (
+  `advFilterId` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(20) NOT NULL,
+  `description` varchar(255) DEFAULT NULL,
+  `filter` text,
+  `dateCreated` datetime NOT NULL,
+  `dateModified` datetime NOT NULL,
+  `lastModifiedBy` int(11) NOT NULL,
+  PRIMARY KEY (`advFilter`),
+  UNIQUE KEY `name` (`name`)
+) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
+
 -- --------------------------------------------------------
 
 --
@@ -349,11 +368,15 @@ CREATE TABLE IF NOT EXISTS `processQueue` (
 
 CREATE TABLE IF NOT EXISTS `remoteAccess` (
   `remoteAccessId` int(11) NOT NULL AUTO_INCREMENT,
+  `title` varchar(60) NOT NULL,
+  `description` varchar(255) NOT NULL,
+  `originalIp` varchar(20) NOT NULL,
   `ip` int(11) NOT NULL,
   `key` varchar(100) NOT NULL,
   `active` varchar(10) NOT NULL DEFAULT 'true',
-  PRIMARY KEY (`remoteAccessId`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1;
+  PRIMARY KEY (`remoteAccessId`),
+  UNIQUE KEY `title` (`title`)
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
 
 -- --------------------------------------------------------
 
