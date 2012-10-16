@@ -1,7 +1,7 @@
 Ext.define('BIS.view.KeyManagerPanel', {
 	extend: 'Ext.panel.Panel',
 	alias: ['widget.keymanagerpanel'],
-    requires: [ 'BIS.view.CtxMnuKey' ],
+    requires: [ 'BIS.view.CtxMnuKey', 'BIS.view.FormCreateKey' ],
 	id: 'keyManagerPanel',
 	layout: 'fit',
 	border: false,
@@ -25,7 +25,17 @@ Ext.define('BIS.view.KeyManagerPanel', {
                     },
 					columns: [
                         {
-                            dataIndex: 'ip',
+                            dataIndex: 'title',
+                            text: 'Title',
+                            flex: 2
+                        },
+                        {
+                            dataIndex: 'description',
+                            text: 'Description',
+                            flex: 3
+                        },
+                        {
+                            dataIndex: 'originalIp',
                             text: 'IP Address',
                             flex: 2
                         },
@@ -66,24 +76,26 @@ Ext.define('BIS.view.KeyManagerPanel', {
 		me.callParent(arguments);
 	},
 	createKey: function() {
-        Ext.Msg.prompt('Generate Access Key', 'Please enter the IP address for the new key.', function( btn, val, dialog ) {
-            if ( btn == 'ok' ) {
-                Ext.Ajax.request({
-                    method: 'POST',
-                    url: Config.baseUrl + 'resources/api/api.php',
-                    params: {
-                        cmd: 'remoteAccessKeyGenerate',
-                        ip: val
-                    },
-                    scope: this,
-                    success: function( resObj ) {
-                        var res = Ext.decode( resObj.responseText );
-                        if ( res.success ) {
-                            Ext.getCmp('keyGrid').getStore().load();
-                        }
-                    }
-                });
-            }
+		var tmpWindow = Ext.create('Ext.window.Window', {
+			title: 'Generate Access Key',
+			iconCls: 'icon_addKey',
+			modal: true,
+			height: 350,
+			width: 500,
+			layout: 'fit',
+			resizable: false,
+			bodyBorder: false,
+			items: [{
+                xtype: 'formcreatekey'
+            }]
+		});
+        tmpWindow.on('done', function( data ) {
+            Ext.getCmp('keyGrid').getStore().load();
+            tmpWindow.close();
         });
+        tmpWindow.on('cancel', function( data ) {
+            tmpWindow.close();
+        });
+        tmpWindow.show();
 	}
 });

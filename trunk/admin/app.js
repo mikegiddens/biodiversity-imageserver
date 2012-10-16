@@ -15,7 +15,10 @@ Ext.application({
         'StorageDeviceModel',
         'EvernoteAccountModel',
         'QueueModel',
-        'KeyModel'
+        'KeyModel',
+        'FilterModel',
+        'GeographyModel',
+        'ObjectModel'
     ],
     stores: [
         'SetTreeStore',
@@ -28,7 +31,15 @@ Ext.application({
         'StorageDevicesStore',
         'EvernoteAccountsStore',
         'QueueStore',
-        'KeyStore'
+        'KeyStore',
+        'AttributesStore',
+        'CategoriesStore',
+        'CollectionsStore',
+        'EventsStore',
+        'EventTypesStore',
+        'FilterTreeStore',
+        'GeographyStore',
+        'ObjectsTreeStore'
     ],
     views: [
         'MainViewport',
@@ -54,7 +65,15 @@ Ext.application({
         'FormCreateUser',
         'FormCreateEventType',
         'FormCreateEvent',
-        'ImagesPanel'
+        'FormCreateKey',
+        'ImagesPanel',
+        'FilterContextMenu',
+        'ObjectContextMenu',
+        'FilterTreePanel',
+        'ObjectsFormPanel',
+        'ObjectsTreePanel',
+        'SearchFilterPanel',
+        'ImageTabPanel'
     ],
     autoCreateViewport: true,
     name: 'BIS',

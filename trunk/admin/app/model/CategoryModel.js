@@ -10,6 +10,15 @@ Ext.define('BIS.model.CategoryModel', {
             name: 'title'
         },
         {
+            name: 'description'
+        },
+        {
+            name: 'elementSet'
+        },
+        {
+            name: 'term'
+        },
+        {
             name: 'modelClass',
             defaultValue: 'category'
         }

@@ -14,30 +14,10 @@ Ext.define('BIS.view.CtxMnuImage', {
                         width: 800,
                         layout: 'fit',
                         maximizable: true,
-                        items: [
-                            {
-                                xtype: 'tabpanel',
-                                border: false,
-                                activeItem: 0,
-                                items: [
-                                    {
-                                        xtype: 'panel',
-                                        border: false,
-                                        title: 'Static Image',
-                                        iconCls: 'icon_image',
-                                        autoScroll: true,
-                                        html: '<img src="'+this.record.data.path + this.record.data.filename.substr( 0, this.record.data.filename.indexOf('.') ) + '_l.' + this.record.data.ext+'">'
-                                    },
-                                    {
-                                        xtype: 'imagezoomviewer',
-                                        border: false,
-                                        title: 'Zooming Image',
-                                        iconCls: 'icon_magnifier',
-                                        imageId: this.record.data.imageId
-                                    }
-                                ]
-                            }
-                        ]
+                        items: [{
+                            xtype: 'tabpanel',
+                            record: this.record
+                        }]
                     }).show();
                     break;
                 case 'delete':

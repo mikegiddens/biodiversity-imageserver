@@ -21,6 +21,33 @@ Ext.define('BIS.view.CtxMnuAttribute', {
         Ext.applyIf(me, {
             items: [
                 {
+                    text: 'Add to',
+                    iconCls: 'icon_',
+                    menu: {
+                        xtype: 'menu',
+                        scope: me,
+                        listeners: {
+                            scope: me,
+                            click: me.handleAssignment
+                        },
+                        items: [
+                            {
+                                text: 'Selected',
+                                identifier: 'selected'
+                            },
+                            {
+                                text: 'Filter Results',
+                                identifier: 'filtered'
+                            },
+                            {
+                                text: 'All Images',
+                                identifier: 'all'
+                            }
+                        ]
+                    }
+                },
+                '-',
+                {
                     text: 'Edit',
                     iconCls: 'icon_editAttribute',
                     identifier: 'update'
@@ -33,6 +60,16 @@ Ext.define('BIS.view.CtxMnuAttribute', {
             ]
         });
         me.callParent(arguments);
+    },
+    handleAssignment: function( menu, item ) {
+        switch ( item.identifier ) {
+            case 'selected':
+                break;
+            case 'filtered':
+                break;
+            case 'all':
+                break;
+        }
     },
     remove: function() {
         Ext.Ajax.request({
