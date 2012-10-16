@@ -94,10 +94,9 @@ Ext.define('BIS.view.ImageDetailPanel', {
 								loadingText: 'Looking for properties...',
 								emptyText: 'No matching properties found.',
 								getInnerTpl: function() {
-										return '<div class="propertySearchItem">'+
-												'<h3><span>{title}</h3>'+
-												'( Category {categoryId} )'+
-										'</div>';
+                                    return '<div class="propertySearchItem">'+
+                                        '{title}: <span style="font-weight:bold;">{title}</span>'+
+                                    '</div>';
 								}
 						},
 						pageSize: 5,

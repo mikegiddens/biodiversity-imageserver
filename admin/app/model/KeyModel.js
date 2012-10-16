@@ -3,10 +3,19 @@ Ext.define('BIS.model.KeyModel', {
     alias: 'model.keyModel',
     fields: [
         {
+            name: 'title'
+        },
+        {
+            name: 'description'
+        },
+        {
             name: 'remoteAccessId'
         },
         {
             name: 'ip'
+        },
+        {
+            name: 'originalIp'
         },
         {
             name: 'key'

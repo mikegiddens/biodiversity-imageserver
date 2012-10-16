@@ -1,11 +1,13 @@
 Ext.define('BIS.view.SearchFilterPanel', {
     extend: 'Ext.panel.Panel',
 
-    height: 600,
-    width: 1000,
-    margin: 50,
+    requires: [
+        'BIS.view.ObjectsFormPanel',
+        'BIS.view.FilterTreePanel'
+    ],
+
     layout: 'border',
-    title: 'Search Filter',
+    title: false,
 
     initComponent: function() {
         var me = this;
@@ -14,11 +16,6 @@ Ext.define('BIS.view.SearchFilterPanel', {
 
             items: [
                 /*
-                Ext.create( 'BIS.view.ObjectsTreePanel', {
-                    flex: 1,
-                    region: 'west'
-                }),
-                */
                 {
                     xtype: 'form',
                     border: false,
@@ -42,6 +39,7 @@ Ext.define('BIS.view.SearchFilterPanel', {
                         }
                     ]
                 },
+                */
                 {
                     xtype: 'panel',
                     flex: 5,
@@ -59,10 +57,41 @@ Ext.define('BIS.view.SearchFilterPanel', {
                         })
                     ]
                 }
+            ],
+            dockedItems: [
+                {
+                    xtype: 'toolbar',
+                    dock: 'bottom',
+                    ui: 'footer',
+                    items: [
+                        '->',
+                        {
+                            text: 'Cancel',
+                            scope: this,
+                            handler: this.cancel
+                        },
+                        {
+                            text: 'Apply Filter',
+                            id: 'advFilterSubmitButton',
+                            iconCls: 'icon_magnifier',
+                            scope: this,
+                            handler: this.activateFilter
+                        }
+                    ]
+                }
             ]
         });
 
         me.callParent(arguments);
-    }
+    },
 
+	activateFilter: function() {
+        var me = this;
+        Ext.getCmp('imagesGrid').setAdvancedFilter( Ext.getCmp('filterTreePanel').exportFilterGraph(), function( success ) {
+            if ( success ) me.ownerCt.fireEvent('done');
+        });
+    },
+    cancel: function() {
+        this.ownerCt.fireEvent('cancel');
+    }
 });

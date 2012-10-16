@@ -3,7 +3,8 @@ Ext.define('BIS.view.ImagesPanel', {
 	alias: ['widget.imagespanel'],
 	requires: [
 		'BIS.view.ImagesGridView',
-		'Ext.ux.form.SearchField'
+		'Ext.ux.form.SearchField',
+        'BIS.view.SearchFilterPanel'
 	],
 	id: 'imagesGrid',
 	autoScroll: true,
@@ -23,6 +24,7 @@ Ext.define('BIS.view.ImagesPanel', {
     beginLayout: Ext.emptyFn,
 	initComponent: function() {
 		var me = this;
+        var advancedFilter = null;
 		Ext.applyIf(me, {
 			columns: [{
 				xtype: 'gridcolumn',
@@ -58,6 +60,14 @@ Ext.define('BIS.view.ImagesPanel', {
 					scope: this,
 					handler: this.clearFilter
 				},{
+                    xtype: 'tbseparator'
+                },{
+                    xtype: 'button',
+                    text: 'Advanced Filter',
+                    iconCls: 'icon_magnifier',
+                    scope: this,
+                    handler: this.toggleAdvancedFilter
+                },{
 					xtype: 'tbseparator'
 				},{
 					xtype: 'cycle',
@@ -99,6 +109,31 @@ Ext.define('BIS.view.ImagesPanel', {
 		});
 		me.callParent(arguments);
 	},
+    toggleAdvancedFilter: function( btn, e ) {
+        var me = this;
+        if ( !this.advancedFilter ) {
+            this.advancedFilter = Ext.create('Ext.window.Window', {
+                title: 'Advanced Filter',
+                iconCls: 'icon_magnifier',
+                modal: true,
+                height: 600,
+                width: 800,
+                layout: 'fit',
+                resizable: false,
+                bodyBorder: false,
+                items: [
+                    Ext.create( 'BIS.view.SearchFilterPanel' )
+                ]
+            });
+            this.advancedFilter.on('done', function( data ) {
+                me.advancedFilter.hide();
+            });
+            this.advancedFilter.on('cancel', function( data ) {
+                me.advancedFilter.hide();
+            });
+        }
+        this.advancedFilter.show(); 
+    },
 	setFilter: function( params, reset ) {
 		if ( reset ) this.getStore().clearFilter();
 		var parsedParams = [];
@@ -107,6 +142,22 @@ Ext.define('BIS.view.ImagesPanel', {
 		}
 		this.getStore().filter( parsedParams );
 	},
+    setAdvancedFilter: function( filterGraph, callback ) {
+        this.getStore().getProxy().extraParams = {
+                cmd: 'imageList',
+                advFilter: JSON.stringify( filterGraph )
+        }
+        this.getStore().load({
+            callback: function( success, res ) {
+                if ( res.success ) {
+                    if ( callback ) callback( true );
+                } else {
+                    if ( callback ) callback( false );
+                    alert( 'There was a problem filtering images. ' + res.error.msg );
+                }
+            }
+        });
+    },
 	clearFilter: function() {
 		this.getStore().clearFilter();
 	},
@@ -117,18 +168,8 @@ Ext.define('BIS.view.ImagesPanel', {
 	},
     // this is called by searchfield (plugin was hacked)
 	search: function( val ) {
-        /* no longer using internal filters - use api search
-		this.getStore().filterBy(function( record, id ) {
-			for ( var p in record.data ) {
-				if ( String(record.data[p]).indexOf(val) > 0 ) {
-					return true;
-				}
-			}
-		});
-        */
         this.searchOcr( val );
 	},
     searchOcr: function( val ) {
-        // no route?
     }
 });

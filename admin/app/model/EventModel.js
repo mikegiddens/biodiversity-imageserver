@@ -7,7 +7,7 @@ Ext.define('BIS.model.EventModel', {
             name: 'eventId'
         },
         {
-            name: 'geoId'
+            name: 'geographyId'
         },
         {
             name: 'eventDate'
