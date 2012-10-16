@@ -336,7 +336,11 @@
 				$records = $si->advFilter->advFilterList();
 				if(is_array($records) && count($records)) {
 					foreach($records as &$record) {
-						$record->filter = json_decode($record->filter,true);
+						if ($force) {
+							$record->filter = json_decode($record->filter,true);
+						} else {
+							$record->filter = $record->filter;
+						}
 					}
 				}
 				print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart, 'totalCount' => $si->advFilter->db->query_total(), 'records' => $records ) ) );
