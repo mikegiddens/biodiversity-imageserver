@@ -152,6 +152,8 @@ http://bis.silverbiology.com/dev/resources/api/api.php?cmd=imageAddToCollection&
 
 imageAddToEvent:
 http://bis.silverbiology.com/dev/resources/api/api.php?cmd=imageAddToEvent&eventId=1&imageId=1390
+http://bis.silverbiology.com/dev/resources/api/api.php?cmd=imageAddToEvent&eventId=1&advFilterId=2
+http://bis.silverbiology.com/dev/resources/api/api.php?cmd=imageAddToEvent&eventId=1&advFilter={"node":"group","logop":"and","children":[{"node":"group","logop":"or","children":[{"node":"condition","object":"attribute","key":6,"value":"Robert","value2":null,"condition":"s%"},{"node":"condition","object":"event","key":null,"value":"safari","value2":null,"condition":"%s%"}]}]}
 
 imageCalculateRating:
 http://bis.silverbiology.com/dev/resources/api/api.php?cmd=imageCalculateRating&imageId=1&rating=3
