@@ -19,6 +19,8 @@ Ext.define('BIS.view.ObjectContextMenu', {
     },
 
     remove: function() {
+        Ext.each( Ext.getCmp('objectFormFields').items.items, function( item ) { item.hide() } );
+        Ext.getCmp('filterToText').update('');
         this.record.remove();
     }
 });

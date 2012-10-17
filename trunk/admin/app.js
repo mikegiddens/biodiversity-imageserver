@@ -18,7 +18,8 @@ Ext.application({
         'KeyModel',
         'FilterModel',
         'GeographyModel',
-        'ObjectModel'
+        'ObjectModel',
+        'SavedFilterModel'
     ],
     stores: [
         'SetTreeStore',
@@ -39,7 +40,8 @@ Ext.application({
         'EventTypesStore',
         'FilterTreeStore',
         'GeographyStore',
-        'ObjectsTreeStore'
+        'ObjectsTreeStore',
+        'SavedFilterStore'
     ],
     views: [
         'MainViewport',
@@ -73,7 +75,8 @@ Ext.application({
         'ObjectsFormPanel',
         'ObjectsTreePanel',
         'SearchFilterPanel',
-        'ImageTabPanel'
+        'ImageTabPanel',
+        'FormCreateFilter'
     ],
     autoCreateViewport: true,
     name: 'BIS',

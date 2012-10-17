@@ -2,7 +2,7 @@ Ext.define('BIS.view.ImagesGridView', {
 	extend: 'Ext.view.View',
 	alias: ['widget.imagesgridview'],
 	requires: [
-		'BIS.view.ImageZoomViewer',
+        'BIS.view.ImageTabPanel',
 		'BIS.view.CtxMnuImage',
 		'BIS.view.CtxMnuAttribute',
         'Ext.ux.DataView.Draggable'
@@ -95,7 +95,7 @@ Ext.define('BIS.view.ImagesGridView', {
                         '<tpl if="barcode != 0">'+
                             '<span>Barcode: {barcode}</span><br>'+
                         '</tpl>'+
-                        '<span>Date Added: {timestampModified:this.renderDate}</span>'+
+                        '<span>Date Modified: {timestampModified:this.renderDate}</span>'+
                     '</div>'+
 				'</div>'+
 			'</div><br/>'+

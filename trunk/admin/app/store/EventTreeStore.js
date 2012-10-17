@@ -22,7 +22,8 @@ Ext.define('BIS.store.EventTreeStore', {
                 type: 'ajax',
                 url: Config.baseUrl + 'resources/api/api.php',
                 extraParams: {
-                    cmd: 'eventTypeList'
+                    cmd: 'eventTypeList',
+                    order: 'title'
                 },
                 reader: {
                     type: 'json',

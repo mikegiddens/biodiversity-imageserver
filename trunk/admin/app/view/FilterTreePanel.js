@@ -169,8 +169,11 @@ Ext.define('BIS.view.FilterTreePanel', {
                     node: 'condition',
                     object: node.get('object'),
                     key: node.get('key'),
+                    keyText: node.get('keyText'),
                     value: node.get('value'),
+                    valueText: node.get('valueText'),
                     value2: node.get('value2'),
+                    value2Text: node.get('value2Text'),
                     condition: node.get('condition')
                 }
             }

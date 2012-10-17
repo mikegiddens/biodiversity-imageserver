@@ -22,6 +22,33 @@ Ext.define('BIS.view.CtxMnuEvent', {
         Ext.applyIf(me, {
             items: [
                 {
+                    text: 'Add to',
+                    iconCls: 'icon_',
+                    menu: {
+                        xtype: 'menu',
+                        scope: me,
+                        listeners: {
+                            scope: me,
+                            click: me.handleAssignment
+                        },
+                        items: [
+                            {
+                                text: 'Selected',
+                                identifier: 'selected'
+                            },
+                            {
+                                text: 'Filter Results',
+                                identifier: 'filtered'
+                            },
+                            {
+                                text: 'All Images',
+                                identifier: 'all'
+                            }
+                        ]
+                    }
+                },
+                '-',
+                {
                     text: 'Edit Event',
                     iconCls: 'icon_editEvent',
                     identifier: 'update'
@@ -34,6 +61,38 @@ Ext.define('BIS.view.CtxMnuEvent', {
             ]
         });
         me.callParent(arguments);
+    },
+    handleAssignment: function( menu, item ) {
+        var params = {
+            cmd: 'imageAddToEvent',
+            eventId: this.record.get('eventId')
+        }
+        switch ( item.identifier ) {
+            case 'selected':
+                console.log( 'this one isn\'t hooked up yet' );
+                break;
+            case 'filtered':
+                params.advFilter = Ext.getCmp('imagesGrid').getStore().getProxy().extraParams.advFilter // last used advanced filter
+                break;
+            case 'all':
+                console.log( 'this one isn\'t hooked up yet' );
+                break;
+        }
+        Ext.Msg.confirm( 'Add Attribute to Images', 'Are you sure you want to add "' + this.record.get('title') + '" to ' + Ext.getCmp('imagesGrid').getStore().totalCount + ' images?', function( btn, text, opts ) {
+            if ( btn == 'yes' ) {
+                Ext.Ajax.request({
+                    url: Config.baseUrl + 'resources/api/api.php',
+                    params: params,
+                    scope: this,
+                    success: function( data ) {
+                        data = Ext.decode( data.responseText );
+                        if ( data.success ) {
+                        }
+                        console.log( data );
+                    }
+                });
+            }
+        });
     },
     remove: function() {
         var me = this;

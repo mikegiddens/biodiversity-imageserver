@@ -10,9 +10,7 @@ Ext.define('BIS.store.FilterTreeStore', {
             autoLoad: true,
             storeId: 'filterTreeStore',
             model: 'BIS.model.FilterModel',
-            root: { node: 'group', logop: 'and', children: [
-
-            ]},
+            root: { node: 'group', logop: 'and', children: [] },
             proxy: {
                 type: 'memory',
                 reader: {

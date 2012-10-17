@@ -1,5 +1,8 @@
 Ext.define('BIS.view.CtxMnuImage', {
     extend: 'Ext.menu.Menu',
+    requires: [
+        'BIS.view.ImageTabPanel'
+    ],
     scope: this,
     listeners: {
         click: function( menu, item ) {
@@ -15,7 +18,7 @@ Ext.define('BIS.view.CtxMnuImage', {
                         layout: 'fit',
                         maximizable: true,
                         items: [{
-                            xtype: 'tabpanel',
+                            xtype: 'imagetabpanel',
                             record: this.record
                         }]
                     }).show();

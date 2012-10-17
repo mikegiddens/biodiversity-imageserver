@@ -10,8 +10,10 @@ Ext.define('BIS.model.AttributeModel', {
             name: 'categoryId'
         },
         {
-            name: 'title',
-            mapping: 'name'
+            name: 'title'
+        },
+        {
+            name: 'name'
         },
         {
             name: 'leaf',

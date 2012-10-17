@@ -1,22 +1,22 @@
-Ext.define('BIS.store.AttributesStore', {
+Ext.define('BIS.store.SavedFilterStore', {
     extend: 'Ext.data.Store',
-
-    requires: [ 'BIS.model.AttributeModel' ],
-
+    alias: 'store.savedFilterStore',
+    autoLoad: true,
+    requires: [
+        'BIS.model.SavedFilterModel'
+    ],
     constructor: function(cfg) {
         var me = this;
-        cfg = cfg || {};
+        cfg = cfg || {
+        };
         me.callParent([Ext.apply({
-            autoLoad: true,
-            storeId: 'attributesStore',
-            model: 'BIS.model.AttributeModel',
+            storeId: 'savedFilterStore',
+            model: 'BIS.model.SavedFilterModel',
             proxy: {
-                type: 'jsonp',
                 url: Config.baseUrl + 'resources/api/api.php',
+                type: 'ajax',
                 extraParams: {
-                    cmd: 'attributeList',
-                    showNames: false,
-                    order: 'name'
+                    cmd: 'advFilterList'
                 },
                 reader: {
                     type: 'json',
