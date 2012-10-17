@@ -19,19 +19,14 @@ Ext.define('BIS.view.ImageDetailPanel', {
                     '</div>'+
 					'<div class="imagePropertyGroupHeader">Events</div>'+
 							'<div class="imagePropertyGroupContainer">'+
-									'<tpl for="events">'+
-											'<span class="imgevents imagePropertyPill">'+
-													'<span class="imagePropertyPillText">{.}</span>'+
-													'<span catdata="events" pilldata="{.}" class="del imagePropertyPillRemove"></span>'+
-											'</span>'+
-									'</tpl>'+
+									'<tpl for="events">{[this.renderEvents(values)]}</tpl>'+
 							'</div>'+
 					'<div class="imagePropertyGroupHeader">Geography</div>'+
 							'<div class="imagePropertyGroupContainer">'+
 									'<tpl for="geography">'+
 											'<span class="imggeography imagePropertyPill">'+
 													'<span class="imagePropertyPillText">{.}</span>'+
-													'<span catdata="geography" pilldata="{.}" class="del imagePropertyPillRemove"></span>'+
+													'<span pilldata="{.}" class="del imagePropertyPillRemove"></span>'+
 											'</span>'+
 									'</tpl>'+
 							'</div>'+
@@ -40,7 +35,7 @@ Ext.define('BIS.view.ImageDetailPanel', {
 									'<tpl for="sets">'+
 											'<span class="imgsets imagePropertyPill">'+
 													'<span class="imagePropertyPillText">{.}</span>'+
-													'<span catdata="sets" pilldata="{.}" class="del imagePropertyPillRemove"></span>'+
+													'<span pilldata="{.}" class="del imagePropertyPillRemove"></span>'+
 											'</span>'+
 									'</tpl>'+
 							'</div>'+
@@ -49,7 +44,13 @@ Ext.define('BIS.view.ImageDetailPanel', {
                 renderMetadata: function( i ) {
                     return '<span class="imgmetadata imagePropertyPill">'+
                                 '<span class="imagePropertyPillText"><span style="font-weight:bold">' + i.key + '</span>: ' + i.value + '</span>'+
-                                '<span catdata="metadata" pilldata="' + i.aid + '" class="del imagePropertyPillRemove"></span>'+
+                                '<span pilldata="' + i.aid + '" valdata="' + i.value + '" class="del imagePropertyPillRemove"></span>'+
+                        '</span>'
+                },
+                renderEvents: function( i ) {
+                    return '<span class="imgevents imagePropertyPill">'+
+                                '<span class="imagePropertyPillText">' + /*<span style="font-weight:bold">' + i.key + '</span>: ' +*/ i.value + '</span>'+
+                                '<span pilldata="' + i.eid + '" valdata="' + i.value + '" class="del imagePropertyPillRemove"></span>'+
                         '</span>'
                 }
             }),
@@ -83,7 +84,7 @@ Ext.define('BIS.view.ImageDetailPanel', {
 						disabled: true,
 						emptyText: 'Type to search attributes or add a new one.',
 						store: 'PropertiesStore',
-						displayField: 'title',
+						displayField: 'name',
 						typeAhead: false,
                         queryParam: 'value',
                         minChars: 2,
@@ -95,7 +96,7 @@ Ext.define('BIS.view.ImageDetailPanel', {
 								emptyText: 'No matching properties found.',
 								getInnerTpl: function() {
                                     return '<div class="propertySearchItem">'+
-                                        '{title}: <span style="font-weight:bold;">{title}</span>'+
+                                        '{title}: <span style="font-weight:bold;">{name}</span>'+
                                     '</div>';
 								}
 						},
@@ -109,11 +110,10 @@ Ext.define('BIS.view.ImageDetailPanel', {
                                         url: Config.baseUrl + 'resources/api/api.php',
                                         params: {
                                             cmd: 'imageAddAttribute',
-                                            //attributeId: property.data.attributeId,
                                             category: property.data.categoryId,
-                                            attribType: 'name',
-                                            attribute: property.data.title,
-                                            force: true,
+                                            attribType: 'attributeId',
+                                            attribute: property.data.attributeId,
+                                            //force: true,
                                             imageId: this.image.imageId
                                         },
                                         scope: this,
@@ -147,13 +147,15 @@ Ext.define('BIS.view.ImageDetailPanel', {
                 var properties = [], events = [], geography = [], sets = [];
                 var data = Ext.decode( res.responseText ).records[0];
                 this.image = data;
-//                console.log( data );
                 Ext.each( data.attributes, function( attr ) {
                     properties.push({ key: attr.category, value: attr.attribute, aid: attr.attributeId, cid: attr.categoryId });
                 });
+                Ext.each( data.events, function( ev ) {
+                    events.push({ /*key: ev.eventType,*/ value: ev.title, eid: ev.eventId, etid: ev.eventTypeId });
+                });
                 this.addProperties({
                     metadata: properties,
-                    events: [],
+                    events: events,
                     geography: [],
                     sets: []
                 });
@@ -163,34 +165,61 @@ Ext.define('BIS.view.ImageDetailPanel', {
 
 	addProperties: function( data ) {
 		Ext.getCmp('imageDetailsPanel').update( data );
-		for ( var category in data ) {
-			Ext.select('span.img'+category).select('.del').on('click', function( e, el, opts ) {
-				Ext.getCmp('imageDetailsPanel').removeProperty( el.getAttribute('catdata'), el.getAttribute('pilldata') );
-                new Ext.Element(el).parent().remove();
-			});
-		}
+        // metadata
+        Ext.select('span.imgmetadata span.imagePropertyPillRemove').on('click', function( e, el, opts ) {
+            Ext.Msg.confirm( 'Delete Image Attribute', 'Are you sure you want to delete "' + el.getAttribute('valdata') + '"?', function( btn, text, opts ) {
+                if ( btn == 'yes' ) {
+                    Ext.getCmp('imageDetailsPanel').removeProperty( el.getAttribute('pilldata') );
+                    Ext.fly( el ).up('span').remove();
+                }
+            });
+        });
+        // events
+        Ext.select('span.imgevents span.imagePropertyPillRemove').on('click', function( e, el, opts ) {
+            Ext.Msg.confirm( 'Remove Event Association', 'Are you sure you want dissociate "' + el.getAttribute('valdata') + '"?', function( btn, text, opts ) {
+                if ( btn == 'yes' ) {
+                    Ext.getCmp('imageDetailsPanel').removeEvent( el.getAttribute('pilldata') );
+                    Ext.fly( el ).up('span').remove();
+                }
+            });
+        });
 	},
 
-	removeProperty: function( type, data1, data2 ) {
-        switch ( type ) {
-            case 'metadata':
-                Ext.Ajax.request({
-                    url: Config.baseUrl + 'resources/api/api.php',
-                    params: {
-                        cmd: 'imageDeleteAttribute',
-                        attributeId: data1,
-                        imageId: this.image.imageId
-                    },
-                    scope: this,
-                    success: function( data ) {
-                        data = Ext.decode( data.responseText );
-                        if ( data.success ) {
-                            this.loadImage( this.image );
-                        }
-                    }
-                });
-                break;
-        }
+	removeProperty: function( id ) {
+        Ext.Ajax.request({
+            url: Config.baseUrl + 'resources/api/api.php',
+            params: {
+                cmd: 'imageDeleteAttribute',
+                attributeId: id,
+                imageId: this.image.imageId
+            },
+            scope: this,
+            success: function( data ) {
+                data = Ext.decode( data.responseText );
+                if ( data.success ) {
+                    this.loadImage( this.image );
+                }
+            }
+        });
+	},
+
+	removeEvent: function( id ) {
+        Ext.Ajax.request({
+            url: Config.baseUrl + 'resources/api/api.php',
+            params: {
+                cmd: 'imageDeleteFromEvent',
+                eventId: id,
+                imageId: this.image.imageId
+            },
+            scope: this,
+            success: function( data ) {
+                data = Ext.decode( data.responseText );
+                if ( data.success ) {
+                    this.loadImage( this.image );
+                }
+            }
+        });
 	}
+
 
 });

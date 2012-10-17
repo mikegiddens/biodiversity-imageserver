@@ -9,9 +9,6 @@ Ext.define('BIS.model.FilterModel', {
             name: 'logop'
         },
         {
-            name: 'children'
-        },
-        {
             name: 'object'
         },
         {
@@ -38,5 +35,9 @@ Ext.define('BIS.model.FilterModel', {
         {
             name: 'conditionText'
         }
-    ]
+    ],
+    hasMany: {
+        model: 'BIS.model.FilterModel',
+        name: 'children'
+    }
 });

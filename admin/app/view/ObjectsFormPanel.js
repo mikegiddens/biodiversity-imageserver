@@ -55,8 +55,8 @@ Ext.define('BIS.view.ObjectsFormPanel', {
                                         this.filterGraphRecord.set( 'key', newVal );
                                         var attrCombo = Ext.getCmp( 'searchFilterattribute' );
                                         attrCombo.clearValue();
-                                        attrCombo.getStore().clearFilter( true );
-                                        attrCombo.getStore().filter( 'categoryId', newVal );
+                                        attrCombo.getStore().getProxy.extraParams = { cmd: 'attributeList', showNames: false, order: 'title', categoryId: newVal };
+                                        attrCombo.getStore().load();
                                         Ext.getCmp('filterToText').update( this.convertFilterToPlainText() );
                                     }
                                 }
@@ -79,8 +79,8 @@ Ext.define('BIS.view.ObjectsFormPanel', {
                                         this.filterGraphRecord.set( 'key', newVal );
                                         var evCombo = Ext.getCmp( 'searchFilterevent' );
                                         evCombo.clearValue();
-                                        evCombo.getStore().clearFilter( true );
-                                        evCombo.getStore().filter( 'eventTypeId', newVal );
+                                        evCombo.getStore().getProxy().extraParams = { cmd: 'attributeList', order: 'title', showNames: false, eventTypeId: newVal };
+                                        evCombo.getStore().load();
                                         Ext.getCmp('filterToText').update( this.convertFilterToPlainText() );
                                     }
                                 }
@@ -213,7 +213,7 @@ Ext.define('BIS.view.ObjectsFormPanel', {
                             xtype: 'combo',
                             hidden: true,
                             id: 'searchFilterattribute',
-                            displayField: 'title',
+                            displayField: 'name',
                             valueField: 'attributeId',
                             store: 'AttributesStore',
                             scope: me,
@@ -222,7 +222,7 @@ Ext.define('BIS.view.ObjectsFormPanel', {
                                 change: function( combo, newVal, oldVal, opts ) {
                                     if ( this.filterGraphRecord ) {
                                         var rec = combo.findRecordByValue( newVal );
-                                        this.filterGraphRecord.set( 'valueText', rec.get('title') );
+                                        this.filterGraphRecord.set( 'valueText', rec.get('name') );
                                         this.filterGraphRecord.set( 'value', newVal );
                                         Ext.getCmp('filterToText').update( this.convertFilterToPlainText() );
                                     }
@@ -273,6 +273,7 @@ Ext.define('BIS.view.ObjectsFormPanel', {
                             listeners: {
                                 scope: me,
                                 change: function( dtInput, val, e, opts ) {
+                                    val = Ext.Date.format(new Date(val), 'Y-m-j');
                                     if ( this.filterGraphRecord ) {
                                         this.filterGraphRecord.set( 'valueText', val );
                                         this.filterGraphRecord.set( 'value', val );
@@ -289,6 +290,7 @@ Ext.define('BIS.view.ObjectsFormPanel', {
                             listeners: {
                                 scope: me,
                                 change: function( dtInput, val, e, opts ) {
+                                    val = Ext.Date.format(new Date(val), 'Y-m-j');
                                     if ( this.filterGraphRecord ) {
                                         this.filterGraphRecord.set( 'value2Text', val );
                                         this.filterGraphRecord.set( 'value2', val );

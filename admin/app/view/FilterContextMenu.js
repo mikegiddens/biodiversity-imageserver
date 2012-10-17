@@ -70,7 +70,7 @@ Ext.define('BIS.view.FilterContextMenu', {
                     text: 'Switch to "' + ((me.record.get('object') == 'and') ? 'or' : 'and') + '"',
                     identifier: 'toggleGroup',
                     scope: me,
-                    handler: this.toggleGroup
+                    handler: me.toggleGroup
                 },
                 {
                     xtype: 'menuitem',
@@ -78,7 +78,7 @@ Ext.define('BIS.view.FilterContextMenu', {
                     identifier: 'remove',
                     disabled: Ext.getCmp('filterTreePanel').getStore().getRootNode() == me.record,
                     scope: me,
-                    handler: this.remove
+                    handler: me.remove
                 }
             ]
 

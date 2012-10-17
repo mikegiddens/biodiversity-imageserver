@@ -62,14 +62,38 @@ Ext.define('BIS.view.CtxMnuAttribute', {
         me.callParent(arguments);
     },
     handleAssignment: function( menu, item ) {
+        var params = {
+            cmd: 'imageAddAttribute',
+            category: this.record.get('categoryId'),
+            attribType: 'attributeId',
+            attribute: this.record.get('attributeId')
+        }
         switch ( item.identifier ) {
             case 'selected':
+                console.log( 'this one isn\'t hooked up yet' );
                 break;
             case 'filtered':
+                params.advFilter = Ext.getCmp('imagesGrid').getStore().getProxy().extraParams.advFilter // last used advanced filter
                 break;
             case 'all':
+                console.log( 'this one isn\'t hooked up yet' );
                 break;
         }
+        Ext.Msg.confirm( 'Add Attribute to Images', 'Are you sure you want to add "' + this.record.get('name') + '" to ' + Ext.getCmp('imagesGrid').getStore().totalCount + ' images?', function( btn, text, opts ) {
+            if ( btn == 'yes' ) {
+                Ext.Ajax.request({
+                    url: Config.baseUrl + 'resources/api/api.php',
+                    params: params,
+                    scope: this,
+                    success: function( data ) {
+                        data = Ext.decode( data.responseText );
+                        if ( data.success ) {
+                        }
+                        console.log( data );
+                    }
+                });
+            }
+        });
     },
     remove: function() {
         Ext.Ajax.request({

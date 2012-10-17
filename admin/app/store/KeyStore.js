@@ -16,8 +16,7 @@ Ext.define('BIS.store.KeyStore', {
                 url: Config.baseUrl + 'resources/api/api.php',
                 type: 'ajax',
                 extraParams: {
-                    cmd: 'remoteAccessKeyList',
-                    showNames: false
+                    cmd: 'remoteAccessKeyList'
                 },
                 reader: {
                     type: 'json',

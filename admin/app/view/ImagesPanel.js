@@ -121,6 +121,7 @@ Ext.define('BIS.view.ImagesPanel', {
                 layout: 'fit',
                 resizable: false,
                 bodyBorder: false,
+                closeAction: 'hide',
                 items: [
                     Ext.create( 'BIS.view.SearchFilterPanel' )
                 ]

@@ -103,13 +103,17 @@ Ext.define('BIS.view.MainViewport', {
 					id: 'queuePanel',
 					store: 'QueueStore',
 					columns: [{
+                        text: 'Image ID',
+                        dataIndex: 'imageId',
+                        flex: 1
+                    },{
 						text:'Job',
 						dataIndex:'processType',
-						flex: 1
+						flex: 2
 					},{
 						text:'Notes',
 						dataIndex:'extra',
-						flex: 1
+						flex: 2
 					}],
 					listeners: {
 						show: function( el, opts ) {
