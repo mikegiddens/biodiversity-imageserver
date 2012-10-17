@@ -998,7 +998,33 @@ Class Image {
 	public function imageList($queryFlag = true) {
 
 		if(is_array($this->data['advFilter']) && count($this->data['advFilter'])) {
-			$query = $this->getByCrazyFilter($this->data['advFilter'], true);
+			$orderBy = '';
+			$query = $this->getByCrazyFilter($this->data['advFilter'], true, $this->data['showOCR']);
+// echo $query;exit;			
+			if(($this->data['sort']!='') && ($this->data['dir']!='')) {
+				$orderBy .= sprintf(" ORDER BY i.%s %s ", mysql_escape_string($this->data['sort']),  $this->data['dir']);
+			} else if($this->data['order'] != '' && is_array($this->data['order'])) {
+				$orderBy .= ' ORDER BY ';
+				if(count($this->data['order'])) {
+					$ordArray = array();
+					foreach($this->data['order'] as $order) {
+						$ordArray[] = " i.{$order['field']} {$order['dir']} ";
+					}
+					$orderBy .= implode(',',$ordArray);
+				}
+			}
+			if($this->data['useRating']) {
+				$orderBy .= ($orderBy == '') ? ' ORDER BY i.`rating` DESC ' : ', i.`rating` DESC ';
+			}
+			if($this->data['useStatus']) {
+				$orderBy .= ($orderBy == '') ? ' ORDER BY i.`statusType` DESC ' : ', i.`statusType` DESC ';
+			}
+			$query .= $orderBy;
+
+			if(trim($this->data['start']) != '' && trim($this->data['limit']) != '') {
+				$query .= sprintf("  LIMIT %s, %s", mysql_escape_string($this->data['start']),  $this->data['limit']);
+			}
+
 			// echo $query;exit;
 		
 			if($queryFlag) {
@@ -1721,7 +1747,7 @@ Class Image {
 	}
 
 	public function crazyFilter($filter,$clearFlag = false) {
-		global $tables;
+		global $tables, $conditionArray, $fieldsArray;
 		$str = '';
 		if($clearFlag) $tables = array('image');
 		switch($filter['node']) {
@@ -1738,7 +1764,6 @@ Class Image {
 				}
 				break;
 			case 'condition':
-				// $filter['value'] = (is_null($filter['value'])) ? 'q' : $filter['value'];
 				switch($filter['object']) {
 					case 'attribute':
 						$tables[] = 'attribute';
@@ -1785,8 +1810,11 @@ Class Image {
 						} else if($filter['key'] != '' && $filter['value'] == '') {
 							switch($filter['condition']) {
 								case '=':
+									$conditionArray[] = sprintf(" ( at.`categoryId` != %d OR at.`categoryId` is null ) ", $filter['key']);
+									$fieldsArray[] = 'at.`categoryId`';
+									break;
 								case '!=':
-									$str .= sprintf(" ( at.`categoryId` %s %d ) ", $filter['condition'], $filter['key']);
+									$str .= sprintf(" ( at.`categoryId` = %d ) ", $filter['key']);
 									break;
 							}
 						}
@@ -1842,10 +1870,12 @@ Class Image {
 						} else if($filter['key'] != '' && $filter['value'] == '') {
 							switch($filter['condition']) {
 								case '=':
-									$str .= sprintf(" ( ev.`eventTypeId` %s %d ) ", $filter['condition'], $filter['key']);
+									// $str .= sprintf(" ( ev.`eventTypeId` %s %d ) ", $filter['condition'], $filter['key']);
+									$conditionArray[] = sprintf(" ( ev.`eventTypeId` != %d OR ev.`eventTypeId` is null ) ", $filter['key']);
+									$fieldsArray[] = 'ev.`eventTypeId`';
 									break;
 								case '!=':
-									$str .= sprintf(" ( ev.`eventTypeId` %s %d OR ev.`eventTypeId` is null ) ", $filter['condition'], $filter['key']);
+									$str .= sprintf(" ( ev.`eventTypeId` = %d ) ", $filter['key']);
 									break;
 							}
 						}
@@ -1868,12 +1898,31 @@ Class Image {
 		return $str;
 	}
 
-	public function getByCrazyFilter ($filter, $totalFlag = false) {
-		global $tables;
+	public function getByCrazyFilter ($filter, $totalFlag = false, $ocrFlag = false) {
+		global $tables, $conditionArray,$fieldsArray;
 		$tables = array();
+		$conditionArray = array();
+		$fieldsArray = array();
 		// $filter = json_decode($filter,true);
-		$query = ($totalFlag) ? ' SELECT SQL_CALC_FOUND_ROWS i.* FROM image i ' : ' SELECT i.* FROM image i ';
+		
 		$where = $this->crazyFilter($filter);
+		
+		$query = ($totalFlag) ? ' SELECT SQL_CALC_FOUND_ROWS ' : ' SELECT ';
+		
+		$query .= ' i.`imageId`,i.`filename`,i.`timestampModified`, i.`barcode`, i.`width`,i.`height`,i.`family`,i.`genus`,i.`specificEpithet`,i.`flickrPlantId`, i.`flickrModified`,i.`flickrDetails`,i.`picassaPlantId`,i.`picassaModified`, i.`gTileProcessed`,i.`zoomEnabled`,i.`processed`,i.`boxFlag`,i.`ocrFlag`,i.`rating`, i.`author`, i.`copyright`';
+		if($ocrFlag) {
+			$query .= ',i.`ocrValue`';
+		}
+		# fields for url computation
+		$query .= ',i.`storageDeviceId`,i.`path`';
+		$query .= ',i.`nameFinderFlag`,i.`nameFinderValue`,i.`scientificName`, i.`collectionCode`, i.`globalUniqueIdentifier` ';
+		
+		$fieldsArray = array_unique($fieldsArray);
+		if(count($fieldsArray)) {
+			$query .= ',' . @implode(',',$fieldsArray);
+		}
+		$query .= ' FROM `image` i ';
+		
 		$tables = array_unique($tables);
 		if(count($tables)) {
 			foreach($tables as $table) {
@@ -1894,6 +1943,11 @@ Class Image {
 		$where = ($where != '') ? ' WHERE  0=0 AND ' . $where : '';
 		$query = $query . $where;
 		$query .= ' GROUP BY i.`imageId` ';
+		if(count($conditionArray)) {
+			$havingClause = ' HAVING ' . @implode(' AND ', $conditionArray);
+			$query .= $havingClause;
+		}
+		// echo $query;exit;
 		return $query;
 	
 	}

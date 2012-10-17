@@ -167,13 +167,24 @@ class Event
 		return false;
 	}
 	
-	public function eventsAddImage($imageId, $eventId) {
-		if($imageId == '' || $eventId == '') return false;
+	public function eventsAddImage($eventId) {
+		if($eventId == '') return false;
 		if(!$this->eventsRecordExists($eventId)) return false;
-		$query = sprintf("INSERT INTO eventImages SET `imageId` = '%s', `eventId` = '%s'"
-				, mysql_escape_string($imageId)
-				, mysql_escape_string($eventId) 
-				);
+
+		if(is_array($this->data['advFilter']) && count($this->data['advFilter'])) {
+			$image = new Image($this->db);
+			$qry = $image->getByCrazyFilter($this->data['advFilter']);
+			$query = " INSERT INTO eventImages (imageId, eventId) SELECT im.imageId, $eventId FROM ($qry) im ";
+			// echo $query; exit;
+		} else if($this->data['imageId'] != '') {
+			$query = sprintf("INSERT INTO eventImages SET `imageId` = '%s', `eventId` = '%s'"
+					, mysql_escape_string($this->data['imageId'])
+					, mysql_escape_string($eventId) 
+					);
+		} else {
+			return false;
+		}
+		
 		if($this->db->query($query)) {
 			$id = $this->db->insert_id;
 			$this->lg->logSetProperty('table', 'eventImages');

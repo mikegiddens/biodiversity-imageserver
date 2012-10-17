@@ -1739,23 +1739,33 @@
 
 		case 'imageAddToEvent':
 			checkAuth();
+			if($advFilterId != '') {
+				if($si->advFilter->advFilterLoadById($advFilterId)) {
+					$advFilter  = $si->advFilter->advFilterGetProperty('filter');
+				}
+			}
+			$data['advFilter'] = json_decode(stripslashes(trim($advFilter)),true);
 			if($eventId == '') {
 				$valid = false;
 				$errorCode = 115;
-			} else if($imageId == '') {
-				$valid = false;
-				$errorCode = 157;
 			} else if(!$si->event->eventsRecordExists($eventId)) {
 				$valid = false;
 				$errorCode = 117;
-			} else if(!$si->image->imageLoadById($imageId)) {
+			} if($data['imageId'] == "" && !(is_array($data['advFilter']) && count($data['advFilter']))) {
 				$valid = false;
-				$errorCode = 158;
+				$errorCode = 220;
+			} else if($imageId != '' && is_array($data['advFilter']) && count($data['advFilter'])) {
+				if(!$si->image->imageLoadById($imageId)) {
+					$valid = false;
+					$errorCode = 158;
+				}
 			}
 			if($valid) {
+				$data['imageId'] = $imageId;
+				$si->event->eventsSetData($data);
 				$si->event->lg->logSetProperty('action', 'imageAddToEvent');
 				$si->event->lg->logSetProperty('lastModifiedBy', $_SESSION['user_id']);
-				if(false !== ($id = $si->event->eventsAddImage($imageId, $eventId))) {
+				if(false !== ($id = $si->event->eventsAddImage($eventId))) {
 					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart, 'eventImageId' => $id ) ) );
 				} else {
 					print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray(177)) ));
@@ -2083,7 +2093,7 @@
 			$data['order'] = json_decode(stripslashes(trim($order)),true);
 			if(trim($sort) != '') {
 				$data['sort'] = trim($sort);
-				$dir = (trim($dir) == 'DESC') ? 'DESC' : 'ASC';
+				$dir = (strtoupper(trim($dir)) == 'DESC') ? 'DESC' : 'ASC';
 				$data['dir'] = trim($dir);
 			}
 			
@@ -2144,18 +2154,20 @@
 						$dt->ext = @array_pop($fname);
 						$dt->enFlag = ($si->s2l->Specimen2LabelLoadByBarcode($dt->barcode)) ? 1 : 0;
 						
-						if(is_array($associations) && count($associations)) {
-							foreach($associations as $association) {
-								switch($association) {
-									case 'events':
-										$dt->events = $si->event->eventsByImage($dt->imageId);
-										break;
-									case 'geography':
-										$dt->geography = $si->geography->geographyByImage($dt->imageId);
-										break;
-									case 'attributes':
-										$dt->attributes = $si->image->imageGetAttributeDetails($dt->imageId);
-										break;
+						if(!(is_array($data['advFilter']) && count($data['advFilter']))) {
+							if(is_array($associations) && count($associations)) {
+								foreach($associations as $association) {
+									switch($association) {
+										case 'events':
+											$dt->events = $si->event->eventsByImage($dt->imageId);
+											break;
+										case 'geography':
+											$dt->geography = $si->geography->geographyByImage($dt->imageId);
+											break;
+										case 'attributes':
+											$dt->attributes = $si->image->imageGetAttributeDetails($dt->imageId);
+											break;
+									}
 								}
 							}
 						}
