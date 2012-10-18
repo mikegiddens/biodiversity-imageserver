@@ -127,4 +127,3 @@ Ext.define('BIS.view.CtxMnuEventType', {
         });
     }
 });
-

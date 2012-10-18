@@ -12,15 +12,18 @@ Ext.define('BIS.view.ImageDetailPanel', {
 			autoScroll: true,
 
 			tpl: new Ext.XTemplate('<tpl>'+
+                '<tpl if="typeof message != \'undefined\'">'+
 					'{message}'+
-					'<div class="imagePropertyGroupHeader">Metadata</div>'+
+                '</tpl><tpl if="typeof message == \'undefined\'">'+
+                    '<div>In collection: <span style="font-weight:bold;">{collection}</span></div>'+
+					'<div class="imagePropertyGroupHeader">Attributes</div>'+
                     '<div class="imagePropertyGroupContainer">'+
                             '<tpl for="metadata">{[this.renderMetadata(values)]}</tpl>'+
                     '</div>'+
 					'<div class="imagePropertyGroupHeader">Events</div>'+
 							'<div class="imagePropertyGroupContainer">'+
 									'<tpl for="events">{[this.renderEvents(values)]}</tpl>'+
-							'</div>'+
+							'</div>'+/*
 					'<div class="imagePropertyGroupHeader">Geography</div>'+
 							'<div class="imagePropertyGroupContainer">'+
 									'<tpl for="geography">'+
@@ -38,7 +41,8 @@ Ext.define('BIS.view.ImageDetailPanel', {
 													'<span pilldata="{.}" class="del imagePropertyPillRemove"></span>'+
 											'</span>'+
 									'</tpl>'+
-							'</div>'+
+							'</div>'+*/
+                '</tpl>'+
 			'</tpl>',
             {
                 renderMetadata: function( i ) {
@@ -82,7 +86,7 @@ Ext.define('BIS.view.ImageDetailPanel', {
 						xtype: 'combo',
 						id: 'propertySeachCombo',
 						disabled: true,
-						emptyText: 'Type to search attributes or add a new one.',
+						emptyText: 'Type to search attributes.',
 						store: 'PropertiesStore',
 						displayField: 'name',
 						typeAhead: false,
@@ -157,7 +161,8 @@ Ext.define('BIS.view.ImageDetailPanel', {
                     metadata: properties,
                     events: events,
                     geography: [],
-                    sets: []
+                    sets: [],
+                    collection: data.collectionCode
                 });
             }
         });
@@ -220,6 +225,5 @@ Ext.define('BIS.view.ImageDetailPanel', {
             }
         });
 	}
-
 
 });

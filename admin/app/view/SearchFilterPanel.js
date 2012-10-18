@@ -43,16 +43,16 @@ Ext.define('BIS.view.SearchFilterPanel', {
                     items: [
                         '->',
                         {
-                            text: 'Cancel',
-                            scope: this,
-                            handler: this.cancel
-                        },
-                        {
                             text: 'Apply Filter',
                             id: 'advFilterSubmitButton',
                             iconCls: 'icon_magnifier',
                             scope: this,
                             handler: this.activateFilter
+                        },
+                        {
+                            text: 'Cancel',
+                            scope: this,
+                            handler: this.cancel
                         }
                     ]
                 },
@@ -222,6 +222,5 @@ Ext.define('BIS.view.SearchFilterPanel', {
     cancel: function() {
         this.ownerCt.fireEvent('cancel');
     }
-
 
 });

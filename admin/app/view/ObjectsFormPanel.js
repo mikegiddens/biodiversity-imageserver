@@ -15,12 +15,12 @@ Ext.define('BIS.view.ObjectsFormPanel', {
             filterGraphRecord: null,
 
             conditionTranslations: {
-                '=': 'is equal to',
-                '!=': 'is not equal to',
-                '>': 'is greater than',
-                '<': 'is less than',
-                '>=': 'is greater than or equal to',
-                '<=': 'is less than or equal to',
+                '=': 'is',
+                '!=': 'is not',
+                '>': 'is after',
+                '<': 'is before',
+                '>=': 'is after or at',
+                '<=': 'is before or at',
                 'between': 'is between ',
                 'is': 'is',
                 '%s': 'ends with',
@@ -38,17 +38,18 @@ Ext.define('BIS.view.ObjectsFormPanel', {
                     border: false,
                     layout: 'hbox',
                     defaults: {
+                        xtype: 'combo',
                         style: 'margin: 10px;',
+                        editable: false,
+                        hidden: true,
+                        scope: me
                     },
                     items: [
                         {
-                            xtype: 'combo',
-                            hidden: true,
                             id: 'searchFiltercategory',
                             displayField: 'title',
                             valueField: 'categoryId',
                             store: 'CategoriesStore',
-                            scope: me,
                             listeners: {
                                 scope: me,
                                 change: function( combo, newVal, oldVal, opts ) {
@@ -58,7 +59,11 @@ Ext.define('BIS.view.ObjectsFormPanel', {
                                         this.filterGraphRecord.set( 'key', newVal );
                                         var attrCombo = Ext.getCmp( 'searchFilterattribute' );
                                         attrCombo.clearValue();
-                                        attrCombo.getStore().getProxy.extraParams = { cmd: 'attributeList', showNames: false, order: 'title', categoryId: newVal };
+                                        attrCombo.getStore().getProxy().extraParams = {};
+                                        attrCombo.getStore().getProxy().extraParams.cmd = 'attributeList';
+                                        attrCombo.getStore().getProxy().extraParams.showNames = false;
+                                        attrCombo.getStore().getProxy().extraParams.order = 'name';
+                                        attrCombo.getStore().getProxy().extraParams.categoryId = newVal;
                                         attrCombo.getStore().load();
                                         Ext.getCmp('filterToText').update( this.convertFilterToPlainText() );
                                     }
@@ -66,13 +71,10 @@ Ext.define('BIS.view.ObjectsFormPanel', {
                             }
                         },
                         {
-                            xtype: 'combo',
-                            hidden: true,
                             id: 'searchFiltereventType',
                             displayField: 'title',
                             valueField: 'eventTypeId',
                             store: 'EventTypesStore',
-                            scope: me,
                             listeners: {
                                 scope: me,
                                 change: function( combo, newVal, oldVal, opts ) {
@@ -82,7 +84,10 @@ Ext.define('BIS.view.ObjectsFormPanel', {
                                         this.filterGraphRecord.set( 'key', newVal );
                                         var evCombo = Ext.getCmp( 'searchFilterevent' );
                                         evCombo.clearValue();
-                                        evCombo.getStore().getProxy().extraParams = { cmd: 'attributeList', order: 'title', showNames: false, eventTypeId: newVal };
+                                        evCombo.getStore().getProxy().extraParams = {};
+                                        evCombo.getStore().getProxy().extraParams.cmd = 'eventList';
+                                        evCombo.getStore().getProxy().extraParams.order = 'title';
+                                        evCombo.getStore().getProxy().extraParams.eventTypeId = newVal;
                                         evCombo.getStore().load();
                                         Ext.getCmp('filterToText').update( this.convertFilterToPlainText() );
                                     }
@@ -90,13 +95,10 @@ Ext.define('BIS.view.ObjectsFormPanel', {
                             }
                         },
                         {
-                            xtype: 'combo',
-                            hidden: true,
                             id: 'searchFiltergeography',
                             displayField: 'country',
                             valueField: 'geographyId',
                             store: 'GeographyStore',
-                            scope: me,
                             listeners: {
                                 scope: me,
                                 change: function( combo, newVal, oldVal, opts ) {
@@ -110,13 +112,10 @@ Ext.define('BIS.view.ObjectsFormPanel', {
                             }
                         },
                         {
-                            xtype: 'combo',
-                            hidden: true,
                             id: 'searchFiltercollection',
                             displayField: 'name',
                             valueField: 'collectionId',
                             store: 'CollectionsStore',
-                            scope: me,
                             listeners: {
                                 scope: me,
                                 change: function( combo, newVal, oldVal, opts ) {
@@ -124,14 +123,14 @@ Ext.define('BIS.view.ObjectsFormPanel', {
                                         var rec = combo.findRecordByValue( newVal );
                                         this.filterGraphRecord.set( 'keyText', rec.get('name') );
                                         this.filterGraphRecord.set( 'key', newVal );
+                                        this.filterGraphRecord.set( 'valueText', rec.get('code') );
+                                        this.filterGraphRecord.set( 'value', rec.get('code') );
                                         Ext.getCmp('filterToText').update( this.convertFilterToPlainText() );
                                     }
                                 }
                             }
                         },
                         {
-                            xtype: 'combo',
-                            hidden: true,
                             id: 'searchFilterDateType',
                             queryMode: 'local',
                             displayField: 'value',
@@ -143,7 +142,6 @@ Ext.define('BIS.view.ObjectsFormPanel', {
                                     { key: 'Modified', value: 'modified' }
                                 ]
                             }),
-                            scope: me,
                             listeners: {
                                 scope: me,
                                 change: function( combo, newVal, oldVal, opts ) {
@@ -156,8 +154,25 @@ Ext.define('BIS.view.ObjectsFormPanel', {
                             }
                         },
                         {
-                            xtype: 'combo',
-                            hidden: true,
+                            id: 'searchFilterclientStation',
+                            displayField: 'title',
+                            valueField: 'remoteAccessKeyId',
+                            store: 'ClientStationsStore',
+                            listeners: {
+                                scope: me,
+                                change: function( combo, newVal, oldVal, opts ) {
+                                    if ( this.filterGraphRecord ) {
+                                        var rec = combo.findRecordByValue( newVal );
+                                        this.filterGraphRecord.set( 'keyText', rec.get('originalIp') );
+                                        this.filterGraphRecord.set( 'key', rec.get('title') );
+                                        this.filterGraphRecord.set( 'valueText', rec.get('title') );
+                                        this.filterGraphRecord.set( 'value', rec.get('key') );
+                                        Ext.getCmp('filterToText').update( this.convertFilterToPlainText() );
+                                    }
+                                }
+                            }
+                        },
+                        {
                             id: 'searchFilterCondition',
                             queryMode: 'local',
                             displayField: 'value',
@@ -180,7 +195,6 @@ Ext.define('BIS.view.ObjectsFormPanel', {
                                     { type: 'str', value: 'matches (regex)' }
                                 ]
                             }),
-                            scope: me,
                             listeners: {
                                 scope: me,
                                 change: function( combo, newVal, oldVal, opts ) {
@@ -213,13 +227,10 @@ Ext.define('BIS.view.ObjectsFormPanel', {
                             }
                         },
                         {
-                            xtype: 'combo',
-                            hidden: true,
                             id: 'searchFilterattribute',
                             displayField: 'name',
                             valueField: 'attributeId',
                             store: 'AttributesStore',
-                            scope: me,
                             listeners: {
                                 scope: me,
                                 change: function( combo, newVal, oldVal, opts ) {
@@ -235,13 +246,10 @@ Ext.define('BIS.view.ObjectsFormPanel', {
                             }
                         },
                         {
-                            xtype: 'combo',
-                            hidden: true,
                             id: 'searchFilterevent',
                             displayField: 'title',
                             valueField: 'eventId',
                             store: 'EventsStore',
-                            scope: me,
                             listeners: {
                                 scope: me,
                                 change: function( combo, newVal, oldVal, opts ) {
@@ -256,9 +264,7 @@ Ext.define('BIS.view.ObjectsFormPanel', {
                         },
                         {
                             xtype: 'textfield',
-                            hidden: true,
                             id: 'searchFilterText',
-                            scope: me,
                             listeners: {
                                 scope: me,
                                 change: function( field, e, opts ) {
@@ -272,9 +278,7 @@ Ext.define('BIS.view.ObjectsFormPanel', {
                         },
                         {
                             xtype: 'datefield',
-                            hidden: true,
                             id: 'searchFilterDate1',
-                            scope: me,
                             listeners: {
                                 scope: me,
                                 change: function( dtInput, val, e, opts ) {
@@ -289,9 +293,7 @@ Ext.define('BIS.view.ObjectsFormPanel', {
                         },
                         {
                             xtype: 'datefield',
-                            hidden: true,
                             id: 'searchFilterDate2',
-                            scope: me,
                             listeners: {
                                 scope: me,
                                 change: function( dtInput, val, e, opts ) {
@@ -326,7 +328,7 @@ Ext.define('BIS.view.ObjectsFormPanel', {
                     if ( record.get('value') ) {
                         return 'Image has an attribute that ' + textCondition + ' <span style="font-weight:bold">' + record.get('valueText') + '</span> in category "' + record.get('keyText') + '".';
                     } else {
-                        return 'Image has any attribute in category "' + record.get('keyText') + '".';
+                        return 'Image has any attribute that ' + textCondition + ' in category "' + record.get('keyText') + '".';
                     }
                 } else {
                     return 'Image has an attribute that ' + textCondition + ' <span style="font-weight:bold">' + record.get('valueText') + '</span> in any category.';
@@ -337,7 +339,7 @@ Ext.define('BIS.view.ObjectsFormPanel', {
                     if ( record.get('value') ) {
                         return 'Image has an event that ' + textCondition + ' <span style="font-weight:bold">' + record.get('valueText') + '</span> of type "' + record.get('keyText') + '".';
                     } else {
-                        return 'Image has any event of type "' + record.get('keyText') + '".';
+                        return 'Image has any event that ' + textCondition + ' of type "' + record.get('keyText') + '".';
                     }
                 } else {
                     return 'Image has an event that ' + textCondition + ' <span style="font-weight:bold">' + record.get('valueText') + '</span> of any type.';
@@ -349,6 +351,11 @@ Ext.define('BIS.view.ObjectsFormPanel', {
                 } else {
                     return 'Image\'s time ' + record.get('keyText') + ' ' + textCondition + ' ' + record.get('valueText') + '.';
                 }
+                break;
+            case 'collection':
+                return 'Collection ' + textCondition + ' ' + record.get('valueText') + '.';
+            case 'clientStation':
+                return 'Client station ' + textCondition + ' ' + record.get('valueText') + '.';
         }
     }
 

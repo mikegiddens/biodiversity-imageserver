@@ -10,7 +10,7 @@ Ext.define('BIS.view.CtxMnuCategory', {
                         title: 'Add Attribute to ' + this.record.data.title,
                         iconCls: 'icon_newAttribute',
                         modal: true,
-                        height: 100,
+                        height: 225,
                         width: 350,
                         layout: 'fit',
                         items: [
@@ -44,7 +44,7 @@ Ext.define('BIS.view.CtxMnuCategory', {
                         title: 'Edit ' + this.record.data.title,
                         iconCls: 'icon_editCategory',
                         modal: true,
-                        height: 150,
+                        height: 225,
                         width: 350,
                         layout: 'fit',
                         items: [
@@ -119,4 +119,5 @@ Ext.define('BIS.view.CtxMnuCategory', {
             }
         });
     }
+
 });

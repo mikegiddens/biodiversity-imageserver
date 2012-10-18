@@ -106,4 +106,3 @@ Ext.define('BIS.view.FormCreateDevice', {
         this.ownerCt.fireEvent( 'cancel' );
 	}
 });
-

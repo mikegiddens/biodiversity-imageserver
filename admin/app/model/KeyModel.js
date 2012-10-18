@@ -21,7 +21,7 @@ Ext.define('BIS.model.KeyModel', {
             name: 'key'
         },
         {
-            name: 'active',
+            name: 'active'
         }
     ]
 });

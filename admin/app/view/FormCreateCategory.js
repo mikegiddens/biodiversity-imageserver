@@ -17,6 +17,13 @@ Ext.define('BIS.view.FormCreateCategory', {
                     anchor: '100%'
                 },
                 {
+                    xtype: 'textarea',
+                    name: 'description',
+                    fieldLabel: 'Description',
+                    labelAlign: 'right',
+                    anchor: '100%'
+                },
+                {
                     xtype: 'hiddenfield',
                     name: 'categoryId'
                 },

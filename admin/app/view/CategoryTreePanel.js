@@ -1,20 +1,9 @@
 Ext.define('BIS.view.CategoryTreePanel', {
 	extend: 'Ext.tree.TreePanel',
 	alias: ['widget.categorytreepanel'],
-	requires: [
-        'Ext.tree.plugin.TreeViewDragDrop'
-	],
-    uses: [
-        'Ext.tree.ViewDropZone'
-    ],
 	id: 'categoryTreePanel',
+
     rootVisible: false,
-    viewConfig: {
-       plugins: [{
-           ddGroup: 'imageDD',
-           ptype: 'treeviewdragdrop'
-       }]
-    },
 	initComponent: function() {
 		var me = this;
 
@@ -24,20 +13,6 @@ Ext.define('BIS.view.CategoryTreePanel', {
 			multiSelect: true,
 			allowCopy: true,
 			viewConfig: {
-				plugins: [
-					Ext.create('Ext.tree.plugin.TreeViewDragDrop', {
-						ddGroup: 'imageDD',
-						dropGroup: 'imageDD',
-						enableDrop: true,
-						appendOnly: true,
-                        listeners: {
-                            drop: function( node, data, overModel, dropPos, e ) {
-                                console.log( 'drop', node, data, overModel, dropPos, e );
-                            }
-                        }
-					})
-				],
-				copy: true,
 				loadMask: false
 			},
 			columns: [{
@@ -49,12 +24,6 @@ Ext.define('BIS.view.CategoryTreePanel', {
 			}],
 			scope: this,
 			listeners: {
-                drop: function( node, data, overModel, dropPos, e ) {
-                    console.log( 'drop2', node, data, overModel, dropPos, e );
-                },
-                beforedrop: function( node, data, overModel, dropPos, e ) {
-                    console.log( 'beforedrop2', node, data, overModel, dropPos, e );
-                },
 				show: function( el, opts ) {
                     if ( opts && opts.isAttribute ) delete opts.isAttribute;
                     this.getStore().getProxy().extraParams = {
@@ -117,7 +86,7 @@ Ext.define('BIS.view.CategoryTreePanel', {
 			title: 'Create Category',
 			iconCls: 'icon_newCategory',
 			modal: true,
-			height: 100,
+			height: 225,
 			width: 350,
 			layout: 'fit',
 			items: [{

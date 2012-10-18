@@ -73,14 +73,14 @@ Ext.define('BIS.view.CtxMnuEvent', {
                 var images = [];
                 Ext.each( Ext.getCmp('imagesGrid').getSelectionModel().getSelection(), function( image ) { images.push( image.get('imageId') ) });
                 imagesAffected = images.length;
-                params.imageId = images;
+                params.imageId = JSON.stringify( images );
                 break;
             case 'filtered':
                 params.advFilter = Ext.getCmp('imagesGrid').getStore().getProxy().extraParams.advFilter // last used advanced filter
                 Ext.getCmp('imagesGrid').getStore().totalCount;
                 break;
             case 'all':
-                params.advFilter = { node: "group", logop: "and", children: [] } // global filter
+                params.advFilter = JSON.stringify({ node: "group", logop: "and", children: [] }); // global filter
                 imagesAffected = 'all';
                 break;
         }
