@@ -1,5 +1,19 @@
 Ext.define('BIS.view.FilterContextMenu', {
     extend: 'Ext.menu.Menu',
+    
+    scope: this,
+    listeners: {
+        click: function( menu, item ) {
+            switch ( item.identifier ) {
+                case 'toggleGroup':
+                    this.toggleGroup();
+                    break;
+                case 'remove':
+                    this.remove();
+                    break;
+            }
+        }
+    },
     initComponent: function() {
         var me = this;
 
@@ -13,7 +27,7 @@ Ext.define('BIS.view.FilterContextMenu', {
                         scope: me,
                         listeners: {
                             scope: me,
-                            click: me.onClick
+                            click: me.handleClick
                         },
                         items: [
                             {
@@ -34,7 +48,7 @@ Ext.define('BIS.view.FilterContextMenu', {
                         scope: me,
                         listeners: {
                             scope: me,
-                            click: me.onClick
+                            click: me.handleClick
                         },
                         items: [
                             {
@@ -66,19 +80,13 @@ Ext.define('BIS.view.FilterContextMenu', {
                 },
                 '-',
                 {
-                    xtype: 'menuitem',
                     text: 'Switch to "' + ((me.record.get('object') == 'and') ? 'or' : 'and') + '"',
-                    identifier: 'toggleGroup',
-                    scope: me,
-                    handler: me.toggleGroup
+                    identifier: 'toggleGroup'
                 },
                 {
-                    xtype: 'menuitem',
                     text: 'Remove Node',
                     identifier: 'remove',
-                    disabled: Ext.getCmp('filterTreePanel').getStore().getRootNode() == me.record,
-                    scope: me,
-                    handler: me.remove
+                    disabled: Ext.getCmp('filterTreePanel').getStore().getRootNode() == me.record
                 }
             ]
 
@@ -94,13 +102,12 @@ Ext.define('BIS.view.FilterContextMenu', {
     toggleGroup: function() {
         this.record.set('object', (this.record.get('object') == 'and') ? 'or' : 'and');
     },
-    onClick: function( menu, item ) {
+    handleClick: function( menu, item ) {
         if ( item.identifier ) {
             var identifier = item.identifier.split( ':' );
             var filterGraph = Ext.getCmp('filterTreePanel').getStore();
             switch ( identifier[0] ) {
                 case 'remove':
-                    console.log( this );
                     this.remove();
                     break;
                 case 'group':

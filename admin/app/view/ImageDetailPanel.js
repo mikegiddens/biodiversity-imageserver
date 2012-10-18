@@ -43,13 +43,13 @@ Ext.define('BIS.view.ImageDetailPanel', {
             {
                 renderMetadata: function( i ) {
                     return '<span class="imgmetadata imagePropertyPill">'+
-                                '<span class="imagePropertyPillText"><span style="font-weight:bold">' + i.key + '</span>: ' + i.value + '</span>'+
+                                '<span class="imagePropertyPillText">' + i.key + ': ' + '<span style="font-weight:bold">' + i.value + '</span></span>'+
                                 '<span pilldata="' + i.aid + '" valdata="' + i.value + '" class="del imagePropertyPillRemove"></span>'+
                         '</span>'
                 },
                 renderEvents: function( i ) {
                     return '<span class="imgevents imagePropertyPill">'+
-                                '<span class="imagePropertyPillText">' + /*<span style="font-weight:bold">' + i.key + '</span>: ' +*/ i.value + '</span>'+
+                                '<span class="imagePropertyPillText">' + i.value + '</span>'+
                                 '<span pilldata="' + i.eid + '" valdata="' + i.value + '" class="del imagePropertyPillRemove"></span>'+
                         '</span>'
                 }

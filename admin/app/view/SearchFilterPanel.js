@@ -29,7 +29,7 @@ Ext.define('BIS.view.SearchFilterPanel', {
                             region: 'north'
                         }),
                         Ext.create( 'BIS.view.FilterTreePanel', {
-                            flex: 2,
+                            flex: 3,
                             region: 'center'
                         })
                     ]
@@ -89,14 +89,14 @@ Ext.define('BIS.view.SearchFilterPanel', {
                             handler: this.resetFilter
                         },
                         {
-                            text: 'Save as New Filter',
+                            text: 'Save as New',
                             id: 'advFilterSaveButton',
                             iconCls: 'icon_addFilter',
                             scope: this,
                             handler: this.saveFilter
                         },
                         {
-                            text: 'Update Filter',
+                            text: 'Update',
                             hidden: true,
                             id: 'advFilterUpdateButton',
                             iconCls: 'icon_saveFilter',
@@ -104,7 +104,7 @@ Ext.define('BIS.view.SearchFilterPanel', {
                             handler: this.updateFilter
                         },
                         {
-                            text: 'Remove Filter',
+                            text: 'Remove',
                             hidden: true,
                             id: 'advFilterRemoveButton',
                             iconCls: 'icon_deleteFilter',

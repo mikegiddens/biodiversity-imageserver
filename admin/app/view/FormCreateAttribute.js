@@ -59,7 +59,6 @@ Ext.define('BIS.view.FormCreateAttribute', {
         afterrender: function() {
             if ( this.mode != 'add' ) {
                 // edit
-                console.log( this.record );
                 Ext.getCmp('formCreateAttribute').loadRecord( this.record );
             }
         }
