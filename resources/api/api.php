@@ -1710,24 +1710,60 @@
 			print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart, 'totalCount' => $count ) ) );
 			break;
 			
+		// case 'imageAddToCollection':
+			// checkAuth();
+			// if($imageId == '') {
+				// $valid = false;
+				// $errorCode = 157;
+			// } else if($code =='') {
+				// $valid = false;
+				// $errorCode = 179;
+			// } elseif(!$si->collection->collectionCodeExists($code)) {
+				// $valid = false;
+				// $errorCode = 175;
+			// } elseif(!$si->image->imageLoadById($imageId)) {
+				// $valid = false;
+				// $errorCode = 158;
+			// }
+			// if($valid) {
+				// $si->image->imageSetProperty('collectionCode', $code);
+				// if($si->image->imageSave()) {
+					// print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart ) ) );
+				// } else {
+					// print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray(176)) ));
+				// }
+			// } else {
+				// print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray($errorCode)) ));
+			// }
+			// break;
+			
 		case 'imageAddToCollection':
 			checkAuth();
-			if($imageId == '') {
-				$valid = false;
-				$errorCode = 157;
-			} else if($code =='') {
+			if($advFilterId != '') {
+				if($si->advFilter->advFilterLoadById($advFilterId)) {
+					$advFilter  = $si->advFilter->advFilterGetProperty('filter');
+				}
+			}
+			$data['advFilter'] = json_decode(stripslashes(trim($advFilter)),true);
+			if($code =='') {
 				$valid = false;
 				$errorCode = 179;
 			} elseif(!$si->collection->collectionCodeExists($code)) {
 				$valid = false;
 				$errorCode = 175;
-			} elseif(!$si->image->imageLoadById($imageId)) {
+			} elseif($imageId == '' && !(is_array($data['advFilter']) && count($data['advFilter']))) {
 				$valid = false;
-				$errorCode = 158;
+				$errorCode = 220;
+			} else if($imageId != '' && is_array($data['advFilter']) && count($data['advFilter'])) {
+				if(!$si->image->imageLoadById($imageId)) {
+					$valid = false;
+					$errorCode = 158;
+				}
 			}
 			if($valid) {
-				$si->image->imageSetProperty('collectionCode', $code);
-				if($si->image->imageSave()) {
+				$data['imageId'] = $imageId;
+				$si->collection->collectionSetData($data);
+				if($si->collection->collectionAddImage($code)) {
 					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart ) ) );
 				} else {
 					print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray(176)) ));
@@ -1751,7 +1787,7 @@
 			} else if(!$si->event->eventsRecordExists($eventId)) {
 				$valid = false;
 				$errorCode = 117;
-			} if($data['imageId'] == "" && !(is_array($data['advFilter']) && count($data['advFilter']))) {
+			} if($imageId == "" && !(is_array($data['advFilter']) && count($data['advFilter']))) {
 				$valid = false;
 				$errorCode = 220;
 			} else if($imageId != '' && is_array($data['advFilter']) && count($data['advFilter'])) {

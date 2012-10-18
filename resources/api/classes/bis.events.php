@@ -157,12 +157,15 @@ class Event
 	public function eventsDelete($eventId) {
 		if($eventId == '') return false;
 		if(!$this->eventsRecordExists($eventId)) return false;
-		$query = sprintf("DELETE FROM `events` WHERE `eventId` = '%s' ", mysql_escape_string($eventId));
+		$query = sprintf("DELETE FROM `eventImages` WHERE `eventId` = '%s' ", mysql_escape_string($eventId));
 		if($this->db->query($query)) {
-			$this->lg->logSetProperty('table', 'events');
-			$this->lg->logSetProperty('query', $query);
-			$this->lg->logSave();
-			return  true;
+			$query = sprintf("DELETE FROM `events` WHERE `eventId` = '%s' ", mysql_escape_string($eventId));
+			if($this->db->query($query)) {
+				$this->lg->logSetProperty('table', 'events');
+				$this->lg->logSetProperty('query', $query);
+				$this->lg->logSave();
+				return  true;
+			}
 		}
 		return false;
 	}
@@ -417,7 +420,7 @@ class EventTypes
 	public function eventTypesDelete($eventTypeId) {
 		if($eventTypeId == '') return false;
 		if(!$this->eventTypesRecordExists($eventTypeId)) return false;
-		$query = sprintf("DELETE FROM `eventTypes` WHERE `eventTypeId` = '%s' ", mysql_escape_string($eventTypeId));
+		$query = sprintf("DELETE e, et, em FROM eventTypes et LEFT OUTER JOIN events e ON et.eventTypeId = e.eventTypeId LEFT OUTER JOIN eventImages em ON  e.eventId = em.eventId WHERE et.eventTypeId = '%s' ", mysql_escape_string($eventTypeId));
 		if($this->db->query($query)) {
 			$this->lg->logSetProperty('table', 'eventTypes');
 			$this->lg->logSetProperty('query', $query);

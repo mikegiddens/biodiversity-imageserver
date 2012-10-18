@@ -178,6 +178,7 @@ CREATE TABLE IF NOT EXISTS `geography` (
 CREATE TABLE IF NOT EXISTS `image` (
   `imageId` int(11) NOT NULL AUTO_INCREMENT,
   `filename` varchar(60) NOT NULL,
+  `timestampAdded` datetime DEFAULT NULL,
   `timestampModified` datetime DEFAULT NULL,
   `barcode` varchar(20) DEFAULT NULL,
   `width` int(11) NOT NULL DEFAULT '0',
