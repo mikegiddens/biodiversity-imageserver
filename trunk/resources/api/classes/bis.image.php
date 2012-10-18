@@ -613,7 +613,7 @@ Class Image {
 				, mysql_escape_string($this->imageGetProperty('imageId'))
 			);
 		} else {
-			$query = sprintf("INSERT IGNORE INTO `image` SET `filename` = '%s', `timestampModified` = now(), `barcode` = '%s', `width` = '%s', `height` = '%s', `family` = '%s', `genus` = '%s', `specificEpithet` = '%s', `rank` = '%s', `author` = '%s', `title` = '%s', `description` = '%s', `globalUniqueIdentifier` = '%s', `copyright` = '%s', `characters` = '%s', `flickrPlantId` = '%s', `flickrModified` = '%s', `flickrDetails` = '%s', `picassaPlantId` = '%s', `picassaModified` = '%s', `gTileProcessed` = '%s', `zoomEnabled` = '%s', `processed` = '%s', `boxFlag` = '%s', `ocrFlag` = '%s', `ocrValue` = '%s', `nameFinderFlag` = '%s', `nameFinderValue` = '%s', `scientificName` = '%s', `collectionCode` = '%s', `tmpfamily` = '%s', `tmpfamilyAccepted` = '%s', `tmpGenus` = '%s', `tmpGenusAccepted` = '%s', `guessFlag` = '%s', `storageDeviceId` = '%s', `path` = '%s', `originalFilename` = '%s', `remoteAccessKey` = '%s', `statusType` = '%s', `rating` = '%s' ;"
+			$query = sprintf("INSERT IGNORE INTO `image` SET `filename` = '%s', `timestampAdded` = now(), `timestampModified` = now(), `barcode` = '%s', `width` = '%s', `height` = '%s', `family` = '%s', `genus` = '%s', `specificEpithet` = '%s', `rank` = '%s', `author` = '%s', `title` = '%s', `description` = '%s', `globalUniqueIdentifier` = '%s', `copyright` = '%s', `characters` = '%s', `flickrPlantId` = '%s', `flickrModified` = '%s', `flickrDetails` = '%s', `picassaPlantId` = '%s', `picassaModified` = '%s', `gTileProcessed` = '%s', `zoomEnabled` = '%s', `processed` = '%s', `boxFlag` = '%s', `ocrFlag` = '%s', `ocrValue` = '%s', `nameFinderFlag` = '%s', `nameFinderValue` = '%s', `scientificName` = '%s', `collectionCode` = '%s', `tmpfamily` = '%s', `tmpfamilyAccepted` = '%s', `tmpGenus` = '%s', `tmpGenusAccepted` = '%s', `guessFlag` = '%s', `storageDeviceId` = '%s', `path` = '%s', `originalFilename` = '%s', `remoteAccessKey` = '%s', `statusType` = '%s', `rating` = '%s' ;"
 				, mysql_escape_string($this->imageGetProperty('filename'))
 				, mysql_escape_string($this->imageGetProperty('barcode'))
 				, mysql_escape_string($this->imageGetProperty('width'))
@@ -1041,7 +1041,7 @@ Class Image {
 		$characters = $this->data['characters'];
 		$browse = $this->data['browse'];
 
-		$this->query = "SELECT I.imageId,I.filename,I.timestampModified, I.barcode, I.width,I.height,I.family,I.genus,I.specificEpithet,I.flickrPlantId, I.flickrModified,I.flickrDetails,I.picassaPlantId,I.picassaModified, I.gTileProcessed,I.zoomEnabled,I.processed,I.boxFlag,I.ocrFlag,I.rating, I.author, I.copyright";
+		$this->query = "SELECT I.imageId,I.filename,I.timestampAdded,I.timestampModified, I.barcode, I.width,I.height,I.family,I.genus,I.specificEpithet,I.flickrPlantId, I.flickrModified,I.flickrDetails,I.picassaPlantId,I.picassaModified, I.gTileProcessed,I.zoomEnabled,I.processed,I.boxFlag,I.ocrFlag,I.rating, I.author, I.copyright";
 		if($this->data['showOCR']) {
 			$this->query .= ',I.ocrValue';
 		}
@@ -1810,11 +1810,10 @@ Class Image {
 						} else if($filter['key'] != '' && $filter['value'] == '') {
 							switch($filter['condition']) {
 								case '=':
-									$conditionArray[] = sprintf(" ( at.`categoryId` != %d OR at.`categoryId` is null ) ", $filter['key']);
-									$fieldsArray[] = 'at.`categoryId`';
+									$str .= " ( i.`imageId` NOT IN ( SELECT ia.imageId FROM imageAttrib ia WHERE ia.categoryId = {$filter['key']} ) ) ";
 									break;
 								case '!=':
-									$str .= sprintf(" ( at.`categoryId` = %d ) ", $filter['key']);
+									$str .= " ( i.`imageId` IN ( SELECT ia.imageId FROM imageAttrib ia WHERE ia.categoryId = {$filter['key']} ) ) ";
 									break;
 							}
 						}
@@ -1823,7 +1822,9 @@ Class Image {
 						$str .= sprintf(" ( i.`collectionCode` = '%s' ) ", mysql_escape_string($filter['key'])); 
 						break;
 					case 'clientStation':
-
+						if(in_array($filter['condition'],array('=','!=')) && $filter['value'] != '' && !is_null($filter['value'])) {
+							$str .= sprintf(" ( i.`remoteAccessKey` {$filter['condition']} '%s' ) ", $filter['value']);
+						}
 						break;
 					case 'event':
 						$tables[] = 'event';
@@ -1870,12 +1871,10 @@ Class Image {
 						} else if($filter['key'] != '' && $filter['value'] == '') {
 							switch($filter['condition']) {
 								case '=':
-									// $str .= sprintf(" ( ev.`eventTypeId` %s %d ) ", $filter['condition'], $filter['key']);
-									$conditionArray[] = sprintf(" ( ev.`eventTypeId` != %d OR ev.`eventTypeId` is null ) ", $filter['key']);
-									$fieldsArray[] = 'ev.`eventTypeId`';
+									$str .= " ( i.`imageId` NOT IN ( SELECT ei.imageId FROM eventImages ei, events e WHERE ei.eventId = e.eventId AND e.eventTypeId = {$filter['key']} ) ) ";
 									break;
 								case '!=':
-									$str .= sprintf(" ( ev.`eventTypeId` = %d ) ", $filter['key']);
+									$str .= " ( i.`imageId` IN ( SELECT ei.imageId FROM eventImages ei, events e WHERE ei.eventId = e.eventId AND e.eventTypeId = {$filter['key']} ) ) ";
 									break;
 							}
 						}
@@ -1885,7 +1884,7 @@ Class Image {
 						break;
 						
 					case 'time':
-						$key = (strtolower($filter['key']) == 'added') ? 'i.`timestampModified`' : 'i.`timestampModified`'; // currently we have only `timestampModified`.
+						$key = (strtolower($filter['key']) == 'added') ? 'i.`timestampAdded`' : 'i.`timestampModified`';
 						if(in_array($filter['condition'],array('=','!=','>','<','>=','<=')) && $filter['value'] != '' && !is_null($filter['value'])) {
 							$str .= sprintf(" ($key {$filter['condition']} '%s') ", $filter['value']);
 						} else if ($filter['condition'] == 'between' && $filter['value2'] != '' && !is_null($filter['value2'])) {
@@ -1899,28 +1898,22 @@ Class Image {
 	}
 
 	public function getByCrazyFilter ($filter, $totalFlag = false, $ocrFlag = false) {
-		global $tables, $conditionArray,$fieldsArray;
+		global $tables;
 		$tables = array();
-		$conditionArray = array();
-		$fieldsArray = array();
 		// $filter = json_decode($filter,true);
 		
 		$where = $this->crazyFilter($filter);
 		
 		$query = ($totalFlag) ? ' SELECT SQL_CALC_FOUND_ROWS ' : ' SELECT ';
 		
-		$query .= ' i.`imageId`,i.`filename`,i.`timestampModified`, i.`barcode`, i.`width`,i.`height`,i.`family`,i.`genus`,i.`specificEpithet`,i.`flickrPlantId`, i.`flickrModified`,i.`flickrDetails`,i.`picassaPlantId`,i.`picassaModified`, i.`gTileProcessed`,i.`zoomEnabled`,i.`processed`,i.`boxFlag`,i.`ocrFlag`,i.`rating`, i.`author`, i.`copyright`';
+		$query .= ' i.`imageId`,i.`filename`,i.`timestampAdded`,i.`timestampModified`, i.`barcode`, i.`width`,i.`height`,i.`family`,i.`genus`,i.`specificEpithet`,i.`flickrPlantId`, i.`flickrModified`,i.`flickrDetails`,i.`picassaPlantId`,i.`picassaModified`, i.`gTileProcessed`,i.`zoomEnabled`,i.`processed`,i.`boxFlag`,i.`ocrFlag`,i.`rating`, i.`author`, i.`copyright`';
+		// $query .= ' i.`imageId`,i.`filename`';
 		if($ocrFlag) {
 			$query .= ',i.`ocrValue`';
 		}
 		# fields for url computation
 		$query .= ',i.`storageDeviceId`,i.`path`';
 		$query .= ',i.`nameFinderFlag`,i.`nameFinderValue`,i.`scientificName`, i.`collectionCode`, i.`globalUniqueIdentifier` ';
-		
-		$fieldsArray = array_unique($fieldsArray);
-		if(count($fieldsArray)) {
-			$query .= ',' . @implode(',',$fieldsArray);
-		}
 		$query .= ' FROM `image` i ';
 		
 		$tables = array_unique($tables);
@@ -1943,10 +1936,6 @@ Class Image {
 		$where = ($where != '') ? ' WHERE  0=0 AND ' . $where : '';
 		$query = $query . $where;
 		$query .= ' GROUP BY i.`imageId` ';
-		if(count($conditionArray)) {
-			$havingClause = ' HAVING ' . @implode(' AND ', $conditionArray);
-			$query .= $havingClause;
-		}
 		// echo $query;exit;
 		return $query;
 	
