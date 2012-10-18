@@ -14,6 +14,8 @@ Ext.define('BIS.view.FilterTreePanel', {
         },
         itemappend: function( thisNode, newNode, index, opts ) {
             if ( newNode.get('node') == 'group' ) newNode.set('object', newNode.get('logop') );
+            this.getSelectionModel().select( newNode );
+            this.fireEvent( 'itemclick', this, newNode );
         },
         itemcontextmenu: function( tree, record, item, ind, e ) {
             e.stopEvent();
@@ -26,11 +28,12 @@ Ext.define('BIS.view.FilterTreePanel', {
                 ctx.showAt( e.getXY() );
             }
         },
-        itemclick: function( tree, record, item, ind, e ) {
+        itemclick: function( tree, record, clickedItem, ind, e ) {
             if ( record.get('node') == 'condition' ) {
                 var objectsFormPanel = Ext.getCmp( 'objectsFormPanel' );
                 var conditionCombo = Ext.getCmp( 'searchFilterCondition' );
                 Ext.getCmp('filterToText').update('');
+                Ext.getCmp('searchFilterText').setValue('');
                 objectsFormPanel.conditionalComponent = null;
                 objectsFormPanel.filterGraphRecord = null;
                 Ext.each( Ext.getCmp('objectFormFields').items.items, function( item ) { item.hide() } );
@@ -38,8 +41,6 @@ Ext.define('BIS.view.FilterTreePanel', {
                     case 'attribute':
                         Ext.getCmp( 'searchFiltercategory' ).setValue( record.get('key') ).show();
                         objectsFormPanel.conditionalComponent = Ext.getCmp( 'searchFilterattribute' );
-                        objectsFormPanel.conditionalComponent.getStore().clearFilter( true );
-                        objectsFormPanel.conditionalComponent.getStore().filter( 'categoryId', record.get('key') );
                         objectsFormPanel.conditionalComponent.setValue( record.get('value') ).show();
                         conditionCombo.getStore().clearFilter( true );
                         conditionCombo.getStore().filterBy( function( record, id ) {
@@ -49,8 +50,6 @@ Ext.define('BIS.view.FilterTreePanel', {
                     case 'event':
                         Ext.getCmp( 'searchFiltereventType' ).setValue( record.get('key') ).show();
                         objectsFormPanel.conditionalComponent = Ext.getCmp( 'searchFilterevent' );
-                        objectsFormPanel.conditionalComponent.getStore().clearFilter( true );
-                        objectsFormPanel.conditionalComponent.getStore().filter( 'eventTypeId', record.get('key') );
                         objectsFormPanel.conditionalComponent.setValue( record.get('value') ).show();
                         conditionCombo.getStore().clearFilter( true );
                         conditionCombo.getStore().filterBy( function( record, id ) {
@@ -68,6 +67,7 @@ Ext.define('BIS.view.FilterTreePanel', {
                     case 'collection':
                         Ext.getCmp( 'searchFiltercollection' ).setValue( record.get('key') ).show();
                         Ext.getCmp( 'searchFilterText' ).setValue( record.get('value') ).show();
+                        objectsFormPanel.conditionalComponent = Ext.getCmp( 'searchFiltercollection' );
                         conditionCombo.getStore().clearFilter( true );
                         conditionCombo.getStore().filterBy( function( record, id ) {
                             return record.get('type') != 'time';
@@ -83,6 +83,13 @@ Ext.define('BIS.view.FilterTreePanel', {
                         });
                         break;
                     case 'clientStation':
+                        Ext.getCmp( 'searchFilterclientStation' ).setValue( record.get('key') ).show();
+                        Ext.getCmp( 'searchFilterText' ).setValue( record.get('value') ).show();
+                        objectsFormPanel.conditionalComponent = Ext.getCmp( 'searchFilterclientStation' );
+                        conditionCombo.getStore().clearFilter( true );
+                        conditionCombo.getStore().filterBy( function( record, id ) {
+                            return record.get('type') != 'time';
+                        });
                         break;
                 }
                 conditionCombo.setValue( record.get('condition') );

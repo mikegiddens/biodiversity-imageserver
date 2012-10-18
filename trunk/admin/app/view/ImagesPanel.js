@@ -117,7 +117,7 @@ Ext.define('BIS.view.ImagesPanel', {
                 iconCls: 'icon_magnifier',
                 modal: true,
                 height: 400,
-                width: 500,
+                width: 650, // this is wide enough to fit all the combo fields
                 layout: 'fit',
                 resizable: false,
                 bodyBorder: false,
@@ -175,5 +175,6 @@ Ext.define('BIS.view.ImagesPanel', {
         this.searchOcr( val );
 	},
     searchOcr: function( val ) {
+
     }
 });

@@ -77,6 +77,9 @@ Ext.define('BIS.view.CtxMnuDevice', {
             Ext.getCmp('storageDevicesGrid').getStore().load();
             tmpWindow.close();
         });
+        tmpWindow.on('cancel', function( data ) {
+            tmpWindow.close();
+        });
         tmpWindow.show();
     },
     makeDefault: function() {

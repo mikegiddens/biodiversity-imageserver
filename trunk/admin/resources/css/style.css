@@ -41,6 +41,12 @@
 	margin: 5px;
 }
 
+/*================================
+/*	ExtJs Overrides
+/*===============================*/
+.x-grid-dirty-cell {
+	background-image: none ! important;
+}
 
 /*================================
 /*	App loading mask

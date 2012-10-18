@@ -15,7 +15,10 @@ Ext.define('BIS.view.ImagesGridView', {
 	selectedItemCls: 'imageRowSelected',
     overItemCls: 'highlight',
     trackOver: true,
-	multiSelect: true,
+    // selectionModel config
+    mode: 'MULTI',
+    //allowDeselect: true, // this is true by default
+    //
     scope: this,
 	listeners: {
 		afterrender: function( gridview, e ) {
@@ -29,7 +32,6 @@ Ext.define('BIS.view.ImagesGridView', {
             console.log( 'select',a,b,c,d,e);
         },
         */
-		// dd events
 		itemclick: function( gridview, record, el, ind, e, opts ) {
             this.getSelectionModel().deselectAll();
             this.getSelectionModel().select( ind );
@@ -95,6 +97,7 @@ Ext.define('BIS.view.ImagesGridView', {
                         '<tpl if="barcode != 0">'+
                             '<span>Barcode: {barcode}</span><br>'+
                         '</tpl>'+
+                        '<span>Date Added: {timestampAdded:this.renderDate}</span><br>'+
                         '<span>Date Modified: {timestampModified:this.renderDate}</span>'+
                     '</div>'+
 				'</div>'+

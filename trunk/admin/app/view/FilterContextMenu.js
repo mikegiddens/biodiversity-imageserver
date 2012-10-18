@@ -58,11 +58,11 @@ Ext.define('BIS.view.FilterContextMenu', {
                             {
                                 text: 'Event',
                                 identifier: 'condition:event'
-                            },
+                            },/*
                             {
                                 text: 'Geography',
                                 identifier: 'condition:geography'
-                            },
+                            },*/
                             {
                                 text: 'Collection',
                                 identifier: 'condition:collection'

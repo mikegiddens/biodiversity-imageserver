@@ -41,7 +41,8 @@ Ext.application({
         'FilterTreeStore',
         'GeographyStore',
         'ObjectsTreeStore',
-        'SavedFilterStore'
+        'SavedFilterStore',
+        'ClientStationsStore'
     ],
     views: [
         'MainViewport',
