@@ -37,6 +37,9 @@ Ext.define('BIS.view.ObjectsFormPanel', {
                     id: 'objectFormFields',
                     border: false,
                     layout: 'hbox',
+                    defaults: {
+                        style: 'margin: 10px;',
+                    },
                     items: [
                         {
                             xtype: 'combo',
@@ -222,9 +225,11 @@ Ext.define('BIS.view.ObjectsFormPanel', {
                                 change: function( combo, newVal, oldVal, opts ) {
                                     if ( this.filterGraphRecord ) {
                                         var rec = combo.findRecordByValue( newVal );
-                                        this.filterGraphRecord.set( 'valueText', rec.get('name') );
-                                        this.filterGraphRecord.set( 'value', newVal );
-                                        Ext.getCmp('filterToText').update( this.convertFilterToPlainText() );
+                                        if ( rec ) {
+                                            this.filterGraphRecord.set( 'valueText', rec.get('name') );
+                                            this.filterGraphRecord.set( 'value', newVal );
+                                            Ext.getCmp('filterToText').update( this.convertFilterToPlainText() );
+                                        }
                                     }
                                 }
                             }

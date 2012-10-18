@@ -116,8 +116,8 @@ Ext.define('BIS.view.ImagesPanel', {
                 title: 'Advanced Filter',
                 iconCls: 'icon_magnifier',
                 modal: true,
-                height: 600,
-                width: 800,
+                height: 400,
+                width: 500,
                 layout: 'fit',
                 resizable: false,
                 bodyBorder: false,
@@ -145,8 +145,8 @@ Ext.define('BIS.view.ImagesPanel', {
 	},
     setAdvancedFilter: function( filterGraph, callback ) {
         this.getStore().getProxy().extraParams = {
-                cmd: 'imageList',
-                advFilter: JSON.stringify( filterGraph )
+            cmd: 'imageList',
+            advFilter: JSON.stringify( filterGraph )
         }
         this.getStore().load({
             callback: function( success, res ) {
@@ -160,7 +160,10 @@ Ext.define('BIS.view.ImagesPanel', {
         });
     },
 	clearFilter: function() {
-		this.getStore().clearFilter();
+        this.getStore().getProxy().extraParams = {
+            cmd: 'imageList'
+        }
+        this.getStore().load();
 	},
 	changeView: function( cycleBtn, item ) {
 		if ( item.type != 'details' ) {

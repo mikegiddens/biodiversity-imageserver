@@ -63,22 +63,28 @@ Ext.define('BIS.view.CtxMnuEvent', {
         me.callParent(arguments);
     },
     handleAssignment: function( menu, item ) {
+        var imagesAffected = '(n/a)';
         var params = {
             cmd: 'imageAddToEvent',
             eventId: this.record.get('eventId')
         }
         switch ( item.identifier ) {
             case 'selected':
-                console.log( 'this one isn\'t hooked up yet' );
+                var images = [];
+                Ext.each( Ext.getCmp('imagesGrid').getSelectionModel().getSelection(), function( image ) { images.push( image.get('imageId') ) });
+                imagesAffected = images.length;
+                params.imageId = images;
                 break;
             case 'filtered':
                 params.advFilter = Ext.getCmp('imagesGrid').getStore().getProxy().extraParams.advFilter // last used advanced filter
+                Ext.getCmp('imagesGrid').getStore().totalCount;
                 break;
             case 'all':
-                console.log( 'this one isn\'t hooked up yet' );
+                params.advFilter = { node: "group", logop: "and", children: [] } // global filter
+                imagesAffected = 'all';
                 break;
         }
-        Ext.Msg.confirm( 'Add Attribute to Images', 'Are you sure you want to add "' + this.record.get('title') + '" to ' + Ext.getCmp('imagesGrid').getStore().totalCount + ' images?', function( btn, text, opts ) {
+        Ext.Msg.confirm( 'Associate Event with Images', 'Are you sure you want to associate "' + this.record.get('title') + '" with <span style="font-weight:bold;">' + imagesAffected + '</span> images?', function( btn, text, opts ) {
             if ( btn == 'yes' ) {
                 Ext.Ajax.request({
                     url: Config.baseUrl + 'resources/api/api.php',
@@ -86,9 +92,12 @@ Ext.define('BIS.view.CtxMnuEvent', {
                     scope: this,
                     success: function( data ) {
                         data = Ext.decode( data.responseText );
-                        if ( data.success ) {
-                        }
                         console.log( data );
+                        if ( data.success ) {
+                            // reload image details panel
+                            var detailsPanel = Ext.getCmp('imageDetailsPanel');
+                            detailsPanel.loadImage( detailsPanel.image );
+                        }
                     }
                 });
             }

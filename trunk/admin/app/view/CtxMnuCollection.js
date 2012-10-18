@@ -5,9 +5,11 @@ Ext.define('BIS.view.CtxMnuCollection', {
         click: function( menu, item ) {
             switch( item.identifier ) {
                 case 'filter':
-                    Ext.getCmp('imagesGrid').setFilter({
+                    Ext.getCmp('imagesGrid').getStore().getProxy().extraParams = {
+                        cmd: 'imageList',
                         code: this.record.data.code
-                    }, true);
+                    }
+                    Ext.getCmp('imagesGrid').getStore().load();
                     break;
                 case 'update':
                     var me = this;
