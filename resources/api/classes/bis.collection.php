@@ -227,15 +227,19 @@ Class Collection {
 	public function collectionAddImage($code) {
 		if($code == '') return false;
 		if(!$this->collectionCodeExists($code)) return false;
-
 		$image = new Image($this->db);
 		if(is_array($this->data['advFilter']) && count($this->data['advFilter'])) {
 			$qry = $image->getByCrazyFilter($this->data['advFilter']);
 			$query = " UPDATE `image` SET `collectionCode` = '$code' WHERE `imageId` IN ( SELECT im.`imageId` FROM ($qry) im ) ";
 			return ($this->db->query($query));
-		} else if($this->data['imageId'] != '' && $image->imageLoadById($this->data['imageId'])) {
-			$image->imageSetProperty('collectionCode', $code);
-			return ($image->save());
+		} else if(is_array($this->data['imageId']) && count($this->data['imageId'])) {
+			foreach($this->data['imageId'] as $imageId) {
+				if($image->imageLoadById($imageId)) {
+					$image->imageSetProperty('collectionCode', $code);
+					$image->imageSave();
+				}
+			}
+			return true;
 		} else {
 			return false;
 		}

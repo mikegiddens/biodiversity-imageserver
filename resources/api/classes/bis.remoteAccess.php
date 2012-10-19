@@ -97,6 +97,11 @@ Class RemoteAccess {
 		if ($where != '') {
 			$where = " WHERE " . $where;
 		}
+		if($this->data['group'] != '' && in_array($this->data['group'], array('remoteAccessId','title','description','originalIp','ip','key','active')) && $this->data['dir'] != '') {
+			$where .= build_order( array(array('field' => $this->data['group'], 'dir' => $this->data['dir'])));
+		} else {
+			$where .= ' ORDER BY `remoteAccessId` ASC ';
+		}
 		if(trim($this->data['start']) != '' && trim($this->data['limit']) != '') {
 			$where .= build_limit($this->data['start'], $this->data['limit']);
 		}

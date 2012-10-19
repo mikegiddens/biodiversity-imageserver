@@ -8,22 +8,22 @@
 
 Class Images {
 
-    private $files_array;
+    private $filesArray;
     public $db, $record;
 
 	public function __construct($db = null) {
 		$this->db = $db;
 	}
 
-    public function load_from_folder( $folder_path ) {
-        if(is_dir($folder_path)) {
-            $handle = opendir($folder_path);
+    public function imagesLoadFromFolder( $folderPath ) {
+        if(is_dir($folderPath)) {
+            $handle = opendir($folderPath);
 
-            while (false !== ($file_name = readdir($handle))) {
-                    if( $file_name == '.' || $file_name == '..') continue;
-                    $tmpFile = new Image();
-                    $tmpFile->set_fullpath($folder_path . $file_name);
-                    $this->add_file( $tmpFile );
+            while (false !== ($filename = readdir($handle))) {
+                    if( $filename == '.' || $filename == '..') continue;
+                    $tmpFile = new Image($this->db);
+                    $tmpFile->imageSetFullPath($folderPath . $filename);
+                    $this->imagesAddFile( $tmpFile );
             }
             return true;
         } else {
@@ -31,16 +31,16 @@ Class Images {
         }
     }
 
-    public function get_files() {
-        return $this->files_array;
+    public function imagesGetFiles() {
+        return $this->filesArray;
     }
 
-    public function add_file( $file_obj ) {
-        $this->files_array[] = $file_obj;
+    public function imagesAddFile( $fileObj ) {
+        $this->filesArray[] = $fileObj;
     }
 
-    public function clear_files() {
-        unset($this->files_array);
+    public function imagesClearFiles() {
+        unset($this->filesArray);
     }
 
 }

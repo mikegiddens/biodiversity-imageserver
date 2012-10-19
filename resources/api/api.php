@@ -432,6 +432,8 @@
 				$data['value'] = str_replace('%','%%',trim($value));
 				
 				$data['categoryId'] = (!is_numeric($categoryId)) ? json_decode(stripslashes(trim($categoryId)),true) : $categoryId;
+				$data['group'] = trim($group);
+				$data['dir'] = (strtoupper(trim($dir)) == 'DESC') ? 'DESC' : 'ASC';
 
 				if($valid) {
 						$si->image->imageSetData($data);
@@ -522,6 +524,9 @@
 			$data['value'] = str_replace('%','%%',trim($value));
 			
 			$data['categoryId'] = (!is_numeric($categoryId)) ? json_decode(stripslashes(trim($categoryId)),true) : $categoryId;
+			$data['group'] = trim($group);
+			$data['dir'] = (strtoupper(trim($dir)) == 'DESC') ? 'DESC' : 'ASC';
+				
 			if($valid) {
 				$si->imageCategory->imageCategorySetData($data);
 				$rets = $si->imageCategory->imageCategoryList();
@@ -1021,9 +1026,72 @@
 
 # Image commands
 
+		// case 'imageAddAttribute':
+			// checkAuth();
+			// $data['imageId'] = $imageId;
+			// $categoryType = in_array(trim($categoryType),array('categoryId','title','term')) ? trim($categoryType) : 'categoryId';
+			// $attribType = in_array(trim($attribType),array('attributeId','name')) ? trim($attribType) : 'attributeId';
+			// $force = (trim($force) == 'true') ? true : false;
+			// if($advFilterId != '') {
+				// if($si->advFilter->advFilterLoadById($advFilterId)) {
+					// $advFilter  = $si->advFilter->advFilterGetProperty('filter');
+				// }
+			// }
+			// $data['advFilter'] = json_decode(stripslashes(trim($advFilter)),true);
+			// if($data['imageId'] == "" && !(is_array($data['advFilter']) && count($data['advFilter']))) {
+				// $valid = false;
+				// $errorCode = 220;
+			// } elseif(trim($category) == '') {
+				// $valid = false;
+				// $errorCode = 160;
+			// } elseif(trim($attribute) == '') {
+				// $valid = false;
+				// $errorCode = 159;
+			// } else {
+				// if(false === ($data['categoryId'] = $si->imageCategory->imageCategoryGetBy($category,$categoryType))) {
+					// if ($force) {
+						// $si->imageCategory->imageCategorySetProperty($categoryType,$category);
+						// $id = $si->imageCategory->imageCategoryAdd();
+						// $data['categoryId'] = $id;
+					// } else {
+						// $valid = false;
+						// $errorCode = 147;
+					// }
+				// }
+				// if(false === ($data['attributeId'] = $si->imageAttribute->imageAttributeGetBy($attribute,$attribType,$data['categoryId']))) {
+					// if ($force && $attribType == 'name') {
+						// $si->imageAttribute->imageAttributeSetProperty('name',$attribute);
+						// $si->imageAttribute->imageAttributeSetProperty('categoryId',$data['categoryId']);
+						// $id = $si->imageAttribute->imageAttributeAdd();
+						// $data['attributeId'] = $id;
+					// } else {
+						// $valid = false;
+						// $errorCode = 149;
+					// }
+				// }
+			// }
+			// if($valid) {
+				// $si->image->imageSetData($data);
+				// if($si->image->imageAttributeAdd()) {
+					// print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart ) ) );
+				// } else {
+					// print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray(161)) ));
+				// }
+			// } else {
+				// print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray($errorCode)) ));
+			// }
+			// break;
+
 		case 'imageAddAttribute':
 			checkAuth();
-			$data['imageId'] = $imageId;
+			
+			if($imageId != '') {
+				if(!is_numeric($imageId)) {
+					$imageId = json_decode($imageId,true);
+				} else {
+					$imageId = array($imageId);
+				}
+			}
 			$categoryType = in_array(trim($categoryType),array('categoryId','title','term')) ? trim($categoryType) : 'categoryId';
 			$attribType = in_array(trim($attribType),array('attributeId','name')) ? trim($attribType) : 'attributeId';
 			$force = (trim($force) == 'true') ? true : false;
@@ -1033,10 +1101,7 @@
 				}
 			}
 			$data['advFilter'] = json_decode(stripslashes(trim($advFilter)),true);
-			if($data['imageId'] == "" && !(is_array($data['advFilter']) && count($data['advFilter']))) {
-				$valid = false;
-				$errorCode = 220;
-			} elseif(trim($category) == '') {
+			if(trim($category) == '') {
 				$valid = false;
 				$errorCode = 160;
 			} elseif(trim($attribute) == '') {
@@ -1066,6 +1131,7 @@
 				}
 			}
 			if($valid) {
+				$data['imageId'] = $imageId;
 				$si->image->imageSetData($data);
 				if($si->image->imageAttributeAdd()) {
 					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart ) ) );
@@ -1710,33 +1776,6 @@
 			print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart, 'totalCount' => $count ) ) );
 			break;
 			
-		// case 'imageAddToCollection':
-			// checkAuth();
-			// if($imageId == '') {
-				// $valid = false;
-				// $errorCode = 157;
-			// } else if($code =='') {
-				// $valid = false;
-				// $errorCode = 179;
-			// } elseif(!$si->collection->collectionCodeExists($code)) {
-				// $valid = false;
-				// $errorCode = 175;
-			// } elseif(!$si->image->imageLoadById($imageId)) {
-				// $valid = false;
-				// $errorCode = 158;
-			// }
-			// if($valid) {
-				// $si->image->imageSetProperty('collectionCode', $code);
-				// if($si->image->imageSave()) {
-					// print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart ) ) );
-				// } else {
-					// print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray(176)) ));
-				// }
-			// } else {
-				// print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray($errorCode)) ));
-			// }
-			// break;
-			
 		case 'imageAddToCollection':
 			checkAuth();
 			if($advFilterId != '') {
@@ -1754,10 +1793,16 @@
 			} elseif($imageId == '' && !(is_array($data['advFilter']) && count($data['advFilter']))) {
 				$valid = false;
 				$errorCode = 220;
-			} else if($imageId != '' && is_array($data['advFilter']) && count($data['advFilter'])) {
-				if(!$si->image->imageLoadById($imageId)) {
-					$valid = false;
-					$errorCode = 158;
+			} else if($imageId != '' && !(is_array($data['advFilter']) && count($data['advFilter']))) {
+				if(is_numeric($imageId)) {
+					if(!$si->image->imageLoadById($imageId)) {
+						$valid = false;
+						$errorCode = 158;
+					} else {
+						$imageId = array($imageId);
+					}
+				} else {
+					$imageId = json_decode($imageId,true);
 				}
 			}
 			if($valid) {
@@ -1773,6 +1818,44 @@
 			}
 			break;
 
+		// case 'imageAddToEvent':
+			// checkAuth();
+			// if($advFilterId != '') {
+				// if($si->advFilter->advFilterLoadById($advFilterId)) {
+					// $advFilter  = $si->advFilter->advFilterGetProperty('filter');
+				// }
+			// }
+			// $data['advFilter'] = json_decode(stripslashes(trim($advFilter)),true);
+			// if($eventId == '') {
+				// $valid = false;
+				// $errorCode = 115;
+			// } else if(!$si->event->eventsRecordExists($eventId)) {
+				// $valid = false;
+				// $errorCode = 117;
+			// } if($imageId == "" && !(is_array($data['advFilter']) && count($data['advFilter']))) {
+				// $valid = false;
+				// $errorCode = 220;
+			// } else if($imageId != '' && is_array($data['advFilter']) && count($data['advFilter'])) {
+				// if(!$si->image->imageLoadById($imageId)) {
+					// $valid = false;
+					// $errorCode = 158;
+				// }
+			// }
+			// if($valid) {
+				// $data['imageId'] = $imageId;
+				// $si->event->eventsSetData($data);
+				// $si->event->lg->logSetProperty('action', 'imageAddToEvent');
+				// $si->event->lg->logSetProperty('lastModifiedBy', $_SESSION['user_id']);
+				// if(false !== ($id = $si->event->eventsAddImage($eventId))) {
+					// print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart, 'eventImageId' => $id ) ) );
+				// } else {
+					// print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray(177)) ));
+				// }
+			// } else {
+				// print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray($errorCode)) ));
+			// }
+			// break;
+
 		case 'imageAddToEvent':
 			checkAuth();
 			if($advFilterId != '') {
@@ -1787,22 +1870,22 @@
 			} else if(!$si->event->eventsRecordExists($eventId)) {
 				$valid = false;
 				$errorCode = 117;
-			} if($imageId == "" && !(is_array($data['advFilter']) && count($data['advFilter']))) {
-				$valid = false;
-				$errorCode = 220;
-			} else if($imageId != '' && is_array($data['advFilter']) && count($data['advFilter'])) {
-				if(!$si->image->imageLoadById($imageId)) {
-					$valid = false;
-					$errorCode = 158;
+			}
+			if($imageId != '') {
+				if(!is_numeric($imageId)) {
+					$imageId = json_decode($imageId,true);
+				} else {
+					$imageId = array($imageId);
 				}
 			}
+			
 			if($valid) {
 				$data['imageId'] = $imageId;
 				$si->event->eventsSetData($data);
 				$si->event->lg->logSetProperty('action', 'imageAddToEvent');
 				$si->event->lg->logSetProperty('lastModifiedBy', $_SESSION['user_id']);
 				if(false !== ($id = $si->event->eventsAddImage($eventId))) {
-					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart, 'eventImageId' => $id ) ) );
+					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart ) ) );
 				} else {
 					print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray(177)) ));
 				}
@@ -2381,6 +2464,65 @@
 			}
 			break;
 
+		case 'imageLoadFromIncoming':
+			$storageDeviceId = (trim($storageDeviceId)!='') ? $storageDeviceId : $si->storage->storageDeviceGetDefault();
+			if($storageDeviceId == '' || !$si->storage->storageDeviceExists($storageDeviceId)) {
+				$errorCode = 156;
+				$valid = false;
+			}
+			if($valid) {
+				if(is_dir($config['path']['incoming'])) {
+					$handle = opendir($config['path']['incoming']);
+					while (false !== ($filename = readdir($handle))) {
+						if( $filename == '.' || $filename == '..') continue;
+						$image = new Image($si->db);
+						$image->imageSetFullPath($config['path']['incoming'] . $filename);
+						$successFlag = $image->imageMoveToImages($storageDeviceId);
+						if($successFlag['success']) {
+							$barcode = $image->imageGetName();
+							$filename = $image->imageGetProperty('filename');
+
+							$parts = array();
+							$parts = preg_split("/[0-9]+/", $barcode);
+							$collectionCode = $parts[0];
+							unset($parts);
+
+							$path = $config['path']['images'] . $image->imageBarcodePath( $barcode ) . $filename;
+							$ar = @getimagesize($path);
+
+							# if barcode exits already, the image is replaced and the db record is reset and queue populated
+							if($image->imageBarcodeExists($barcode)) {
+								$image->imageLoadByBarcode($barcode);
+							}
+							$image->imageSetProperty('barcode',$barcode);
+							$image->imageSetProperty('filename',$filename);
+							$image->imageSetProperty('flickrPlantId',0);
+							$image->imageSetProperty('picassaPlantId',0);
+							$image->imageSetProperty('gTileProcessed',0);
+							$image->imageSetProperty('zoomEnabled',0);
+							$image->imageSetProperty('processed',0);
+							$image->imageSetProperty('width',$ar[0]);
+							$image->imageSetProperty('height',$ar[1]);
+							$image->imageSetProperty('collectionCode',$collectionCode);
+						$image->imageSetProperty('storageDeviceId', $storageDeviceId);
+						// $image->imageSetProperty('path', $imagePath);
+						$image->imageSetProperty('originalFilename', $filename);
+							$image->imageSave();
+							unset($image);
+		
+							$si->pqueue->processQueueSetProperty('imageId',$barcode);
+							$si->pqueue->processQueueSetProperty('processType','all');
+							$si->pqueue->processQueueSave();
+							$count++;
+						}
+					}
+				} 
+				print_c( json_encode( array('success' => true, 'processTime' => microtime(true) - $timeStart, 'totalCount' => $count ) ) );
+			} else {
+				print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray($errorCode)) ));
+			}
+			break;
+			
 		case 'imageModifyRechop':
 			if($imageId == '') {
 				$valid = false;
@@ -2922,6 +3064,9 @@
 			if($valid) {
 				$data['start'] = (trim($start) == '') ? 0 : $start;
 				$data['limit'] = (trim($limit) == '') ? 100 : $limit;
+				$data['group'] = trim($group);
+				$data['dir'] = (strtoupper(trim($dir)) == 'DESC') ? 'DESC' : 'ASC';
+
 				$si->remoteAccess->remoteAccessSetData($data);
 				$list = $si->remoteAccess->remoteAccessList();
 				$listArray = array();
