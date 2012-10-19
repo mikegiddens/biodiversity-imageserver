@@ -115,7 +115,7 @@ Class Image {
 	public function imageMoveToImages($storageDeviceId) {
 		global $config;
 		$storage = new StorageDevice($this->db);
-		$device = $storage->storageDeviceGet($this->imageGetProperty('storageDeviceId'));
+		$device = $storage->storageDeviceGet($storageDeviceId);
 		
 		$barcode = $this->imageGetName();
 		// $tmpPath = $config['path']['images'] . $this->imageBarcodePath( $barcode );
