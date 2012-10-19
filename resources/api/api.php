@@ -2473,11 +2473,17 @@
 			if($valid) {
 				if(is_dir($config['path']['incoming'])) {
 					$handle = opendir($config['path']['incoming']);
+					// echo $config['path']['incoming'];
+					// echo '<br>';
 					while (false !== ($filename = readdir($handle))) {
+					// echo '<br>';echo $filename;continue;
 						if( $filename == '.' || $filename == '..') continue;
+						
 						$image = new Image($si->db);
 						$image->imageSetFullPath($config['path']['incoming'] . $filename);
+						if(strtolower($image->imageGetName('ext')) != 'jpg') continue;
 						$successFlag = $image->imageMoveToImages($storageDeviceId);
+						// echo '<pre>'; var_dump($successFlag);exit;
 						if($successFlag['success']) {
 							$barcode = $image->imageGetName();
 							$filename = $image->imageGetProperty('filename');
