@@ -91,7 +91,7 @@ class Event
 					break;
 			}
 		}
-		if($this->data['group'] != '' && in_array($this->data['group'], array('eventId','geographyId','eventDate','eventTypeId')) && $this->data['dir'] != '') {
+		if($this->data['group'] != '' && in_array($this->data['group'], array('eventId','geographyId','eventDate','eventTypeId','title','description','lastModifiedBy')) && $this->data['dir'] != '') {
 			$where .= build_order( array(array('field' => $this->data['group'], 'dir' => $this->data['dir'])));
 		} else {
 			$where .= ' ORDER BY `eventId` ASC ';
@@ -170,32 +170,57 @@ class Event
 		return false;
 	}
 	
+	// public function eventsAddImage($eventId) {
+		// if($eventId == '') return false;
+		// if(!$this->eventsRecordExists($eventId)) return false;
+
+		// if(is_array($this->data['advFilter']) && count($this->data['advFilter'])) {
+			// $image = new Image($this->db);
+			// $qry = $image->getByCrazyFilter($this->data['advFilter']);
+			// $query = " INSERT INTO eventImages (imageId, eventId) SELECT im.imageId, $eventId FROM ($qry) im ";
+			// // echo $query; exit;
+		// } else if($this->data['imageId'] != '') {
+			// $query = sprintf("INSERT INTO eventImages SET `imageId` = '%s', `eventId` = '%s'"
+					// , mysql_escape_string($this->data['imageId'])
+					// , mysql_escape_string($eventId) 
+					// );
+		// } else {
+			// return false;
+		// }
+		
+		// if($this->db->query($query)) {
+			// $id = $this->db->insert_id;
+			// $this->lg->logSetProperty('table', 'eventImages');
+			// $this->lg->logSetProperty('query', $query);
+			// $this->lg->logSave();
+			// return $id;
+		// } else {
+			// return false;
+		// }
+	// }
+	
 	public function eventsAddImage($eventId) {
 		if($eventId == '') return false;
 		if(!$this->eventsRecordExists($eventId)) return false;
 
+		$image = new Image($this->db);
 		if(is_array($this->data['advFilter']) && count($this->data['advFilter'])) {
-			$image = new Image($this->db);
 			$qry = $image->getByCrazyFilter($this->data['advFilter']);
 			$query = " INSERT INTO eventImages (imageId, eventId) SELECT im.imageId, $eventId FROM ($qry) im ";
-			// echo $query; exit;
-		} else if($this->data['imageId'] != '') {
-			$query = sprintf("INSERT INTO eventImages SET `imageId` = '%s', `eventId` = '%s'"
-					, mysql_escape_string($this->data['imageId'])
-					, mysql_escape_string($eventId) 
-					);
+			return($this->db->query($query));
+		} else if(is_array($this->data['imageId']) && count($this->data['imageId'])) {
+			foreach($this->data['imageId'] as $imageId) {
+				if($image->imageLoadById($imageId)) {
+					$this->db->query(sprintf("INSERT INTO eventImages SET `imageId` = '%s', `eventId` = '%s'"
+						, mysql_escape_string($imageId)
+						, mysql_escape_string($eventId) 
+						));
+				}
+			}
+			return true;
 		} else {
-			return false;
-		}
-		
-		if($this->db->query($query)) {
-			$id = $this->db->insert_id;
-			$this->lg->logSetProperty('table', 'eventImages');
-			$this->lg->logSetProperty('query', $query);
-			$this->lg->logSave();
-			return $id;
-		} else {
-			return false;
+			$query = " INSERT INTO eventImages (imageId, eventId) SELECT imageId, $eventId FROM `image` ";
+			return($this->db->query($query));
 		}
 	}
 	
@@ -360,7 +385,7 @@ class EventTypes
 					break;
 			}
 		}
-		if($this->data['group'] != '' && in_array($this->data['group'], array('eventTypeId','title')) && $this->data['dir'] != '') {
+		if($this->data['group'] != '' && in_array($this->data['group'], array('eventTypeId','title','description','lastModifiedBy','modifiedTime')) && $this->data['dir'] != '') {
 			$where .= build_order( array(array('field' => $this->data['group'], 'dir' => $this->data['dir'])));
 		} else {
 			$where .= ' ORDER BY `eventTypeId` ASC ';

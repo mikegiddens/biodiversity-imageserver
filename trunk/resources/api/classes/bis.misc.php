@@ -98,7 +98,7 @@ function build_order( $tokens ) {
 
 		return (' ORDER BY ' . implode(", ", $qq) );
 	}
-
+	return '';
 }
 
 /**

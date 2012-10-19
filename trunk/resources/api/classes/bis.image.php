@@ -112,10 +112,14 @@ Class Image {
 		}
 	}
 
-	public function imageMoveToImages() {
+	public function imageMoveToImages($storageDeviceId) {
 		global $config;
+		$storage = new StorageDevice($this->db);
+		$device = $storage->storageDeviceGet($this->imageGetProperty('storageDeviceId'));
+		
 		$barcode = $this->imageGetName();
-		$tmpPath = $config['path']['images'] . $this->imageBarcodePath( $barcode );
+		// $tmpPath = $config['path']['images'] . $this->imageBarcodePath( $barcode );
+		$tmpPath = rtrim($device['basePath'],'/') . '/' . $this->imageBarcodePath( $barcode );
 		$this->imageMkdirRecursive( $tmpPath );
 		$flsz = @filesize($this->imageGetProperty('path') . $this->imageGetProperty('filename'));
 		if(!$flsz) {
@@ -125,7 +129,7 @@ Class Image {
 			return array('success' => false);
 		}
 		if(@rename( $this->imageGetProperty('path') . $this->imageGetProperty('filename'), $tmpPath . $this->imageGetProperty('filename') )) {
-			$this->imageSetProperty('path',$tmpPath);
+			$this->imageSetProperty('path',str_replace($device['basePath'],'',$tmpPath));
 			return array('success' => true);
 		} else {
 			return array('success' => false, 'code' => 141);
@@ -1688,7 +1692,7 @@ Class Image {
 	}
 	
 	public function imageAttributeAdd() {
-		$imageIds = @explode(',', $this->data['imageId']);
+		// $imageIds = @explode(',', $this->data['imageId']);
 		$categoryId = $this->data['categoryId'];
 		$attributeId = $this->data['attributeId'];
 		
@@ -1697,8 +1701,8 @@ Class Image {
 			$query = " INSERT IGNORE INTO imageAttrib(imageId, categoryId, attributeId) SELECT im.imageId, $categoryId, $attributeId FROM ($qry) im ";
 			// echo $query; exit;
 			return ($this->db->query($query));
-		} else if(count($imageIds)) {
-			foreach($imageIds as $id) {
+		} else if(is_array($this->data['imageId']) && count($this->data['imageId'])) {
+			foreach($this->data['imageId'] as $id) {
 				if($this->imageLoadById($id)) {
 					$query = sprintf("INSERT IGNORE INTO imageAttrib(imageId, categoryId, attributeId) VALUES(%s, %s, %s);"
 						, mysql_escape_string($id)
@@ -1718,7 +1722,7 @@ Class Image {
 			}
 			return true;
 		} else {
-			return false;
+			return ($this->db->query(" INSERT IGNORE INTO imageAttrib(imageId, categoryId, attributeId) SELECT imageId, $categoryId, $attributeId FROM image "));
 		}
 	}
 
@@ -1985,7 +1989,12 @@ Class Image {
 			$this->total = $countRet->ct;
 		}
 		
-		$query .= " ORDER BY iav.`categoryId`, iav.`name` ";
+		if($this->data['group'] != '' && in_array($this->data['group'], array('attributeId','name','categoryId','title')) && $this->data['dir'] != '' && !$this->data['showNames']) {
+			$query .= build_order( array(array('field' => (($this->data['group'] == 'title') ? 'iat.' . $this->data['group'] :  'iav.' . $this->data['group']), 'dir' => $this->data['dir'])));
+		} else {
+			$query .= ' ORDER BY iav.`categoryId`, iav.`name` ';
+		}
+		
 		if($this->data['start'] != '' && $this->data['limit'] != '') {
 			$query .= sprintf(" LIMIT %s, %s ", $this->data['start'], $this->data['limit']);
 		}
@@ -2488,7 +2497,11 @@ class ImageAttribType
 					break;
 			}
 		}
-		$query .= " ORDER BY `categoryId`, `title` ";
+		if($this->data['group'] != '' && in_array($this->data['group'], array('categoryId','title','description','elementSet','term')) && $this->data['dir'] != '') {
+			$query .= build_order( array(array('field' => $this->data['group'], 'dir' => $this->data['dir'])));
+		} else {
+			$query .= ' ORDER BY `categoryId`, `title` ';
+		}
 		if($this->data['start'] != '' && $this->data['limit'] != '') {
 			$query .= sprintf(" LIMIT %s, %s ", $this->data['start'], $this->data['limit']);
 		}
