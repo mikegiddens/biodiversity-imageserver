@@ -31,6 +31,6 @@ if (!(isset($_SESSION['user']))) {
             <img src="resources/img/loading.gif" style="margin-right:6px;" align="absmiddle"/>
             <span id="loading-msg">Loading Biodiversity Image Server</span>
         </div>
-	</div>
+    </div>
 </body>
 </html>

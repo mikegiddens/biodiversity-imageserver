@@ -40,6 +40,9 @@
 	display: inline-block;
 	margin: 5px;
 }
+.dropok {
+    background-color: #CCFEBF ! important;
+}
 
 /*================================
 /*	ExtJs Overrides

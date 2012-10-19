@@ -11,16 +11,6 @@ Ext.define('BIS.view.ImagesPanel', {
     bodyStyle: 'overflow-x:hidden ! important;',
 	store: 'ImagesStore',
     viewType: 'imagesgridview',
-	listeners: {
-/*
-		afterrender: function( grid, e ) {
-			this.grid = Ext.getCmp('imagesGrid');
-			grid.dropZone = new Ext.dd.DropZone( Ext.get('imagesGrid-body'), {
-				overClass: 'highlight'
-			});
-		}
-*/
-	},
     beginLayout: Ext.emptyFn,
 	initComponent: function() {
 		var me = this;

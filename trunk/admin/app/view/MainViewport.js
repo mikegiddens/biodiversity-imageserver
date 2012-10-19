@@ -6,6 +6,7 @@ Ext.define('BIS.view.MainViewport', {
 		'BIS.view.CtxMnuCollection',
 		'BIS.view.CtxMnuEvent',
 		'BIS.view.CtxMnuEventType',
+		'BIS.view.CtxMnuTool',
 		'BIS.view.FormCreateCategory',
 		'BIS.view.FormCreateAttribute',
 		'BIS.view.FormCreateCollection',
@@ -91,13 +92,32 @@ Ext.define('BIS.view.MainViewport', {
 				},{
 					xtype: 'collectiontreepanel'
 				},{
-					xtype: 'panel',
+					xtype: 'treepanel',
 					id: 'toolPanel',
+                    store: 'ToolsTreeStore',
+                    viewConfig: {
+                        rootVisible: false
+                    },
+                    scope: me,
 					listeners: {
 						show: function( el, opts ) {
 							Ext.getCmp('viewsPagingTitle').setText('Tools');
-						}
-					}
+						},
+                        itemcontextmenu: function(view, record, item, index, e) {
+                            e.stopEvent();
+                            var ctx;
+                            ctx = Ext.create('BIS.view.CtxMnuTool', {record: record});
+                            ctx.showAt(e.getXY());
+                        }
+					},
+                    columns: [
+                        {
+                            xtype: 'treecolumn',
+                            text: 'Tool',
+                            dataIndex: 'name',
+                            flex: 1
+                        }
+                    ]
 				},{
 					xtype: 'gridpanel',
 					id: 'queuePanel',
@@ -226,6 +246,15 @@ Ext.define('BIS.view.MainViewport', {
 							}]
 						}
 					},'->',{
+						xtype: 'label',
+                        id: 'uploadLabel',
+						text: 'Drag and drop to upload images.',
+					    style: 'margin-right: 5px;'
+                    },{
+						xtype: 'label',
+                        id: 'filesLabel',
+					    style: 'margin-right: 20px;'
+                    },{
                         text: 'Sign Out',
                         iconCls: 'icon_logout',
 					    style: 'margin-right: 20px;',
@@ -352,4 +381,5 @@ Ext.define('BIS.view.MainViewport', {
     logout: function() {
 
     }
+
 });
