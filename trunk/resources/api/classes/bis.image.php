@@ -96,9 +96,9 @@ Class Image {
 
 	public function imageLoadById( $imageId ) {
 		if($imageId == '') return false;
-		$query = sprintf("SELECT * FROM `image` WHERE `imageId` = %s", mysql_escape_string($imageId) );
+		$query = sprintf("SELECT * FROM `image` WHERE `imageId` = '%s'", mysql_escape_string($imageId) );
 		try {
-		$ret = $this->db->query_one( $query );
+			$ret = $this->db->query_one( $query );
 		} catch (Exception $e) {
 			trigger_error($e->getMessage(),E_USER_ERROR);
 		}
