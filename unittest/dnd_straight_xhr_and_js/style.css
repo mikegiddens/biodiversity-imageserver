@@ -1,0 +1,14 @@
+.dropbox {
+    width: 500px;
+    height: 300px;
+    background-color: lightgray;
+    border: 1px solid black;
+    margin: 50px;
+}
+.dropbox p {
+    text-align: center;
+    margin-top: 25%;
+}
+.dropbox:hover {
+    background-color: lightblue ! important;
+}
