@@ -1263,36 +1263,7 @@ Class Image {
 			$filenameParts = explode('.', $this->imageGetProperty('filename'));
 			
 			$storage->storageDeviceDeleteFile($this->imageGetProperty('storageDeviceId'), $this->imageGetProperty('filename'), $this->imageGetProperty('path'));
-/*
-			switch(strtolower($device['type'])) {
-				case 's3':
-					$tmp = $this->imageGetProperty('path');
-					$tmp = (substr($tmp, 0, 1)=='/') ? (substr($tmp, 1, strlen($tmp)-1)) : ($tmp);
-					$tmp = (substr($tmp, strlen($tmp)-1, 1)=='/') ? (substr($tmp, 0, strlen($tmp)-1)) : ($tmp);
-					foreach(array('_s','_m','_l','') as $postfix) {
-						$response = $this->data['obj']->delete_object($device['basePath'], $tmp .'/'. $filenameParts[0] . $postfix .'.'. $filenameParts[1]);
-					}
-					break;
-				case 'local':
-					$imagePath = $device['basePath'] . $this->imageGetProperty('path') . '/';
-					# deleting related images
-					foreach(array('_s','_m','_l','') as $postfix) {
-						if(file_exists($imagePath.$filenameParts[0].$postfix.'.'.$filenameParts[1])) {
-							@unlink($imagePath.$filenameParts[0].$postfix.'.'.$filenameParts[1]);
-						}
-					}
-					# Remove empty directories
-					$path = $this->imageGetProperty('path');
-					$parts = explode('/', $path);
-					while(count($parts)>0) {
-						if(!rmdir($device['basePath'] . $path . '/')) break;
-						$parts = explode('/', $path);
-						unset($parts[count($parts)-1]);
-						$path = implode('/', $parts);
-					}
-					break;
-			}
-*/
+
 			if(strtolower($device['type'] == 'local')) {
 				# Remove empty directories
 				$path = $this->imageGetProperty('path');
