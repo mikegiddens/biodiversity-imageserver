@@ -63,6 +63,7 @@ Ext.define('BIS.view.EventTreePanel', {
                         //eOpts.isEvent = false;
                         newChildNode.set('modelClass', 'event');
                         newChildNode.set('leaf', true);
+                        newChildNode.set('iconCls', 'icon_event');
                                                    
                         //newChildNode.set('icon', newChildNode.get('profile_image_url'));
                         //newChildNode.set('cls', 'demo-userNode');

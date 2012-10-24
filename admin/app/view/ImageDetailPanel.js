@@ -15,6 +15,7 @@ Ext.define('BIS.view.ImageDetailPanel', {
                 '<tpl if="typeof message != \'undefined\'">'+
 					'{message}'+
                 '</tpl><tpl if="typeof message == \'undefined\'">'+
+                    '<div>{title}</div>'+
                     '<div>In collection: <span style="font-weight:bold;">{collection}</span></div>'+
 					'<div class="imagePropertyGroupHeader">Attributes</div>'+
                     '<div class="imagePropertyGroupContainer">'+
@@ -148,6 +149,8 @@ Ext.define('BIS.view.ImageDetailPanel', {
             },
             scope: this,
             success: function( res ) {
+
+
                 var properties = [], events = [], geography = [], sets = [];
                 var data = Ext.decode( res.responseText ).records[0];
                 this.image = data;
@@ -162,7 +165,8 @@ Ext.define('BIS.view.ImageDetailPanel', {
                     events: events,
                     geography: [],
                     sets: [],
-                    collection: data.collectionCode
+                    collection: data.collectionCode,
+                    title: '<span style="font-weight:bold;">' + data.barcode + '</span> | ' + data.width + ' x ' + data.height + ' px'
                 });
             }
         });

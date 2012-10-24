@@ -36,6 +36,7 @@ Ext.define('BIS.view.CategoryTreePanel', {
                     if ( eOpts && eOpts.isAttribute ) {
                         newChildNode.set('modelClass', 'attribute');
                         newChildNode.set('leaf', true);
+                        newChildNode.set('iconCls', 'icon_attribute');
                         newChildNode.set('title', newChildNode.get('name'));
                                                    
                         //newChildNode.set('icon', newChildNode.get('profile_image_url'));
@@ -87,7 +88,7 @@ Ext.define('BIS.view.CategoryTreePanel', {
 			iconCls: 'icon_newCategory',
 			modal: true,
 			height: 225,
-			width: 350,
+			width: 500,
 			layout: 'fit',
 			items: [{
 				xtype: 'formcreatecategory',
@@ -105,6 +106,7 @@ Ext.define('BIS.view.CategoryTreePanel', {
         tmpWindow.on( 'cancel', function( data ) {
             tmpWindow.close();
         });
+
 	}
 
 });

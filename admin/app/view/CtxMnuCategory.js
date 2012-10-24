@@ -10,7 +10,7 @@ Ext.define('BIS.view.CtxMnuCategory', {
                         title: 'Add Attribute to ' + this.record.data.title,
                         iconCls: 'icon_newAttribute',
                         modal: true,
-                        height: 225,
+                        height: 150,
                         width: 350,
                         layout: 'fit',
                         items: [
@@ -58,7 +58,7 @@ Ext.define('BIS.view.CtxMnuCategory', {
                         tmpWindow.close();
                         var store = Ext.getCmp('categoryTreePanel').getStore();
                         store.load({
-                            node: store.getRootNode()
+                            node: this.record
                         });
                     });
                     tmpWindow.on( 'cancel', function( data ) {

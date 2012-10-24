@@ -41,7 +41,9 @@ Ext.define('BIS.view.ImageTabPanel', {
                             scope: me,
                             record: me.record.data,
                             handler: this.viewOriginal
-                        }
+                        },
+                        '->',
+                        'Copyright &copy; ' + (( me.record.get('copyright') ) ? me.record.get('copyright') : me.record.get('collectionCode'))
                     ]
                 }
             ]

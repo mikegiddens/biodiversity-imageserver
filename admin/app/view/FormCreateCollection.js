@@ -24,14 +24,8 @@ Ext.define('BIS.view.FormCreateCollection', {
                     anchor: '100%'
                 },
                 {
-                    xtype: 'textfield',
-                    name: 'collectionId',
-                    fieldLabel: 'Identifier',
-                    labelAlign: 'right',
-                    anchor: '100%',
-                    readOnly: 'true',
-                    fieldCls: 'x-item-disabled',
-                    hidden: this.mode == 'add'
+                    xtype: 'hiddenfield',
+                    name: 'collectionId'
                 },
                 {
                     xtype: 'hiddenfield',

@@ -158,7 +158,7 @@ Ext.application({
                     // no more files
                     setTimeout( function() {
                         files = [];
-                        totalCount = 0;
+                        totalFiles = 0;
                         filesUploaded = 0;
                         Ext.getCmp('filesLabel').update('');
                         Ext.getCmp('uploadLabel').update('Drag and drop to upload images.');
@@ -187,21 +187,76 @@ Ext.application({
             e.preventDefault();
 
             var dt = e.dataTransfer;
-            for ( var f = 0; f < dt.files.length; f++ ) {
-                var flag = true;
-                var file = dt.files[ f ];
-                var parts = file.name.split('.');
-                if ( Config.extensions.indexOf( parts[1] ) < 0 ) flag = false;
-                if ( flag ) {
-                    totalFiles++;
-                    files.push( file );
-                } else {
-                    console.log( 'File', file.name, 'is not valid.' );
+            if ( dt.files.length > 0 ) {
+                for ( var f = 0; f < dt.files.length; f++ ) {
+                    var flag = true;
+                    var file = dt.files[ f ]
+                    var parts = file.name.split('.');
+                    if ( Config.extensions.indexOf( parts[1].toLowerCase() ) < 0 ) flag = false;
+                    if ( flag ) {
+                        totalFiles++;
+                        files.push( file );
+                    } else {
+                        console.log( 'File', file.name, 'is not valid.' );
+                    }
                 }
+                Ext.getCmp('filesLabel').update( filesUploaded + '/' + totalFiles );
+                initializeNextFile();
+            } else {
+                e.dataTransfer.items, e.dataTransfer.items[0].getAsString( function( url ) {
+                    if ( url ) {
+                        var parts = url.split('.');
+                        if ( Config.extensions.indexOf( parts[parts.length-1].toLowerCase() ) < 0 ) {
+                            console.log( 'Url ' + url + ' is not valid.' );
+                        } else {
+                            Ext.getCmp('uploadLabel').update( 'Uploading from url...' );
+                            Ext.Ajax.request({
+                                url: Config.baseUrl + 'resources/api/api.php',
+                                params: {
+                                    cmd: 'imageAddFromUrl',
+                                    key: '507ddfece36e0',
+                                    storageDeviceId: 2,
+                                    url: url
+                                },
+                                success: function( res ) {
+                                    var data = Ext.decode( res.responseText );
+                                    if ( data.success ) {
+                                        Ext.getCmp('uploadLabel').update( 'Upload complete!' );
+                                        setTimeout( function() {
+                                            files = [];
+                                            totalFiles = 0;
+                                            filesUploaded = 0;
+                                            Ext.getCmp('filesLabel').update('');
+                                            Ext.getCmp('uploadLabel').update('Drag and drop to upload images.');
+                                        }, 5000 );
+                                    } else {
+                                        Ext.getCmp('uploadLabel').update( 'Upload failed!' );
+                                        setTimeout( function() {
+                                            files = [];
+                                            totalFiles = 0;
+                                            filesUploaded = 0;
+                                            Ext.getCmp('filesLabel').update('');
+                                            Ext.getCmp('uploadLabel').update('Drag and drop to upload images.');
+                                        }, 5000 );
+                                    }
+                                },
+                                failure: function( res ) {
+                                    Ext.getCmp('uploadLabel').update( 'Upload failed!' );
+                                    setTimeout( function() {
+                                        files = [];
+                                        totalFiles = 0;
+                                        filesUploaded = 0;
+                                        Ext.getCmp('filesLabel').update('');
+                                        Ext.getCmp('uploadLabel').update('Drag and drop to upload images.');
+                                    }, 5000 );
+                                }
+                            });
+                        }
+                    } else {
+                        console.log( 'There is no valid url.' );
+                    }
+                });
             }
-            Ext.getCmp('filesLabel').update( filesUploaded + '/' + totalFiles );
-            
-            initializeNextFile();
         }
 
         dropbox.addEventListener( 'dragenter', dragenter );

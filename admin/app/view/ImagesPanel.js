@@ -85,7 +85,7 @@ Ext.define('BIS.view.ImagesPanel', {
 							type: 'details'
 						}]
 					}
-				},{
+				}/*,{
 					xtype: 'tbseparator'
 				},{
 					xtype: 'searchfield',
@@ -94,7 +94,7 @@ Ext.define('BIS.view.ImagesPanel', {
 					handlerCmp: this,
 					width: 200,
 					scope: this
-				}]
+				}*/]
 			}]
 		});
 		me.callParent(arguments);

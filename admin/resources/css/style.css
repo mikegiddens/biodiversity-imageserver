@@ -235,6 +235,9 @@ img {
 .icon_defaultDevice {
 	background-image:url(../img/ico/drive_go.png) !important;
 }
+.icon_category {
+	background-image:url(../img/ico/table.png) !important;
+}
 .icon_newCategory {
 	background-image:url(../img/ico/table_add.png) !important;
 }
@@ -253,6 +256,9 @@ img {
 .icon_removeCollection {
 	background-image:url(../img/ico/folder_delete.png) !important;
 }
+.icon_eventType {
+	background-image:url(../img/ico/world.png) !important;
+}
 .icon_newEventType {
 	background-image:url(../img/ico/world_add.png) !important;
 }
@@ -261,6 +267,9 @@ img {
 }
 .icon_removeEventType {
 	background-image:url(../img/ico/world_delete.png) !important;
+}
+.icon_event {
+	background-image:url(../img/ico/calendar.png) !important;
 }
 .icon_newEvent {
 	background-image:url(../img/ico/calendar_add.png) !important;
@@ -279,6 +288,9 @@ img {
 }
 .icon_removeSet {
 	background-image:url(../img/ico/note_delete.png) !important;
+}
+.icon_attribute {
+	background-image:url(../img/ico/tag_blue.png) !important;
 }
 .icon_newAttribute {
 	background-image:url(../img/ico/tag_blue_add.png) !important;
@@ -360,4 +372,10 @@ img {
 }
 .icon_logout {
 	background-image:url(../img/ico/door_out.png) !important;
+}
+.icon_find {
+	background-image:url(../img/ico/find.png) !important;
+}
+.icon_measure {
+	background-image:url(../img/ico/shape_handles.png) !important;
 }

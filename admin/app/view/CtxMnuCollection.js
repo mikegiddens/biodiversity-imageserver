@@ -17,7 +17,7 @@ Ext.define('BIS.view.CtxMnuCollection', {
                         title: 'Edit ' + me.record.data.name,
                         iconCls: 'icon_editCollection',
                         modal: true,
-                        height: 225,
+                        height: 150,
                         width: 350,
                         layout: 'fit',
                         items: [
