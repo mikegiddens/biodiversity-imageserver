@@ -87,20 +87,19 @@ Ext.define('BIS.view.ImagesGridView', {
         this.table = this;
 		this.tplBoth = new Ext.XTemplate(
 			'<tpl for=".">'+
-			'<div class="imageSelector" style="width: 100%">' +
+			'<div class="imageSelector" style="width: 100%; position: relative;">' +
 				'<div style="width: 100px; margin: 5px 10px 5px 5px; display: inline-block;">'+
                     '<img src="{[this.renderThumbnail(values.path,values.filename,values.ext)]}">'+
                 '</div>'+
 				'<div style="display: inline-block;">'+
                     '<div>'+
                         '<span style="font-weight:bold">{filename}</span><br/>{family}<br/>{genus} {specificEpithet}<br/>'+
-                        '<tpl if="barcode != 0">'+
-                            '<span>Barcode: {barcode}</span><br>'+
-                        '</tpl>'+
+                        '<span>Barcode: {barcode}</span><br>'+
                         '<span>Date Added: {timestampAdded:this.renderDate}</span><br>'+
                         '<span>Date Modified: {timestampModified:this.renderDate}</span>'+
                     '</div>'+
 				'</div>'+
+                '<div style="bottom: 5px; right: 25px; position: absolute;">Image identifier: <span style="font-weight:bold">{imageId}</span></div>'+
 			'</div><br/>'+
 			'</tpl>', {
             renderDate: function( date ) {
@@ -177,4 +176,5 @@ Ext.define('BIS.view.ImagesGridView', {
             console.log( Ext.fly(node).addCls(this.selectedItemCls) );
         }
     }
+
 });

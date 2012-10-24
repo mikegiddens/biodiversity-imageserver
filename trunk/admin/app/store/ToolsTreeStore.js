@@ -15,21 +15,36 @@ Ext.define('BIS.store.ToolsTreeStore', {
                 {
                     name: 'Process',
                     route: 'imageModifyRechop',
+                    module: 'api.php',
+                    iconCls: 'icon_refresh',
                     leaf: true
                 },
                 {
                     name: 'Tesseract OCR',
                     route: 'populateOcrProcessQueue',
+                    module: 'processor.php',
+                    iconCls: 'icon_ocr',
+                    leaf: true
+                },
+                {
+                    name: 'Send to Evernote',
+                    route: '',
+                    module: 'processor.php',
+                    iconCls: 'icon_evernote',
                     leaf: true
                 },
                 {
                     name: 'Measurement Detection',
                     route: 'populateBoxDetect',
+                    module: 'processor.php',
+                    iconCls: 'icon_measure',
                     leaf: true
                 },
                 {
                     name: 'Taxonomic Recognition and Discovery',
                     route: 'populateNameFinderProcessQueue',
+                    iconCls: 'icon_find',
+                    module: 'processor.php',
                     leaf: true
                 }
             ]},

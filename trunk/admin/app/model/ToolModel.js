@@ -9,6 +9,12 @@ Ext.define('BIS.model.ToolModel', {
             name: 'route'
         },
         {
+            name: 'module'
+        },
+        {
+            name: 'iconCls'
+        },
+        {
             name: 'leaf',
             defaultValue: true
         },

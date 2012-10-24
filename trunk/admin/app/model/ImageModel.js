@@ -10,6 +10,9 @@ Ext.define('BIS.model.ImageModel', {
             name: 'filename'
         },
         {
+            name: 'timestampAdded'
+        },
+        {
             name: 'timestampModified'
         },
         {

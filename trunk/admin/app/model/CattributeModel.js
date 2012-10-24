@@ -16,8 +16,21 @@ Ext.define('BIS.model.CattributeModel', {
             name: 'name'
         },
         {
+            name: 'elementSet'
+        },
+        {
+            name: 'term'
+        },
+        {
+            name: 'description'
+        },
+        {
             name: 'leaf',
             defaultValue: false
+        },
+        {
+            name: 'iconCls',
+            defaultValue: 'icon_category'
         },
         {
             name: 'checked',

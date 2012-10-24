@@ -93,10 +93,45 @@ Ext.define('BIS.view.CtxMnuImage', {
                     iconCls: 'icon_arrowAlternating',
                     identifier: 'mirror'
                 },
+                '-',
                 {
-                    text: 'Queue Image',
-                    iconCls: 'icon_refresh',
-                    identifier: 'queue'
+                    text: 'Use tool',
+                    iconCls: 'icon_toolbar',
+                    menu: {
+                        xtype: 'menu',
+                        scope: me,
+                        listeners: {
+                            scope: me,
+                            click: me.handleTool
+                        },
+                        items: [
+                            {
+                                text: 'Process',
+                                iconCls: 'icon_refresh',
+                                identifier: 'process'
+                            },
+                            {
+                                text: 'Tesseract OCR',
+                                iconCls: 'icon_ocr',
+                                identifier: 'tesseract'
+                            },
+                            {
+                                text: 'Send to Evernote',
+                                iconCls: 'icon_evernote',
+                                identifier: 'evernote'
+                            },
+                            {
+                                text: 'Measurement Detection',
+                                iconCls: 'icon_measure',
+                                identifier: 'measure'
+                            },
+                            {
+                                text: 'Taxonomic Recognition and Discovery',
+                                iconCls: 'icon_find',
+                                identifier: 'discover'
+                            }
+                        ]
+                    }
                 }
             ]
         });
@@ -169,15 +204,6 @@ Ext.define('BIS.view.CtxMnuImage', {
             }
         });
     },
-    queue: function() {
-        Ext.Ajax.request({
-            url: Config.baseUrl + 'resources/api/api.php',
-            params: {
-                cmd: 'imageModifyRechop',
-                imageId: this.record.data.imageId
-            }
-        });
-    },
     showOcrData: function() {
         Ext.Ajax.request({
             url: Config.baseUrl + 'resources/api/api.php',
@@ -245,6 +271,50 @@ Ext.define('BIS.view.CtxMnuImage', {
         });
     },
     parseLineBreaks: function( str ) {
-        return str.replace(/([^>\r\n]?)(\r\n|\n\r|\r|\n)/g, '$1<br>$2');
+        var tempStr = str.replace(/([^>\r\n]?)(\r\n|\n\r|\r|\n)/g, '$1<br>$2');
+        if ( tempStr.trim() == '' ) tempStr = '( No characters were found within this image. )';
+        return tempStr;
+    },
+    handleTool: function( menu, item ) {
+        var module = 'api.php';
+        var params = {
+            cmd: null,
+            imageId: this.record.get('imageId')
+        }
+        switch ( item.identifier ) {
+            case 'process':
+                params.cmd = 'imageModifyRechop';
+                break;
+            case 'tesseract':
+                module = 'processor.php';
+                params.cmd = 'populateOcrProcessQueue';
+                break;
+            case 'evernote':
+                module = 'processor.php';
+                params.cmd = '';
+                break;
+            case 'measure':
+                module = 'processor.php';
+                params.cmd = 'populateBoxDetect';
+                break;
+            case 'discover':
+                module = 'processor.php';
+                params.cmd = 'populateNameFinderProcessQueue';
+                break;
+        }
+        Ext.Ajax.request({
+            url: Config.baseUrl + 'resources/api/' + module,
+            params: params,
+            scope: this,
+            success: function( data ) {
+                data = Ext.decode( data.responseText );
+                console.log( data );
+                if ( data.success ) {
+                    // reload image details panel
+                    var detailsPanel = Ext.getCmp('imageDetailsPanel');
+                    if ( detailsPanel.image ) detailsPanel.loadImage( detailsPanel.image );
+                }
+            }
+        });
     }
 });

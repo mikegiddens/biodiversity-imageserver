@@ -17,6 +17,20 @@ Ext.define('BIS.view.FormCreateCategory', {
                     anchor: '100%'
                 },
                 {
+                    xtype: 'textfield',
+                    name: 'elementSet',
+                    fieldLabel: 'Namespace',
+                    labelAlign: 'right',
+                    anchor: '100%'
+                },
+                {
+                    xtype: 'textfield',
+                    name: 'term',
+                    fieldLabel: 'Term',
+                    labelAlign: 'right',
+                    anchor: '100%'
+                },
+                {
                     xtype: 'textarea',
                     name: 'description',
                     fieldLabel: 'Description',
@@ -60,6 +74,7 @@ Ext.define('BIS.view.FormCreateCategory', {
 		afterrender: function() {
 			if ( this.mode != 'add' ) {
 				// edit
+                console.log( this.record );
                 Ext.getCmp('formCreateCategory').loadRecord( this.record );
 			}
 		}

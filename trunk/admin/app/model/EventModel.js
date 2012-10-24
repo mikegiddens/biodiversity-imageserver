@@ -32,6 +32,10 @@ Ext.define('BIS.model.EventModel', {
             defaultValue: false
         },
         {
+            name: 'iconCls',
+            defaultValue: 'icon_eventType'
+        },
+        {
             name: 'checked',
             defaultValue: null
         },

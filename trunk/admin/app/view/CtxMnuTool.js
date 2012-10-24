@@ -39,6 +39,7 @@ Ext.define('BIS.view.CtxMnuTool', {
     },
 
     handleAssignment: function( menu, item ) {
+        var me = this;
         var imagesAffected = '(n/a)';
         var params = {
             cmd: this.record.get('route')
@@ -62,9 +63,9 @@ Ext.define('BIS.view.CtxMnuTool', {
         Ext.Msg.confirm( 'Apply Tool to Images', 'Are you sure you want to apply "' + this.record.get('name') + '" to <span style="font-weight:bold">' + imagesAffected + '</span> images?', function( btn, text, opts ) {
             if ( btn == 'yes' ) {
                 Ext.Ajax.request({
-                    url: Config.baseUrl + 'resources/api/api.php',
+                    url: Config.baseUrl + 'resources/api/' + me.record.get('module'),
                     params: params,
-                    scope: this,
+                    scope: me,
                     success: function( data ) {
                         data = Ext.decode( data.responseText );
                         console.log( data );
