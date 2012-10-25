@@ -35,7 +35,7 @@ CREATE TABLE IF NOT EXISTS `advFilter` (
   `dateCreated` datetime NOT NULL,
   `dateModified` datetime NOT NULL,
   `lastModifiedBy` int(11) NOT NULL,
-  PRIMARY KEY (`advFilter`),
+  PRIMARY KEY (`advFilterId`),
   UNIQUE KEY `name` (`name`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
 
@@ -256,7 +256,8 @@ CREATE TABLE IF NOT EXISTS `imageAttribType` (
   `elementSet` varchar(255) DEFAULT NULL,
   `term` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`categoryId`),
-  UNIQUE KEY `categoryId` (`categoryId`)
+  UNIQUE KEY `attribId` (`categoryId`),
+  UNIQUE KEY `title` (`title`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC AUTO_INCREMENT=1 ;
 
 -- --------------------------------------------------------
@@ -270,7 +271,7 @@ CREATE TABLE IF NOT EXISTS `imageAttribValue` (
   `name` varchar(60) DEFAULT NULL,
   `categoryId` int(11) DEFAULT NULL,
   PRIMARY KEY (`attributeId`),
-  UNIQUE KEY `attributeId` (`attributeId`)
+  UNIQUE KEY `attribIndex` (`name`,`categoryId`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC AUTO_INCREMENT=1 ;
 
 -- --------------------------------------------------------
