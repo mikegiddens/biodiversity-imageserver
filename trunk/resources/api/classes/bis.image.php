@@ -2381,6 +2381,16 @@ class ImageAttribType
 		}
 	}
 	
+	public function imageCategoryTitleExists($title) {
+		$query = sprintf("SELECT * FROM `imageAttribType` WHERE `title` = '%s'", mysql_escape_string($title));
+		$records = $this->db->query_all($query);
+		if(count($records)) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+	
 	public function imageCategoryAdd() {
 		$query = sprintf(" INSERT INTO `imageAttribType` SET `title` = '%s', `description` = '%s', `elementSet` = '%s', `term` = '%s' "
 					, mysql_escape_string($this->imageCategoryGetProperty('title'))
@@ -2559,6 +2569,12 @@ class ImageAttribValue
 		$ret = $this->db->query_one($query);
 		return (is_object($ret) && $ret->ct) ? true : false;
 	}
+	
+	public function imageAttributeNameExists($name, $categoryId) {
+		$query = sprintf("SELECT count(*) ct FROM `imageAttribValue` WHERE `name` = '%s' AND `categoryId` = '%s'", mysql_escape_string($name),mysql_escape_string($categoryId));
+		$ret = $this->db->query_one($query);
+		return (is_object($ret) && $ret->ct) ? true : false;
+	}
 
 	public function imageAttributeDelete($attributeId) {
 		$query1 = '';
@@ -2577,7 +2593,7 @@ class ImageAttribValue
 	}
 	
 	public function imageAttributeAdd() {
-		$query = sprintf(" INSERT INTO `imageAttribValue` SET `name` = '%s', `categoryId` = '%s' "
+		$query = sprintf(" INSERT IGNORE INTO `imageAttribValue` SET `name` = '%s', `categoryId` = '%s' "
 					, mysql_escape_string($this->imageAttributeGetProperty('name'))
 					, mysql_escape_string($this->imageAttributeGetProperty('categoryId'))
 					);
@@ -2626,7 +2642,6 @@ class ImageAttribValue
 		}
 		return ($ret == NULL) ? false : $ret->attributeId;
 	}
-
 
 	public function imageAttributeList ($categoryId = '') {
 		$query = 'SELECT * FROM `imageAttribValue` WHERE 1=1 ';

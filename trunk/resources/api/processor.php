@@ -100,28 +100,41 @@ ini_set('display_errors', '1');
 			$advFilter = json_decode(stripslashes(trim($advFilter)),true);
 	
 			$idArray = array();
-			$imageIds = json_decode(@stripslashes(trim($imageId)), true);
+			if(is_numeric($imageId)) {
+				$imageIds = array($imageId);
+			} else {
+				$imageIds = json_decode(@stripslashes(trim($imageId)), true);
+			}
 			if(is_array($imageIds) && count($imageIds)) {
 				$idArray = @array_fill_keys($imageIds,'id');
 			}
 			$barcodes = json_decode(@stripslashes(trim($barcode)), true);
 			if(is_array($barcodes) && count($barcodes)) {
 				$idArray = $idArray + @array_fill_keys($barcodes,'code');
+			} else if($barcode != '') {
+				$idArray = $idArray + @array_fill_keys($barcode,'code');
 			}
 			if(is_array($advFilter) && count($advFilter)) {
 				$qry = $si->image->getByCrazyFilter($advFilter, true);
 				$ret = $si->db->query($qry);
 				$count = $si->db->query_total();
 				$qry = $si->image->getByCrazyFilter($advFilter);
-				$query = " INSERT IGNORE INTO processQueue(imageId, processType) SELECT im.barcode, 'box_add' FROM ($qry) im ";
+				// $query = " INSERT IGNORE INTO processQueue(imageId, processType) SELECT im.barcode, 'box_add' FROM ($qry) im ";
+				$query = " INSERT IGNORE INTO processQueue(imageId, processType) SELECT im.imageId, 'box_add' FROM ($qry) im ";
 				// echo $query; exit;
 				$si->db->query($query);
 			} else if(is_array($idArray) && count($idArray)) {
 				foreach($idArray as $id => $code) {
 					$func = ($code == 'id') ? 'imageLoadById' : 'imageLoadByBarcode';
 					if(!$si->image->{$func}($id)) continue;
-					if(!$si->pqueue->processQueueFieldExists($si->image->imageGetProperty('barcode'),'box_add')) {
-						$si->pqueue->processQueueSetProperty('imageId', $si->image->imageGetProperty('barcode'));
+					// if(!$si->pqueue->processQueueFieldExists($si->image->imageGetProperty('barcode'),'box_add')) {
+						// $si->pqueue->processQueueSetProperty('imageId', $si->image->imageGetProperty('barcode'));
+						// $si->pqueue->processQueueSetProperty('processType', 'box_add');
+						// $si->pqueue->processQueueSave();
+						// $count++;
+					// }
+					if(!$si->pqueue->processQueueFieldExists($si->image->imageGetProperty('imageId'),'box_add')) {
+						$si->pqueue->processQueueSetProperty('imageId', $si->image->imageGetProperty('imageId'));
 						$si->pqueue->processQueueSetProperty('processType', 'box_add');
 						$si->pqueue->processQueueSave();
 						$count++;
@@ -135,7 +148,8 @@ ini_set('display_errors', '1');
 				$query = 'SELECT count(*) ct FROM `image` WHERE ( `boxFlag` = 0 OR `boxFlag` IS NULL )' . $where;
 				$rt = $si->db->query_one($query);
 				$count = $rt->ct;
-				$query = " INSERT IGNORE INTO processQueue(imageId, processType) SELECT barcode, 'box_add' FROM `image` WHERE ( `boxFlag` = 0 OR `boxFlag` IS NULL ) " . $where;
+				// $query = " INSERT IGNORE INTO processQueue(imageId, processType) SELECT barcode, 'box_add' FROM `image` WHERE ( `boxFlag` = 0 OR `boxFlag` IS NULL ) " . $where;
+				$query = " INSERT IGNORE INTO processQueue(imageId, processType) SELECT imageId, 'box_add' FROM `image` WHERE ( `boxFlag` = 0 OR `boxFlag` IS NULL ) " . $where;
 				$si->db->query($query);
 				
 			}
@@ -158,7 +172,11 @@ ini_set('display_errors', '1');
 			$advFilter = json_decode(stripslashes(trim($advFilter)),true);
 	
 			$idArray = array();
-			$imageIds = json_decode(@stripslashes(trim($imageId)), true);
+			if(is_numeric($imageId)) {
+				$imageIds = array($imageId);
+			} else {
+				$imageIds = json_decode(@stripslashes(trim($imageId)), true);
+			}
 			if(is_array($imageIds) && count($imageIds)) {
 				$idArray = @array_fill_keys($imageIds,'id');
 			}
@@ -171,14 +189,24 @@ ini_set('display_errors', '1');
 				$ret = $si->db->query($qry);
 				$count = $si->db->query_total();
 				$qry = $si->image->getByCrazyFilter($advFilter);
-				$query = " INSERT IGNORE INTO processQueue(imageId, processType) SELECT im.barcode, 'name_add' FROM ($qry) im ";
+				// $query = " INSERT IGNORE INTO processQueue(imageId, processType) SELECT im.barcode, 'name_add' FROM ($qry) im ";
+				$query = " INSERT IGNORE INTO processQueue(imageId, processType) SELECT im.imageId, 'name_add' FROM ($qry) im ";
 				$si->db->query($query);
 			} else if(is_array($idArray) && count($idArray)) {
 				foreach($idArray as $id => $code) {
 					$func = ($code == 'id') ? 'imageLoadById' : 'imageLoadByBarcode';
 					if(!$si->image->{$func}($id)) continue;
-					if(!$si->pqueue->processQueueFieldExists($si->image->imageGetProperty('barcode'),'name_add')) {
-						$si->pqueue->processQueueSetProperty('imageId', $si->image->imageGetProperty('barcode'));
+					// if(!$si->pqueue->processQueueFieldExists($si->image->imageGetProperty('barcode'),'name_add')) {
+						// $si->pqueue->processQueueSetProperty('imageId', $si->image->imageGetProperty('barcode'));
+						// $si->pqueue->processQueueSetProperty('processType', 'name_add');
+						// $si->pqueue->processQueueSave();
+						// $count++;
+						// if($limit != '' && $count >= $limit) {
+							// $countFlag = false;
+						// }
+					// }
+					if(!$si->pqueue->processQueueFieldExists($si->image->imageGetProperty('imageId'),'name_add')) {
+						$si->pqueue->processQueueSetProperty('imageId', $si->image->imageGetProperty('imageId'));
 						$si->pqueue->processQueueSetProperty('processType', 'name_add');
 						$si->pqueue->processQueueSave();
 						$count++;
@@ -195,7 +223,8 @@ ini_set('display_errors', '1');
 				$query = 'SELECT count(*) ct FROM `image` WHERE ( `nameFinderFlag` = 0 OR `nameFinderFlag` IS NULL ) AND `ocrFlag` = 1 ' . $where;
 				$rt = $si->db->query_one($query);
 				$count = $rt->ct;
-				$query = " INSERT IGNORE INTO processQueue(imageId, processType) SELECT barcode, 'name_add' FROM `image` WHERE ( `nameFinderFlag` = 0 OR `nameFinderFlag` IS NULL ) AND `ocrFlag` = 1 " . $where;
+				// $query = " INSERT IGNORE INTO processQueue(imageId, processType) SELECT barcode, 'name_add' FROM `image` WHERE ( `nameFinderFlag` = 0 OR `nameFinderFlag` IS NULL ) AND `ocrFlag` = 1 " . $where;
+				$query = " INSERT IGNORE INTO processQueue(imageId, processType) SELECT imageId, 'name_add' FROM `image` WHERE ( `nameFinderFlag` = 0 OR `nameFinderFlag` IS NULL ) AND `ocrFlag` = 1 " . $where;
 				$si->db->query($query);
 				
 			}
@@ -210,7 +239,11 @@ ini_set('display_errors', '1');
 			$filter['limit'] = $limit;
 
 			$idArray = array();
-			$imageIds = json_decode(@stripslashes(trim($imageId)), true);
+			if(is_numeric($imageId)) {
+				$imageIds = array($imageId);
+			} else {
+				$imageIds = json_decode(@stripslashes(trim($imageId)), true);
+			}
 			if(is_array($imageIds) && count($imageIds)) {
 				$idArray = @array_fill_keys($imageIds,'id');
 			}
@@ -493,14 +526,19 @@ ini_set('display_errors', '1');
 								$image = $device['basePath'] . $si->image->imageGetProperty('path') . '/' . $si->image->imageGetProperty('filename');
 								break;
 						}
+						$bcode = @explode('.',$si->image->imageGetProperty('filename'));
+						@array_pop($bcode);
+						$bcode = @implode('.',$bcode);
+
+
 						# processing
 						putenv("LD_LIBRARY_PATH=/usr/local/lib");
 						$data = exec(sprintf("%s %s", $config['boxDetectPath'], $image));
 						# putting the json data
-						$key = $si->image->imageGetProperty('path') . '/' . $si->image->imageGetProperty('barcode') . '_box.json';
+						$key = $si->image->imageGetProperty('path') . '/' . $bcode . '_box.json';
 						switch(strtolower($device['type'])) {
 							case 's3':
-								$tmpJson = $_TMP . $si->image->imageGetProperty('barcode') . '_box.json';
+								$tmpJson = $_TMP . $bcode . '_box.json';
 								@file_put_contents($tmpJson,$data);
 								$response = $amazon->create_object ($device['basePath'], $key, array('fileUpload' => $tmpJson,'acl' => AmazonS3::ACL_PUBLIC,'storage' => AmazonS3::STORAGE_REDUCED) );
 								@unlink($tmpJson);
@@ -513,7 +551,7 @@ ini_set('display_errors', '1');
 						}
 						$images_array[] = array('imageId' => $si->image->imageGetProperty('imageId'), 'barcode' => $si->image->imageGetProperty('barcode'));
 						$imageCount++;
-						$si->pqueue->deleteProcessQueue($si->image->imageGetProperty('barcode'),'box_add');
+						$si->pqueue->deleteProcessQueue($si->image->imageGetProperty('imageId'),'box_add');
 						$si->image->imageSetProperty('boxFlag',1);
 						$si->image->imageSave();
 					}
@@ -530,7 +568,8 @@ ini_set('display_errors', '1');
 					if($record === false) {
 						$loopFlag = false;
 					} else {
-						$si->image->imageLoadByBarcode($record->imageId );
+						// $si->image->imageLoadByBarcode($record->imageId );
+						$si->image->imageLoadById($record->imageId );
 						$device = $si->storage->storageDeviceGet($si->image->imageGetProperty('storageDeviceId'));
 	
 						# getting image
@@ -549,14 +588,19 @@ ini_set('display_errors', '1');
 								$image = $device['basePath'] . $si->image->imageGetProperty('path') . '/' . $si->image->imageGetProperty('filename');
 								break;
 						}
+						
+						$bcode = @explode('.',$si->image->imageGetProperty('filename'));
+						@array_pop($bcode);
+						$bcode = @implode('.',$bcode);
+						
 						# processing
 						putenv("LD_LIBRARY_PATH=/usr/local/lib");
 						$data = exec(sprintf("%s %s", $config['boxDetectPath'], $image));
 						# putting the json data
-						$key = $si->image->imageGetProperty('path') . '/' . $si->image->imageGetProperty('barcode') . '_box.json';
+						$key = $si->image->imageGetProperty('path') . '/' . $bcode . '_box.json';
 						switch(strtolower($device['type'])) {
 							case 's3':
-								$tmpJson = $_TMP . $si->image->imageGetProperty('barcode') . '_box.json';
+								$tmpJson = $_TMP . $bcode . '_box.json';
 								@file_put_contents($tmpJson,$data);
 								$response = $amazon->create_object ($device['basePath'], $key, array('fileUpload' => $tmpJson,'acl' => AmazonS3::ACL_PUBLIC,'storage' => AmazonS3::STORAGE_REDUCED) );
 								@unlink($tmpJson);
@@ -592,7 +636,7 @@ ini_set('display_errors', '1');
 				} else {
 	
 					$ret = getNames($record->imageId);
-					$si->image->imageLoadByBarcode($record->imageId);
+					$si->image->imageLoadById($record->imageId);
 					if($ret['success']) {
 						$si->image->imageSetProperty('family',$ret['data']['family']);
 						$si->image->imageSetProperty('genus',$ret['data']['genus']);
@@ -734,7 +778,8 @@ ini_set('display_errors', '1');
 			$timeStart = microtime(true);
 			$start_date = $si->s2l->getLatestDate();
 
-			$url = $config['hsUrl'] . '?task=getEnLabels&start_date=' . $start_date; echo $url; exit;
+			$url = $config['hsUrl'] . '?task=getEnLabels&start_date=' . $start_date;
+			// echo $url; exit;
 			$jsonObject = @stripslashes(@file_get_contents($url));
 	
 			$jsonObject = json_decode($jsonObject,true);
@@ -1004,26 +1049,30 @@ ini_set('display_errors', '1');
 		}
 	
 	
-	function getNames($barcode) {
+	function getNames($imageId) {
 		global $si,$config;
-		if($barcode == '') {
+		if(!$si->image->imageLoadById($imageId)) {
 			return array('success' => false);
 		}
-		
-		$url = $config['base_url'] . '/images/specimensheets/';
+		$device = $si->storage->storageDeviceGet($si->image->imageGetProperty('storageDeviceId'));
+		if($si->image->imageGetProperty('path') != '') {
+			$url = @rtrim($device['baseUrl'],'/') . '/' . @trim($si->image->imageGetProperty('path'),'/') . '/' . $si->image->imageGetProperty('filename') . '.txt';
+		} else {
+			$url = @rtrim($device['baseUrl'],'/') . '/' . $si->image->imageGetProperty('filename') . '.txt';
+		}
 		$sourceUrl = 'http://namefinding.ubio.org/find?';
-		$sourceUrl2 = 'http://tools.gbif.org/ws/taxonfinder?';
+		// $sourceUrl2 = 'http://tools.gbif.org/ws/taxonfinder?';
+		$sourceUrl2 = 'http://ecat-dev.gbif.org/ws/indexer?';
 		
-		$url = $url . $si->image->imageBarcodePath($barcode) . $barcode . '.txt';
 		$netiParams = array('input' => $url, 'type' => 'url', 'format' => 'json', 'client' => 'neti');
 		$taxonParams = array('input' => $url, 'type' => 'url', 'format' => 'json');
 		$getUrl = @http_build_query($netiParams);
 		$data = json_decode(@file_get_contents($sourceUrl . $getUrl),true);
-	
 		if( !(is_array($data['names']) && count($data['names'])) ) {
 			$getUrl = @http_build_query($taxonParams);
 			$data = json_decode(@file_get_contents($sourceUrl2 . $getUrl),true);
 		}
+
 		$family = '';
 		$genus = '';
 		$scientificName = '';

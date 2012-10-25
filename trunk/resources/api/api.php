@@ -385,10 +385,12 @@
 			} else if(!$si->imageCategory->imageCategoryExists($categoryId)) {
 				$valid = false;
 				$errorCode = 147;
-			}
-			if($name == '') {
+			} else if($name == '') {
 				$valid = false;
 				$errorCode = 148;
+			} else if($si->imageAttribute->imageAttributeNameExists($name,$categoryId)) {
+				$valid = false;
+				$errorCode = 228;
 			}
 			if($valid) {
 				$si->imageAttribute->imageAttributeSetProperty('name',$name);
@@ -462,7 +464,20 @@
 			} else if (!$si->imageAttribute->imageAttributeLoadById($attributeId)) {
 				$valid = false;
 				$errorCode = 149;
+			} else if ($name != '' && $name != $si->imageAttribute->imageAttributeGetProperty('name')) {
+				$ctId = (trim($categoryId) != '') ? $categoryId : $si->imageAttribute->imageAttributeGetProperty('categoryId');
+				if($si->imageAttribute->imageAttributeNameExists($name,$ctId)) {
+					$valid = false;
+					$errorCode = 228;
+				}
+			} else if ($categoryId != '' && $categoryId != $si->imageAttribute->imageAttributeGetProperty('categoryId')) {
+				$nme = (trim($name) != '') ? $name : $si->imageAttribute->imageAttributeGetProperty('name');
+				if($si->imageAttribute->imageAttributeNameExists($nme,$categoryId)) {
+					$valid = false;
+					$errorCode = 228;
+				}
 			}
+
 			if($valid) {
 				(trim($name) != '') ? $si->imageAttribute->imageAttributeSetProperty('name',$name) : '';
 				(trim($categoryId) != '') ? $si->imageAttribute->imageAttributeSetProperty('categoryId',$categoryId) : '';
@@ -480,6 +495,9 @@
 			if($title == "") {
 				$valid = false;
 				$errorCode = 112;
+			} else if ($si->imageCategory->imageCategoryTitleExists($title)) {
+				$valid = false;
+				$errorCode = 229;
 			}
 			if($valid) {
 				$si->imageCategory->imageCategorySetProperty('title',$title);
@@ -545,6 +563,9 @@
 			} else if(!$si->imageCategory->imageCategoryLoadById($categoryId)) {
 				$valid = false;
 				$errorCode = 147;
+			} else if ($title != '' && $title != $si->imageCategory->imageCategoryGetProperty('title') && $si->imageCategory->imageCategoryTitleExists($title)) {
+				$valid = false;
+				$errorCode = 229;
 			}
 			if($valid) {
 				$si->imageCategory->imageCategorySetProperty('categoryId',$categoryId);
@@ -1272,13 +1293,10 @@
 			break;
 			
 		case 'imageAddFromDnd':
-//			checkAuth();
+			checkAuth();
 			$imagePath = (isset($imagePath))?$imagePath:'';
 			$storageDeviceId = (trim($storageDeviceId)!='') ? $storageDeviceId : $si->storage->storageDeviceGetDefault();
-			if(!$si->remoteAccess->remoteAccessCheck(ip2long($_SERVER['REMOTE_ADDR']), $key)) {
-				$errorCode = 103;
-				$valid = false;
-			} else if($storageDeviceId == '' || !$si->storage->storageDeviceExists($storageDeviceId)) {
+			if($storageDeviceId == '' || !$si->storage->storageDeviceExists($storageDeviceId)) {
 				$errorCode = 156;
 				$valid = false;
 			} elseif($filename=='') {
@@ -1441,10 +1459,11 @@
 			break;
 
 		case 'imageAddFromForm':
-			if(!$si->remoteAccess->remoteAccessCheck(ip2long($_SERVER['REMOTE_ADDR']), $key)) {
-				$errorCode = 171;
-				$valid = false;
-			}
+			checkAuth();
+			// if(!$si->remoteAccess->remoteAccessCheck(ip2long($_SERVER['REMOTE_ADDR']), $key)) {
+				// $errorCode = 171;
+				// $valid = false;
+			// }
 
 			if($valid) {
 				$results = array();
@@ -1638,15 +1657,15 @@
 			break;
 
 		case 'imageAddFromUrl':
-			if($url == '' || $storageDeviceId == '' || $key == '') {
+			checkAuth();
+			$storageDeviceId = (trim($storageDeviceId)!='') ? $storageDeviceId : $si->storage->storageDeviceGetDefault();
+			if($storageDeviceId=='' || !$si->storage->storageDeviceExists($storageDeviceId)) {
+				$results[$i] = array( 'success' => false,  'error' => array( 'success' => false, 'error' => $si->getErrorArray(156)) );
+				continue;
+			}
+			if($url == '') {
 				$valid = false;
-				$errorCode = 174;
-			} else if(!$si->remoteAccess->remoteAccessCheck(ip2long($_SERVER['REMOTE_ADDR']), $key)) {
-				$valid = false;
-				$errorCode = 171;
-			} else if(!$si->storage->storageDeviceExists($storageDeviceId)) {
-				$valid = false;
-				$errorCode = 156;
+				$errorCode = 107;
 			} elseif(!($section = file_get_contents($url, NULL, NULL, 0, 8))) {
 				$valid = false;
 				$errorCode = 107;
@@ -2126,8 +2145,11 @@
 			}
 			if($valid) {
 				$force = (strtolower($force) == 'true') ? true : false;
-				$filename = explode('.', $si->image->imageGetProperty('filename'));
-				$key = $si->image->imageGetProperty('path') . '/' . $filename[0] . '_box.json';
+				$filename = @explode('.', $si->image->imageGetProperty('filename'));
+				@array_pop($filename);
+				$filename = @explode('.', $filename);
+				
+				$key = @rtrim($si->image->imageGetProperty('path'),'/') . '/' . $filename . '_box.json';
 				if($si->storage->storageDeviceFileExists($si->image->imageGetProperty('storageDeviceId'), $key)) {
 					$data = $si->storage->storageDeviceFileGetContents($si->image->imageGetProperty('storageDeviceId'), $key);
 					if($data) {

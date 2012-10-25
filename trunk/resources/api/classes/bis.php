@@ -214,6 +214,8 @@
 				, 225 => 'advFilter Could Not be Updated.'
 				, 226 => 'advFilterId should be provided.'
 				, 227 => 'Invalid advFilterId provided.'
+				, 228 => 'Attribute name Already Exists for the categoryId.'
+				, 229 => 'Category title Already Exists.'
 			);
 			return $ar[$errorCode];
 		}
