@@ -108,7 +108,11 @@ ini_set('display_errors', '1');
 			if(is_array($imageIds) && count($imageIds)) {
 				$idArray = @array_fill_keys($imageIds,'id');
 			}
-			$barcodes = json_decode(@stripslashes(trim($barcode)), true);
+			if(is_numeric($barcode)) {
+				$barcodes = array($barcode);
+			} else {
+				$barcodes = json_decode(@stripslashes(trim($barcode)), true);
+			}
 			if(is_array($barcodes) && count($barcodes)) {
 				$idArray = $idArray + @array_fill_keys($barcodes,'code');
 			} else if($barcode != '') {
@@ -120,7 +124,7 @@ ini_set('display_errors', '1');
 				$count = $si->db->query_total();
 				$qry = $si->image->getByCrazyFilter($advFilter);
 				// $query = " INSERT IGNORE INTO processQueue(imageId, processType) SELECT im.barcode, 'box_add' FROM ($qry) im ";
-				$query = " INSERT IGNORE INTO processQueue(imageId, processType) SELECT im.imageId, 'box_add' FROM ($qry) im ";
+				$query = " INSERT IGNORE INTO processQueue(imageId, processType, dateAdded) SELECT im.imageId, 'box_add', NOW() FROM ($qry) im ";
 				// echo $query; exit;
 				$si->db->query($query);
 			} else if(is_array($idArray) && count($idArray)) {
@@ -149,7 +153,7 @@ ini_set('display_errors', '1');
 				$rt = $si->db->query_one($query);
 				$count = $rt->ct;
 				// $query = " INSERT IGNORE INTO processQueue(imageId, processType) SELECT barcode, 'box_add' FROM `image` WHERE ( `boxFlag` = 0 OR `boxFlag` IS NULL ) " . $where;
-				$query = " INSERT IGNORE INTO processQueue(imageId, processType) SELECT imageId, 'box_add' FROM `image` WHERE ( `boxFlag` = 0 OR `boxFlag` IS NULL ) " . $where;
+				$query = " INSERT IGNORE INTO processQueue(imageId, processType, dateAdded) SELECT imageId, 'box_add', NOW() FROM `image` WHERE ( `boxFlag` = 0 OR `boxFlag` IS NULL ) " . $where;
 				$si->db->query($query);
 				
 			}
@@ -180,7 +184,11 @@ ini_set('display_errors', '1');
 			if(is_array($imageIds) && count($imageIds)) {
 				$idArray = @array_fill_keys($imageIds,'id');
 			}
-			$barcodes = json_decode(@stripslashes(trim($barcode)), true);
+			if(is_numeric($barcode)) {
+				$barcodes = array($barcode);
+			} else {
+				$barcodes = json_decode(@stripslashes(trim($barcode)), true);
+			}
 			if(is_array($barcodes) && count($barcodes)) {
 				$idArray = $idArray + @array_fill_keys($barcodes,'code');
 			}
@@ -190,7 +198,7 @@ ini_set('display_errors', '1');
 				$count = $si->db->query_total();
 				$qry = $si->image->getByCrazyFilter($advFilter);
 				// $query = " INSERT IGNORE INTO processQueue(imageId, processType) SELECT im.barcode, 'name_add' FROM ($qry) im ";
-				$query = " INSERT IGNORE INTO processQueue(imageId, processType) SELECT im.imageId, 'name_add' FROM ($qry) im ";
+				$query = " INSERT IGNORE INTO processQueue(imageId, processType, dateAdded) SELECT im.imageId, 'name_add', NOW() FROM ($qry) im ";
 				$si->db->query($query);
 			} else if(is_array($idArray) && count($idArray)) {
 				foreach($idArray as $id => $code) {
@@ -224,7 +232,7 @@ ini_set('display_errors', '1');
 				$rt = $si->db->query_one($query);
 				$count = $rt->ct;
 				// $query = " INSERT IGNORE INTO processQueue(imageId, processType) SELECT barcode, 'name_add' FROM `image` WHERE ( `nameFinderFlag` = 0 OR `nameFinderFlag` IS NULL ) AND `ocrFlag` = 1 " . $where;
-				$query = " INSERT IGNORE INTO processQueue(imageId, processType) SELECT imageId, 'name_add' FROM `image` WHERE ( `nameFinderFlag` = 0 OR `nameFinderFlag` IS NULL ) AND `ocrFlag` = 1 " . $where;
+				$query = " INSERT IGNORE INTO processQueue(imageId, processType, dateAdded) SELECT imageId, 'name_add', NOW() FROM `image` WHERE ( `nameFinderFlag` = 0 OR `nameFinderFlag` IS NULL ) AND `ocrFlag` = 1 " . $where;
 				$si->db->query($query);
 				
 			}
@@ -247,7 +255,11 @@ ini_set('display_errors', '1');
 			if(is_array($imageIds) && count($imageIds)) {
 				$idArray = @array_fill_keys($imageIds,'id');
 			}
-			$barcodes = json_decode(@stripslashes(trim($barcode)), true);
+			if(is_numeric($barcode)) {
+				$barcodes = array($barcode);
+			} else {
+				$barcodes = json_decode(@stripslashes(trim($barcode)), true);
+			}
 			if(is_array($barcodes) && count($barcodes)) {
 				$idArray = $idArray + @array_fill_keys($barcodes,'code');
 			}
@@ -263,7 +275,7 @@ ini_set('display_errors', '1');
 				$ret = $si->db->query($qry);
 				$count = $si->db->query_total();
 				$qry = $si->image->getByCrazyFilter($advFilter);
-				$query = " INSERT IGNORE INTO processQueue(imageId, processType) SELECT im.imageId, 'ocr_add' FROM ($qry) im ";
+				$query = " INSERT IGNORE INTO processQueue(imageId, processType, dateAdded) SELECT im.imageId, 'ocr_add', NOW() FROM ($qry) im ";
 				// echo $query; exit;
 				$si->db->query($query);
 
@@ -289,7 +301,7 @@ ini_set('display_errors', '1');
 				$query = 'SELECT count(*) ct FROM `image` WHERE ( `ocrFlag` = 0 OR `ocrFlag` IS NULL ) AND `processed` = 1 ' . $where;
 				$rt = $si->db->query_one($query);
 				$count = $rt->ct;
-				$query = " INSERT IGNORE INTO processQueue(imageId, processType) SELECT imageId, 'ocr_add' FROM `image` WHERE ( `ocrFlag` = 0 OR `ocrFlag` IS NULL ) AND `processed` = 1 " . $where;
+				$query = " INSERT IGNORE INTO processQueue(imageId, processType, dateAdded) SELECT imageId, 'ocr_add', NOW() FROM `image` WHERE ( `ocrFlag` = 0 OR `ocrFlag` IS NULL ) AND `processed` = 1 " . $where;
 				$si->db->query($query);
 			}
 			$time = microtime(true) - $timeStart;
@@ -955,8 +967,75 @@ ini_set('display_errors', '1');
 			$filter['start'] = 0;
 			$filter['limit'] = $limit;
 			$filter['collectionCode'] = (trim($collectionCode!='')) ? $collectionCode : '';
+			
+			if($advFilterId != '') {
+				if($si->advFilter->advFilterLoadById($advFilterId)) {
+					$advFilter  = $si->advFilter->advFilterGetProperty('filter');
+				}
+			}
+			$advFilter = json_decode(stripslashes(trim($advFilter)),true);
+	
+			$idArray = array();
+			if(is_numeric($imageId)) {
+				$imageIds = array($imageId);
+			} else {
+				$imageIds = json_decode(@stripslashes(trim($imageId)), true);
+			}
+			if(is_array($imageIds) && count($imageIds)) {
+				$idArray = @array_fill_keys($imageIds,'id');
+			}
+
+			if(is_numeric($barcode)) {
+				$barcodes = array($barcode);
+			} else {
+				$barcodes = json_decode(@stripslashes(trim($barcode)), true);
+			}
+			
+			if(is_array($barcodes) && count($barcodes)) {
+				$idArray = $idArray + @array_fill_keys($barcodes,'code');
+			} else if($barcode != '') {
+				$idArray = $idArray + @array_fill_keys($barcode,'code');
+			}
+			
+			if(is_array($advFilter) && count($advFilter)) {
+				$qry = $si->image->getByCrazyFilter($advFilter, true);
+				$ret = $si->db->query($qry);
+				$count = $si->db->query_total();
+				$qry = $si->image->getByCrazyFilter($advFilter);
+				$query = " INSERT IGNORE INTO processQueue(imageId, processType, dateAdded) SELECT im.imageId, 'evernote', NOW()  FROM ($qry) im ";
+				// echo $query; exit;
+				$si->db->query($query);
+			} else if(is_array($idArray) && count($idArray)) {
+				foreach($idArray as $id => $code) {
+					$func = ($code == 'id') ? 'imageLoadById' : 'imageLoadByBarcode';
+					if(!$si->image->{$func}($id)) continue;
+					if(!$si->pqueue->processQueueFieldExists($si->image->imageGetProperty('imageId'),'evernote')) {
+						$si->pqueue->processQueueSetProperty('imageId', $si->image->imageGetProperty('imageId'));
+						$si->pqueue->processQueueSetProperty('processType', 'evernote');
+						$si->pqueue->processQueueSave();
+						$count++;
+					}
+				}
+			} else {
+				$where = '';
+				if(is_numeric($filter['start']) && is_numeric($filter['limit'])) {
+					$where = sprintf(" LIMIT %s, %s ", $filter['start'], $filter['limit']);
+				}
+				$query = 'SELECT count(*) ct FROM `image` WHERE (  `processed` = 0 OR `processed` IS NULL ' . (($filter['collectionCode'] != '') ? sprintf(" AND `collectionCode` = '%s' ", $filter['collectionCode']) : '' ) . ' )' . $where;
+				$rt = $si->db->query_one($query);
+				$count = $rt->ct;
+				$query = " INSERT IGNORE INTO processQueue(imageId, processType, dateAdded) SELECT imageId, 'evernote', NOW() FROM `image` WHERE (  `processed` = 0 OR `processed` IS NULL " . (($filter['collectionCode'] != '') ? sprintf(" AND `collectionCode` = '%s' ", $filter['collectionCode']) : '' ) . " ) " . $where;
+				$si->db->query($query);
+				
+			}
+			
+/*			
 			if(trim($imageId) != '') {
-				$imageIds = json_decode(stripslashes($imageId),true);
+				if(is_numeric($imageId)) {
+					$imageIds = array($imageId);
+				} else {
+					$imageIds = json_decode(stripslashes($imageId),true);
+				}
 				if(is_array($imageIds) && count($imageIds)) {
 					foreach($imageIds as $imageId) {
 						$loadFlag = false;
@@ -990,6 +1069,7 @@ ini_set('display_errors', '1');
 					}
 				}
 			}
+*/			
 			$time = microtime(true) - $timeStart;
 			header('Content-type: application/json');
 			print json_encode(array('success' => true, 'processTime' => $time, 'totalCount' => $count));

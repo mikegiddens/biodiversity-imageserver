@@ -74,7 +74,7 @@ Class EvernoteAccounts {
 	}
 
 /**
- * Call to this function must be preceeded with a call to the load_byenIid function
+ * Call to this function must be preceeded with a call to the evernoteAccountsLoadById function
  */
 	public function evernoteAccountsGetDetails() {
 		return array('username' => $this->evernoteAccountsGetProperty('userName')
