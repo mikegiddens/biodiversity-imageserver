@@ -1092,6 +1092,18 @@ Class Image {
 		} else if($this->data['imageId'] != '') {
 			$where .= sprintf(" AND `imageId` = '%s' ", mysql_escape_string($this->data['imageId']));
 		}
+		
+		if(is_array($this->data['barcode']) && count($this->data['barcode'])) {
+			$where .= sprintf(" AND `barcode` IN ('%s') ", implode("','", $this->data['barcode']));
+		} else if($this->data['barcode'] != '') {
+			$where .= sprintf(" AND `barcode` = '%s' ", mysql_escape_string($this->data['barcode']));
+		}
+		
+		if(is_array($this->data['filename']) && count($this->data['filename'])) {
+			$where .= sprintf(" AND `filename` IN ('%s') ", implode("','", $this->data['filename']));
+		} else if($this->data['filename'] != '') {
+			$where .= sprintf(" AND `filename` = '%s' ", mysql_escape_string($this->data['filename']));
+		}
 
 		if($this->data['value'] != '') {
 			switch($this->data['searchFormat']) {

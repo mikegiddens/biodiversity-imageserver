@@ -2252,6 +2252,8 @@
 				$data['filter'] = json_decode(stripslashes(trim($filter)),true);
 			}
 			$data['imageId'] = (!is_numeric($imageId)) ? json_decode(stripslashes(trim($imageId)),true) : $imageId;
+			$data['barcode'] = is_null(json_decode($barcode,true)) ? $barcode : json_decode($barcode,true);
+			$data['filename'] = is_null(json_decode($filename,true)) ? $filename : json_decode($filename,true);
 			$data['searchFormat'] = in_array(strtolower(trim($searchFormat)),array('exact','left','right','both')) ? strtolower(trim($searchFormat)) : 'both';
 			$data['value'] = str_replace('%','%%',trim($value));
 			$data['group'] = $group;
