@@ -243,6 +243,25 @@ Class Collection {
 		} else {
 			return false;
 		}
+	}
+
+	public function collectionRemoveImage() {
+		$image = new Image($this->db);
+		if(is_array($this->data['advFilter']) && count($this->data['advFilter'])) {
+			$qry = $image->getByCrazyFilter($this->data['advFilter']);
+			$query = " UPDATE `image` SET `collectionCode` = '' WHERE `imageId` IN ( SELECT im.`imageId` FROM ($qry) im ) ";
+			return ($this->db->query($query));
+		} else if(is_array($this->data['imageId']) && count($this->data['imageId'])) {
+			foreach($this->data['imageId'] as $imageId) {
+				if($image->imageLoadById($imageId)) {
+					$image->imageSetProperty('collectionCode', '');
+					$image->imageSave();
+				}
+			}
+			return true;
+		} else {
+			return false;
+		}
 		
 	}
 		

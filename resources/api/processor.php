@@ -460,13 +460,13 @@ ini_set('display_errors', '1');
 					
 					if($config['image_processing'] == 1) {
 						$tmpImage = $tmpFilePath . '_tmp.jpg';
-						$cd = "convert " . $tmpFile . " -colorspace Gray  -contrast-stretch 15% " . $tmpImage;
+						$cd = "convert \"$tmpFile\" -colorspace Gray  -contrast-stretch 15% \"$tmpImage\"";
 						exec($cd);
-						$command = sprintf("%s %s %s", $config['tesseractPath'], $tmpImage, $tmpFilePath);
+						$command = sprintf("%s \"%s\" \"%s\"", $config['tesseractPath'], $tmpImage, $tmpFilePath);
 						exec($command);
 						@unlink($tmpImage);
 					} else {
-						$command = sprintf("%s %s %s", $config['tesseractPath'], $tmpFile, $tmpFilePath);
+						$command = sprintf("%s \"%s\" \"%s\"", $config['tesseractPath'], $tmpFile, $tmpFilePath);
 						exec($command);
 					}
 	
@@ -545,7 +545,7 @@ ini_set('display_errors', '1');
 
 						# processing
 						putenv("LD_LIBRARY_PATH=/usr/local/lib");
-						$data = exec(sprintf("%s %s", $config['boxDetectPath'], $image));
+						$data = exec(sprintf("%s \"%s\"", $config['boxDetectPath'], $image));
 						# putting the json data
 						$key = $si->image->imageGetProperty('path') . '/' . $bcode . '_box.json';
 						switch(strtolower($device['type'])) {
@@ -607,7 +607,7 @@ ini_set('display_errors', '1');
 						
 						# processing
 						putenv("LD_LIBRARY_PATH=/usr/local/lib");
-						$data = exec(sprintf("%s %s", $config['boxDetectPath'], $image));
+						$data = exec(sprintf("%s \"%s\"", $config['boxDetectPath'], $image));
 						# putting the json data
 						$key = $si->image->imageGetProperty('path') . '/' . $bcode . '_box.json';
 						switch(strtolower($device['type'])) {
@@ -646,7 +646,6 @@ ini_set('display_errors', '1');
 				if($record === false) {
 					$loopFlag = false;
 				} else {
-	
 					$ret = getNames($record->imageId);
 					$si->image->imageLoadById($record->imageId);
 					if($ret['success']) {
@@ -655,6 +654,24 @@ ini_set('display_errors', '1');
 						$si->image->imageSetProperty('scientificName',$ret['data']['scientificName']);
 						$si->image->imageSetProperty('specificEpithet',$ret['data']['specificEpithet']);
 						$si->image->imageSetProperty('nameFinderValue',$ret['data']['rawData']);
+						
+						foreach(array('phylum', 'class', 'kingdom', 'order') as $rr) {
+							if($ret['data'][$rr] != '') {
+								$data = array();
+								if(false === ($data['categoryId'] = $si->imageCategory->imageCategoryGetBy($rr,'title'))) {
+									$si->imageCategory->imageCategorySetProperty('title',$rr);
+									$data['categoryId'] = $si->imageCategory->imageCategoryAdd();
+								}
+								if(false === ($data['attributeId'] = $si->imageAttribute->imageAttributeGetBy($ret['data'][$rr],'name',$data['categoryId']))) {
+									$si->imageAttribute->imageAttributeSetProperty('name',$ret['data'][$rr]);
+									$si->imageAttribute->imageAttributeSetProperty('categoryId',$data['categoryId']);
+									$data['attributeId'] = $si->imageAttribute->imageAttributeAdd();
+								}
+								$data['imageId'] = array($record->imageId);
+								$si->image->imageSetData($data);
+								$si->image->imageAttributeAdd();
+							}
+						}
 					}
 					$si->image->imageSetProperty('nameFinderFlag',1);
 					$si->image->imageSave();
@@ -901,13 +918,13 @@ ini_set('display_errors', '1');
 	
 						if($config['image_processing'] == 1) {
 							$tmpImage = $tmpFilePath . '_tmp.jpg';
-							$cd = "convert " . $tmpFile . " -colorspace Gray  -contrast-stretch 15% " . $tmpImage;
+							$cd = "convert \"$tmpFile\" -colorspace Gray  -contrast-stretch 15% \"$tmpImage\"";
 							exec($cd);
-							$command = sprintf("%s %s %s", $config['tesseractPath'], $tmpImage, $tmpFilePath);
+							$command = sprintf("%s \"%s\" \"%s\"", $config['tesseractPath'], $tmpImage, $tmpFilePath);
 							exec($command);
 							@unlink($tmpImage);
 						} else {
-							$command = sprintf("%s %s %s", $config['tesseractPath'], $tmpFile, $tmpFilePath);
+							$command = sprintf("%s \"%s\" \"%s\"", $config['tesseractPath'], $tmpFile, $tmpFilePath);
 							exec($command);
 						}
 	
@@ -1142,7 +1159,10 @@ ini_set('display_errors', '1');
 		}
 		$sourceUrl = 'http://namefinding.ubio.org/find?';
 		// $sourceUrl2 = 'http://tools.gbif.org/ws/taxonfinder?';
-		$sourceUrl2 = 'http://ecat-dev.gbif.org/ws/indexer?';
+		$sourceUrl2 = 'http://xecat-dev.gbif.org/ws/indexer?';
+		$verificationUrl = 'http://ecat-dev.gbif.org/ws/usage/?';
+		$verificationParams = array('rkey' => 1, 'showRanks' => 'kpcofgs');
+		
 		
 		$netiParams = array('input' => $url, 'type' => 'url', 'format' => 'json', 'client' => 'neti');
 		$taxonParams = array('input' => $url, 'type' => 'url', 'format' => 'json');
@@ -1156,7 +1176,28 @@ ini_set('display_errors', '1');
 		$family = '';
 		$genus = '';
 		$scientificName = '';
-		
+// echo '<pre>';
+// print_r($data);
+// exit;
+
+		if(is_array($data['names']) && count($data['names'])) {
+			foreach($data['names'] as $dt) {
+				$word = $dt['scientificName'];
+				$word = preg_replace('/\s+/',' ',trim($word));
+				$params = $verificationParams;
+				$params['q'] = $word;
+				$vUrl = @http_build_query($params);
+				$vData = json_decode(@file_get_contents($verificationUrl . $vUrl),true);
+				if(count($vData['data'])) {
+					$ar = explode(' ', $vData['data'][0]['scientificName']);
+					return array('success' => true, 'data' => array('family' => $vData['data'][0]['family'],'genus' => $vData['data'][0]['genus'],'scientificName' => $vData['data'][0]['scientificName'],'specificEpithet' => $ar[1], 'phylum' => $vData['data'][0]['phylum'], 'class' => $vData['data'][0]['class'], 'kingdom' => $vData['data'][0]['kingdom'], 'order' => $vData['data'][0]['order'], 'rawData' => json_encode($data['names'])));
+				}
+
+			}
+		}
+
+
+/*
 		if( is_array($data['names']) && count($data['names']) ) {
 			foreach($data['names'] as $dt) {
 				# check 1
@@ -1202,6 +1243,7 @@ ini_set('display_errors', '1');
 				return array('success' => true, 'data' => array('family' => $family,'genus' => $genus,'scientificName' => $scientificName,'specificEpithet' => $specificEpithet, 'rawData' => json_encode($data['names'])));
 			}
 		}
+*/
 		return array('success' => false);
 	}
 

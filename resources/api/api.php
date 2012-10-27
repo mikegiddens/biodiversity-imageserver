@@ -393,6 +393,9 @@
 				$errorCode = 228;
 			}
 			if($valid) {
+				$si->imageAttribute->lg->logSetProperty('action', 'attributeAdd');
+				$si->imageAttribute->lg->logSetProperty('lastModifiedBy', $_SESSION['user_id']);
+				
 				$si->imageAttribute->imageAttributeSetProperty('name',$name);
 				$si->imageAttribute->imageAttributeSetProperty('categoryId',$categoryId);
 				$id = $si->imageAttribute->imageAttributeAdd();
@@ -416,6 +419,9 @@
 				$errorCode = 149;
 			}
 			if($valid) {
+				$si->imageAttribute->lg->logSetProperty('action', 'attributeDelete');
+				$si->imageAttribute->lg->logSetProperty('lastModifiedBy', $_SESSION['user_id']);
+
 				if($si->imageAttribute->imageAttributeDelete($attributeId)) {
 					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart ) ) );
 				}
@@ -479,6 +485,9 @@
 			}
 
 			if($valid) {
+				$si->imageAttribute->lg->logSetProperty('action', 'attributeUpdate');
+				$si->imageAttribute->lg->logSetProperty('lastModifiedBy', $_SESSION['user_id']);
+				
 				(trim($name) != '') ? $si->imageAttribute->imageAttributeSetProperty('name',$name) : '';
 				(trim($categoryId) != '') ? $si->imageAttribute->imageAttributeSetProperty('categoryId',$categoryId) : '';
 
@@ -500,6 +509,9 @@
 				$errorCode = 229;
 			}
 			if($valid) {
+				$si->imageCategory->lg->logSetProperty('action', 'categoryAdd');
+				$si->imageCategory->lg->logSetProperty('lastModifiedBy', $_SESSION['user_id']);
+				
 				$si->imageCategory->imageCategorySetProperty('title',$title);
 				$si->imageCategory->imageCategorySetProperty('description',$description);
 				$si->imageCategory->imageCategorySetProperty('elementSet',$elementSet);
@@ -525,6 +537,9 @@
 				$errorCode = 147;
 			}
 			if($valid) {
+				$si->imageCategory->lg->logSetProperty('action', 'categoryDelete');
+				$si->imageCategory->lg->logSetProperty('lastModifiedBy', $_SESSION['user_id']);
+				
 				if($si->imageCategory->imageCategoryDelete($categoryId)) {
 					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart ) ) );
 				} else {
@@ -568,6 +583,9 @@
 				$errorCode = 229;
 			}
 			if($valid) {
+				$si->imageCategory->lg->logSetProperty('action', 'categoryUpdate');
+				$si->imageCategory->lg->logSetProperty('lastModifiedBy', $_SESSION['user_id']);
+
 				$si->imageCategory->imageCategorySetProperty('categoryId',$categoryId);
 				(trim($title) != '') ? $si->imageCategory->imageCategorySetProperty('title',$title) : '';
 				(trim($description) != '') ? $si->imageCategory->imageCategorySetProperty('description',$description) : '';
@@ -1131,6 +1149,9 @@
 			} else {
 				if(false === ($data['categoryId'] = $si->imageCategory->imageCategoryGetBy($category,$categoryType))) {
 					if ($force) {
+						$si->imageCategory->lg->logSetProperty('action', 'imageAddAttribute');
+						$si->imageCategory->lg->logSetProperty('lastModifiedBy', $_SESSION['user_id']);
+				
 						$si->imageCategory->imageCategorySetProperty($categoryType,$category);
 						$id = $si->imageCategory->imageCategoryAdd();
 						$data['categoryId'] = $id;
@@ -1141,6 +1162,9 @@
 				}
 				if(false === ($data['attributeId'] = $si->imageAttribute->imageAttributeGetBy($attribute,$attribType,$data['categoryId']))) {
 					if ($force && $attribType == 'name') {
+						$si->imageAttribute->lg->logSetProperty('action', 'imageAddAttribute');
+						$si->imageAttribute->lg->logSetProperty('lastModifiedBy', $_SESSION['user_id']);
+
 						$si->imageAttribute->imageAttributeSetProperty('name',$attribute);
 						$si->imageAttribute->imageAttributeSetProperty('categoryId',$data['categoryId']);
 						$id = $si->imageAttribute->imageAttributeAdd();
@@ -1152,6 +1176,9 @@
 				}
 			}
 			if($valid) {
+				$si->image->lg->logSetProperty('action', 'imageAddAttribute');
+				$si->image->lg->logSetProperty('lastModifiedBy', $_SESSION['user_id']);
+				
 				$data['imageId'] = $imageId;
 				$si->image->imageSetData($data);
 				if($si->image->imageAttributeAdd()) {
@@ -1212,6 +1239,14 @@
 					
 					# Add latitude and longitude - Start
 					if($gps = $iEXd->getGPS()) {
+						$si->imageCategory->lg->logSetProperty('action', 'imageAddFromLocal');
+						$si->imageCategory->lg->logSetProperty('lastModifiedBy', $_SESSION['user_id']);
+						$si->image->lg->logSetProperty('action', 'imageAddFromLocal');
+						$si->image->lg->logSetProperty('lastModifiedBy', $_SESSION['user_id']);
+						$si->imageAttribute->lg->logSetProperty('action', 'imageAddFromLocal');
+						$si->imageAttribute->lg->logSetProperty('lastModifiedBy', $_SESSION['user_id']);
+
+
 						$catId = 0;
 						$atrId = 0;
 						$catArray = $si->imageCategory->imageCategoryList();
@@ -1330,6 +1365,13 @@
 					
 					# Add latitude and longitude - Start
 					if($gps = $iEXd->getGPS()) {
+						$si->imageCategory->lg->logSetProperty('action', 'imageAddFromDnd');
+						$si->imageCategory->lg->logSetProperty('lastModifiedBy', $_SESSION['user_id']);
+						$si->image->lg->logSetProperty('action', 'imageAddFromDnd');
+						$si->image->lg->logSetProperty('lastModifiedBy', $_SESSION['user_id']);
+						$si->imageAttribute->lg->logSetProperty('action', 'imageAddFromDnd');
+						$si->imageAttribute->lg->logSetProperty('lastModifiedBy', $_SESSION['user_id']);
+						
 						$catId = 0;
 						$atrId = 0;
 						$catArray = $si->imageCategory->imageCategoryList();
@@ -1503,6 +1545,13 @@
 							
 							# Add latitude and longitude - Start
 							if($gps = $iEXd->getGPS()) {
+								$si->imageCategory->lg->logSetProperty('action', 'imageAddFromForm');
+								$si->imageCategory->lg->logSetProperty('lastModifiedBy', $_SESSION['user_id']);
+								$si->image->lg->logSetProperty('action', 'imageAddFromForm');
+								$si->image->lg->logSetProperty('lastModifiedBy', $_SESSION['user_id']);
+								$si->imageAttribute->lg->logSetProperty('action', 'imageAddFromForm');
+								$si->imageAttribute->lg->logSetProperty('lastModifiedBy', $_SESSION['user_id']);
+								
 								$catId = 0;
 								$atrId = 0;
 								$catArray = $si->imageCategory->imageCategoryList();
@@ -1701,6 +1750,13 @@
 					
 					# Add latitude and longitude - Start
 					if($gps = $iEXd->getGPS()) {
+						$si->imageCategory->lg->logSetProperty('action', 'imageAddFromUrl');
+						$si->imageCategory->lg->logSetProperty('lastModifiedBy', $_SESSION['user_id']);
+						$si->image->lg->logSetProperty('action', 'imageAddFromUrl');
+						$si->image->lg->logSetProperty('lastModifiedBy', $_SESSION['user_id']);
+						$si->imageAttribute->lg->logSetProperty('action', 'imageAddFromUrl');
+						$si->imageAttribute->lg->logSetProperty('lastModifiedBy', $_SESSION['user_id']);
+						
 						$catId = 0;
 						$atrId = 0;
 						$catArray = $si->imageCategory->imageCategoryList();
@@ -1996,17 +2052,30 @@
 		
 		case 'imageDeleteAttribute':
 			checkAuth();
-			$data['imageId'] = $imageId;
-			if($data['imageId'] == "") {
+			
+			if($imageId == "") {
 				$valid = false;
 				$errorCode = 157;
+			} else if(is_numeric($imageId)) {
+				if(!$si->image->imageLoadById($imageId)) {
+					$valid = false;
+					$errorCode = 158;
+				} else {
+					$imageId = array($imageId);
+				}
+			} else {
+				$imageId = json_decode($imageId,true);
 			}
+			$data['imageId'] = $imageId;
 			$data['attributeId'] = $attributeId;
 			if($data['attributeId'] == "") {
 				$valid = false;
 				$errorCode = 109;
 			}
 			if($valid) {
+				$si->image->lg->logSetProperty('action', 'imageDeleteAttribute');
+				$si->image->lg->logSetProperty('lastModifiedBy', $_SESSION['user_id']);
+
 				$si->image->imageSetData($data);
 				if($si->image->imageAttributeDelete()) {
 					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart ) ) );
@@ -2638,6 +2707,42 @@
 				} else {
 					$errorCode = 190;
 					print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray(190)) ));
+				}
+			} else {
+				print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray($errorCode)) ));
+			}
+			break;
+			
+		case 'imageRemoveFromCollection':
+			checkAuth();
+			if($advFilterId != '') {
+				if($si->advFilter->advFilterLoadById($advFilterId)) {
+					$advFilter  = $si->advFilter->advFilterGetProperty('filter');
+				}
+			}
+			$data['advFilter'] = json_decode(stripslashes(trim($advFilter)),true);
+			if($imageId == '' && !(is_array($data['advFilter']) && count($data['advFilter']))) {
+				$valid = false;
+				$errorCode = 220;
+			} else if($imageId != '' && !(is_array($data['advFilter']) && count($data['advFilter']))) {
+				if(is_numeric($imageId)) {
+					if(!$si->image->imageLoadById($imageId)) {
+						$valid = false;
+						$errorCode = 158;
+					} else {
+						$imageId = array($imageId);
+					}
+				} else {
+					$imageId = json_decode($imageId,true);
+				}
+			}
+			if($valid) {
+				$data['imageId'] = $imageId;
+				$si->collection->collectionSetData($data);
+				if($si->collection->collectionRemoveImage()) {
+					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart ) ) );
+				} else {
+					print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray(176)) ));
 				}
 			} else {
 				print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray($errorCode)) ));
