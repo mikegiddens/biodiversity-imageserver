@@ -3,9 +3,15 @@ Ext.define('BIS.view.ImageDetailPanel', {
 	alias: ['widget.imagedetailpanel'],
 	requires: [
 	],
+
     id: 'imageDetailsPanel',
 	initComponent: function() {
 		var me = this;
+
+        this.on( 'selectionchange', function( data ) {
+            this.loadImages( data );
+        });
+
 		Ext.applyIf(me, {
 			title: 'Image Properties',
 			layout: 'fit',
@@ -47,13 +53,13 @@ Ext.define('BIS.view.ImageDetailPanel', {
 			'</tpl>',
             {
                 renderMetadata: function( i ) {
-                    return '<span class="imgmetadata imagePropertyPill">'+
+                    return '<span class="imgmetadata imagePropertyPill" style="background-color:' + i.pillColor + '}">'+
                                 '<span class="imagePropertyPillText">' + i.key + ': ' + '<span style="font-weight:bold">' + i.value + '</span></span>'+
                                 '<span pilldata="' + i.aid + '" valdata="' + i.value + '" class="del imagePropertyPillRemove"></span>'+
                         '</span>'
                 },
                 renderEvents: function( i ) {
-                    return '<span class="imgevents imagePropertyPill">'+
+                    return '<span class="imgevents imagePropertyPill" style="background-color:' + i.pillColor + '}">'+
                                 '<span class="imagePropertyPillText">' + i.value + '</span>'+
                                 '<span pilldata="' + i.eid + '" valdata="' + i.value + '" class="del imagePropertyPillRemove"></span>'+
                         '</span>'
@@ -62,17 +68,6 @@ Ext.define('BIS.view.ImageDetailPanel', {
 
 			listeners: {
 				scope: this,
-				render: function ( panel ) {
-					var dropTarget = new Ext.dd.DropTarget(panel.el, {
-						ddGroup: 'categoryDD',
-						copy: false,
-						notifyDrop: function (dragSource, e, data) {
-							var record = data.records[0].data;
-							console.log( record );
-							console.log( this );
-						}
-					});
-				},
 				afterrender: function() {
 					this.update({message:'<div style="padding: 10px">Click an image to view it\'s properties.</div>'});
 				}
@@ -108,9 +103,13 @@ Ext.define('BIS.view.ImageDetailPanel', {
 						pageSize: 5,
 						listeners: {
                             scope: this,
-							select: function(combo, selection) {
+							select: function( combo, selection ) {
 								var property = selection[0];
 								if ( property ) {
+                                    var ids = [];
+                                    Ext.each( this.images, function( record ) {
+                                        ids.push( record.get( 'imageId' ) );
+                                    });
                                     Ext.Ajax.request({
                                         url: Config.baseUrl + 'resources/api/api.php',
                                         params: {
@@ -119,13 +118,13 @@ Ext.define('BIS.view.ImageDetailPanel', {
                                             attribType: 'attributeId',
                                             attribute: property.data.attributeId,
                                             //force: true,
-                                            imageId: this.image.imageId
+                                            imageId: Ext.encode( ids )
                                         },
                                         scope: this,
                                         success: function( data ) {
                                             data = Ext.decode( data.responseText );
                                             if ( data.success ) {
-                                                this.loadImage( this.image );
+                                                this.loadImages( this.images );
                                             }
                                         }
                                     });
@@ -138,35 +137,113 @@ Ext.define('BIS.view.ImageDetailPanel', {
 		me.callParent(arguments);
 	},
 	
-	loadImage: function( record ) {
+	loadImages: function( records ) {
+        this.images = records;
+        var ids = [];
+        Ext.each( records, function( record ) {
+            ids.push( record.get( 'imageId' ) );
+        });
+
         Ext.Ajax.request({
             url: Config.baseUrl + 'resources/api/api.php',
             method: 'GET',
             params: {
                 cmd: 'imageList',
-                imageId: record.imageId,
+                imageId: Ext.encode( ids ),
                 associations: Ext.encode(['attributes','events','geography','sets'])
             },
             scope: this,
             success: function( res ) {
+                var properties = {},
+                    finalProperties = [],
+                    propertyCount = {},
+                    events = {},
+                    finalEvents = [],
+                    eventCount = {},
+                    geography = {},
+                    finalGeography = [],
+                    geographyCount = {},
+                    sets = {},
+                    finalSets = [],
+                    setCount = {},
+                    collections = {},
+                    collectionCount = {},
+                    collection = '(multiple)';
 
+                this.images = Ext.decode( res.responseText ).records;
 
-                var properties = [], events = [], geography = [], sets = [];
-                var data = Ext.decode( res.responseText ).records[0];
-                this.image = data;
-                Ext.each( data.attributes, function( attr ) {
-                    properties.push({ key: attr.category, value: attr.attribute, aid: attr.attributeId, cid: attr.categoryId });
+                Ext.each( this.images, function( image ) {
+                    // attributes
+                    Ext.each( image.attributes, function( attr ) {
+                        if ( !properties[ attr.attributeId ] ) {
+                            // add new attribute
+                            properties[ attr.attributeId ] = { key: attr.category, value: attr.attribute, aid: attr.attributeId, cid: attr.categoryId };
+                            propertyCount[ attr.attributeId ] = 1;
+                        } else {
+                            propertyCount[ attr.attributeId ]++;
+                        }
+                    });
+
+                    // events
+                    Ext.each( image.events, function( ev ) {
+                        if ( !events[ ev.eventId ] ) {
+                            // add new event
+                            events[ ev.eventId ] = { /*key: ev.eventTypeTitle,*/ value: ev.title, eid: ev.eventId, etid: ev.eventTypeId };
+                            eventCount[ ev.eventId ] = 1;
+                        } else {
+                            eventCount[ ev.eventId ]++;
+                        }
+                    });
+
+                    // collections
+                    if ( !collections[ image.collectionCode ] ) {
+                        // add new collection
+                        collections[ image.collectionCode ] = null;
+                        collectionCount[ image.collectionCode ] = 1;
+                    } else {
+                        collectionCount[ image.collectionCode ]++;
+                    }
                 });
-                Ext.each( data.events, function( ev ) {
-                    events.push({ /*key: ev.eventType,*/ value: ev.title, eid: ev.eventId, etid: ev.eventTypeId });
-                });
+
+                // check data for intersections
+                for ( var attrId in properties ) {
+                    if ( propertyCount[ attrId ] == this.images.length ) {
+                        properties[ attrId ].pillColor = '#A5DC4B';
+                    } else {
+                        properties[ attrId ].pillColor = '#FEFFBF'
+                    }
+                    finalProperties.push( properties[ attrId ] );
+                }
+                for ( var evId in events ) {
+                    if ( eventCount[ evId ] == this.images.length ) {
+                        events[ evId ].pillColor = '#A5DC4B';
+                    } else {
+                        events[ evId ].pillColor = '#FEFFBF'
+                    }
+                    finalEvents.push( events[ evId ] );
+                }
+                for ( var cc in collections ) {
+                    if ( collectionCount[ cc ] == this.images.length ) {
+                        collection = cc;
+                    }
+                }
+
+                var filename = '(multiple images)';
+                var widthHeight = '';
+                var collection = '';
+                if ( this.images.length == 1 ) {
+                    filename = this.images[0].filename;
+                    widthHeight = ' | ' + this.images[0].width + ' x ' + this.images[0].height + ' px'
+                }
+
+                // add collectioon and title header as well
                 this.addProperties({
-                    metadata: properties,
-                    events: events,
-                    geography: [],
-                    sets: [],
-                    collection: data.collectionCode,
-                    title: '<span style="font-weight:bold;">' + data.barcode + '</span> | ' + data.width + ' x ' + data.height + ' px'
+                    metadata: finalProperties,
+                    events: finalEvents,
+                    geography: finalGeography,
+                    sets: finalSets,
+                    collection: collection,
+                    title: '<span style="font-weight:bold;">' + filename + '</span>' + widthHeight
                 });
             }
         });
@@ -195,39 +272,52 @@ Ext.define('BIS.view.ImageDetailPanel', {
 	},
 
 	removeProperty: function( id ) {
+        var relevantImageIds = [];
+        Ext.each( this.images, function( image ) {
+            Ext.each( image.attributes, function( attr ) {
+                if ( attr.attributeId == id ) relevantImageIds.push( image.imageId );
+            });
+        });
         Ext.Ajax.request({
             url: Config.baseUrl + 'resources/api/api.php',
             params: {
                 cmd: 'imageDeleteAttribute',
                 attributeId: id,
-                imageId: this.image.imageId
+                imageId: Ext.encode( relevantImageIds )
             },
             scope: this,
             success: function( data ) {
                 data = Ext.decode( data.responseText );
                 if ( data.success ) {
-                    this.loadImage( this.image );
+                    this.loadImages( this.images );
                 }
             }
         });
 	},
 
 	removeEvent: function( id ) {
+        var relevantImageIds = [];
+        Ext.each( this.images, function( image ) {
+            Ext.each( image.events, function( ev ) {
+                if ( ev.eventId == id ) relevantImageIds.push( image.imageId );
+            });
+        });
         Ext.Ajax.request({
             url: Config.baseUrl + 'resources/api/api.php',
             params: {
                 cmd: 'imageDeleteFromEvent',
                 eventId: id,
-                imageId: this.image.imageId
+                imageId: Ext.encode( relevantImageIds )
             },
             scope: this,
             success: function( data ) {
                 data = Ext.decode( data.responseText );
                 if ( data.success ) {
-                    this.loadImage( this.image );
+                    this.loadImages( this.images );
                 }
             }
         });
 	}
+
 
 });

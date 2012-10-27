@@ -5,6 +5,14 @@ Ext.define('BIS.view.CtxMnuEvent', {
     listeners: {
         click: function( menu, item ) {
             switch( item.identifier ) {
+                case 'query':
+                    this.advFilter.children[0].condition = '=';
+                    Ext.getCmp('imagesGrid').setAdvancedFilter( this.advFilter );
+                    break;
+                case 'queryInverse':
+                    this.advFilter.children[0].condition = '!=';
+                    Ext.getCmp('imagesGrid').setAdvancedFilter( this.advFilter );
+                    break;
                 case 'update':
                     this.update();
                     break;
@@ -19,8 +27,37 @@ Ext.define('BIS.view.CtxMnuEvent', {
     initComponent: function() {
         var me = this;
 
+        this.advFilter = {
+            node: 'group',
+            logop: 'and',
+            children: [
+                {
+                    node: 'condition',
+                    object: 'event',
+                    key: this.record.get('eventTypeId'),
+                    keyText: this.record.get('eventTypeId'), // as of now, there is no eventTypeTitle field in event objects
+                    value: this.record.get('eventId'),
+                    valueText: this.record.get('title'),
+                    value2: null,
+                    value2Text: '',
+                    condition: '='
+                }
+            ]
+        }
+
         Ext.applyIf(me, {
             items: [
+                {
+                    text: 'Find with ' + this.record.get('title'),
+                    iconCls: 'icon_find',
+                    identifier: 'query'
+                },
+                {
+                    text: 'Find without ' + this.record.get('title'),
+                    iconCls: 'icon_find',
+                    identifier: 'queryInverse'
+                },
+                '-',
                 {
                     text: 'Add to',
                     iconCls: 'icon_',
@@ -76,7 +113,7 @@ Ext.define('BIS.view.CtxMnuEvent', {
                 params.imageId = JSON.stringify( images );
                 break;
             case 'filtered':
-                params.advFilter = Ext.getCmp('imagesGrid').getStore().getProxy().extraParams.advFilter // last used advanced filter
+                params.imageId = Ext.getCmp('imagesGrid').getStore().collect( 'imageId', false, false );
                 Ext.getCmp('imagesGrid').getStore().totalCount;
                 break;
             case 'all':
@@ -96,7 +133,7 @@ Ext.define('BIS.view.CtxMnuEvent', {
                         if ( data.success ) {
                             // reload image details panel
                             var detailsPanel = Ext.getCmp('imageDetailsPanel');
-                            detailsPanel.loadImage( detailsPanel.image );
+                            detailsPanel.loadImages( detailsPanel.images );
                         }
                     }
                 });

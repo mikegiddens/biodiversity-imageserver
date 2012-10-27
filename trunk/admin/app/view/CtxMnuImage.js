@@ -291,7 +291,7 @@ Ext.define('BIS.view.CtxMnuImage', {
                 break;
             case 'evernote':
                 module = 'processor.php';
-                params.cmd = '';
+                params.cmd = 'populateEvernoteProcessQueue';
                 break;
             case 'measure':
                 module = 'processor.php';

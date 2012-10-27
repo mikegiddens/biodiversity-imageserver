@@ -109,7 +109,7 @@ Ext.define('BIS.view.CtxMnuCollection', {
                 params.imageId = JSON.stringify( images );
                 break;
             case 'filtered':
-                params.advFilter = Ext.getCmp('imagesGrid').getStore().getProxy().extraParams.advFilter // last used advanced filter
+                params.imageId = Ext.getCmp('imagesGrid').getStore().collect( 'imageId', false, false );
                 imagesAffected = Ext.getCmp('imagesGrid').getStore().totalCount;
                 break;
             case 'all':
@@ -129,7 +129,7 @@ Ext.define('BIS.view.CtxMnuCollection', {
                         if ( data.success ) {
                             // reload image details panel
                             var detailsPanel = Ext.getCmp('imageDetailsPanel');
-                            detailsPanel.loadImage( detailsPanel.image );
+                            detailsPanel.loadImages( detailsPanel.images );
                         }
                     }
                 });

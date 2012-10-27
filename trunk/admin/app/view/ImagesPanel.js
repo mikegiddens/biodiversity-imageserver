@@ -18,8 +18,12 @@ Ext.define('BIS.view.ImagesPanel', {
 		Ext.applyIf(me, {
 			columns: [{
 				xtype: 'gridcolumn',
-				dataIndex: 'image_id',
+				dataIndex: 'imageId',
 				text: 'Identifier'
+			},{
+				xtype: 'gridcolumn',
+				dataIndex: 'barcode',
+				text: 'Barcode'
 			},{
 				xtype: 'gridcolumn',
 				dataIndex: 'filename',
@@ -30,11 +34,16 @@ Ext.define('BIS.view.ImagesPanel', {
 				text: 'File Path'
 			},{
 				xtype: 'datecolumn',
-				dataIndex: 'timestamp_modified',
+				dataIndex: 'timestampAdded',
+				text: 'Date Added'
+            },{
+				xtype: 'datecolumn',
+				dataIndex: 'timestampModified',
 				text: 'Last Modified'
 			}],
 			dockedItems: [{
 				xtype: 'pagingtoolbar',
+                id: 'imagesPager',
 				displayInfo: true,
 				store: 'ImagesStore',
 				displayMsg: 'Displaying {0} - {1} of {2}',
@@ -85,16 +94,16 @@ Ext.define('BIS.view.ImagesPanel', {
 							type: 'details'
 						}]
 					}
-				}/*,{
-					xtype: 'tbseparator'
-				},{
+				},
+			    '->',
+				{
 					xtype: 'searchfield',
 					name: 'searchval',
-					emptyText: 'Query OCR',
+					emptyText: 'Search Images',
 					handlerCmp: this,
 					width: 200,
 					scope: this
-				}*/]
+				}]
 			}]
 		});
 		me.callParent(arguments);
@@ -162,9 +171,10 @@ Ext.define('BIS.view.ImagesPanel', {
 	},
     // this is called by searchfield (plugin was hacked)
 	search: function( val ) {
-        this.searchOcr( val );
-	},
-    searchOcr: function( val ) {
-
-    }
+        this.getStore().getProxy().extraParams = {
+            cmd: 'imageList',
+            value: val
+        }
+        this.getStore().load();
+	}
 });

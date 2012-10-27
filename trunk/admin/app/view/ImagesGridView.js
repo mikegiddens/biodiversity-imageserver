@@ -4,39 +4,20 @@ Ext.define('BIS.view.ImagesGridView', {
 	requires: [
         'BIS.view.ImageTabPanel',
 		'BIS.view.CtxMnuImage',
-		'BIS.view.CtxMnuAttribute',
-        'Ext.ux.DataView.Draggable'
+		'BIS.view.CtxMnuAttribute'
 	],
-    mixins: {
-        draggable: 'Ext.ux.DataView.Draggable'
-    },
 	initialTpl: '<div>Loading...</div>',
 	itemSelector: 'div.imageSelector',
 	selectedItemCls: 'imageRowSelected',
     overItemCls: 'highlight',
     trackOver: true,
-    // selectionModel config
-    mode: 'MULTI',
-    //allowDeselect: true, // this is true by default
-    //
     scope: this,
 	listeners: {
 		afterrender: function( gridview, e ) {
 			gridview.setTpl('both');
 		},
-        /*
-        beforeselect: function( a, b, c, d, e ) {
-            console.log( 'before',a,b,c,d,e);
-        },
-        selectionchange: function( a, b, c, d, e ) {
-            console.log( 'select',a,b,c,d,e);
-        },
-        */
 		itemclick: function( gridview, record, el, ind, e, opts ) {
-            this.getSelectionModel().deselectAll();
-            this.getSelectionModel().select( ind );
-			var data = record.data;
-			Ext.getCmp('imageDetailsPanel').loadImage( data );
+			Ext.getCmp('imageDetailsPanel').fireEvent( 'selectionchange', this.getSelectionModel().getSelection() );
 			Ext.getCmp('propertySeachCombo').enable();
 		},
 		itemdblclick: function( gridview, record, el, ind, e, opts ) {
@@ -57,29 +38,19 @@ Ext.define('BIS.view.ImagesGridView', {
 		},
 		itemcontextmenu: function(view, record, item, index, e) {
 			e.stopEvent();
+
+			Ext.getCmp('imageDetailsPanel').fireEvent( 'selectionchange', this.getSelectionModel().getSelection() );
+			Ext.getCmp('propertySeachCombo').enable();
+
 			var ctx = Ext.create('BIS.view.CtxMnuImage', {record: record});
 			ctx.showAt(e.getXY());
 		}
 	},
     initComponent: function() {
-        this.mixins.draggable.init( this, {
-            ddConfig: {
-                ddGroup: 'imageDD'
-            },
-            ghostTpl: [ new Ext.XTemplate(
-                    '<tpl for=".">',
-                        '<img src="{[this.renderThumbnail(values.path,values.filename,values.ext)]}">',
-                    '</tpl>',
-                    '<div class="count">',
-                        '{[values.length]} images selected.',
-                    '<div>', {
-                        renderThumbnail: function( path, filename, ext ) {
-                            return path + filename.substr( 0, filename.lastIndexOf('.') ) + '_s.' + ext;
-                        }
-                    }
-                )
-            ]
-        });
+        var me = this;
+
+        this.getSelectionModel().setSelectionMode( 'MULTI' );
+        this.getSelectionModel().mode = 'MULTI';
 
         this.callParent( arguments );
     },
@@ -89,11 +60,12 @@ Ext.define('BIS.view.ImagesGridView', {
 			'<tpl for=".">'+
 			'<div class="imageSelector" style="width: 100%; position: relative;">' +
 				'<div style="width: 100px; margin: 5px 10px 5px 5px; display: inline-block;">'+
-                    '<img src="{[this.renderThumbnail(values.path,values.filename,values.ext)]}">'+
+                    '<img src="{[this.renderThumbnail(values.path,values.filename,values.ext)]}" onerror="this.onerror=\'\'; this.src=\'./resources/img/noimg_100.png\'; return true;">'+
                 '</div>'+
 				'<div style="display: inline-block;">'+
                     '<div>'+
-                        '<span style="font-weight:bold">{filename}</span><br/>{family}<br/>{genus} {specificEpithet}<br/>'+
+                        '<span style="font-weight:bold">{filename}</span><br/>'+
+                        '{family}<br/>{genus} {specificEpithet}<br/>'+
                         '<span>Barcode: {barcode}</span><br>'+
                         '<span>Date Added: {timestampAdded:this.renderDate}</span><br>'+
                         '<span>Date Modified: {timestampModified:this.renderDate}</span>'+
@@ -115,9 +87,9 @@ Ext.define('BIS.view.ImagesGridView', {
 		});
 		this.tplSmallIcons = new Ext.XTemplate(
 			'<tpl for=".">'+
-			'<div class="imageSelector" style="width: 100px; height: 100px">' +
+			'<div class="imageSelector" data-qtip="{filename}" style="width: 114px; height: 114px; padding: 2px;">' +
                 '<div>'+
-                    '<img style="display: block; margin: auto;" src="{[this.renderThumbnail(values.path,values.filename,values.ext)]}" />'+
+                    '<img style="display: block; margin: auto;" src="{[this.renderThumbnail(values.path,values.filename,values.ext)]}" onerror="this.onerror=\'\'; this.src=\'./resources/img/noimg_100.png\'; return true;"/>'+
                 '</div>'+
 			'</div>'+
 			'</tpl>', {
@@ -127,14 +99,12 @@ Ext.define('BIS.view.ImagesGridView', {
 		});
 		this.tplTileIcons = new Ext.XTemplate(
 			'<tpl for=".">'+
-			'<div class="imageSelector">' +
-                '<div style="padding: 5px;">'+
-                    '<div>'+
-                        '<span style="font-weight:bold">{filename}</span><br/>{barcode} {family}<br/>{genus} {specificEpithet}'+
-                    '</div>'+
-                    '<div style="border-bottom: solid thin #9F9F9F; width: 275px; height: 276px;">'+
-                        '<img style="display: block; margin: auto;" src="{[this.renderThumbnail(values.path,values.filename,values.ext)]}">'+
-                    '</div>'+
+			'<div class="imageSelector" style="padding: 2px;">' +
+                '<div>'+
+                    '<span style="font-weight:bold">{filename}</span><br/>{barcode} {family}<br/>{genus} {specificEpithet}'+
+                '</div>'+
+                '<div style="border-bottom: solid thin #9F9F9F; width: 275px; height: 276px;">'+
+                    '<img style="display: block; margin: auto;" src="{[this.renderThumbnail(values.path,values.filename,values.ext)]}" onerror="this.onerror=\'\'; this.src=\'./resources/img/noimg_275.png\'; return true;">'+
                 '</div>'+
 			'</div>'+
 			'</tpl>', {
@@ -146,10 +116,21 @@ Ext.define('BIS.view.ImagesGridView', {
 		this.callParent( arguments );
 	},
 	onRowSelect: function( ind ) {
+        var record = this.getStore().getAt( ind );
+        new Ext.Element( this.getNode( record ) ).addCls( 'imageRowSelected' );
+        if ( record && !this.getSelectionModel().isSelected( ind ) ) {
+            this.getSelectionModel().select( ind );
+        }
 	},
 	onRowDeselect: function( ind ) {
+        var record = this.getStore().getAt( ind );
+        new Ext.Element( this.getNode( record ) ).removeCls( 'imageRowSelected' );
+        if ( record && this.getSelectionModel().isSelected( ind ) ) {
+            this.getSelectionModel().deselect( ind );
+        }
 	},
 	onRowFocus: function( ind ) {
+        // this has to be implemented ( abstract method )
 	},
 	setTpl: function( mode ) {
 		switch( mode ) {

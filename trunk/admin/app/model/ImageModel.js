@@ -86,6 +86,18 @@ Ext.define('BIS.model.ImageModel', {
         },
         {
             name: 'enFlag'
+        },
+        {
+            name: 'attributes'
+        },
+        {
+            name: 'events'
+        },
+        {
+            name: 'geography'
+        },
+        {
+            name: 'sets'
         }
     ]
 });

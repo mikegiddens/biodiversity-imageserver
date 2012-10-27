@@ -4,6 +4,14 @@ Ext.define('BIS.view.CtxMnuAttribute', {
     listeners: {
         click: function( menu, item ) {
             switch( item.identifier ) {
+                case 'query':
+                    this.advFilter.children[0].condition = '=';
+                    Ext.getCmp('imagesGrid').setAdvancedFilter( this.advFilter );
+                    break;
+                case 'queryInverse':
+                    this.advFilter.children[0].condition = '!=';
+                    Ext.getCmp('imagesGrid').setAdvancedFilter( this.advFilter );
+                    break;
                 case 'update':
                     this.update();
                     break;
@@ -18,8 +26,37 @@ Ext.define('BIS.view.CtxMnuAttribute', {
     initComponent: function() {
         var me = this;
 
+        this.advFilter = {
+            node: 'group',
+            logop: 'and',
+            children: [
+                {
+                    node: 'condition',
+                    object: 'attribute',
+                    key: this.record.get('categoryId'),
+                    keyText: this.record.get('title'),
+                    value: this.record.get('attributeId'),
+                    valueText: this.record.get('name'),
+                    value2: null,
+                    value2Text: '',
+                    condition: '='
+                }
+            ]
+        }
+
         Ext.applyIf(me, {
             items: [
+                {
+                    text: 'Find with ' + this.record.get('name'),
+                    iconCls: 'icon_find',
+                    identifier: 'query'
+                },
+                {
+                    text: 'Find without ' + this.record.get('name'),
+                    iconCls: 'icon_find',
+                    identifier: 'queryInverse'
+                },
+                '-',
                 {
                     text: 'Add to',
                     iconCls: 'icon_',
@@ -78,7 +115,7 @@ Ext.define('BIS.view.CtxMnuAttribute', {
                 params.imageId = JSON.stringify( images );
                 break;
             case 'filtered':
-                params.advFilter = Ext.getCmp('imagesGrid').getStore().getProxy().extraParams.advFilter // last used advanced filter
+                params.imageId = Ext.getCmp('imagesGrid').getStore().collect( 'imageId', false, false );
                 imagesAffected = Ext.getCmp('imagesGrid').getStore().totalCount;
                 break;
             case 'all':
@@ -98,7 +135,7 @@ Ext.define('BIS.view.CtxMnuAttribute', {
                         if ( data.success ) {
                             // reload image details panel
                             var detailsPanel = Ext.getCmp('imageDetailsPanel');
-                            detailsPanel.loadImage( detailsPanel.image );
+                            detailsPanel.loadImages( detailsPanel.images );
                         }
                     }
                 });
