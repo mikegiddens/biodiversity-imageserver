@@ -10,6 +10,7 @@ Class Image {
 
 	public function __construct($db = null) {
 		$this->db = $db;
+		$this->lg = new LogClass($db);
 	}
 
 	public function imageSetFullPath( $file ){
@@ -928,7 +929,7 @@ Class Image {
 				$percent = 1 / pow(2, $z);
 				$width = $owidth * $percent;
 				$height = $oheight * $percent;
-				$cmd = sprintf("convert %s -resize %sx%s %s"
+				$cmd = sprintf("convert \"%s\" -resize %sx%s \"%s\""
 					,	$filename
 					,	$width
 					,	$height
@@ -949,7 +950,7 @@ Class Image {
 					
 					$this->imageMkdirRecursive($outputPath . $z . '/');
 		
-					$cmd = sprintf("convert %s -crop %sx%s+%s+%s\! %s%s/tile_%s_%s_%s.jpg"
+					$cmd = sprintf("convert \"%s\" -crop %sx%s+%s+%s\! %s%s/tile_%s_%s_%s.jpg"
 						, $tmpFile
 						,	256
 						,	256
@@ -964,7 +965,7 @@ Class Image {
 					$res = system($cmd);
 					if($i == $iLimit || $j == $jLimit) {
 						$tmpImage = sprintf("%s%s/tile_%s_%s_%s.jpg",$outputPath,$z,$z,$x,$y);
-						$cmd = sprintf("convert %s -background white -extent 256x256 +repage %s", $tmpImage, $tmpImage);
+						$cmd = sprintf("convert \"%s\" -background white -extent 256x256 +repage \"%s\"", $tmpImage, $tmpImage);
 						$res = system($cmd);
 					}
 				}
@@ -1241,7 +1242,7 @@ Class Image {
 		$key = rtrim($this->imageGetProperty('path'),'/').'/'.$this->imageGetProperty('filename');
 		$imageFile = $storage->storageDeviceFileDownload($this->imageGetProperty('storageDeviceId'), $key);
 		if(false !== $imageFile) {
-			$cmd = sprintf("convert -limit memory 16MiB -limit map 32MiB %s -rotate %s %s", $imageFile, $this->data['degree'], $imageFile);
+			$cmd = sprintf("convert -limit memory 16MiB -limit map 32MiB \"%s\" -rotate %s \"%s\"", $imageFile, $this->data['degree'], $imageFile);
 			system($cmd);
 			if(strtolower($storage->storageDeviceGetType($this->imageGetProperty('storageDeviceId'))) == 's3') {
 				$storage->storageDeviceFileUpload($this->imageGetProperty('storageDeviceId'), $key, $imageFile);
@@ -1679,11 +1680,19 @@ Class Image {
 		$categoryId = $this->data['categoryId'];
 		$attributeId = $this->data['attributeId'];
 		
+		$this->lg->logSetProperty('table', 'imageAttrib');
+		
 		if(is_array($this->data['advFilter']) && count($this->data['advFilter'])) {
 			$qry = $this->getByCrazyFilter($this->data['advFilter']);
 			$query = " INSERT IGNORE INTO imageAttrib(imageId, categoryId, attributeId) SELECT im.imageId, $categoryId, $attributeId FROM ($qry) im ";
 			// echo $query; exit;
-			return ($this->db->query($query));
+			if($this->db->query($query)) {
+				$this->lg->logSetProperty('query', $query);
+				$this->lg->logSave();
+				return true;
+			} else {
+				return false;
+			}
 		} else if(is_array($this->data['imageId']) && count($this->data['imageId'])) {
 			foreach($this->data['imageId'] as $id) {
 				if($this->imageLoadById($id)) {
@@ -1692,42 +1701,63 @@ Class Image {
 						, mysql_escape_string($categoryId)
 						, mysql_escape_string($attributeId)
 					);
-					$this->db->query($query);
+					if($this->db->query($query)) {
+						$this->lg->logSetProperty('query', $query);
+						$this->lg->logSave();
+					}
 
-					$query = sprintf("INSERT INTO `imageLog` (action, imageId, afterDesc, query, dateCreated) VALUES (10, '%s', 'Cat ID: %s, Attrib ID: %s', '%s', NOW());"
-						, mysql_escape_string($id)
-						, mysql_escape_string($categoryId)
-						, mysql_escape_string($attributeId)
-						, mysql_escape_string($query)
-					);
-					$this->db->query($query);
+					// $query = sprintf("INSERT INTO `imageLog` (action, imageId, afterDesc, query, dateCreated) VALUES (10, '%s', 'Cat ID: %s, Attrib ID: %s', '%s', NOW());"
+						// , mysql_escape_string($id)
+						// , mysql_escape_string($categoryId)
+						// , mysql_escape_string($attributeId)
+						// , mysql_escape_string($query)
+					// );
+					// $this->db->query($query);
 				}
 			}
 			return true;
 		} else {
-			return ($this->db->query(" INSERT IGNORE INTO imageAttrib(imageId, categoryId, attributeId) SELECT imageId, $categoryId, $attributeId FROM image "));
+			$query = " INSERT IGNORE INTO imageAttrib(imageId, categoryId, attributeId) SELECT imageId, $categoryId, $attributeId FROM image ";
+			if($this->db->query($query)) {
+				$this->lg->logSetProperty('query', $query);
+				$this->lg->logSave();
+			}
 		}
 	}
 
 	public function imageAttributeDelete() {
-		$imageIds = @explode(',', $this->data['imageId']);
+		// $imageIds = @explode(',', $this->data['imageId']);
+		$imageIds = $this->data['imageId'];
 		$attributeId = $this->data['attributeId'];
-		if(count($imageIds)) {
-			foreach($imageIds as $id) {
-				$query = sprintf("DELETE FROM `imageAttrib` WHERE imageId = %s AND attributeId IN (%s)"
-				, mysql_escape_string($id)
-				, mysql_escape_string($attributeId)
-				);
-				$this->db->query($query);
-
-				$query = sprintf("INSERT INTO `imageLog` (action, imageId, afterDesc, query, dateCreated) VALUES (11, '%s', 'Attrib ID: %s', '%s', NOW())"
-				, mysql_escape_string($id)
-				, mysql_escape_string($attributeId)
-				, mysql_escape_string($query)
-				);
-				$this->db->query($query);
+		if(is_array($imageIds) && count($imageIds)) {
+			$query = sprintf("DELETE FROM `imageAttrib` WHERE attributeId = %s AND imageId IN (%s)"
+			, mysql_escape_string($attributeId)
+			, @implode(',',$imageIds)
+			);
+			if($this->db->query($query)) {
+				$this->lg->logSetProperty('table', 'imageAttrib');
+				$this->lg->logSetProperty('query', $query);
+				$this->lg->logSave();
+				return true;
+			} else {
+				return false;
 			}
-			return true;
+			
+			// foreach($imageIds as $id) {
+			// $query = sprintf("DELETE FROM `imageAttrib` WHERE imageId = %s AND attributeId = %s"
+				// , mysql_escape_string($id)
+				// , mysql_escape_string($attributeId)
+				// );
+				// if($this->db->query($query)) {
+
+				// $query = sprintf("INSERT INTO `imageLog` (action, imageId, afterDesc, query, dateCreated) VALUES (11, '%s', 'Attrib ID: %s', '%s', NOW())"
+				// , mysql_escape_string($id)
+				// , mysql_escape_string($attributeId)
+				// , mysql_escape_string($query)
+				// );
+				// $this->db->query($query);
+				// }
+			// }
 		} else {
 			return false;
 		}
@@ -1797,10 +1827,10 @@ Class Image {
 						} else if($filter['key'] != '' && $filter['value'] == '') {
 							switch($filter['condition']) {
 								case '=':
-									$str .= " ( i.`imageId` NOT IN ( SELECT ia.imageId FROM imageAttrib ia WHERE ia.categoryId = {$filter['key']} ) ) ";
+									$str .= " ( i.`imageId` IN ( SELECT ia.imageId FROM imageAttrib ia WHERE ia.categoryId = {$filter['key']} ) ) ";
 									break;
 								case '!=':
-									$str .= " ( i.`imageId` IN ( SELECT ia.imageId FROM imageAttrib ia WHERE ia.categoryId = {$filter['key']} ) ) ";
+									$str .= " ( i.`imageId` NOT IN ( SELECT ia.imageId FROM imageAttrib ia WHERE ia.categoryId = {$filter['key']} ) ) ";
 									break;
 							}
 						}
@@ -1858,10 +1888,10 @@ Class Image {
 						} else if($filter['key'] != '' && $filter['value'] == '') {
 							switch($filter['condition']) {
 								case '=':
-									$str .= " ( i.`imageId` NOT IN ( SELECT ei.imageId FROM eventImages ei, events e WHERE ei.eventId = e.eventId AND e.eventTypeId = {$filter['key']} ) ) ";
+									$str .= " ( i.`imageId` IN ( SELECT ei.imageId FROM eventImages ei, events e WHERE ei.eventId = e.eventId AND e.eventTypeId = {$filter['key']} ) ) ";
 									break;
 								case '!=':
-									$str .= " ( i.`imageId` IN ( SELECT ei.imageId FROM eventImages ei, events e WHERE ei.eventId = e.eventId AND e.eventTypeId = {$filter['key']} ) ) ";
+									$str .= " ( i.`imageId` NOT IN ( SELECT ei.imageId FROM eventImages ei, events e WHERE ei.eventId = e.eventId AND e.eventTypeId = {$filter['key']} ) ) ";
 									break;
 							}
 						}
@@ -2345,6 +2375,7 @@ class ImageAttribType
 	
 	public function __construct($db = null) {
 		$this->db = $db;
+		$this->lg = new LogClass($db);
 	}
 	
 	public function imageCategorySetData($data) {
@@ -2413,12 +2444,16 @@ class ImageAttribType
 
 		if($this->db->query($query)) {
 			$id = $this->db->insert_id;
-			$query1 = sprintf("INSERT INTO `imageLog` (action, afterDesc, query, dateCreated) VALUES (4, 'categoryId: %s, value: %s', '%s', NOW())"
-				, mysql_escape_string($id)
-				, mysql_escape_string($this->imageCategoryGetProperty('title'))
-				, mysql_escape_string($query)
-				);
-			$this->db->query($query1);
+			$this->lg->logSetProperty('table', 'imageAttribType');
+			$this->lg->logSetProperty('query', $query);
+			$this->lg->logSave();
+			
+			// $query1 = sprintf("INSERT INTO `imageLog` (action, afterDesc, query, dateCreated) VALUES (4, 'categoryId: %s, value: %s', '%s', NOW())"
+				// , mysql_escape_string($id)
+				// , mysql_escape_string($this->imageCategoryGetProperty('title'))
+				// , mysql_escape_string($query)
+				// );
+			// $this->db->query($query1);
 			return( $id );
 		}
 		return false;
@@ -2433,11 +2468,14 @@ class ImageAttribType
 			, mysql_escape_string($this->imageCategoryGetProperty('categoryId'))
 			);
 		if($this->db->query($query)) {
-			$this->db->query(sprintf("INSERT INTO `imageLog` (action, afterDesc, query, dateCreated) VALUES (5, 'categoryId: %s, value: %s', '%s', NOW())"
-			, mysql_escape_string($this->imageCategoryGetProperty('categoryId'))
-			, mysql_escape_string($this->imageCategoryGetProperty('title'))
-			, mysql_escape_string($query)
-			));
+			$this->lg->logSetProperty('table', 'imageAttribType');
+			$this->lg->logSetProperty('query', $query);
+			$this->lg->logSave();
+			// $this->db->query(sprintf("INSERT INTO `imageLog` (action, afterDesc, query, dateCreated) VALUES (5, 'categoryId: %s, value: %s', '%s', NOW())"
+			// , mysql_escape_string($this->imageCategoryGetProperty('categoryId'))
+			// , mysql_escape_string($this->imageCategoryGetProperty('title'))
+			// , mysql_escape_string($query)
+			// ));
 			return true;
 		}
 		return false;
@@ -2455,13 +2493,18 @@ class ImageAttribType
 		$query = sprintf("DELETE FROM `imageAttribType` WHERE categoryId = %s;", mysql_escape_string($categoryId));
 		$this->db->query($query);
 		$query1 .= $query;
+
+		$this->lg->logSetProperty('table', 'imageAttribType');
+		$this->lg->logSetProperty('query', $query1);
+		$this->lg->logSave();
+		return true;
 		
-		$query2 = sprintf("INSERT INTO `imageLog` (action, afterDesc, query, dateCreated) VALUES (6, 'Category ID: %s', '%s', NOW())", mysql_escape_string($categoryId), mysql_escape_string($query1));
-		if($this->db->query($query2)) {
-			return true;
-		} else {
-			return false;
-		}
+		// $query2 = sprintf("INSERT INTO `imageLog` (action, afterDesc, query, dateCreated) VALUES (6, 'Category ID: %s', '%s', NOW())", mysql_escape_string($categoryId), mysql_escape_string($query1));
+		// if($this->db->query($query2)) {
+			// return true;
+		// } else {
+			// return false;
+		// }
 	}
 	
 	public function imageCategoryList() {
@@ -2538,6 +2581,7 @@ class ImageAttribValue
 	
 	public function __construct($db = null) {
 		$this->db = $db;
+		$this->lg = new LogClass($db);
 	}
 	
 	public function imageAttributeSetData($data) {
@@ -2596,12 +2640,19 @@ class ImageAttribValue
 		$query = sprintf("DELETE FROM `imageAttribValue` WHERE attributeId = %s", mysql_escape_string($attributeId));
 		$this->db->query($query);		
 		$query1 .= $query;
-		$query = sprintf("INSERT INTO `imageLog` (action, afterDesc, query, dateCreated) VALUES (9, 'attributeId: %s', '%s', NOW())", mysql_escape_string($attributeId), $query1);
-		if($this->db->query($query)) {
-			return true;
-		} else {
-			return false;
-		}
+		
+		$this->lg->logSetProperty('table', 'imageAttrib');
+		$this->lg->logSetProperty('query', $query1);
+		$this->lg->logSave();
+
+		return true;
+		
+		// $query = sprintf("INSERT INTO `imageLog` (action, afterDesc, query, dateCreated) VALUES (9, 'attributeId: %s', '%s', NOW())", mysql_escape_string($attributeId), $query1);
+		// if($this->db->query($query)) {
+			// return true;
+		// } else {
+			// return false;
+		// }
 	}
 	
 	public function imageAttributeAdd() {
@@ -2612,13 +2663,19 @@ class ImageAttribValue
 
 		if($this->db->query($query)) {
 			$id = $this->db->insert_id;
-			$query1 = sprintf("INSERT INTO `imageLog` (action, afterDesc, query, dateCreated) VALUES (7, 'attributeId: %s, value: %s, categoryId: %s', '%s', NOW())"
-			, mysql_escape_string($id)
-			, mysql_escape_string($this->data['name'])
-			, mysql_escape_string($this->data['categoryId'])
-			, mysql_escape_string($query)
-			);
-			$this->db->query($query1);
+			
+			$this->lg->logSetProperty('table', 'imageAttribValue');
+			$this->lg->logSetProperty('query', $query);
+			$this->lg->logSave();
+			
+			// $query1 = sprintf("INSERT INTO `imageLog` (action, afterDesc, query, dateCreated) VALUES (7, 'attributeId: %s, value: %s, categoryId: %s', '%s', NOW())"
+			// , mysql_escape_string($id)
+			// , mysql_escape_string($this->data['name'])
+			// , mysql_escape_string($this->data['categoryId'])
+			// , mysql_escape_string($query)
+			// );
+			// $this->db->query($query1);
+			
 			return( $id );
 		}
 		return false;
@@ -2631,12 +2688,17 @@ class ImageAttribValue
 			, mysql_escape_string($this->imageAttributeGetProperty('attributeId'))
 			);
 		if($this->db->query($query)) {
-			$query1 = sprintf("INSERT INTO `imageLog` (action, afterDesc, query, dateCreated) VALUES (8, 'attributeId: %s, value: %s', '%s', NOW())"
-				, mysql_escape_string($this->imageAttributeGetProperty('attributeId'))
-				, mysql_escape_string($this->imageAttributeGetProperty('name'))
-				, mysql_escape_string($query)
-				);
-			$this->db->query($query1);
+			
+			$this->lg->logSetProperty('table', 'imageAttribValue');
+			$this->lg->logSetProperty('query', $query);
+			$this->lg->logSave();
+			
+			// $query1 = sprintf("INSERT INTO `imageLog` (action, afterDesc, query, dateCreated) VALUES (8, 'attributeId: %s, value: %s', '%s', NOW())"
+				// , mysql_escape_string($this->imageAttributeGetProperty('attributeId'))
+				// , mysql_escape_string($this->imageAttributeGetProperty('name'))
+				// , mysql_escape_string($query)
+				// );
+			// $this->db->query($query1);
 			return true;
 		}
 		return false;
