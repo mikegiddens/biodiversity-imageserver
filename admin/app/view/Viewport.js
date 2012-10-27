@@ -3,6 +3,11 @@ Ext.fly(document.body).on('contextmenu', function(e, target) {
 	e.preventDefault();
 });	
 
+Ext.tip.QuickTipManager.init();
+Ext.apply( Ext.tip.QuickTipManager.getQuickTip(), {
+    trackMouse: true
+});
+
 Ext.define('BIS.view.Viewport', {
 	extend: 'Ext.container.Viewport',
 	requires: [

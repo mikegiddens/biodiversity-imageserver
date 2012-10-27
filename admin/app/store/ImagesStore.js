@@ -12,24 +12,20 @@ Ext.define('BIS.store.ImagesStore', {
         me.callParent([Ext.apply({
             storeId: 'imagesStore',
             model: 'BIS.model.ImageModel',
+            pageSize: 50,
             listeners: {
                 scope: this,
                 load: function( store, records, isSuccessful, operation, opts ) {
-                    if (!(isSuccessful)) {
+                    if ( !isSuccessful ) {
                         Ext.get('imagesPanel-body').update('<span style="position: relative; left: 10px; top: 10px">No images found. Click "Add Image" below or drag and drop one or more onto this panel to add a new one.</span>');
                     }
-                    Ext.select('div.imageSelector').each( function( el ) {
-                        var dropTarget = new Ext.dd.DropTarget( el.dom, {
-                            ddGroup: 'categoryDD',
-                            copy: false,
-                            notifyDrop: function (dragSource, e, data) {
-                                console.log( dragSource, e, data );
-                                var record = data.records[0].data;
-                                var imgId = '';
-                                console.log( 'Associate ' + data.title + ' with ' );
-                            }
-                        });
-                    });
+                    // make sure store is on the correct page
+                    var numRecords = this.getTotalCount();
+                    var pageWeShouldBeOn = Math.ceil( numRecords / this.pageSize );
+                    var pageWeAreOn = this.currentPage;
+                    if ( pageWeAreOn > pageWeShouldBeOn ) {
+                        this.loadPage( pageWeShouldBeOn );
+                    }
                 }
             },
             proxy: {

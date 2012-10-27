@@ -29,7 +29,7 @@ Ext.define('BIS.view.FormCreateEvernoteAccount', {
                 name: 'notebookGuid'
             },{
                 fieldLabel: 'Username',
-                name: 'username'
+                name: 'userName'
             },{
                 fieldLabel: 'Password',
                 name: 'password'

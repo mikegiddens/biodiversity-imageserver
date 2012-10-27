@@ -52,7 +52,7 @@ Ext.define('BIS.view.CtxMnuTool', {
                 params.imageId = JSON.stringify( images );
                 break;
             case 'filtered':
-                params.advFilter = Ext.getCmp('imagesGrid').getStore().getProxy().extraParams.advFilter // last used advanced filter
+                params.imageId = Ext.getCmp('imagesGrid').getStore().collect( 'imageId', false, false );
                 imagesAffected = Ext.getCmp('imagesGrid').getStore().totalCount;
                 break;
             case 'all':

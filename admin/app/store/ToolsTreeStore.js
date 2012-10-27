@@ -28,7 +28,7 @@ Ext.define('BIS.store.ToolsTreeStore', {
                 },
                 {
                     name: 'Send to Evernote',
-                    route: '',
+                    route: 'populateEvernoteProcessQueue',
                     module: 'processor.php',
                     iconCls: 'icon_evernote',
                     leaf: true

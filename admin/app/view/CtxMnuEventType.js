@@ -5,6 +5,14 @@ Ext.define('BIS.view.CtxMnuEventType', {
     listeners: {
         click: function( menu, item ) {
             switch( item.identifier ) {
+                case 'query':
+                    this.advFilter.children[0].condition = '=';
+                    Ext.getCmp('imagesGrid').setAdvancedFilter( this.advFilter );
+                    break;
+                case 'queryInverse':
+                    this.advFilter.children[0].condition = '!=';
+                    Ext.getCmp('imagesGrid').setAdvancedFilter( this.advFilter );
+                    break;
                 case 'add':
                     this.addEvent();
                     break;
@@ -21,8 +29,38 @@ Ext.define('BIS.view.CtxMnuEventType', {
     },
     initComponent: function() {
         var me = this;
+
+        this.advFilter = {
+            node: 'group',
+            logop: 'and',
+            children: [
+                {
+                    node: 'condition',
+                    object: 'event',
+                    key: this.record.get('eventTypeId'),
+                    keyText: this.record.get('title'),
+                    value: null,
+                    valueText: '',
+                    value2: null,
+                    value2Text: '',
+                    condition: '='
+                }
+            ]
+        }
+
         Ext.applyIf(me, {
             items: [
+                {
+                    text: 'Find with ' + this.record.get('title'),
+                    iconCls: 'icon_find',
+                    identifier: 'query'
+                },
+                {
+                    text: 'Find without ' + this.record.get('title'),
+                    iconCls: 'icon_find',
+                    identifier: 'queryInverse'
+                },
+                '-',
                 {
                     text: 'Add Event',
                     iconCls: 'icon_newEvent',

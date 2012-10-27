@@ -33,7 +33,6 @@ Ext.define('Ext.ux.form.SearchField', {
     
     afterRender: function(){
         this.callParent();
-        this.triggerEl.item(0).setDisplayed('none');  
     },
     
     onTrigger1Click : function(){
@@ -43,7 +42,6 @@ Ext.define('Ext.ux.form.SearchField', {
             me.handlerCmp.clearFilter();
             me.setValue('');
             me.hasSearch = false;
-            me.triggerEl.item(0).setDisplayed('none');
             me.doComponentLayout();
         }
     },

@@ -4,6 +4,14 @@ Ext.define('BIS.view.CtxMnuCategory', {
     listeners: {
         click: function( menu, item ) {
             switch( item.identifier ) {
+                case 'query':
+                    this.advFilter.children[0].condition = '=';
+                    Ext.getCmp('imagesGrid').setAdvancedFilter( this.advFilter );
+                    break;
+                case 'queryInverse':
+                    this.advFilter.children[0].condition = '!=';
+                    Ext.getCmp('imagesGrid').setAdvancedFilter( this.advFilter );
+                    break;
                 case 'create':
                     var me = this;
                     var tmpWindow = Ext.create('Ext.window.Window', {
@@ -76,8 +84,37 @@ Ext.define('BIS.view.CtxMnuCategory', {
     initComponent: function() {
         var me = this;
 
+        this.advFilter = {
+            node: 'group',
+            logop: 'and',
+            children: [
+                {
+                    node: 'condition',
+                    object: 'attribute',
+                    key: this.record.get('categoryId'),
+                    keyText: this.record.get('title'),
+                    value: null,
+                    valueText: '',
+                    value2: null,
+                    value2Text: '',
+                    condition: '='
+                }
+            ]
+        }
+
         Ext.applyIf(me, {
             items: [
+                {
+                    text: 'Find with ' + this.record.get('title'),
+                    iconCls: 'icon_find',
+                    identifier: 'query'
+                },
+                {
+                    text: 'Find without ' + this.record.get('title'),
+                    iconCls: 'icon_find',
+                    identifier: 'queryInverse'
+                },
+                '-',
                 {
                     text: 'Add Attribute',
                     iconCls: 'icon_newAttribute',
