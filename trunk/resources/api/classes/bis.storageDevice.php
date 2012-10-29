@@ -179,15 +179,15 @@ class StorageDevice {
 					$storageFilePath1 = substr($storageFilePath,0,1)=='/' ? substr($storageFilePath,1,strlen($storageFilePath)-1) : $storageFilePath;
 					$response = $amazon->create_object ($device['basePath'], $storageFilePath1 . '/' .  $storageFileName, array('fileUpload' => $tmpFile,'acl' => AmazonS3::ACL_PUBLIC,'storage' => AmazonS3::STORAGE_REDUCED) );
 					if($response->isOK()) {
-						$result['imageId'] = $img->imageGetId($storageFileName, $storageFilePath, 1);
+						$result['imageId'] = $img->imageGetId($storageFileName, $storageFilePath, $storageDeviceId);
 						if(!$result['imageId']) {
 							$img->imageSetProperty('filename',$storageFileName);
-							$img->imageSetProperty('storageDeviceId', 1);
+							$img->imageSetProperty('storageDeviceId', $storageDeviceId);
 							$img->imageSetProperty('path', $storageFilePath);
 							$img->imageSetProperty('originalFilename', $storageFileName);
 							$img->imageSetProperty('remoteAccessKey', $remoteAccesskey);
 							$img->imageSave();
-							$result['imageId'] = $img->imageGetId($storageFileName, $storageFilePath, 1);
+							$result['imageId'] = $img->imageGetId($storageFileName, $storageFilePath, $storageDeviceId);
 						}
 						$result['success'] = true;
 						return $result;
@@ -202,18 +202,18 @@ class StorageDevice {
 					$response = file_put_contents($device['basePath'].$storageFilePath . '/' .  $storageFileName, $fp);
 					fclose($fp);
 					if($response) {
-						$result['imageId'] = $img->imageGetId($storageFileName, $storageFilePath, 2);
+						$result['imageId'] = $img->imageGetId($storageFileName, $storageFilePath, $storageDeviceId);
 						if(!$result['imageId']) {
 							$ar = @getimagesize($device['basePath'].$storageFilePath.'/'.$storageFileName);
 							$img->imageSetProperty('width',$ar[0]);
 							$img->imageSetProperty('height',$ar[1]);
 							$img->imageSetProperty('filename',$storageFileName);
-							$img->imageSetProperty('storageDeviceId', 2);
+							$img->imageSetProperty('storageDeviceId', $storageDeviceId);
 							$img->imageSetProperty('path', $storageFilePath);
 							$img->imageSetProperty('originalFilename', $storageFileName);
 							$img->imageSetProperty('remoteAccessKey', $remoteAccesskey);
 							$img->imageSave();
-							$result['imageId'] = $img->imageGetId($storageFileName, $storageFilePath, 2);
+							$result['imageId'] = $img->imageGetId($storageFileName, $storageFilePath, $storageDeviceId);
 						}
 						$result['success'] = true;
 						return $result;
