@@ -216,7 +216,7 @@ CREATE TABLE IF NOT EXISTS `image` (
   `tmpGenusAccepted` varchar(20) DEFAULT NULL,
   `storageDeviceId` int(11) NOT NULL DEFAULT '1',
   `path` varchar(256) NOT NULL,
-  `originalFileName` varchar(60) NOT NULL,
+  `originalFilename` varchar(60) NOT NULL,
   `remoteAccessKey` varchar(100) NOT NULL DEFAULT '0',
   `statusType` tinyint(4) NOT NULL DEFAULT '0',
   `rating` float NOT NULL,

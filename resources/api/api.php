@@ -1211,17 +1211,18 @@
 					$tmpFilename = explode('/', $filename);
 					$filename = $tmpFilename[count($tmpFilename)-1];
 				}
-				file_put_contents($filename, $stream);
-				$size = getimagesize($filename);
+				$tmp = sys_get_temp_dir() . '/' . $filename;
+				file_put_contents($tmp, $stream);
+				$size = getimagesize($tmp);
 				if(!in_array($size[2],$config['allowedImportTypes'])) {
 					$errorCode = 164;
 					$valid = false;
 				}
 			}
 			if($valid) {
-				$response = $si->storage->storageDeviceStore($filename,$storageDeviceId,$filename, $imagePath, $key);
-				$iEXd = new EXIFread($filename);
-				unlink($filename);
+				$response = $si->storage->storageDeviceStore($tmp,$storageDeviceId,$filename, $imagePath, $key);
+				$iEXd = new EXIFread($tmp);
+				unlink($tmp);
 				if($response['success']) {
 					$si->pqueue->processQueueSetProperty('imageId', $response['imageId']);
 					$si->pqueue->processQueueSetProperty('processType','all');
@@ -1347,17 +1348,18 @@
 					$tmpFilename = explode('/', $filename);
 					$filename = $tmpFilename[count($tmpFilename)-1];
 				}
-				file_put_contents($filename, $stream);
-				$size = getimagesize($filename);
+				$tmp = sys_get_temp_dir() . '/' . $filename;
+				file_put_contents($tmp, $stream);
+				$size = getimagesize($tmp);
 				if(!in_array($size[2],$config['allowedImportTypes'])) {
 					$errorCode = 164;
 					$valid = false;
 				}
 			}
 			if($valid) {
-				$response = $si->storage->storageDeviceStore($filename,$storageDeviceId,$filename, $imagePath, $key);
-				$iEXd = new EXIFread($filename);
-				unlink($filename);
+				$response = $si->storage->storageDeviceStore($tmp,$storageDeviceId,$filename, $imagePath, $key);
+				$iEXd = new EXIFread($tmp);
+				unlink($tmp);
 				if($response['success']) {
 					$si->pqueue->processQueueSetProperty('imageId', $response['imageId']);
 					$si->pqueue->processQueueSetProperty('processType','all');
@@ -1738,9 +1740,10 @@
 				$temp = explode('/', $url);
 				$filename = $temp[count($temp)-1];
 				$data = file_get_contents($url);
-				file_put_contents($filename, $data);
+				$tmp = sys_get_temp_dir() . '/' . $filename;
+				file_put_contents($tmp, $data);
 				unset($data);
-				$response = $si->storage->storageDeviceStore($filename,$storageDeviceId,$filename, $imagePath, $key);
+				$response = $si->storage->storageDeviceStore($tmp,$storageDeviceId,$filename, $imagePath, $key);
 				$iEXd = new EXIFread($filename);
 				unlink($filename);
 				if($response['success']) {
@@ -2356,7 +2359,7 @@
 								break;
 							case 'local':
 								$url = rtrim($url,'/') . '/';
-								$url .= ($dt->path == '/') ? '' : trim($dt->path,'/') . '/';
+								$url .= ($dt->path == '/' || $dt->path == '') ? '' : trim($dt->path,'/') . '/';
 								break;
 						}
 						unset($dt->storageDeviceId);

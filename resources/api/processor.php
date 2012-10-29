@@ -647,13 +647,20 @@ ini_set('display_errors', '1');
 					$loopFlag = false;
 				} else {
 					$ret = getNames($record->imageId);
-					$si->image->imageLoadById($record->imageId);
 					if($ret['success']) {
+					
+					// echo '<pre>';
+					// echo '<br>';
+					// print_r($ret);
+					
+						$si->image->imageLoadById($record->imageId);
+					
 						$si->image->imageSetProperty('family',$ret['data']['family']);
 						$si->image->imageSetProperty('genus',$ret['data']['genus']);
 						$si->image->imageSetProperty('scientificName',$ret['data']['scientificName']);
 						$si->image->imageSetProperty('specificEpithet',$ret['data']['specificEpithet']);
 						$si->image->imageSetProperty('nameFinderValue',$ret['data']['rawData']);
+						$si->image->imageSave();
 						
 						foreach(array('phylum', 'class', 'kingdom', 'order') as $rr) {
 							if($ret['data'][$rr] != '') {
@@ -670,9 +677,12 @@ ini_set('display_errors', '1');
 								$data['imageId'] = array($record->imageId);
 								$si->image->imageSetData($data);
 								$si->image->imageAttributeAdd();
+								// echo '<br>';
+								// print_r($data);
 							}
 						}
 					}
+					$si->image->imageLoadById($record->imageId);
 					$si->image->imageSetProperty('nameFinderFlag',1);
 					$si->image->imageSave();
 	
@@ -1157,31 +1167,53 @@ ini_set('display_errors', '1');
 		} else {
 			$url = @rtrim($device['baseUrl'],'/') . '/' . $si->image->imageGetProperty('filename') . '.txt';
 		}
-		$sourceUrl = 'http://namefinding.ubio.org/find?';
-		// $sourceUrl2 = 'http://tools.gbif.org/ws/taxonfinder?';
-		$sourceUrl2 = 'http://xecat-dev.gbif.org/ws/indexer?';
+		
+		$names = array();
+		
+		$sourceUrl = 'http://gnrd.globalnames.org/name_finder.json?';
+		$sourceParams1 = array('url' => $url);
+		
+		$sourceUrl2 = 'http://ecat-dev.gbif.org/ws/indexer?';
+		$sourceParams2 = array('input' => $url, 'type' => 'url', 'format' => 'json');
+		
 		$verificationUrl = 'http://ecat-dev.gbif.org/ws/usage/?';
 		$verificationParams = array('rkey' => 1, 'showRanks' => 'kpcofgs');
 		
-		
-		$netiParams = array('input' => $url, 'type' => 'url', 'format' => 'json', 'client' => 'neti');
-		$taxonParams = array('input' => $url, 'type' => 'url', 'format' => 'json');
-		$getUrl = @http_build_query($netiParams);
+// echo '<pre>';
+
+		$getUrl = @http_build_query($sourceParams1);
 		$data = json_decode(@file_get_contents($sourceUrl . $getUrl),true);
-		if( !(is_array($data['names']) && count($data['names'])) ) {
-			$getUrl = @http_build_query($taxonParams);
-			$data = json_decode(@file_get_contents($sourceUrl2 . $getUrl),true);
+
+// echo '<br>';		
+// print_r($data);
+
+		if(isset($data['token_url']) && $data['token_url'] != '' && $data['status'] == 303) {
+		// echo ' <br> In Loop <br> ';
+		// $ul = $data['token_url'] . '&r=13467';
+		// echo '<br>' . $ul;
+		// echo '<br>';
+		// var_dump(json_decode(get_contents($ul)));
+		// exit;
+			$data1 = json_decode(@file_get_contents($data['token_url'] . '&r=' . rand(0, 9999)),true);
+// echo '<br>';		
+// print_r($data1);
+			if($data1['status'] == 200) {
+				$names = $data1['names'];
+			}
 		}
 
-		$family = '';
-		$genus = '';
-		$scientificName = '';
-// echo '<pre>';
-// print_r($data);
-// exit;
+// echo '<br>';		
+// print_r($names);
+// echo '<br>';		
 
-		if(is_array($data['names']) && count($data['names'])) {
-			foreach($data['names'] as $dt) {
+		if( !count($names) ) {
+			$getUrl = @http_build_query($sourceParams2);
+			$data = json_decode(@file_get_contents($sourceUrl2 . $getUrl),true);
+			$names = $data['names'];
+		}
+
+		if(is_array($names) && count($names)) {
+			foreach($names as $dt) {
 				$word = $dt['scientificName'];
 				$word = preg_replace('/\s+/',' ',trim($word));
 				$params = $verificationParams;
@@ -1190,61 +1222,23 @@ ini_set('display_errors', '1');
 				$vData = json_decode(@file_get_contents($verificationUrl . $vUrl),true);
 				if(count($vData['data'])) {
 					$ar = explode(' ', $vData['data'][0]['scientificName']);
-					return array('success' => true, 'data' => array('family' => $vData['data'][0]['family'],'genus' => $vData['data'][0]['genus'],'scientificName' => $vData['data'][0]['scientificName'],'specificEpithet' => $ar[1], 'phylum' => $vData['data'][0]['phylum'], 'class' => $vData['data'][0]['class'], 'kingdom' => $vData['data'][0]['kingdom'], 'order' => $vData['data'][0]['order'], 'rawData' => json_encode($data['names'])));
+					return array('success' => true, 'data' => array('family' => $vData['data'][0]['family'],'genus' => $vData['data'][0]['genus'],'scientificName' => $vData['data'][0]['scientificName'],'specificEpithet' => $ar[1], 'phylum' => $vData['data'][0]['phylum'], 'class' => $vData['data'][0]['class'], 'kingdom' => $vData['data'][0]['kingdom'], 'order' => $vData['data'][0]['order'], 'rawData' => json_encode($names)));
 				}
 
 			}
 		}
 
-
-/*
-		if( is_array($data['names']) && count($data['names']) ) {
-			foreach($data['names'] as $dt) {
-				# check 1
-				$word = $dt['scientificName'];
-				$word = preg_replace('/\s+/',' ',trim($word));
-	
-				$posFlag = false;
-				$word = @strtolower($word);
-				# $pos = @strripos($word,'acae');
-				$pos = @strripos($word,'ceae');
-				$pregFlag = (preg_match('/[^A-Za-z\s]/',$word) == 0) ? true : false;
-				if($pregFlag) {
-					if( ( ( $pos + 4 ) >= strlen($word) ) && (strlen($word) > 4) ) {
-						if($family == '') {
-							$family = @ucfirst($word);
-						}
-					} else {
-						$posFlag = true;
-					}
-				
-					$wd = explode(' ',$word);
-					if(count($wd) == 2) {
-						if($scientificName == '') {
-							$scientificName = @ucfirst($word);
-						}
-						if($genus == '') {
-							$genus = @ucfirst($wd[0]);
-							$specificEpithet = $wd[1];
-						}
-					} else if (count($wd) == 1) {
-						if($posFlag) {
-							if($genus == '') {
-								$genus = @ucfirst($word);
-							}
-						}
-					}
-				} # preg flag
-				if($family != '' && $genus != '' && $scientificName != '') {
-					return array('success' => true, 'data' => array('family' => $family,'genus' => $genus,'scientificName' => $scientificName,'specificEpithet' => $specificEpithet, 'rawData' => json_encode($data['names'])));
-				}
-			} # foreach
-			if($family != '' || $genus != '' || $scientificName != '') {
-				return array('success' => true, 'data' => array('family' => $family,'genus' => $genus,'scientificName' => $scientificName,'specificEpithet' => $specificEpithet, 'rawData' => json_encode($data['names'])));
-			}
-		}
-*/
 		return array('success' => false);
 	}
-
+	
+	function get_contents($url) {
+		$ch = curl_init();
+		curl_setopt ($ch, CURLOPT_URL, $url);
+		curl_setopt ($ch, CURLOPT_HEADER, 0);
+		curl_setopt($ch, CURLOPT_FRESH_CONNECT, 1);
+		ob_start();
+		curl_exec ($ch);
+		curl_close ($ch);
+		return ob_get_clean();  
+	}
 ?>
