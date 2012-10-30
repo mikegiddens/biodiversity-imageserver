@@ -11,6 +11,7 @@ Ext.define('BIS.view.ImagesGridView', {
 	selectedItemCls: 'imageRowSelected',
     overItemCls: 'highlight',
     trackOver: true,
+    style: '-moz-user-select: none; -webkit-user-select: none; -ms-user-select: none; -o-user-select: none; user-select: none;',
     scope: this,
 	listeners: {
 		afterrender: function( gridview, e ) {

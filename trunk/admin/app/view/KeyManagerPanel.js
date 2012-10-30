@@ -12,6 +12,8 @@ Ext.define('BIS.view.KeyManagerPanel', {
 			items: [{
 				xtype: 'tabpanel',
 				id: 'keyManagerTabPanel',
+                border: false,
+                bodyBorder: false,
 				activeTab: 0,
 				items: [{
 					xtype: 'gridpanel',
@@ -80,7 +82,7 @@ Ext.define('BIS.view.KeyManagerPanel', {
 			title: 'Generate Access Key',
 			iconCls: 'icon_addKey',
 			modal: true,
-			height: 350,
+			height: 200,
 			width: 500,
 			layout: 'fit',
 			resizable: false,
@@ -98,4 +100,5 @@ Ext.define('BIS.view.KeyManagerPanel', {
         });
         tmpWindow.show();
 	}
+
 });

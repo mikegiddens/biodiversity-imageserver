@@ -21,7 +21,8 @@ Ext.define('BIS.store.CollectionsTreeStore', {
                 type: 'ajax',
                 url: Config.baseUrl + 'resources/api/api.php',
                 extraParams: {
-                    cmd: 'collectionList'
+                    cmd: 'collectionList',
+                    group: 'name'
                 },
                 reader: {
                     type: 'json',

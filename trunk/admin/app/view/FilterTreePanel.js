@@ -29,14 +29,15 @@ Ext.define('BIS.view.FilterTreePanel', {
             }
         },
         itemclick: function( tree, record, clickedItem, ind, e ) {
+            var objectsFormPanel = Ext.getCmp( 'objectsFormPanel' );
+            var conditionCombo = Ext.getCmp( 'searchFilterCondition' );
+            Ext.getCmp('filterToText').update('');
+            Ext.getCmp('searchFilterText').setValue('');
+            objectsFormPanel.conditionalComponent = null;
+            objectsFormPanel.filterGraphRecord = null;
+            Ext.each( Ext.getCmp('objectFormFields').items.items, function( item ) { item.hide() } );
+
             if ( record.get('node') == 'condition' ) {
-                var objectsFormPanel = Ext.getCmp( 'objectsFormPanel' );
-                var conditionCombo = Ext.getCmp( 'searchFilterCondition' );
-                Ext.getCmp('filterToText').update('');
-                Ext.getCmp('searchFilterText').setValue('');
-                objectsFormPanel.conditionalComponent = null;
-                objectsFormPanel.filterGraphRecord = null;
-                Ext.each( Ext.getCmp('objectFormFields').items.items, function( item ) { item.hide() } );
                 switch ( record.get('object') ) {
                     case 'attribute':
                         Ext.getCmp( 'searchFiltercategory' ).setValue( record.get('key') ).show();

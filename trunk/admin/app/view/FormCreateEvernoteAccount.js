@@ -14,6 +14,7 @@ Ext.define('BIS.view.FormCreateEvernoteAccount', {
 	defaultType: 'textfield',
 	initComponent: function() {
 		var me = this;
+
 		Ext.applyIf(me, {
             items: [{
                 fieldLabel: 'Identifier',
@@ -23,22 +24,27 @@ Ext.define('BIS.view.FormCreateEvernoteAccount', {
                 hidden: (this.mode == 'add')
             },{
                 fieldLabel: 'Name',
-                name: 'accountName'
+                name: 'accountName',
+                minLength: 1
             },{
                 fieldLabel: 'Notebook Identifier',
                 name: 'notebookGuid'
             },{
                 fieldLabel: 'Username',
-                name: 'userName'
+                name: 'userName',
+                minLength: 1
             },{
                 fieldLabel: 'Password',
-                name: 'password'
+                name: 'password',
+                minLength: 1
             },{
                 fieldLabel: 'Key',
-                name: 'consumerKey'
+                name: 'consumerKey',
+                minLength: 1
             },{
                 fieldLabel: 'Secret',
-                name: 'consumerSecret'
+                name: 'consumerSecret',
+                minLength: 1
             },{
                 xtype: 'hiddenfield',
                 name: 'cmd',
@@ -50,7 +56,7 @@ Ext.define('BIS.view.FormCreateEvernoteAccount', {
                 ui: 'footer',
                 items: [
                     {
-                        width: 80,
+                        width: 100,
                         text: ( this.mode == 'add' ) ? 'Add Account' : 'Update Account',
                         iconCls: 'icon_evernote',
                         scope: this,

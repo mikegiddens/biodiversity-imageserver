@@ -321,7 +321,7 @@ Ext.define('BIS.view.ObjectsFormPanel', {
 
     convertFilterToPlainText: function() {
         var record = this.filterGraphRecord;
-        var textCondition = this.conditionTranslations[ record.get('condition') ];
+        var textCondition = this.conditionTranslations[ record.get('condition') ] || 'is';
         switch ( record.get('object') ) {
             case 'attribute':
                 if ( record.get('key') ) {

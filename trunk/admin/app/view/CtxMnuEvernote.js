@@ -63,8 +63,8 @@ Ext.define('BIS.view.CtxMnuEvernote', {
             title: 'Edit Account ' + this.record.data.name,
             iconCls: 'icon_evernote',
             modal: true,
-            height: 500,
-            width: 800,
+            height: 300,
+            width: 500,
             layout: 'fit',
             items: [
                 Ext.create('widget.formcreateevernoteaccount', {
@@ -75,6 +75,9 @@ Ext.define('BIS.view.CtxMnuEvernote', {
         });
         tmpWindow.on('accountCreated', function( data ) {
             Ext.getCmp('evernoteSettingsGrid').getStore().load();
+            tmpWindow.close();
+        });
+        tmpWindow.on('cancel', function( data ) {
             tmpWindow.close();
         });
         tmpWindow.show();

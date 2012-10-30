@@ -48,6 +48,10 @@
 .dropok {
     background-color: #CCFEBF ! important;
 }
+.noImages {
+    padding: 20px;
+    margin: 20px;
+}
 
 /*================================
 /*	ExtJs Overrides

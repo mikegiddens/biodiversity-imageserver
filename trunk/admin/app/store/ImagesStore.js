@@ -16,14 +16,27 @@ Ext.define('BIS.store.ImagesStore', {
             listeners: {
                 scope: this,
                 load: function( store, records, isSuccessful, operation, opts ) {
+                    // set no images text on error and no results
+                    // this updates the view element's html
+                    var cmp = Ext.getCmp('imagesGrid').getView().getEl();
                     if ( !isSuccessful ) {
-                        Ext.get('imagesPanel-body').update('<span style="position: relative; left: 10px; top: 10px">No images found. Click "Add Image" below or drag and drop one or more onto this panel to add a new one.</span>');
+                        if ( cmp ) {
+                            cmp.update('<span class="noImages">No images found. Drag and drop one or more onto this panel to add new ones.</span>');
+                        }
+                    } else {
+                        if ( records.length == 0 ) {
+                            if ( cmp ) {
+                                cmp.update('<span class="noImages">No images found. Drag and drop one or more onto this panel to add new ones.</span>');
+                            }
+                        }
                     }
+                    // unload image details panel
+                    Ext.getCmp('imageDetailsPanel').loadImages([]);
                     // make sure store is on the correct page
                     var numRecords = this.getTotalCount();
                     var pageWeShouldBeOn = Math.ceil( numRecords / this.pageSize );
                     var pageWeAreOn = this.currentPage;
-                    if ( pageWeAreOn > pageWeShouldBeOn ) {
+                    if ( pageWeAreOn > pageWeShouldBeOn && pageWeShouldBeOn > 0 ) {
                         this.loadPage( pageWeShouldBeOn );
                     }
                 }
@@ -31,6 +44,7 @@ Ext.define('BIS.store.ImagesStore', {
             proxy: {
                 url: Config.baseUrl + 'resources/api/api.php',
                 type: 'ajax',
+                sortParam: 'group',
                 extraParams: {
                     cmd: 'imageList'
                 },
