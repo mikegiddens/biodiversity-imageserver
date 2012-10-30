@@ -15,7 +15,7 @@ Ext.define('BIS.store.CollectionsStore', {
                 url: Config.baseUrl + 'resources/api/api.php',
                 extraParams: {
                     cmd: 'collectionList',
-                    order: 'name'
+                    group: 'name'
                 },
                 reader: {
                     type: 'json',

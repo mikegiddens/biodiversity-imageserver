@@ -11,7 +11,6 @@ Ext.define('BIS.view.CategoryTreePanel', {
 			store: 'CategoryTreeStore',
 			useArrows: true,
 			multiSelect: true,
-			allowCopy: true,
 			viewConfig: {
 				loadMask: false
 			},
@@ -33,20 +32,34 @@ Ext.define('BIS.view.CategoryTreePanel', {
 					Ext.getCmp('viewsPagingTitle').setText('Categories');
 				},
                 itemappend: function( thisNode, newChildNode, index, eOpts ) {
+                    /*
+                    var rootNode = this.getRootNode();
+                    var namespaceNode = rootNode.findChild( 'title', newChildNode.get('elementSet') );
+                    if ( namespaceNode ) {
+                        if ( !namespaceNode.findChild( 'categoryId', newChildNode.get('categoryId') ) ) {
+                            namespaceNode.appendChild( newChildNode );
+                        }
+                    } else {
+                        rootNode.appendChild({ title: newChildNode.get('elementSet'), leaf: false, expanded: true }).appendChild( newChildNode );
+                    }
+                    */
+                    /*
                     if ( eOpts && eOpts.isAttribute ) {
                         newChildNode.set('modelClass', 'attribute');
                         newChildNode.set('leaf', true);
                         newChildNode.set('iconCls', 'icon_attribute');
                         newChildNode.set('title', newChildNode.get('name'));
-                                                   
-                        //newChildNode.set('icon', newChildNode.get('profile_image_url'));
-                        //newChildNode.set('cls', 'demo-userNode');
-                        //newChildNode.set('iconCls', 'demo-userNodeIcon');
                     }
+                    if ( eOpts && eOpts.isCategory ) {
+                        newChildNode.set('modelClass', 'category');
+                        newChildNode.set('leaf', false);
+                        newChildNode.set('iconCls', 'icon_category');
+                    }
+                    */
+                    return false;
                 },
 				beforeitemexpand: function( record, opts ) {
                     opts.isAttribute = true;
-                    // http://stackoverflow.com/questions/11413724/different-node-types-in-a-extjs-4-1-treestore
 					this.getStore().getProxy().extraParams.cmd = 'attributeList';
 					this.getStore().getProxy().extraParams.categoryId = record.data.categoryId;
 					this.getStore().getProxy().extraParams.showNames = false;
@@ -86,8 +99,9 @@ Ext.define('BIS.view.CategoryTreePanel', {
 		var tmpWindow = Ext.create('Ext.window.Window', {
 			title: 'Create Category',
 			iconCls: 'icon_newCategory',
+            resizable: false,
 			modal: true,
-			height: 225,
+			height: 250,
 			width: 500,
 			layout: 'fit',
 			items: [{

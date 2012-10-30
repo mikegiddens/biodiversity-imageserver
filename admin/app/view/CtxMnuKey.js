@@ -26,9 +26,9 @@ Ext.define('BIS.view.CtxMnuKey', {
                     identifier: 'remove'
                 },
                 {
-                    text: ( this.record.data.active ) ? 'Disable Key' : 'Enable Key',
-                    iconCls: ( this.record.data.active ) ? 'icon_locked' : 'icon_unlocked',
-                    identifier: ( this.record.data.active ) ? 'disable' : 'enable'
+                    text: ( this.record.get('active') == 'true' ) ? 'Disable Key' : 'Enable Key',
+                    iconCls: ( this.record.get('active') == 'true' ) ? 'icon_locked' : 'icon_unlocked',
+                    identifier: ( this.record.get('active') == 'true' ) ? 'disable' : 'enable'
                 }
             ]
         });
@@ -64,8 +64,11 @@ Ext.define('BIS.view.CtxMnuKey', {
                 var res = Ext.decode( resObj.responseText );
                 if ( res.success ) {
                     Ext.getCmp('keyGrid').getStore().load();
+                } else {
+                    Ext.Msg.alert('Failed', res.error.msg );
                 }
             }
         });
     }
+
 });

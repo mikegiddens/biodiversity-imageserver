@@ -16,7 +16,7 @@ Ext.define('BIS.store.AttributesStore', {
                 extraParams: {
                     cmd: 'attributeList',
                     showNames: false,
-                    order: 'name'
+                    group: 'name'
                 },
                 reader: {
                     type: 'json',

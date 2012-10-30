@@ -66,6 +66,7 @@ Ext.define('BIS.view.SearchFilterPanel', {
                             store: 'SavedFilterStore',
                             displayField: 'name',
                             valueField: 'filter',
+                            editable: false,
                             scope: me,
                             listeners: {
                                 scope: me,

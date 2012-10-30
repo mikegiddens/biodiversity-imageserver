@@ -115,7 +115,7 @@ Ext.define('BIS.view.CtxMnuAttribute', {
                 params.imageId = JSON.stringify( images );
                 break;
             case 'filtered':
-                params.imageId = Ext.getCmp('imagesGrid').getStore().collect( 'imageId', false, false );
+                params.imageId = Ext.encode( Ext.getCmp('imagesGrid').getStore().collect( 'imageId', false, false ) );
                 imagesAffected = Ext.getCmp('imagesGrid').getStore().totalCount;
                 break;
             case 'all':
@@ -169,11 +169,13 @@ Ext.define('BIS.view.CtxMnuAttribute', {
             title: 'Edit Attribute ' + this.record.data.title,
             iconCls: 'icon_editAttribute',
             modal: true,
+            resizable: false,
             height: 100,
             width: 350,
             layout: 'fit',
             items: [
                 Ext.create('widget.formcreateattribute', {
+                    border: false,
                     record: this.record,
                     mode: 'edit'
                 })

@@ -18,11 +18,13 @@ Ext.define('BIS.view.CtxMnuCategory', {
                         title: 'Add Attribute to ' + this.record.data.title,
                         iconCls: 'icon_newAttribute',
                         modal: true,
-                        height: 150,
+                        resizable: false,
+                        height: 100,
                         width: 350,
                         layout: 'fit',
                         items: [
                             Ext.create('widget.formcreateattribute', {
+                                border: false,
                                 record: this.record,
                                 mode: 'add'
                             })
@@ -51,12 +53,14 @@ Ext.define('BIS.view.CtxMnuCategory', {
                     var tmpWindow = Ext.create('Ext.window.Window', {
                         title: 'Edit ' + this.record.data.title,
                         iconCls: 'icon_editCategory',
+                        resizable: false,
                         modal: true,
-                        height: 225,
-                        width: 350,
+                        height: 250,
+                        width: 500,
                         layout: 'fit',
                         items: [
                             Ext.create('widget.formcreatecategory', {
+                                border: false,
                                 record: this.record,
                                 mode: 'edit'
                             })

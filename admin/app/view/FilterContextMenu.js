@@ -140,7 +140,8 @@ Ext.define('BIS.view.FilterContextMenu', {
                                 key: null,
                                 value: null,
                                 value2: null,
-                                condition: null
+                                condition: null,
+                                leaf: true
                             });
                             this.record.expand();
                             break;
@@ -151,7 +152,8 @@ Ext.define('BIS.view.FilterContextMenu', {
                                 key: null,
                                 value: null,
                                 value2: null,
-                                condition: null
+                                condition: null,
+                                leaf: true
                             });
                             this.record.expand();
                             break;
@@ -162,7 +164,8 @@ Ext.define('BIS.view.FilterContextMenu', {
                                 key: null,
                                 value: null,
                                 value2: null,
-                                condition: null
+                                condition: null,
+                                leaf: true
                             });
                             this.record.expand();
                             break;
@@ -173,7 +176,8 @@ Ext.define('BIS.view.FilterContextMenu', {
                                 key: null,
                                 value: null,
                                 value2: null,
-                                condition: null
+                                condition: null,
+                                leaf: true
                             });
                             this.record.expand();
                             break;
@@ -184,7 +188,8 @@ Ext.define('BIS.view.FilterContextMenu', {
                                 key: null,
                                 value: null,
                                 value2: null,
-                                condition: null
+                                condition: null,
+                                leaf: true
                             });
                             this.record.expand();
                             break;
@@ -195,7 +200,8 @@ Ext.define('BIS.view.FilterContextMenu', {
                                 key: null,
                                 value: null,
                                 value2: null,
-                                condition: null
+                                condition: null,
+                                leaf: true
                             });
                             this.record.expand();
                             break;

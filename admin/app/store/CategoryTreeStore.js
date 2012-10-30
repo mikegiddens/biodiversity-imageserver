@@ -21,7 +21,8 @@ Ext.define('BIS.store.CategoryTreeStore', {
                 type: 'ajax',
                 url: Config.baseUrl + 'resources/api/api.php',
                 extraParams: {
-                    cmd: 'categoryList'
+                    cmd: 'categoryList',
+                    group: 'title'
                 },
                 reader: {
                     type: 'json',

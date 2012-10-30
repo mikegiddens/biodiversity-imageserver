@@ -29,6 +29,7 @@ Ext.define('BIS.view.MainViewport', {
 			items: [{
 				xtype: 'imagespanel',
 				region: 'center',
+                flex: 4,
 				border: false
 			},{
 				xtype: 'imagedetailpanel',
@@ -36,13 +37,14 @@ Ext.define('BIS.view.MainViewport', {
 				collapsed: false,
 				collapsible: true,
 				region: 'east',
-				width: 200,
+				flex: 1,
 				border: false,
 				split: true
 			},{
 				xtype: 'panel',
 				id: 'viewsPanel',
-				activeItem: 1,
+				activeItem: 0,
+                flex: 1,
 				border: false,
 				layout: {
 					type: 'card'
@@ -85,9 +87,9 @@ Ext.define('BIS.view.MainViewport', {
 						handler: this.incrementView
 					}]
 				}],
-				items: [{
+				items: [/*{
 					xtype: 'settreepanel'
-				},{
+				},*/{
 					xtype: 'categorytreepanel'
 				},{
 					xtype: 'collectiontreepanel'
@@ -118,6 +120,16 @@ Ext.define('BIS.view.MainViewport', {
                             flex: 1
                         }
                     ]
+				},{
+					xtype: 'panel',
+					id: 'geographyPanel',
+					listeners: {
+						show: function( el, opts ) {
+							Ext.getCmp('viewsPagingTitle').setText('Geography');
+						}
+					}
+				},{
+					xtype: 'eventtreepanel',
 				},{
 					xtype: 'gridpanel',
 					id: 'queuePanel',
@@ -155,16 +167,6 @@ Ext.define('BIS.view.MainViewport', {
                             ]
                         }
                     ]
-				},{
-					xtype: 'panel',
-					id: 'geographyPanel',
-					listeners: {
-						show: function( el, opts ) {
-							Ext.getCmp('viewsPagingTitle').setText('Geography');
-						}
-					}
-				},{
-					xtype: 'eventtreepanel',
 				}]
 			}],
 
@@ -181,35 +183,37 @@ Ext.define('BIS.view.MainViewport', {
 								scope: this,
 								handler: this.switchView
 							},
-							items: [{
+							items: [/*{
 								text: 'Sets',
 								iconCls: 'icon_sets',
 								panelIndex: 0
-							},{
+							},*/{
 								text: 'Metadata',
 								iconCls: 'icon_metadata',
-								panelIndex: 1
+								panelIndex: 0
 							},{
 								text: 'Collections',
 								iconCls: 'icon_collections',
-								panelIndex: 2
+								panelIndex: 1
 							},{
 								text: 'Tools',
-								iconCls: 'icon_tools',
-								panelIndex: 3
-							},{
-								text: 'Queue',
-								iconCls: 'icon_queue',
-								panelIndex: 4
+								iconCls: 'icon_toolbar',
+								panelIndex: 2
 							},{
 								text: 'Geography',
 								iconCls: 'icon_geography',
-								panelIndex: 5
+								panelIndex: 4
 							},{
 								text: 'Events',
 								iconCls: 'icon_eventTypes',
-								panelIndex: 6
-							}]
+								panelIndex: 5
+							},{
+                                xtype: 'menuseparator'
+                            },{
+								text: 'Queue',
+								iconCls: 'icon_queue',
+								panelIndex: 3
+                            }]
 						}
 					},{
 						xtype: 'tbseparator'
@@ -293,8 +297,8 @@ Ext.define('BIS.view.MainViewport', {
 				title: 'Storage Settings',
 				iconCls: 'icon_devices',
 				modal: true,
-				height: 500,
-				width: 800,
+				height: 250,
+				width: 600,
 				layout: 'fit',
 				bodyBorder: false,
 				items: [{ 
@@ -329,6 +333,21 @@ Ext.define('BIS.view.MainViewport', {
 				bodyBorder: false,
 				items: [{
 					xtype: 'usermanagerpanel' 
+				}],
+				dockedItems: [{
+					xtype: 'toolbar',
+					dock: 'bottom',
+					ui: 'footer',
+					items: [{ 
+						xtype: 'component', flex: 1 
+					},{
+						text: 'Close',
+						xtype: 'button',
+						width: 80,
+						handler: function() {
+							this.ownerCt.ownerCt.close();
+						}
+					}]
 				}]
 			}).show();
     },
@@ -343,7 +362,23 @@ Ext.define('BIS.view.MainViewport', {
 				layout: 'fit',
 				bodyBorder: false,
 				items: [{
-                    xtype: 'keymanagerpanel' 
+                    xtype: 'keymanagerpanel',
+                    border: false
+				}],
+				dockedItems: [{
+					xtype: 'toolbar',
+					dock: 'bottom',
+					ui: 'footer',
+					items: [{ 
+						xtype: 'component', flex: 1 
+					},{
+						text: 'Close',
+						xtype: 'button',
+						width: 80,
+						handler: function() {
+							this.ownerCt.ownerCt.close();
+						}
+					}]
 				}]
 			}).show();
     },
@@ -359,6 +394,21 @@ Ext.define('BIS.view.MainViewport', {
 				bodyBorder: false,
 				items: [{
                     xtype: 'evernotesettingspanel' 
+				}],
+				dockedItems: [{
+					xtype: 'toolbar',
+					dock: 'bottom',
+					ui: 'footer',
+					items: [{ 
+						xtype: 'component', flex: 1 
+					},{
+						text: 'Close',
+						xtype: 'button',
+						width: 80,
+						handler: function() {
+							this.ownerCt.ownerCt.close();
+						}
+					}]
 				}]
 			}).show();
     },
@@ -375,11 +425,25 @@ Ext.define('BIS.view.MainViewport', {
 					xtype: 'panel',
 					border: false,
 					tpl: new Ext.XTemplate('<div>Server Info</div>')
+				}],
+				dockedItems: [{
+					xtype: 'toolbar',
+					dock: 'bottom',
+					ui: 'footer',
+					items: [{ 
+						xtype: 'component', flex: 1 
+					},{
+						text: 'Close',
+						xtype: 'button',
+						width: 80,
+						handler: function() {
+							this.ownerCt.ownerCt.close();
+						}
+					}]
 				}]
 			}).show();
     },
     logout: function() {
-
     }
 
 });
