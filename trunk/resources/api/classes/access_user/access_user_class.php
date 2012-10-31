@@ -119,6 +119,7 @@ class Access_user {
 #		$_SESSION['pw'] = $this->user_pw;
 		$this->get_user_info();
 		$_SESSION['user_id'] = $this->id;
+		$_SESSION['userRealName'] = $this->user_full_name;
 		if (isset($_SESSION['referer']) && $_SESSION['referer'] != "") {
 			$next_page = $_SESSION['referer'];
 			unset($_SESSION['referer']);
@@ -193,7 +194,9 @@ class Access_user {
 		unset($_SESSION['user']);
 		# unset($_SESSION['pw']);
 		unset($_SESSION['user_id']);
+		unset($_SESSION['userRealName']);
 		unset($_SESSION['user_permissions']);
+		setcookie("PHPSESSID","",time()-3600,"/"); // delete session cookie 
 	}
 	function access_page($refer = "", $qs = "", $level = DEFAULT_ACCESS_LEVEL) {
 		$refer_qs = $refer;
