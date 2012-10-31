@@ -146,7 +146,7 @@ Ext.define('BIS.view.ImageDetailPanel', {
         Ext.each( records, function( record ) {
             ids.push( record.imageId );
         });
-
+        
         if ( ids.length == 0 ) {
             // show default message
             this.update( this.defaultMessage );

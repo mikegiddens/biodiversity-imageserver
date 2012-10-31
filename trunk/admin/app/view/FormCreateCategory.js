@@ -19,6 +19,7 @@ Ext.define('BIS.view.FormCreateCategory', {
                 {
                     xtype: 'textfield',
                     name: 'elementSet',
+                    value: ( me.initNamespace ) ? me.initNamespace : '',
                     fieldLabel: 'Namespace',
                     labelAlign: 'right',
                     anchor: '100%'
