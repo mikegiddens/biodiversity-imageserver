@@ -160,7 +160,7 @@ Ext.define('BIS.view.CtxMnuImage', {
             },
             scope: this,
             success: function( data ) {
-                console.log( data );
+                data = Ext.decode( data.responseText );
                 if ( data.success ) {
                 } else {
                     Ext.Msg.alert('Unable to Process Request', 'You do not have permission to rotate images.');
@@ -178,7 +178,7 @@ Ext.define('BIS.view.CtxMnuImage', {
             },
             scope: this,
             success: function( data ) {
-                console.log( data );
+                data = Ext.decode( data.responseText );
                 if ( data.success ) {
                 } else {
                     Ext.Msg.alert('Unable to Process Request', 'You do not have permission to rotate images.');
@@ -196,7 +196,7 @@ Ext.define('BIS.view.CtxMnuImage', {
             },
             scope: this,
             success: function( data ) {
-                console.log( data );
+                data = Ext.decode( data.responseText );
                 if ( data.success ) {
                 } else {
                     Ext.Msg.alert('Unable to Process Request', 'You do not have permission to rotate images.');
