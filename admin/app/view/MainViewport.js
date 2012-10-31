@@ -262,11 +262,12 @@ Ext.define('BIS.view.MainViewport', {
                         text: 'Sign Out',
                         iconCls: 'icon_logout',
 					    style: 'margin-right: 20px;',
-                        handler: this.signout
+                        handler: this.logout
 					},{
 						xtype: 'label',
-						style: 'font-weight: bold;',
-						text: 'Welcome, Administrator'
+                        id: 'userLabel',
+						style: 'font-weight: bold; margin-right: 20px;',
+						text: 'Welcome to Biodiversity Image Server!'
 					}]
 				}]
 			});
@@ -444,6 +445,15 @@ Ext.define('BIS.view.MainViewport', {
 			}).show();
     },
     logout: function() {
+        Ext.Ajax.request({
+            url: Config.baseUrl + 'resources/api/api.php',
+            params: {
+                cmd: 'userLogout'
+            },
+            callback: function() {
+                window.location.reload();
+            }
+        });
     }
 
 });

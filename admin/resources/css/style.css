@@ -388,4 +388,6 @@ img {
 .icon_measure {
 	background-image:url(../img/ico/shape_handles.png) !important;
 }
-
+.icon_namespace {
+    background-image:url(../img/ico/package.png) !important;
+}

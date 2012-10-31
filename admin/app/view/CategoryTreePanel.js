@@ -31,19 +31,23 @@ Ext.define('BIS.view.CategoryTreePanel', {
                     this.getStore().load();
 					Ext.getCmp('viewsPagingTitle').setText('Categories');
 				},
-                itemappend: function( thisNode, newChildNode, index, eOpts ) {
-                    /*
-                    var rootNode = this.getRootNode();
-                    var namespaceNode = rootNode.findChild( 'title', newChildNode.get('elementSet') );
-                    if ( namespaceNode ) {
-                        if ( !namespaceNode.findChild( 'categoryId', newChildNode.get('categoryId') ) ) {
-                            namespaceNode.appendChild( newChildNode );
+                load: function( tree, node, records, isSuccessful, opts ) {
+                    var rootNode = tree.getRootNode();
+                    Ext.each( records, function( record ) {
+                        var namespace = record.get('elementSet');
+                        var namespaceNode = rootNode.findChild( 'title', namespace );
+                        if ( !opts.isAttribute ) {
+                            if ( namespaceNode ) {
+                                namespaceNode.appendChild( record );
+                            } else {
+                                rootNode.appendChild({ title: namespace, leaf: false, expanded: true, isNamespace: true, iconCls: 'icon_namespace' }).appendChild( record );
+                            }
                         }
-                    } else {
-                        rootNode.appendChild({ title: newChildNode.get('elementSet'), leaf: false, expanded: true }).appendChild( newChildNode );
-                    }
-                    */
-                    /*
+                    });
+                },
+                itemappend: function( thisNode, newChildNode, index, eOpts ) {
+                    if ( thisNode && thisNode.isRoot() && !newChildNode.raw.isNamespace ) return false;
+
                     if ( eOpts && eOpts.isAttribute ) {
                         newChildNode.set('modelClass', 'attribute');
                         newChildNode.set('leaf', true);
@@ -55,8 +59,6 @@ Ext.define('BIS.view.CategoryTreePanel', {
                         newChildNode.set('leaf', false);
                         newChildNode.set('iconCls', 'icon_category');
                     }
-                    */
-                    return false;
                 },
 				beforeitemexpand: function( record, opts ) {
                     opts.isAttribute = true;
@@ -66,16 +68,20 @@ Ext.define('BIS.view.CategoryTreePanel', {
 				},
 				itemcontextmenu: function(view, record, item, index, e) {
 					e.stopEvent();
-					var ctx;
-					switch( record.data.modelClass ) {
-						case 'category':
-							ctx = Ext.create('BIS.view.CtxMnuCategory', {record: record});
-							break;
-						case 'attribute':
-							ctx = Ext.create('BIS.view.CtxMnuAttribute', {record: record});
-							break;
-					}
-					ctx.showAt(e.getXY());
+                    var ctx;
+                    if ( !record.raw.isNamespace ) {
+                        switch( record.data.modelClass ) {
+                            case 'category':
+                                ctx = Ext.create('BIS.view.CtxMnuCategory', {record: record});
+                                break;
+                            case 'attribute':
+                                ctx = Ext.create('BIS.view.CtxMnuAttribute', {record: record});
+                                break;
+                        }
+                    } else {
+                        ctx = Ext.create('BIS.view.CtxMnuNamespace', {record: record});
+                    }
+                    ctx.showAt(e.getXY());
 				},
 				itemclick: function( tree, record, el, ind, e, opts ) {
 				}

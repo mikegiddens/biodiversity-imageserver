@@ -55,6 +55,7 @@ Ext.application({
         'ImagesGridView',
         'CtxMnuCollection',
         'CtxMnuCategory',
+        'CtxMnuNamespace',
         'CtxMnuAttribute',
         'CtxMnuEventType',
         'CtxMnuEvent',
@@ -85,6 +86,19 @@ Ext.application({
     autoCreateViewport: true,
     name: 'BIS',
     launch: function() {
+        // get user info
+        Ext.Ajax.request({
+            url: Config.baseUrl + 'resources/api/api.php',
+            params: {
+                cmd: 'userInfo'
+            },
+            success: function( res, e ) {
+                var data = Ext.decode( res.responseText );
+                Config.user = data.records;
+                Ext.getCmp('userLabel').update( 'Welcome, ' + (data.records.userRealName || data.records.user) );
+            }
+        });
+
         // Remove Loading Div
         Ext.get('loading').remove();
         Ext.get('loading-mask').fadeOut({remove:true});
