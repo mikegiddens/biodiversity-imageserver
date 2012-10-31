@@ -453,16 +453,19 @@ ini_set('display_errors', '1');
 							$si->amazon->get_object($device['basePath'], $key, array('fileDownload' => $tmpFile));
 							break;
 						case 'local':
-							$tmpFilePath = $device['basePath'] . $si->image->imageGetProperty('path') . '/' . $si->image->imageGetProperty('filename');
+							$tmpFilePath = rtrim($device['basePath'] . $si->image->imageGetProperty('path'),'/') . '/' . $si->image->imageGetProperty('filename');
 							$tmpFile = $tmpFilePath;
 							break;
 					}
 					
 					if($config['image_processing'] == 1) {
 						$tmpImage = $tmpFilePath . '_tmp.jpg';
-						$cd = "convert \"$tmpFile\" -colorspace Gray  -contrast-stretch 15% \"$tmpImage\"";
+						$cd = "convert \"$tmpFile\" -colorspace Gray \"$tmpImage\"";
+						// $cd = "convert \"$tmpFile\" -colorspace Gray  -contrast-stretch 15% \"$tmpImage\"";
+// echo '<br><br>' . $cd;
 						exec($cd);
 						$command = sprintf("%s \"%s\" \"%s\"", $config['tesseractPath'], $tmpImage, $tmpFilePath);
+// echo '<br><br>' . $command;
 						exec($command);
 						@unlink($tmpImage);
 					} else {

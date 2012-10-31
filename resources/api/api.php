@@ -55,6 +55,7 @@
 		,	'dir'
 		,	'elementSet'
 		,	'enAccountId'
+		,	'ENGTYPE_1'
 		,	'eventId'
 		,	'eventTypeId'
 		,	'extra'
@@ -70,10 +71,17 @@
 		,	'imagePath'
 		,	'index'
 		,	'ip'
+		,	'ISO'
 		,	'key'
 		,	'limit'
 		,	'loadFlag'
 		,	'name'
+		,	'NAME_0'
+		,	'NAME_1'
+		,	'NAME_2'
+		,	'NAME_3'
+		,	'NAME_4'
+		,	'NAME_5'
 		,	'newStorageId'
 		,	'newImagePath'
 		,	'nodeApi'
@@ -111,6 +119,10 @@
 		,	'title'
 		,	'userId'
 		,	'value'
+		,	'VARNAME_1'
+		,	'VARNAME_2'
+		,	'VARNAME_3'
+		,	'VARNAME_4'
 		,	'zoom'
 	);
 
@@ -2876,23 +2888,34 @@
 # Geopraphy Commands			
 		case 'geographyAdd':
 			checkAuth();
-			if($country == '' || $countryIso == '') {
+			// if($country == '' || $countryIso == '') {
+				// $valid = false;
+				// $errorCode = 138;
+			// } else if ($si->geography->geographyCountryExists($country)) {
+				// $valid = false;
+				// $errorCode = 139;
+			// } else if ($si->geography->geographyCountryIsoExists($countryIso)) {
+				// $valid = false;
+				// $errorCode = 140;
+			// }
+			
+			if($NAME_0 == '' || $ISO == '') {
 				$valid = false;
 				$errorCode = 138;
-			} else if ($si->geography->geographyCountryExists($country)) {
-				$valid = false;
-				$errorCode = 139;
-			} else if ($si->geography->geographyCountryIsoExists($countryIso)) {
-				$valid = false;
-				$errorCode = 140;
 			}
+
 			if($valid) {
-				$si->geography->geographySetProperty('country', $country);
-				$si->geography->geographySetProperty('countryIso', $countryIso);
-				$si->geography->geographySetProperty('admin0', $admin0);
-				$si->geography->geographySetProperty('admin1', $admin1);
-				$si->geography->geographySetProperty('admin2', $admin2);
-				$si->geography->geographySetProperty('admin3', $admin3);
+				$si->geography->geographySetProperty('ISO', $ISO);
+				$si->geography->geographySetProperty('NAME_0', $NAME_0);
+				$si->geography->geographySetProperty('NAME_1', $NAME_1);
+				$si->geography->geographySetProperty('VARNAME_1', $VARNAME_1);
+				$si->geography->geographySetProperty('ENGTYPE_1', $ENGTYPE_1);
+				$si->geography->geographySetProperty('NAME_2', $VARNAME_2);
+				$si->geography->geographySetProperty('NAME_3', $NAME_3);
+				$si->geography->geographySetProperty('VARNAME_3', $VARNAME_3);
+				$si->geography->geographySetProperty('NAME_4', $NAME_4);
+				$si->geography->geographySetProperty('VARNAME_4', $VARNAME_4);
+				$si->geography->geographySetProperty('NAME_5', $NAME_5);
 				if(false === ($id = $si->geography->geographySave())) {
 					print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray(143)) ));
 				} else {
@@ -2932,7 +2955,8 @@
 			$data['start'] = ($start == '') ? 0 : $start;
 			$data['limit'] = ($limit == '') ? 100 : $limit;
 			$data['geographyId'] = (!is_numeric($geographyId)) ? json_decode(stripslashes(trim($geographyId)),true) : $geographyId;
-			$data['countryIso'] = $countryIso;
+			$data['ISO'] = $ISO;
+			$data['filter'] = $filter;
 			$data['searchFormat'] = in_array(strtolower(trim($searchFormat)),array('exact','left','right','both')) ? strtolower(trim($searchFormat)) : 'both';
 			$data['value'] = str_replace('%','%%',trim($value));
 			$data['group'] = $group;
@@ -2954,20 +2978,33 @@
 			} elseif(!$si->geography->geographyLoadById($geographyId)) {
 				$valid = false;
 				$errorCode = 142;
-			} else if ($country != '' && $country != $si->geography->geographyGetProperty('country') && $si->geography->geographyCountryExists($country)) {
-				$valid = false;
-				$errorCode = 139;
-			} else if ($countryIso != '' && $countryIso != $si->geography->geographyGetProperty('countryIso') && $si->geography->geographyCountryIsoExists($countryIso)) {
-				$valid = false;
-				$errorCode = 140;
 			}
+			// else if ($country != '' && $country != $si->geography->geographyGetProperty('country') && $si->geography->geographyCountryExists($country)) {
+				// $valid = false;
+				// $errorCode = 139;
+			// } else if ($countryIso != '' && $countryIso != $si->geography->geographyGetProperty('countryIso') && $si->geography->geographyCountryIsoExists($countryIso)) {
+				// $valid = false;
+				// $errorCode = 140;
+			// }
+			
+			if($NAME_0 == '' || $ISO == '') {
+				$valid = false;
+				$errorCode = 138;
+			}
+			
 			if($valid) {
-				($country != '' ) ? $si->geography->geographySetProperty('country', $country) : '';
-				($countryIso != '' ) ? $si->geography->geographySetProperty('countryIso', $countryIso) : '';
-				($admin0 != '' ) ? $si->geography->geographySetProperty('admin0', $admin0) : '';
-				($admin1 != '' ) ? $si->geography->geographySetProperty('admin1', $admin1) : '';
-				($admin2 != '' ) ? $si->geography->geographySetProperty('admin2', $admin2) : '';
-				($admin3 != '' ) ? $si->geography->geographySetProperty('admin3', $admin3) : '';
+				($ISO != '' ) ? $si->geography->geographySetProperty('ISO', $ISO) : '';
+				($NAME_0 != '' ) ? $si->geography->geographySetProperty('NAME_0', $NAME_0) : '';
+				($NAME_1 != '' ) ? $si->geography->geographySetProperty('NAME_1', $NAME_1) : '';
+				($VARNAME_1 != '' ) ? $si->geography->geographySetProperty('VARNAME_1', $VARNAME_1) : '';
+				($ENGTYPE_1 != '' ) ? $si->geography->geographySetProperty('ENGTYPE_1', $ENGTYPE_1) : '';
+				($NAME_2 != '' ) ? $si->geography->geographySetProperty('NAME_2', $NAME_2) : '';
+				($VARNAME_2 != '' ) ? $si->geography->geographySetProperty('VARNAME_2', $VARNAME_2) : '';
+				($NAME_3 != '' ) ? $si->geography->geographySetProperty('NAME_3', $NAME_3) : '';
+				($VARNAME_3 != '' ) ? $si->geography->geographySetProperty('VARNAME_3', $VARNAME_3) : '';
+				($NAME_4 != '' ) ? $si->geography->geographySetProperty('NAME_4', $NAME_4) : '';
+				($VARNAME_4 != '' ) ? $si->geography->geographySetProperty('VARNAME_4', $VARNAME_4) : '';
+				($NAME_5 != '' ) ? $si->geography->geographySetProperty('NAME_5', $NAME_5) : '';
 				if($si->geography->geographyUpdate()) {
 					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart ) ) );
 				} else {
@@ -3540,6 +3577,17 @@
 			}
 			break;
 
+		case 'userInfo':
+			checkAuth();
+			print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart, 'records' => array('user' => $_SESSION['user'], 'userId' => $_SESSION['user_id'], 'userRealName' => $_SESSION['userRealName']) ) ) );
+			break;
+
+		case 'userLogout':
+			checkAuth();
+			$userAccess->log_out();
+			print_c( json_encode( array( 'success' => true ) ) );
+			break;
+			
 		case 'userSetTrusted':
 			if(!($userAccess->is_logged_in() && $userAccess->get_accessLevel() == 10)){
 				$errorCode = 104;
