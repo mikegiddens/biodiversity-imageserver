@@ -3,25 +3,53 @@ Ext.define('BIS.model.GeographyModel', {
 
     fields: [
         {
-            name: 'geographyId'
+            name: 'name'
         },
         {
-            name: 'country'
+            name: 'ref'
         },
         {
-            name: 'countryIso'
+            name: 'ISO'
         },
         {
-            name: 'admin0'
+            name: 'NAME_0'
         },
         {
-            name: 'admin1'
+            name: 'NAME_1'
         },
         {
-            name: 'admin2'
+            name: 'VARNAME_1'
         },
         {
-            name: 'admin3'
+            name: 'ENGTYPE_1'
+        },
+        {
+            name: 'NAME_2'
+        },
+        {
+            name: 'VARNAME_2'
+        },
+        {
+            name: 'NAME_3'
+        },
+        {
+            name: 'VARNAME_3'
+        },
+        {
+            name: 'NAME_4'
+        },
+        {
+            name: 'VARNAME_4'
+        },
+        {
+            name: 'NAME_5'
+        },
+        {
+            name: 'source'
+        },
+        {
+            name: 'iconCls',
+            value: 'icon_geography'
         }
     ]
 });

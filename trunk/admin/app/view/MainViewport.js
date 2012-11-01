@@ -13,6 +13,7 @@ Ext.define('BIS.view.MainViewport', {
 		'BIS.view.ImagesPanel',
 		'BIS.view.SetTreePanel',
 		'BIS.view.CategoryTreePanel',
+		'BIS.view.GeographyTreePanel',
 		'BIS.view.CollectionTreePanel',
 		'BIS.view.EventTreePanel',
 		'BIS.view.ImageDetailPanel',
@@ -121,13 +122,7 @@ Ext.define('BIS.view.MainViewport', {
                         }
                     ]
 				},{
-					xtype: 'panel',
-					id: 'geographyPanel',
-					listeners: {
-						show: function( el, opts ) {
-							Ext.getCmp('viewsPagingTitle').setText('Geography');
-						}
-					}
+					xtype: 'geographytreepanel'
 				},{
 					xtype: 'eventtreepanel',
 				},{

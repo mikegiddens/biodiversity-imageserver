@@ -211,6 +211,18 @@ img {
 .icon_geography {
 	background-image:url(../img/ico/map.png) !important;
 }
+.icon_newGeography {
+	background-image:url(../img/ico/map_add.png) !important;
+}
+.icon_removeGeography {
+	background-image:url(../img/ico/map_delete.png) !important;
+}
+.icon_editGeography {
+	background-image:url(../img/ico/map_edit.png) !important;
+}
+.icon_map_link {
+	background-image:url(../img/ico/map_link.png) !important;
+}
 .icon_eventTypes {
 	background-image:url(../img/ico/world.png) !important;
 }
