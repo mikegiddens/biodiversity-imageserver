@@ -88,12 +88,19 @@ function build_where( $filter ) {
 /**
  *
  */
-function build_order( $tokens ) {
+function build_order( $tokens, $numericFields = array() ) {
 
 	if(count($tokens) && is_array($tokens)){
 		$qq = array();
-		foreach($tokens as $token) {
-			$qq[] = $token['field'] . " " . $token['dir'];
+		
+		if(count($numericFields)) {
+			foreach($tokens as $token) {
+				$qq[] = (in_array($token['field'],$numericFields)) ? $token['field'] . " " . $token['dir'] : ' LOWER(' . $token['field'] . ') ' . ' ' . $token['dir'];
+			}
+		} else {
+			foreach($tokens as $token) {
+				$qq[] =  ' LOWER(' . $token['field'] . ') ' . " " . $token['dir'];
+			}
 		}
 
 		return (' ORDER BY ' . implode(", ", $qq) );

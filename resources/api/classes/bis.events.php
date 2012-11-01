@@ -92,7 +92,7 @@ class Event
 			}
 		}
 		if($this->data['group'] != '' && in_array($this->data['group'], array('eventId','geographyId','eventDate','eventTypeId','title','description','lastModifiedBy')) && $this->data['dir'] != '') {
-			$where .= build_order( array(array('field' => $this->data['group'], 'dir' => $this->data['dir'])));
+			$where .= build_order( array(array('field' => $this->data['group'], 'dir' => $this->data['dir'])),array('eventId','geographyId','eventTypeId','lastModifiedBy'));
 		} else {
 			$where .= ' ORDER BY `eventId` ASC ';
 		}
@@ -206,12 +206,12 @@ class Event
 		$image = new Image($this->db);
 		if(is_array($this->data['advFilter']) && count($this->data['advFilter'])) {
 			$qry = $image->getByCrazyFilter($this->data['advFilter']);
-			$query = " INSERT INTO eventImages (imageId, eventId) SELECT im.imageId, $eventId FROM ($qry) im ";
+			$query = " INSERT IGNORE INTO eventImages (imageId, eventId) SELECT im.imageId, $eventId FROM ($qry) im ";
 			return($this->db->query($query));
 		} else if(is_array($this->data['imageId']) && count($this->data['imageId'])) {
 			foreach($this->data['imageId'] as $imageId) {
 				if($image->imageLoadById($imageId)) {
-					$this->db->query(sprintf("INSERT INTO eventImages SET `imageId` = '%s', `eventId` = '%s'"
+					$this->db->query(sprintf("INSERT IGNORE INTO eventImages SET `imageId` = '%s', `eventId` = '%s'"
 						, mysql_escape_string($imageId)
 						, mysql_escape_string($eventId) 
 						));
@@ -219,22 +219,30 @@ class Event
 			}
 			return true;
 		} else {
-			$query = " INSERT INTO eventImages (imageId, eventId) SELECT imageId, $eventId FROM `image` ";
+			$query = " INSERT IGNORE INTO eventImages (imageId, eventId) SELECT imageId, $eventId FROM `image` ";
 			return($this->db->query($query));
 		}
 	}
 	
-	public function eventsDeleteImage($imageId, $eventId) {
-		if($imageId == '' || $eventId == '') return false;
-		if(!$this->eventsRecordExists($eventId)) return false;
-		$query = sprintf("DELETE FROM `eventImages` WHERE `imageId` = '%s' AND `eventId` = '%s' ", mysql_escape_string($imageId), mysql_escape_string($eventId));
-		if($this->db->query($query)) {
-			$this->lg->logSetProperty('table', 'eventImages');
-			$this->lg->logSetProperty('query', $query);
-			$this->lg->logSave();
-			return true;
+	public function eventsDeleteImage() {
+		if((!(is_array($this->data['imageId']) && count($this->data['imageId'])) && !(is_array($this->data['advFilter']) && count($this->data['advFilter'])) ) || $this->data['eventId'] == '') return false;
+		if(!$this->eventsRecordExists($this->data['eventId'])) return false;
+		
+		if(is_array($this->data['advFilter']) && count($this->data['advFilter'])) {
+			$image = new Image($this->db);
+			$qry = $image->getByCrazyFilter($this->data['advFilter']);
+			$query = "DELETE FROM `eventImages` WHERE `imageId` IN (SELECT im.imageId FROM ($qry) im) AND `eventId` = '{$this->data['eventId']}'";
+			return($this->db->query($query));
 		} else {
-			return false;
+			$query = sprintf("DELETE FROM `eventImages` WHERE `imageId` IN (%s) AND `eventId` = '%s' ", @implode(',',$this->data['imageId']), mysql_escape_string($this->data['eventId']));
+			if($this->db->query($query)) {
+				$this->lg->logSetProperty('table', 'eventImages');
+				$this->lg->logSetProperty('query', $query);
+				$this->lg->logSave();
+				return true;
+			} else {
+				return false;
+			}
 		}
 	}
 	
@@ -386,7 +394,7 @@ class EventTypes
 			}
 		}
 		if($this->data['group'] != '' && in_array($this->data['group'], array('eventTypeId','title','description','lastModifiedBy','modifiedTime')) && $this->data['dir'] != '') {
-			$where .= build_order( array(array('field' => $this->data['group'], 'dir' => $this->data['dir'])));
+			$where .= build_order( array(array('field' => $this->data['group'], 'dir' => $this->data['dir'])),array('eventTypeId','lastModifiedBy'));
 		} else {
 			$where .= ' ORDER BY `eventTypeId` ASC ';
 		}

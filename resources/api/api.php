@@ -1908,44 +1908,6 @@
 			}
 			break;
 
-		// case 'imageAddToEvent':
-			// checkAuth();
-			// if($advFilterId != '') {
-				// if($si->advFilter->advFilterLoadById($advFilterId)) {
-					// $advFilter  = $si->advFilter->advFilterGetProperty('filter');
-				// }
-			// }
-			// $data['advFilter'] = json_decode(stripslashes(trim($advFilter)),true);
-			// if($eventId == '') {
-				// $valid = false;
-				// $errorCode = 115;
-			// } else if(!$si->event->eventsRecordExists($eventId)) {
-				// $valid = false;
-				// $errorCode = 117;
-			// } if($imageId == "" && !(is_array($data['advFilter']) && count($data['advFilter']))) {
-				// $valid = false;
-				// $errorCode = 220;
-			// } else if($imageId != '' && is_array($data['advFilter']) && count($data['advFilter'])) {
-				// if(!$si->image->imageLoadById($imageId)) {
-					// $valid = false;
-					// $errorCode = 158;
-				// }
-			// }
-			// if($valid) {
-				// $data['imageId'] = $imageId;
-				// $si->event->eventsSetData($data);
-				// $si->event->lg->logSetProperty('action', 'imageAddToEvent');
-				// $si->event->lg->logSetProperty('lastModifiedBy', $_SESSION['user_id']);
-				// if(false !== ($id = $si->event->eventsAddImage($eventId))) {
-					// print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart, 'eventImageId' => $id ) ) );
-				// } else {
-					// print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray(177)) ));
-				// }
-			// } else {
-				// print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray($errorCode)) ));
-			// }
-			// break;
-
 		case 'imageAddToEvent':
 			checkAuth();
 			if($advFilterId != '') {
@@ -2104,23 +2066,59 @@
 							
 		case 'imageDeleteFromEvent':
 			checkAuth();
+			// if($eventId == '') {
+				// $valid = false;
+				// $errorCode = 115;
+			// } else if($imageId == '') {
+				// $valid = false;
+				// $errorCode = 157;
+			// } else if(!$si->event->eventsRecordExists($eventId)) {
+				// $valid = false;
+				// $errorCode = 117;
+			// } else if(!$si->image->imageFieldExists($imageId)) {
+				// $valid = false;
+				// $errorCode = 170;
+			// }
+			
 			if($eventId == '') {
 				$valid = false;
 				$errorCode = 115;
-			} else if($imageId == '') {
-				$valid = false;
-				$errorCode = 157;
 			} else if(!$si->event->eventsRecordExists($eventId)) {
 				$valid = false;
 				$errorCode = 117;
-			} else if(!$si->image->imageFieldExists($imageId)) {
-				$valid = false;
-				$errorCode = 170;
 			}
+			
+			if($advFilterId != '') {
+				if($si->advFilter->advFilterLoadById($advFilterId)) {
+					$advFilter  = $si->advFilter->advFilterGetProperty('filter');
+				}
+			}
+			$data['advFilter'] = json_decode(stripslashes(trim($advFilter)),true);
+			if($imageId == '' && !(is_array($data['advFilter']) && count($data['advFilter']))) {
+				$valid = false;
+				$errorCode = 220;
+			} else if($imageId != '' && !(is_array($data['advFilter']) && count($data['advFilter']))) {
+				if(is_numeric($imageId)) {
+					if(!$si->image->imageLoadById($imageId)) {
+						$valid = false;
+						$errorCode = 158;
+					} else {
+						$imageId = array($imageId);
+					}
+				} else {
+					$imageId = json_decode($imageId,true);
+				}
+			}
+
 			if($valid) {
+				$data['imageId'] = $imageId;
+				$data['eventId'] = $eventId;
+			
 				$si->event->lg->logSetProperty('action', 'imageDeleteFromEvent');
 				$si->event->lg->logSetProperty('lastModifiedBy', $_SESSION['user_id']);
-				if($si->event->eventsDeleteImage($imageId, $eventId)) {
+				
+				$si->event->eventsSetData($data);
+				if($si->event->eventsDeleteImage()) {
 					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart ) ) );
 				} else {
 					print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray(178)) ));
@@ -2327,7 +2325,6 @@
 					$advFilter  = $si->advFilter->advFilterGetProperty('filter');
 				}
 			}
-			
 			$data['advFilter'] = json_decode(stripslashes(trim($advFilter)),true);
 			
 			if(is_array($filter)) {
@@ -2957,6 +2954,13 @@
 			$data['geographyId'] = (!is_numeric($geographyId)) ? json_decode(stripslashes(trim($geographyId)),true) : $geographyId;
 			$data['ISO'] = $ISO;
 			$data['filter'] = $filter;
+			$data['rank'] = $rank;
+			if($advFilterId != '') {
+				if($si->advFilter->advFilterLoadById($advFilterId)) {
+					$advFilter  = $si->advFilter->advFilterGetProperty('filter');
+				}
+			}
+			$data['advFilter'] = json_decode(stripslashes(trim($advFilter)),true);
 			$data['searchFormat'] = in_array(strtolower(trim($searchFormat)),array('exact','left','right','both')) ? strtolower(trim($searchFormat)) : 'both';
 			$data['value'] = str_replace('%','%%',trim($value));
 			$data['group'] = $group;

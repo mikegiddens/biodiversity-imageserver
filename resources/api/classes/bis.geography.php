@@ -129,16 +129,77 @@ class Geography
 		} else if($this->data['geographyId'] != '') {
 			$where .= sprintf(" AND `geographyId` = '%s' ", mysql_escape_string($this->data['geographyId']));
 		}
+
+		if(is_array($this->data['advFilter']) && count($this->data['advFilter'])) {
+			$advFilter = $this->data['advFilter'];
+			switch($advFilter['node']){
+				case 'group':
+					$strArray = array();
+					if(is_array($advFilter['children']) && count($advFilter['children'])) {
+						$logop = $advFilter['logop'];
+						foreach($advFilter['children'] as $child) {
+							if($child['object'] == 'geography') {
+								switch($child['condition']) {
+									case '=':
+									case '!=':
+										$op = $child['condition'];
+										$strArray[] = sprintf(" `%s` $op '%s' ", mysql_escape_string($child['key']), mysql_escape_string($child['value']));
+										break;
+									case 'is':
+										$strArray[] = sprintf(" `%s` = '%s' ", mysql_escape_string($child['key']), mysql_escape_string($child['value']));
+											break;
+									case '%s':
+									case 's%':
+									case '%s%':
+										$op = str_replace('%','%%',$child['condition']);
+										$op = str_replace('s','%s',$op);
+										$strArray[] = sprintf(" `%s` LIKE '$op' " , mysql_escape_string($child['key']), mysql_escape_string($child['value']));
+										break;
+								}
+							}
+						}
+						if(count($strArray)) {
+							$where .= ' AND ( ' . implode($logop, $strArray) . ' ) ';
+						}
+					}
+					break;
+				case 'condition':
+					if($advFilter['object'] == 'geography') {
+						switch($advFilter['condition']) {
+							case '=':
+							case '!=':
+								$op = $advFilter['condition'];
+								$where .= sprintf(" AND `%s` $op '%s' ", mysql_escape_string($advFilter['key']), mysql_escape_string($advFilter['value']));
+								break;
+							case 'is':
+								$where .= sprintf(" AND `%s` = '%s' ", mysql_escape_string($advFilter['key']), mysql_escape_string($advFilter['value']));
+									break;
+							case '%s':
+							case 's%':
+							case '%s%':
+								$op = str_replace('%','%%',$advFilter['condition']);
+								$op = str_replace('s','%s',$op);
+								$where .= sprintf(" AND `%s` LIKE '$op' " , mysql_escape_string($advFilter['key']), mysql_escape_string($advFilter['value']));
+								break;
+						}
+					}
+					break;
+			}
+		}
 		
 		if($this->data['group'] != '' && in_array($this->data['group'], array('geographyId','ISO', 'NAME_0', 'NAME_1', 'VARNAME_1', 'ENGTYPE_1', 'NAME_2', 'VARNAME_2', 'NAME_3', 'VARNAME_3', 'NAME_4', 'VARNAME_4', 'NAME_5', 'source')) && $this->data['dir'] != '') {
-			$where .= build_order( array(array('field' => $this->data['group'], 'dir' => $this->data['dir'])));
+			$where .= build_order( array(array('field' => $this->data['group'], 'dir' => $this->data['dir'])), array('geographyId'));
 		} else {
 			$where .= ' ORDER BY `geographyId` ASC ';
 		}
 		
 		$where .= build_limit($this->data['start'], $this->data['limit']);
 
-		$query = "SELECT SQL_CALC_FOUND_ROWS `ISO`, `NAME_0`, `NAME_1`, `VARNAME_1`, `ENGTYPE_1`, `NAME_2`, `VARNAME_2`, `NAME_3`, `VARNAME_3`, `NAME_4`, `VARNAME_4`, `NAME_5`, `source` FROM `geography` " . $where;
+		if(in_array($this->data['rank'], array('0','1','2','3','4','5'))) {
+			$query = "SELECT SQL_CALC_FOUND_ROWS DISTINCT `NAME_{$this->data['rank']}` FROM `geography` " . $where;
+		} else {
+			$query = "SELECT SQL_CALC_FOUND_ROWS `ISO`, `NAME_0`, `NAME_1`, `VARNAME_1`, `ENGTYPE_1`, `NAME_2`, `VARNAME_2`, `NAME_3`, `VARNAME_3`, `NAME_4`, `VARNAME_4`, `NAME_5`, `source` FROM `geography` " . $where;
+		}
 
 		if($queryFlag) {
 			$ret = $this->db->query_all( $query );

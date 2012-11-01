@@ -77,7 +77,7 @@ class AdvFilter
 		}
 		
 		if($this->data['group'] != '' && in_array($this->data['group'], array('advFilterId','name','dateCreated','dateModified','lastModifiedBy')) && $this->data['dir'] != '') {
-			$where .= build_order( array(array('field' => $this->data['group'], 'dir' => $this->data['dir'])));
+			$where .= build_order( array(array('field' => $this->data['group'], 'dir' => $this->data['dir'])), array('advFilterId','lastModifiedBy'));
 		} else {
 			$where .= ' ORDER BY `advFilterId` ASC ';
 		}

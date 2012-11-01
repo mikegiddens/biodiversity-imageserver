@@ -383,7 +383,7 @@ Class ProcessQueue {
 		}
 		
 		if($this->data['group'] != '' && in_array($this->data['group'], array('imageId','processType','dateAdded')) && $this->data['dir'] != '') {
-			$where .= build_order( array(array('field' => $this->data['group'], 'dir' => $this->data['dir'])));
+			$where .= build_order( array(array('field' => $this->data['group'], 'dir' => $this->data['dir'])), array('imageId'));
 		} else {
 			$where .= ' ORDER BY `imageId` ASC ';
 		}

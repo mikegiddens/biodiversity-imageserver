@@ -685,6 +685,26 @@ ini_set('display_errors', '1');
 							}
 						}
 					}
+					
+					$geoData = getGeoNames($record->imageId);
+					if(is_array($geoData) && count($geoData)) {
+						foreach($geoData as $category => $attribute) {
+							$data = array();
+							if(false === ($data['categoryId'] = $si->imageCategory->imageCategoryGetBy($category,'title'))) {
+								$si->imageCategory->imageCategorySetProperty('title',$category);
+								$data['categoryId'] = $si->imageCategory->imageCategoryAdd();
+							}
+							if(false === ($data['attributeId'] = $si->imageAttribute->imageAttributeGetBy($attribute,'name',$data['categoryId']))) {
+								$si->imageAttribute->imageAttributeSetProperty('name',$attribute);
+								$si->imageAttribute->imageAttributeSetProperty('categoryId',$data['categoryId']);
+								$data['attributeId'] = $si->imageAttribute->imageAttributeAdd();
+							}
+							$data['imageId'] = array($record->imageId);
+							$si->image->imageSetData($data);
+							$si->image->imageAttributeAdd();
+						}
+					}
+					
 					$si->image->imageLoadById($record->imageId);
 					$si->image->imageSetProperty('nameFinderFlag',1);
 					$si->image->imageSave();
@@ -1058,48 +1078,6 @@ ini_set('display_errors', '1');
 				$si->db->query($query);
 				
 			}
-			
-/*			
-			if(trim($imageId) != '') {
-				if(is_numeric($imageId)) {
-					$imageIds = array($imageId);
-				} else {
-					$imageIds = json_decode(stripslashes($imageId),true);
-				}
-				if(is_array($imageIds) && count($imageIds)) {
-					foreach($imageIds as $imageId) {
-						$loadFlag = false;
-						if(!is_numeric($imageId)) {
-							$loadFlag = $si->image->imageLoadByBarcode($imageId);
-						} else {
-							$loadFlag = $si->image->imageLoadById($imageId);
-						}
-						if($loadFlag) {
-							if(!$si->pqueue->processQueueFieldExists($si->image->imageGetProperty('imageId'),'evernote')) {
-								$si->pqueue->processQueueSetProperty('imageId', $si->image->imageGetProperty('imageId'));
-								$si->pqueue->processQueueSetProperty('processType', 'evernote');
-								$si->pqueue->processQueueSave();
-								$count++;
-							}
-						}
-					}
-				}
-			} else {
-				$ret = $si->image->imgeGetNonProcessedRecords($filter);
-				$countFlag = true;
-				while(($record = $ret->fetch_object()) && $countFlag) {
-					if(!$si->pqueue->processQueueFieldExists($record->imageId,'evernote')) {
-						$si->pqueue->processQueueSetProperty('imageId', $record->imageId);
-						$si->pqueue->processQueueSetProperty('processType', 'evernote');
-						$si->pqueue->processQueueSave();
-						$count++;
-						if($limit != '' && $count >= $limit) {
-							$countFlag = false;
-						}
-					}
-				}
-			}
-*/			
 			$time = microtime(true) - $timeStart;
 			header('Content-type: application/json');
 			print json_encode(array('success' => true, 'processTime' => $time, 'totalCount' => $count));
@@ -1153,11 +1131,79 @@ ini_set('display_errors', '1');
 	
 	# Test Tasks
 	
+			case 'testGeo':
+				$data = getGeoNames(123);
+				echo '<pre>';
+				print_r($data);
+				break;
+				
 			default:
 				print json_encode(array('success' => false, 'message' => 'No cmd Provided'));
 				break;
 		}
-	
+
+	function getGeoNames($imageId) {
+		global $si,$config;
+		if(!$si->image->imageLoadById($imageId)) {
+			return array();
+		}
+		
+		$queryTemplate = " SELECT DISTINCT `%s` fld  FROM `geography` WHERE `%s` = '%s' ";
+		$data = array();
+		
+		$str = $si->image->imageGetProperty('ocrValue');
+		// echo $str;
+		// echo '<br>';
+		// echo '<br>';
+		
+// $str = 
+// '
+// ui234;
+// Afghanistan India  kerala
+// qweer
+
+// ';
+		
+		$linesArray = preg_split ('/$\R?^/m', $str);
+		
+// echo '<pre>';
+// echo '<br>';
+// print_r($linesArray);
+// exit;
+		
+		if(is_array($linesArray) && count($linesArray)) {
+			foreach($linesArray as $line) {
+				if(trim($line) != '') {
+					$line = preg_replace('/\s+/',' ',trim($line));
+					$wordsArray = explode(' ', $line);
+// echo '<pre>';
+// echo '<br>';
+// var_dump($linesArray);
+// exit;
+					
+					if(is_array($wordsArray) && count($wordsArray)) {
+						foreach($wordsArray as $word) {
+							if(preg_match('/^[a-zA-Z.,:]*$/',$word)) {
+								$word = trim($word,'.,:');
+								// echo '<br>';
+								// echo $word;
+								foreach(array('Country' => 'NAME_0', 'StateProvince' => 'NAME_1', 'County' => 'NAME_2', 'Locality' => 'NAME_3') as $category => $field) {
+									$query = sprintf($queryTemplate, $field, $field, $word);
+									// echo '<br>';
+									// echo $query;
+									$ret = $si->db->query_one($query);
+									if ($ret != NULL) {
+										$data[] = array($category => $ret->fld);
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		return $data;
+	}
 	
 	function getNames($imageId) {
 		global $si,$config;
