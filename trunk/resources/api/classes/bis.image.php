@@ -1634,17 +1634,29 @@ Class Image {
 				$orderBy .= ' ORDER BY I.`family`, I.`genus`, I.`specificEpithet` ';
 				break;
 			case 'manual':
-				$orderBy .= sprintf(" ORDER BY I.%s %s ", mysql_escape_string($this->data['sort']),  $this->data['dir']);
+				if(!in_array($this->data['sort'],array('imageId'))) {
+					$orderBy .= sprintf(" ORDER BY LOWER(I.%s) %s ", mysql_escape_string($this->data['sort']),  $this->data['dir']);
+				} else {
+					$orderBy .= sprintf(" ORDER BY I.%s %s ", mysql_escape_string($this->data['sort']),  $this->data['dir']);
+				}
 				break;
 			default:
 				if(($this->data['sort']!='') && ($this->data['dir']!='')) {
-					$orderBy .= sprintf(" ORDER BY I.%s %s ", mysql_escape_string($this->data['sort']),  $this->data['dir']);
+					if(!in_array($this->data['sort'],array('imageId'))) {
+						$orderBy .= sprintf(" ORDER BY LOWER(I.%s) %s ", mysql_escape_string($this->data['sort']),  $this->data['dir']);
+					} else {
+						$orderBy .= sprintf(" ORDER BY I.%s %s ", mysql_escape_string($this->data['sort']),  $this->data['dir']);
+					}
 				} else if($this->data['order'] != '' && is_array($this->data['order'])) {
 					$orderBy .= ' ORDER BY ';
 					if(count($this->data['order'])) {
 						$ordArray = array();
 						foreach($this->data['order'] as $order) {
-							$ordArray[] = " I.{$order['field']} {$order['dir']} ";
+							if(!in_array($order['field'],array('imageId'))) {
+								$ordArray[] = " LOWER(I.{$order['field']}) {$order['dir']} ";
+							} else {
+								$ordArray[] = " I.{$order['field']} {$order['dir']} ";
+							}
 						}
 						$orderBy .= implode(',',$ordArray);
 					}
@@ -2003,9 +2015,9 @@ Class Image {
 		}
 		
 		if($this->data['group'] != '' && in_array($this->data['group'], array('attributeId','name','categoryId','title')) && $this->data['dir'] != '' && !$this->data['showNames']) {
-			$query .= build_order( array(array('field' => (($this->data['group'] == 'title') ? 'iat.' . $this->data['group'] :  'iav.' . $this->data['group']), 'dir' => $this->data['dir'])));
+			$query .= build_order( array(array('field' => (($this->data['group'] == 'title') ? 'iat.' . $this->data['group'] :  'iav.' . $this->data['group']), 'dir' => $this->data['dir'])), array('attributeId','categoryId'));
 		} else {
-			$query .= ' ORDER BY iav.`categoryId`, iav.`name` ';
+			$query .= ' ORDER BY iav.`categoryId`, LOWER(iav.`name`) ';
 		}
 		
 		if($this->data['start'] != '' && $this->data['limit'] != '') {
@@ -2058,7 +2070,7 @@ Class Image {
 			case "root":
 				$parent = '';
 	
-				$this->query = "SELECT DISTINCT  it.categoryId, it.title, iv.attributeId, iv.name FROM imageAttribType it, imageAttribValue iv, imageAttrib ia WHERE it.categoryId = iv.categoryId AND ia.attributeId = iv.attributeId ORDER BY it.title, iv.name;";
+				$this->query = "SELECT DISTINCT  it.categoryId, it.title, iv.attributeId, iv.name FROM imageAttribType it, imageAttribValue iv, imageAttrib ia WHERE it.categoryId = iv.categoryId AND ia.attributeId = iv.attributeId ORDER BY it.title, LOWER(iv.name);";
 				$records = $this->db->query_all($this->query);
 				if(count($records)) {
 					foreach($records as $record) {
@@ -2121,7 +2133,7 @@ Class Image {
 	
 		case "families":
 	
-			$this->query = sprintf( "SELECT family, count(family) as familySize FROM image WHERE family like '%s%%' GROUP by family ORDER by family", mysql_escape_string($this->data['nodeValue']) );
+			$this->query = sprintf( "SELECT family, count(family) as familySize FROM image WHERE family like '%s%%' GROUP by family ORDER by LOWER(family) ", mysql_escape_string($this->data['nodeValue']) );
 	
 			try {
 				$records = $this->db->query_all($this->query);
@@ -2534,9 +2546,9 @@ class ImageAttribType
 			}
 		}
 		if($this->data['group'] != '' && in_array($this->data['group'], array('categoryId','title','description','elementSet','term')) && $this->data['dir'] != '') {
-			$query .= build_order( array(array('field' => $this->data['group'], 'dir' => $this->data['dir'])));
+			$query .= build_order( array(array('field' => $this->data['group'], 'dir' => $this->data['dir'])), array('categoryId'));
 		} else {
-			$query .= ' ORDER BY `categoryId`, `title` ';
+			$query .= ' ORDER BY `categoryId`, LOWER(`title`) ';
 		}
 		if($this->data['start'] != '' && $this->data['limit'] != '') {
 			$query .= sprintf(" LIMIT %s, %s ", $this->data['start'], $this->data['limit']);

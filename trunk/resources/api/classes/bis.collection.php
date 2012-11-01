@@ -161,7 +161,7 @@ Class Collection {
 			}
 		}
 		if($this->data['group'] != '' && in_array($this->data['group'], array('name','code','collectionId')) && $this->data['dir'] != '') {
-			$where .= build_order( array(array('field' => $this->data['group'], 'dir' => $this->data['dir'])));
+			$where .= build_order( array(array('field' => $this->data['group'], 'dir' => $this->data['dir'])), array('collectionId'));
 		} else {
 			$where .= ' ORDER BY `collectionId` ASC ';
 		}
