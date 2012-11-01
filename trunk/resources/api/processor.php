@@ -688,20 +688,24 @@ ini_set('display_errors', '1');
 					
 					$geoData = getGeoNames($record->imageId);
 					if(is_array($geoData) && count($geoData)) {
-						foreach($geoData as $category => $attribute) {
-							$data = array();
-							if(false === ($data['categoryId'] = $si->imageCategory->imageCategoryGetBy($category,'title'))) {
-								$si->imageCategory->imageCategorySetProperty('title',$category);
-								$data['categoryId'] = $si->imageCategory->imageCategoryAdd();
+						foreach($geoData as $geo) {
+							if(count($geo) && is_array($geo)) {
+								foreach($geo as $category => $attribute) {
+									$data = array();
+									if(false === ($data['categoryId'] = $si->imageCategory->imageCategoryGetBy($category,'title'))) {
+										$si->imageCategory->imageCategorySetProperty('title',$category);
+										$data['categoryId'] = $si->imageCategory->imageCategoryAdd();
+									}
+									if(false === ($data['attributeId'] = $si->imageAttribute->imageAttributeGetBy($attribute,'name',$data['categoryId']))) {
+										$si->imageAttribute->imageAttributeSetProperty('name',$attribute);
+										$si->imageAttribute->imageAttributeSetProperty('categoryId',$data['categoryId']);
+										$data['attributeId'] = $si->imageAttribute->imageAttributeAdd();
+									}
+									$data['imageId'] = array($record->imageId);
+									$si->image->imageSetData($data);
+									$si->image->imageAttributeAdd();
+								}
 							}
-							if(false === ($data['attributeId'] = $si->imageAttribute->imageAttributeGetBy($attribute,'name',$data['categoryId']))) {
-								$si->imageAttribute->imageAttributeSetProperty('name',$attribute);
-								$si->imageAttribute->imageAttributeSetProperty('categoryId',$data['categoryId']);
-								$data['attributeId'] = $si->imageAttribute->imageAttributeAdd();
-							}
-							$data['imageId'] = array($record->imageId);
-							$si->image->imageSetData($data);
-							$si->image->imageAttributeAdd();
 						}
 					}
 					
@@ -1132,7 +1136,7 @@ ini_set('display_errors', '1');
 	# Test Tasks
 	
 			case 'testGeo':
-				$data = getGeoNames(123);
+				$data = getGeoNames($imageId);
 				echo '<pre>';
 				print_r($data);
 				break;
@@ -1152,9 +1156,6 @@ ini_set('display_errors', '1');
 		$data = array();
 		
 		$str = $si->image->imageGetProperty('ocrValue');
-		// echo $str;
-		// echo '<br>';
-		// echo '<br>';
 		
 // $str = 
 // '
@@ -1166,27 +1167,18 @@ ini_set('display_errors', '1');
 		
 		$linesArray = preg_split ('/$\R?^/m', $str);
 		
-// echo '<pre>';
-// echo '<br>';
-// print_r($linesArray);
-// exit;
-		
 		if(is_array($linesArray) && count($linesArray)) {
 			foreach($linesArray as $line) {
 				if(trim($line) != '') {
 					$line = preg_replace('/\s+/',' ',trim($line));
 					$wordsArray = explode(' ', $line);
-// echo '<pre>';
-// echo '<br>';
-// var_dump($linesArray);
-// exit;
-					
 					if(is_array($wordsArray) && count($wordsArray)) {
 						foreach($wordsArray as $word) {
 							if(preg_match('/^[a-zA-Z.,:]*$/',$word)) {
 								$word = trim($word,'.,:');
 								// echo '<br>';
 								// echo $word;
+								if(strlen($word) > 3) {
 								foreach(array('Country' => 'NAME_0', 'StateProvince' => 'NAME_1', 'County' => 'NAME_2', 'Locality' => 'NAME_3') as $category => $field) {
 									$query = sprintf($queryTemplate, $field, $field, $word);
 									// echo '<br>';
@@ -1194,7 +1186,9 @@ ini_set('display_errors', '1');
 									$ret = $si->db->query_one($query);
 									if ($ret != NULL) {
 										$data[] = array($category => $ret->fld);
+										break;
 									}
+								}
 								}
 							}
 						}

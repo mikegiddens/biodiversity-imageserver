@@ -196,7 +196,7 @@ class Geography
 		$where .= build_limit($this->data['start'], $this->data['limit']);
 
 		if(in_array($this->data['rank'], array('0','1','2','3','4','5'))) {
-			$query = "SELECT SQL_CALC_FOUND_ROWS DISTINCT `NAME_{$this->data['rank']}` FROM `geography` " . $where;
+			$query = "SELECT SQL_CALC_FOUND_ROWS DISTINCT `NAME_{$this->data['rank']}` AS name, 'NAME_{$this->data['rank']}' AS ref FROM `geography` " . $where;
 		} else {
 			$query = "SELECT SQL_CALC_FOUND_ROWS `ISO`, `NAME_0`, `NAME_1`, `VARNAME_1`, `ENGTYPE_1`, `NAME_2`, `VARNAME_2`, `NAME_3`, `VARNAME_3`, `NAME_4`, `VARNAME_4`, `NAME_5`, `source` FROM `geography` " . $where;
 		}
