@@ -49,7 +49,9 @@ Ext.define('BIS.view.FormCreateGeography', {
     scope: this,
 	listeners: {
 		afterrender: function() {
-            Ext.getCmp('formCreateGeography').loadRecord( this.record );
+            if ( this.record ) {
+                Ext.getCmp('formCreateGeography').loadRecord( this.record );
+            }
 		}
 	},
 	
