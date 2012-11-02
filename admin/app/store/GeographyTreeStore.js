@@ -15,7 +15,9 @@ Ext.define('BIS.store.GeographyTreeStore', {
                 url: Config.baseUrl + 'resources/api/api.php',
                 extraParams: {
                     cmd: 'geographyList',
-                    rank: 0
+                    group: 'name',
+                    rank: 0,
+                    limit: 500
                 },
                 reader: {
                     type: 'json',

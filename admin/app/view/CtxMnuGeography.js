@@ -20,22 +20,30 @@ Ext.define('BIS.view.CtxMnuGeography', {
                         iconCls: 'icon_newGeography',
                         modal: true,
                         resizable: false,
-                        height: 100,
+                        height: 175,
                         width: 350,
                         layout: 'fit',
-                        items: [
-                            Ext.create('widget.formcreategeography', {
-                                border: false,
-                                mode: 'add',
-                                record: this.record
-                            })
-                        ]
+                        items: [{
+                            xtype: 'formcreategeography',
+                            border: false,
+                            mode: 'add',
+                            parentRec: this.record
+                        }]
                     }).show();
                     tmpWindow.on('done', function( data ) {
                         tmpWindow.close();
-                        var store = Ext.getCmp('geogrpahyTreePanel').getStore();
+                        var curRank = me.record.get('ref').split('_')[1];
+                        var store = Ext.getCmp('geographyTreePanel').getStore();
+                        store.getProxy().extraParams = {
+                            cmd: 'geographyList',
+                            group: 'name',
+                            rank: ++curRank,
+                            limit: 500,
+                            advFilter: JSON.stringify({ node: 'condition', object: 'geography', key: me.record.get('ref'), value: me.record.get('name'), condition: '=' })
+                        };
                         store.load({
-                            node: this.record.parentNode
+                            node: me.record,
+                            callback: function() { if ( !me.record.isExpanded() ) me.record.expand() }
                         });
                     });
                     tmpWindow.on( 'cancel', function( data ) {

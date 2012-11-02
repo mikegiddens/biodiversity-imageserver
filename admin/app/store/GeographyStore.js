@@ -14,7 +14,8 @@ Ext.define('BIS.store.GeographyStore', {
                 type: 'jsonp',
                 url: Config.baseUrl + 'resources/api/api.php',
                 extraParams: {
-                    cmd: 'geographyList'
+                    cmd: 'geographyList',
+                    group: 'name'
                 },
                 reader: {
                     type: 'json',
