@@ -2,6 +2,7 @@ Ext.define('BIS.store.ImagesStore', {
     extend: 'Ext.data.Store',
     alias: 'store.imagesStore',
     autoLoad: true,
+    remoteSort: true,
     requires: [
         'BIS.model.ImageModel'
     ],
@@ -57,4 +58,5 @@ Ext.define('BIS.store.ImagesStore', {
             }
         }, cfg)]);
     }
+
 });

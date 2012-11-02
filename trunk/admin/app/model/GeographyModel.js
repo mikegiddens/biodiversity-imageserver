@@ -49,7 +49,7 @@ Ext.define('BIS.model.GeographyModel', {
         },
         {
             name: 'iconCls',
-            value: 'icon_geography'
+            defaultValue: 'icon_geography'
         }
     ]
 });

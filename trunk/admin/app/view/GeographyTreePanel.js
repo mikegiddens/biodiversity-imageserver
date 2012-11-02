@@ -77,7 +77,7 @@ Ext.define('BIS.view.GeographyTreePanel', {
 			iconCls: 'icon_newGeography',
             resizable: false,
 			modal: true,
-			height: 100,
+			height: 175,
 			width: 350,
 			layout: 'fit',
 			items: [{
@@ -89,9 +89,13 @@ Ext.define('BIS.view.GeographyTreePanel', {
         tmpWindow.on( 'done', function( data ) {
             tmpWindow.close();
             var store = me.getStore();
-            store.load({
-                node: store.getRootNode()
-            });
+            store.getProxy().extraParams = {
+                cmd: 'geographyList',
+                group: 'name',
+                rank: 0,
+                limit: 500
+            }
+            store.load();
         });
         tmpWindow.on( 'cancel', function( data ) {
             tmpWindow.close();
