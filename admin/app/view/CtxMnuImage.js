@@ -129,6 +129,11 @@ Ext.define('BIS.view.CtxMnuImage', {
                                 text: 'Taxonomic Recognition and Discovery',
                                 iconCls: 'icon_find',
                                 identifier: 'discover'
+                            },
+                            {
+                                text: 'Scan for Barcode',
+                                iconCls: 'icon_barcode',
+                                identifier: 'barcode'
                             }
                         ]
                     }
@@ -300,6 +305,9 @@ Ext.define('BIS.view.CtxMnuImage', {
             case 'discover':
                 module = 'processor.php';
                 params.cmd = 'populateNameFinderProcessQueue';
+                break;
+            case 'barcode':
+                params.cmd = 'imageDetectBarcode';
                 break;
         }
         Ext.Ajax.request({
