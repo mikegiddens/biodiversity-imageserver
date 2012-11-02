@@ -64,6 +64,7 @@
 		,	'filter'
 		,	'force'
 		,	'genus'
+		,	'geo'
 		,	'geoFlag'
 		,	'geographyId'
 		,	'group'
@@ -2149,6 +2150,7 @@
 			}
 			break;
 
+/*
 		case 'imageDetectBarcode':
 			if(!$config['zBarImgEnabled']) {
 				print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray(180)) ));
@@ -2158,7 +2160,7 @@
 			$loadFlag = false;
 
 			if(trim($imageId) != '') {
-				$loadFlag = $si->image->imageLoadByIid($imageId);
+				$loadFlag = $si->image->imageLoadById($imageId);
 			} elseif(trim($barcode) != '') {
 				$loadFlag = $si->image->imageLoadByBarcode($barcode);
 			}
@@ -2167,12 +2169,12 @@
 				print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray(181)) ));
 			} else {
 				# getting image
-				$key = $si->image->imageGetProperty('path') . '/' . $si->image->imageGetProperty('filename');
+				$key = rtrim($si->image->imageGetProperty('path'),'/') . '/' . $si->image->imageGetProperty('filename');
 				$cacheFlag = false;
 				$explodeFilename = explode(".", $si->image->imageGetProperty('filename'));
 				@array_pop($explodeFilename);
 				$expFilename = implode('.',$explodeFilename);
-				$cachePath = $si->image->imageGetProperty('path') . '/' . $expFilename . "-barcodes.json";
+				$cachePath = rtrim($si->image->imageGetProperty('path'),'/') . '/' . $expFilename . "-barcodes.json";
 
 				if(strtolower($force) != 'true') {
 					$cacheFlag = $si->storage->storageDeviceFileExists($si->image->imageGetProperty('storageDeviceId'), $cachePath);
@@ -2188,7 +2190,12 @@
 					# No cache or not using cache
 					$image = $si->storage->storageDeviceFileDownload($si->image->imageGetProperty('storageDeviceId'), $key);
 					$command = sprintf("%s %s", $config['zBarImgPath'], $image);
+					// echo '<br>';
+					// echo $command;
 					$data = exec($command);
+					// echo '<br>';
+					// var_dump($data);
+					// exit;
 					$tmpArrayArray = explode("\r\n", $data);
 					$data = array();
 					if(is_array($tmpArrayArray)) {
@@ -2205,12 +2212,127 @@
 					$command = sprintf("%s --version ", $config['zBarImgPath']);
 					$ver = exec($command);
 					$tmpJsonFile = json_encode(array('success' => true, 'processTime' => microtime(true) - $timeStart, 'totalCount' => count($data), 'lastTested' => time(), 'software' => 'zbarimg', 'version' => $ver, 'results' => $data));
-					$key = $si->image->imageGetProperty('path') . '/' . $expFilename . '-barcodes.json';
+					$key = rtrim($si->image->imageGetProperty('path'),'/') . '/' . $expFilename . '-barcodes.json';
 
 					$si->storage->storageDeviceCreateFile($si->image->imageGetProperty('storageDeviceId'), $key, $tmpJsonFile);
 					print_c($tmpJsonFile);
 				}
 			}	
+			break;
+*/
+
+		case 'imageDetectBarcode':
+			if(!$config['zBarImgEnabled']) {
+				print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray(180)) ));
+				exit;
+			}
+			$_TMP = ($config['path']['tmp'] != '') ? $config['path']['tmp'] : sys_get_temp_dir() . '/';
+
+			$results = array();
+			
+			if($advFilterId != '') {
+				if($si->advFilter->advFilterLoadById($advFilterId)) {
+					$advFilter  = $si->advFilter->advFilterGetProperty('filter');
+				}
+			}
+			$advFilter = json_decode(stripslashes(trim($advFilter)),true);
+			$idArray = array();
+			if(is_numeric($imageId)) {
+				$imageIds = array($imageId);
+			} else {
+				$imageIds = json_decode(@stripslashes(trim($imageId)), true);
+			}
+			if(is_array($imageIds) && count($imageIds)) {
+				$idArray = @array_fill_keys($imageIds,'id');
+			}
+			$barcodes = json_decode(@stripslashes(trim($barcode)), true);
+			$barcodes = (is_null($barcodes) && $barcode != '') ? array($barcode) : $barcodes;
+			if(is_array($barcodes) && count($barcodes)) {
+				$idArray = $idArray + @array_fill_keys($barcodes,'code');
+			}
+
+			function processDetectBarcode($img,$force = false) {
+				global $config,$si;
+				$timeStart = microtime(true) ;
+				$key = rtrim($img->imageGetProperty('path'),'/') . '/' . $img->imageGetProperty('filename');
+				$cacheFlag = false;
+				$explodeFilename = explode(".", $img->imageGetProperty('filename'));
+				@array_pop($explodeFilename);
+				$expFilename = implode('.',$explodeFilename);
+				$cachePath = rtrim($img->imageGetProperty('path'),'/') . '/' . $expFilename . "-barcodes.json";
+
+				if(strtolower($force) != 'true') {
+					$cacheFlag = $si->storage->storageDeviceFileExists($img->imageGetProperty('storageDeviceId'), $cachePath);
+				}
+
+				if($cacheFlag) {
+					$data = $si->storage->storageDeviceFileGetContents($img->imageGetProperty('storageDeviceId'), $cachePath);
+					$data = json_decode($data, true);
+					return array('imageId' => $img->imageGetProperty('imageId'), 'data' => $data);
+				} else {
+					# No cache or not using cache
+					$image = $si->storage->storageDeviceFileDownload($img->imageGetProperty('storageDeviceId'), $key);
+					$command = sprintf("%s \"%s\"", $config['zBarImgPath'], $image);
+					$data = exec($command);
+					$tmpArrayArray = explode("\r\n", $data);
+					$data = array();
+					if(is_array($tmpArrayArray)) {
+						foreach($tmpArrayArray as $tmpArray) {
+							if($tmpArray != '') {
+								$parts = explode(":", $tmpArray);
+								$data[] = array('code' => $parts[0], 'value' => $parts[1]);
+								
+								# Adding attributes
+								$attributeData = array();
+								if(false === ($attributeData['categoryId'] = $si->imageCategory->imageCategoryGetBy('Detected Barcodes','title'))) {
+									$si->imageCategory->imageCategorySetProperty('title','Detected Barcodes');
+									$si->imageCategory->imageCategorySetProperty('elementSet','BIS');
+									$attributeData['categoryId'] = $si->imageCategory->imageCategoryAdd();
+								}
+								if(false === ($attributeData['attributeId'] = $si->imageAttribute->imageAttributeGetBy($tmpArray,'name',$attributeData['categoryId']))) {
+									$si->imageAttribute->imageAttributeSetProperty('name',$tmpArray);
+									$si->imageAttribute->imageAttributeSetProperty('categoryId',$attributeData['categoryId']);
+									$attributeData['attributeId'] = $si->imageAttribute->imageAttributeAdd();
+								}
+								$attributeData['imageId'] = array($img->imageGetProperty('imageId'));
+								$si->image->imageSetData($attributeData);
+								$si->image->imageAttributeAdd();
+							}
+						}
+					}
+					if(strtolower($si->storage->storageDeviceGetType($img->imageGetProperty('storageDeviceId'))) == 's3') {
+						@unlink($image);
+					}
+					$command = sprintf("%s --version ", $config['zBarImgPath']);
+					$ver = exec($command);
+					$dt = array('success' => true, 'processTime' => microtime(true) - $timeStart, 'totalCount' => count($data), 'lastTested' => time(), 'software' => 'zbarimg', 'version' => $ver, 'results' => $data);
+					$tmpJsonFile = json_encode($dt);
+					$key = rtrim($img->imageGetProperty('path'),'/') . '/' . $expFilename . '-barcodes.json';
+
+					$si->storage->storageDeviceCreateFile($img->imageGetProperty('storageDeviceId'), $key, $tmpJsonFile);
+					return array('imageId' => $img->imageGetProperty('imageId'), 'data' => $dt);
+				}
+			}
+
+			if(is_array($advFilter) && count($advFilter)) {
+				$query = $si->image->getByCrazyFilter($advFilter);
+				$ret = $si->db->query($query);
+				if (is_object($ret)) {
+					while ($img = $ret->fetch_object()) {
+						if($si->image->imageLoadById($img->imageId)) {
+							$results[] = processDetectBarcode($si->image,$force);
+						}
+					}
+				}
+			} else if(is_array($idArray) && count($idArray)) {
+				foreach($idArray as $id => $code) {
+					$func = ($code == 'id') ? 'imageLoadById' : 'imageLoadByBarcode';
+					if(!$si->image->{$func}($id)) continue;
+					$results[] = processDetectBarcode($si->image,$force);
+				}
+			}
+			print_c(json_encode(array('success' => true, 'processTime' => microtime(true) - $timeStart, 'totalCount' => count($results), 'results' => $results)));
+
 			break;
 			
 		case 'imageDetectColorBox':
@@ -2885,34 +3007,28 @@
 # Geopraphy Commands			
 		case 'geographyAdd':
 			checkAuth();
-			// if($country == '' || $countryIso == '') {
-				// $valid = false;
-				// $errorCode = 138;
-			// } else if ($si->geography->geographyCountryExists($country)) {
-				// $valid = false;
-				// $errorCode = 139;
-			// } else if ($si->geography->geographyCountryIsoExists($countryIso)) {
-				// $valid = false;
-				// $errorCode = 140;
-			// }
-			
-			if($NAME_0 == '' || $ISO == '') {
+			$geo = json_decode($geo,true);
+			if(is_null($geo)) {
+				$valid = false;
+				$errorCode = 231;
+			}
+			if($geo['NAME_0'] == '' || $geo['ISO'] == '') {
 				$valid = false;
 				$errorCode = 138;
 			}
 
 			if($valid) {
-				$si->geography->geographySetProperty('ISO', $ISO);
-				$si->geography->geographySetProperty('NAME_0', $NAME_0);
-				$si->geography->geographySetProperty('NAME_1', $NAME_1);
-				$si->geography->geographySetProperty('VARNAME_1', $VARNAME_1);
-				$si->geography->geographySetProperty('ENGTYPE_1', $ENGTYPE_1);
-				$si->geography->geographySetProperty('NAME_2', $VARNAME_2);
-				$si->geography->geographySetProperty('NAME_3', $NAME_3);
-				$si->geography->geographySetProperty('VARNAME_3', $VARNAME_3);
-				$si->geography->geographySetProperty('NAME_4', $NAME_4);
-				$si->geography->geographySetProperty('VARNAME_4', $VARNAME_4);
-				$si->geography->geographySetProperty('NAME_5', $NAME_5);
+				$si->geography->geographySetProperty('ISO', $geo['ISO']);
+				$si->geography->geographySetProperty('NAME_0', $geo['NAME_0']);
+				$si->geography->geographySetProperty('NAME_1', $geo['NAME_1']);
+				$si->geography->geographySetProperty('VARNAME_1', $geo['VARNAME_1']);
+				$si->geography->geographySetProperty('ENGTYPE_1', $geo['ENGTYPE_1']);
+				$si->geography->geographySetProperty('NAME_2', $geo['VARNAME_2']);
+				$si->geography->geographySetProperty('NAME_3', $geo['NAME_3']);
+				$si->geography->geographySetProperty('VARNAME_3', $geo['VARNAME_3']);
+				$si->geography->geographySetProperty('NAME_4', $geo['NAME_4']);
+				$si->geography->geographySetProperty('VARNAME_4', $geo['VARNAME_4']);
+				$si->geography->geographySetProperty('NAME_5', $geo['NAME_5']);
 				if(false === ($id = $si->geography->geographySave())) {
 					print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray(143)) ));
 				} else {
@@ -2983,32 +3099,29 @@
 				$valid = false;
 				$errorCode = 142;
 			}
-			// else if ($country != '' && $country != $si->geography->geographyGetProperty('country') && $si->geography->geographyCountryExists($country)) {
-				// $valid = false;
-				// $errorCode = 139;
-			// } else if ($countryIso != '' && $countryIso != $si->geography->geographyGetProperty('countryIso') && $si->geography->geographyCountryIsoExists($countryIso)) {
-				// $valid = false;
-				// $errorCode = 140;
-			// }
-			
-			if($NAME_0 == '' || $ISO == '') {
+			$geo = json_decode($geo,true);
+			if(is_null($geo)) {
+				$valid = false;
+				$errorCode = 231;
+			}
+			if($geo['NAME_0'] == '' || $geo['ISO'] == '') {
 				$valid = false;
 				$errorCode = 138;
 			}
 			
 			if($valid) {
-				($ISO != '' ) ? $si->geography->geographySetProperty('ISO', $ISO) : '';
-				($NAME_0 != '' ) ? $si->geography->geographySetProperty('NAME_0', $NAME_0) : '';
-				($NAME_1 != '' ) ? $si->geography->geographySetProperty('NAME_1', $NAME_1) : '';
-				($VARNAME_1 != '' ) ? $si->geography->geographySetProperty('VARNAME_1', $VARNAME_1) : '';
-				($ENGTYPE_1 != '' ) ? $si->geography->geographySetProperty('ENGTYPE_1', $ENGTYPE_1) : '';
-				($NAME_2 != '' ) ? $si->geography->geographySetProperty('NAME_2', $NAME_2) : '';
-				($VARNAME_2 != '' ) ? $si->geography->geographySetProperty('VARNAME_2', $VARNAME_2) : '';
-				($NAME_3 != '' ) ? $si->geography->geographySetProperty('NAME_3', $NAME_3) : '';
-				($VARNAME_3 != '' ) ? $si->geography->geographySetProperty('VARNAME_3', $VARNAME_3) : '';
-				($NAME_4 != '' ) ? $si->geography->geographySetProperty('NAME_4', $NAME_4) : '';
-				($VARNAME_4 != '' ) ? $si->geography->geographySetProperty('VARNAME_4', $VARNAME_4) : '';
-				($NAME_5 != '' ) ? $si->geography->geographySetProperty('NAME_5', $NAME_5) : '';
+				(isset($geo['ISO']) && $geo['ISO'] != '' ) ? $si->geography->geographySetProperty('ISO', $geo['ISO']) : '';
+				(isset($geo['NAME_0']) && $geo['NAME_0'] != '' ) ? $si->geography->geographySetProperty('NAME_0', $geo['NAME_0']) : '';
+				(isset($geo['NAME_1']) && $geo['NAME_1'] != '' ) ? $si->geography->geographySetProperty('NAME_1', $geo['NAME_1']) : '';
+				(isset($geo['VARNAME_1']) && $geo['VARNAME_1'] != '' ) ? $si->geography->geographySetProperty('VARNAME_1', $geo['VARNAME_1']) : '';
+				(isset($geo['ENGTYPE_1']) && $geo['ENGTYPE_1'] != '' ) ? $si->geography->geographySetProperty('ENGTYPE_1', $geo['ENGTYPE_1']) : '';
+				(isset($geo['NAME_2']) && $geo['NAME_2'] != '' ) ? $si->geography->geographySetProperty('NAME_2', $geo['NAME_2']) : '';
+				(isset($geo['VARNAME_2']) && $geo['VARNAME_2'] != '' ) ? $si->geography->geographySetProperty('VARNAME_2', $geo['VARNAME_2']) : '';
+				(isset($geo['NAME_3']) && $geo['NAME_3'] != '' ) ? $si->geography->geographySetProperty('NAME_3', $geo['NAME_3']) : '';
+				(isset($geo['VARNAME_3']) && $geo['VARNAME_3'] != '' ) ? $si->geography->geographySetProperty('VARNAME_3', $geo['VARNAME_3']) : '';
+				(isset($geo['NAME_4']) && $geo['NAME_4'] != '' ) ? $si->geography->geographySetProperty('NAME_4', $geo['NAME_4']) : '';
+				(isset($geo['VARNAME_4']) && $geo['VARNAME_4'] != '' ) ? $si->geography->geographySetProperty('VARNAME_4', $geo['VARNAME_4']) : '';
+				(isset($geo['NAME_5']) && $geo['NAME_5'] != '' ) ? $si->geography->geographySetProperty('NAME_5', $geo['NAME_5']) : '';
 				if($si->geography->geographyUpdate()) {
 					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart ) ) );
 				} else {
@@ -3617,6 +3730,7 @@
 				print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray($errorCode)) ));
 			break;
 	}
+	
 
 ob_end_flush();
 ?>

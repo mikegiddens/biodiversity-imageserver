@@ -108,11 +108,8 @@ ini_set('display_errors', '1');
 			if(is_array($imageIds) && count($imageIds)) {
 				$idArray = @array_fill_keys($imageIds,'id');
 			}
-			if(is_numeric($barcode)) {
-				$barcodes = array($barcode);
-			} else {
-				$barcodes = json_decode(@stripslashes(trim($barcode)), true);
-			}
+			$barcodes = json_decode(@stripslashes(trim($barcode)), true);
+			$barcodes = (is_null($barcodes) && $barcode != '') ? array($barcode) : $barcodes;
 			if(is_array($barcodes) && count($barcodes)) {
 				$idArray = $idArray + @array_fill_keys($barcodes,'code');
 			} else if($barcode != '') {
@@ -184,11 +181,8 @@ ini_set('display_errors', '1');
 			if(is_array($imageIds) && count($imageIds)) {
 				$idArray = @array_fill_keys($imageIds,'id');
 			}
-			if(is_numeric($barcode)) {
-				$barcodes = array($barcode);
-			} else {
-				$barcodes = json_decode(@stripslashes(trim($barcode)), true);
-			}
+			$barcodes = json_decode(@stripslashes(trim($barcode)), true);
+			$barcodes = (is_null($barcodes) && $barcode != '') ? array($barcode) : $barcodes;
 			if(is_array($barcodes) && count($barcodes)) {
 				$idArray = $idArray + @array_fill_keys($barcodes,'code');
 			}
@@ -255,11 +249,8 @@ ini_set('display_errors', '1');
 			if(is_array($imageIds) && count($imageIds)) {
 				$idArray = @array_fill_keys($imageIds,'id');
 			}
-			if(is_numeric($barcode)) {
-				$barcodes = array($barcode);
-			} else {
-				$barcodes = json_decode(@stripslashes(trim($barcode)), true);
-			}
+			$barcodes = json_decode(@stripslashes(trim($barcode)), true);
+			$barcodes = (is_null($barcodes) && $barcode != '') ? array($barcode) : $barcodes;
 			if(is_array($barcodes) && count($barcodes)) {
 				$idArray = $idArray + @array_fill_keys($barcodes,'code');
 			}
@@ -514,7 +505,8 @@ ini_set('display_errors', '1');
 				$flag = true;
 				$idArray = @array_fill_keys($imageIds,'id');
 			}
-			$barcodes = json_decode(@stripslashes(trim($barcode)),true);
+			$barcodes = json_decode(@stripslashes(trim($barcode)), true);
+			$barcodes = (is_null($barcodes) && $barcode != '') ? array($barcode) : $barcodes;
 			if(is_array($barcodes) && count($barcodes)) {
 				$flag = true;
 				$idArray = $idArray + @array_fill_keys($barcodes,'code');
@@ -1039,12 +1031,8 @@ ini_set('display_errors', '1');
 				$idArray = @array_fill_keys($imageIds,'id');
 			}
 
-			if(is_numeric($barcode)) {
-				$barcodes = array($barcode);
-			} else {
-				$barcodes = json_decode(@stripslashes(trim($barcode)), true);
-			}
-			
+			$barcodes = json_decode(@stripslashes(trim($barcode)), true);
+			$barcodes = (is_null($barcodes) && $barcode != '') ? array($barcode) : $barcodes;
 			if(is_array($barcodes) && count($barcodes)) {
 				$idArray = $idArray + @array_fill_keys($barcodes,'code');
 			} else if($barcode != '') {
@@ -1156,14 +1144,9 @@ ini_set('display_errors', '1');
 		$data = array();
 		
 		$str = $si->image->imageGetProperty('ocrValue');
-		
-// $str = 
-// '
-// ui234;
-// Afghanistan India  kerala
-// qweer
 
-// ';
+		$parsedWords = array();
+		$blackList = array('date','north','south','east','west','thomas');
 		
 		$linesArray = preg_split ('/$\R?^/m', $str);
 		
@@ -1176,19 +1159,18 @@ ini_set('display_errors', '1');
 						foreach($wordsArray as $word) {
 							if(preg_match('/^[a-zA-Z.,:]*$/',$word)) {
 								$word = trim($word,'.,:');
-								// echo '<br>';
-								// echo $word;
-								if(strlen($word) > 3) {
+								if(strlen($word) < 3) continue;
+								if(in_array(@strtolower($word),$blackList)) continue;
+								if(in_array($word,$parsedWords)) continue;
+								
 								foreach(array('Country' => 'NAME_0', 'StateProvince' => 'NAME_1', 'County' => 'NAME_2', 'Locality' => 'NAME_3') as $category => $field) {
 									$query = sprintf($queryTemplate, $field, $field, $word);
-									// echo '<br>';
-									// echo $query;
 									$ret = $si->db->query_one($query);
 									if ($ret != NULL) {
 										$data[] = array($category => $ret->fld);
+										$parsedWords[] = $word;
 										break;
 									}
-								}
 								}
 							}
 						}
