@@ -197,14 +197,14 @@ class StorageDevice {
 					}
 					break;
 				case 'local':
-					$img->imageMkdirRecursive($device['basePath'].$storageFilePath);
+					$img->imageMkdirRecursive(rtrim($device['basePath'],'/') . '/' . $storageFilePath);
 					$fp = fopen($tmpFile, "r");
-					$response = file_put_contents($device['basePath'].$storageFilePath . '/' .  $storageFileName, $fp);
+					$response = file_put_contents(rtrim($device['basePath'],'/') . '/' . trim($storageFilePath,'/') . '/' .  $storageFileName, $fp);
 					fclose($fp);
 					if($response) {
 						$result['imageId'] = $img->imageGetId($storageFileName, $storageFilePath, $storageDeviceId);
 						if(!$result['imageId']) {
-							$ar = @getimagesize($device['basePath'].$storageFilePath.'/'.$storageFileName);
+							$ar = @getimagesize(rtrim($device['basePath'],'/') . '/' . trim($storageFilePath,'/') . '/' . $storageFileName);
 							$img->imageSetProperty('width',$ar[0]);
 							$img->imageSetProperty('height',$ar[1]);
 							$img->imageSetProperty('filename',$storageFileName);

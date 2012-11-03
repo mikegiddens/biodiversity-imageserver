@@ -125,9 +125,9 @@
 				, 136 => 'Evernote Account Could Not be Deleted.'
 				, 137 => 'Evernote Account Could Not be Updated.'
 				#, 138 => 'country and countryIso should be provided.'
-				, 138 => 'NAME_0 and ISO should be provided in geo.'
-				, 139 => 'country already exists.'
-				, 140 => 'ISO already exists.'
+				, 138 => 'iso should be provided.'
+				, 139 => 'name already exists.'
+				, 140 => 'iso already exists.'
 				, 141 => 'geographyId should be provided.'
 				, 142 => 'Invalid geographyId provided.'
 				, 143 => 'Geography Could Not be Added.'
@@ -218,7 +218,7 @@
 				, 228 => 'Attribute name Already Exists for the categoryId.'
 				, 229 => 'Category title Already Exists.'
 				, 230 => 'imageId or barcode or advFilter or advFilterId should be provided.'
-				, 231 => 'A Valid geo should be provided.'
+				, 231 => 'Invalid parentId.'
 			);
 			return $ar[$errorCode];
 		}

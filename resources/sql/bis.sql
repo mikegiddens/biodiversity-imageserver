@@ -159,15 +159,17 @@ CREATE TABLE IF NOT EXISTS `evernoteTags` (
 
 CREATE TABLE IF NOT EXISTS `geography` (
   `geographyId` int(11) NOT NULL AUTO_INCREMENT,
-  `country` varchar(40) NOT NULL,
-  `countryIso` varchar(3) NOT NULL,
-  `admin0` varchar(255) NOT NULL,
-  `admin1` varchar(255) NOT NULL,
-  `admin2` varchar(255) NOT NULL,
-  `admin3` varchar(255) NOT NULL,
+  `source` varchar(20) NOT NULL DEFAULT 'user',
+  `parentId` int(11) NOT NULL DEFAULT '0',
+  `name` varchar(150) CHARACTER SET utf8 NOT NULL,
+  `varname` varchar(150) CHARACTER SET utf8 NOT NULL,
+  `iso` varchar(20) CHARACTER SET utf8 NOT NULL,
+  `rank` int(11) NOT NULL DEFAULT '0',
   PRIMARY KEY (`geographyId`),
-  KEY `country` (`country`,`countryIso`)
-) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
+  KEY `name` (`name`),
+  KEY `parentId` (`parentId`),
+  KEY `rank` (`rank`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
 
 -- --------------------------------------------------------
 
