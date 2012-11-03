@@ -103,23 +103,23 @@ class Geography
 		if ($where != '') {
 			$where = " WHERE " . $where;
 		}
-		if($this->data['ISO'] != '') {
-			$where .= sprintf(" AND `ISO` = '%s' ", mysql_escape_string($this->data['ISO']));
+		if($this->data['iso'] != '') {
+			$where .= sprintf(" AND `iso` = '%s' ", mysql_escape_string($this->data['iso']));
 		}
 		if($this->data['value'] != '') {
 			switch($this->data['searchFormat']) {
 				case 'exact':
-					$where .= sprintf(" AND `NAME_0` = '%s' ", mysql_escape_string($this->data['value']));
+					$where .= sprintf(" AND `name` = '%s' ", mysql_escape_string($this->data['value']));
 					break;
 				case 'left':
-					$where .= sprintf(" AND `NAME_0` LIKE '%s%%' ", mysql_escape_string($this->data['value']));
+					$where .= sprintf(" AND `name` LIKE '%s%%' ", mysql_escape_string($this->data['value']));
 					break;
 				case 'right':
-					$where .= sprintf(" AND `NAME_0` LIKE '%%%s' ", mysql_escape_string($this->data['value']));
+					$where .= sprintf(" AND `name` LIKE '%%%s' ", mysql_escape_string($this->data['value']));
 					break;
 				case 'both':
 				default:
-					$where .= sprintf(" AND `NAME_0` LIKE '%%%s%%' ", mysql_escape_string($this->data['value']));
+					$where .= sprintf(" AND `name` LIKE '%%%s%%' ", mysql_escape_string($this->data['value']));
 					break;
 			}
 		}
@@ -186,23 +186,22 @@ class Geography
 					break;
 			}
 		}
-		
-		if(in_array($this->data['rank'], array('0','1','2','3','4','5'))) {
-			$where .= " AND `NAME_{$this->data['rank']}` != '' ";
+		if($this->data['rank'] != '') {
+			$where .= sprintf(" AND `rank` = '%s' ", mysql_escape_string($this->data['rank']));
 		}
 		
-		if($this->data['group'] != '' && in_array($this->data['group'], array('geographyId','ISO', 'NAME_0', 'NAME_1', 'VARNAME_1', 'ENGTYPE_1', 'NAME_2', 'VARNAME_2', 'NAME_3', 'VARNAME_3', 'NAME_4', 'VARNAME_4', 'NAME_5', 'source')) && $this->data['dir'] != '') {
-			$where .= build_order( array(array('field' => $this->data['group'], 'dir' => $this->data['dir'])), array('geographyId'));
+		if($this->data['group'] != '' && in_array($this->data['group'], array('geographyId','iso', 'name', 'varname', 'parentId', 'rank','source')) && $this->data['dir'] != '') {
+			$where .= build_order( array(array('field' => $this->data['group'], 'dir' => $this->data['dir'])), array('geographyId','parentId','rank'));
 		} else {
 			$where .= ' ORDER BY `geographyId` ASC ';
 		}
 		
 		$where .= build_limit($this->data['start'], $this->data['limit']);
 
-		if(in_array($this->data['rank'], array('0','1','2','3','4','5'))) {
-			$query = "SELECT SQL_CALC_FOUND_ROWS DISTINCT `NAME_{$this->data['rank']}` AS name, 'NAME_{$this->data['rank']}' AS ref, `source` FROM `geography` " . $where;
+		if($this->data['rank'] != '') {
+			$query = "SELECT SQL_CALC_FOUND_ROWS `name`, `rank`, `source` FROM `geography` " . $where;
 		} else {
-			$query = "SELECT SQL_CALC_FOUND_ROWS `geographyId`, `ISO`, `NAME_0`, `NAME_1`, `VARNAME_1`, `ENGTYPE_1`, `NAME_2`, `VARNAME_2`, `NAME_3`, `VARNAME_3`, `NAME_4`, `VARNAME_4`, `NAME_5`, `source` FROM `geography` " . $where;
+			$query = "SELECT SQL_CALC_FOUND_ROWS `geographyId`, `iso`, `name`, `varname`, `parentId`, `source` FROM `geography` " . $where;
 		}
 
 		if($queryFlag) {
@@ -224,28 +223,18 @@ class Geography
 		}
 	}
 	
-	// public function geographyCountryExists($country) {
-		// $query = sprintf("SELECT `geographyId` FROM `geography` WHERE `country` = '%s';", mysql_escape_string($country));
-		// $ret = $this->db->query_one( $query );
-		// if ($ret == NULL) {
-			// return false;
-		// } else {
-			// return true;
-		// }
-	// }
+	public function geographyNameExists($name) {
+		$query = sprintf("SELECT count(*) ct FROM `geography` WHERE `name` = '%s';", mysql_escape_string($name));
+		$ret = $this->db->query_one( $query );
+		if ($ret->ct) {
+			return true;
+		} else {
+			return false;
+		}
+	}
 
-	// public function geographyCountryIsoExists($countryIso) {
-		// $query = sprintf("SELECT `geographyId` FROM `geography` WHERE `countryIso` = '%s';", mysql_escape_string($countryIso));
-		// $ret = $this->db->query_one( $query );
-		// if ($ret == NULL) {
-			// return false;
-		// } else {
-			// return true;
-		// }
-	// }
-
-	public function geographyISOExists($countryIso) {
-		$query = sprintf("SELECT `geographyId` FROM `geography` WHERE `countryIso` = '%s';", mysql_escape_string($countryIso));
+	public function geographyISOExists($iso) {
+		$query = sprintf("SELECT `geographyId` FROM `geography` WHERE `iso` = '%s';", mysql_escape_string($iso));
 		$ret = $this->db->query_one( $query );
 		if ($ret == NULL) {
 			return false;
@@ -255,27 +244,12 @@ class Geography
 	}
 
 	public function geographySave() {
-			// $query = sprintf("INSERT IGNORE INTO `geography` SET `country` = '%s', `countryIso` = '%s', `admin0` = '%s', `admin1` = '%s', `admin2` = '%s', `admin3` = '%s' ;"
-			// , mysql_escape_string($this->geographyGetProperty('country'))
-			// , mysql_escape_string($this->geographyGetProperty('countryIso'))
-			// , mysql_escape_string($this->geographyGetProperty('admin0'))
-			// , mysql_escape_string($this->geographyGetProperty('admin1'))
-			// , mysql_escape_string($this->geographyGetProperty('admin2'))
-			// , mysql_escape_string($this->geographyGetProperty('admin3'))
-			// );
-			$query = sprintf("INSERT IGNORE INTO `geography` SET `ISO` = '%s', `NAME_0` = '%s', `NAME_1` = '%s', `VARNAME_1` = '%s', `ENGTYPE_1` = '%s', `NAME_2` = '%s', `VARNAME_2` = '%s', `NAME_3` = '%s', `VARNAME_3` = '%s', `NAME_4` = '%s', `VARNAME_4` = '%s', `NAME_5` = '%s', `source` = 'user' ;"
-			, mysql_escape_string($this->geographyGetProperty('ISO'))
-			, mysql_escape_string($this->geographyGetProperty('NAME_0'))
-			, mysql_escape_string($this->geographyGetProperty('NAME_1'))
-			, mysql_escape_string($this->geographyGetProperty('VARNAME_1'))
-			, mysql_escape_string($this->geographyGetProperty('ENGTYPE_1'))
-			, mysql_escape_string($this->geographyGetProperty('NAME_2'))
-			, mysql_escape_string($this->geographyGetProperty('VARNAME_2'))
-			, mysql_escape_string($this->geographyGetProperty('NAME_3'))
-			, mysql_escape_string($this->geographyGetProperty('VARNAME_3'))
-			, mysql_escape_string($this->geographyGetProperty('NAME_4'))
-			, mysql_escape_string($this->geographyGetProperty('VARNAME_4'))
-			, mysql_escape_string($this->geographyGetProperty('NAME_5'))
+			$query = sprintf("INSERT IGNORE INTO `geography` SET `source` = 'user', `parentId` = '%s', `name` = '%s', `varname` = '%s', `iso` = '%s', `rank` = '%s' ;"
+			, mysql_escape_string($this->geographyGetProperty('parentId'))
+			, mysql_escape_string($this->geographyGetProperty('name'))
+			, mysql_escape_string($this->geographyGetProperty('varname'))
+			, mysql_escape_string($this->geographyGetProperty('iso'))
+			, mysql_escape_string($this->geographyGetProperty('rank'))
 			);
 		if($this->db->query($query)) {
 			return $this->db->insert_id;
@@ -285,19 +259,12 @@ class Geography
 
 	public function geographyUpdate() {
 		if($this->geographyExists($this->geographyGetProperty('geographyId'))) {
-			$query = sprintf("UPDATE `geography` SET  `ISO` = '%s', `NAME_0` = '%s', `NAME_1` = '%s', `VARNAME_1` = '%s', `ENGTYPE_1` = '%s', `NAME_2` = '%s', `VARNAME_2` = '%s', `NAME_3` = '%s', `VARNAME_3` = '%s', `NAME_4` = '%s', `VARNAME_4` = '%s', `NAME_5` = '%s', `source` = 'user' WHERE `geographyId` = '%s' ;"
-			, mysql_escape_string($this->geographyGetProperty('ISO'))
-			, mysql_escape_string($this->geographyGetProperty('NAME_0'))
-			, mysql_escape_string($this->geographyGetProperty('NAME_1'))
-			, mysql_escape_string($this->geographyGetProperty('VARNAME_1'))
-			, mysql_escape_string($this->geographyGetProperty('ENGTYPE_1'))
-			, mysql_escape_string($this->geographyGetProperty('NAME_2'))
-			, mysql_escape_string($this->geographyGetProperty('VARNAME_2'))
-			, mysql_escape_string($this->geographyGetProperty('NAME_3'))
-			, mysql_escape_string($this->geographyGetProperty('VARNAME_3'))
-			, mysql_escape_string($this->geographyGetProperty('NAME_4'))
-			, mysql_escape_string($this->geographyGetProperty('VARNAME_4'))
-			, mysql_escape_string($this->geographyGetProperty('NAME_5'))
+			$query = sprintf("UPDATE `geography` SET `parentId` = '%s', `name` = '%s', `varname` = '%s', `iso` = '%s', `rank` = '%s' WHERE `geographyId` = '%s';"
+			, mysql_escape_string($this->geographyGetProperty('parentId'))
+			, mysql_escape_string($this->geographyGetProperty('name'))
+			, mysql_escape_string($this->geographyGetProperty('varname'))
+			, mysql_escape_string($this->geographyGetProperty('iso'))
+			, mysql_escape_string($this->geographyGetProperty('rank'))
 			, mysql_escape_string($this->geographyGetProperty('geographyId'))
 			);
 			if($this->db->query($query)) {
@@ -320,7 +287,7 @@ class Geography
 	public function geographyByImage($imageId = '') {
 		if($imageId == '' || !is_numeric($imageId) ) return false;
 		// $query = sprintf("SELECT g.`geographyId`, g.`country`, g.`countryIso`, g.`admin0` FROM `geography` g, `events` e, `eventImages` ei WHERE e.`eventId` = ei.`eventId` AND e.`geographyId` = g.`geographyId` AND ei.`imageId` = %s", mysql_escape_string($imageId));
-		$query = sprintf("SELECT g.`geographyId`, g.`NAME_0`, g.`ISO`, g.`NAME_1`, g.`NAME_2` FROM `geography` g, `events` e, `eventImages` ei WHERE e.`eventId` = ei.`eventId` AND e.`geographyId` = g.`geographyId` AND ei.`imageId` = %s", mysql_escape_string($imageId));
+		$query = sprintf("SELECT g.`geographyId`, g.`name`, g.`iso`, g.`varname` FROM `geography` g, `events` e, `eventImages` ei WHERE e.`eventId` = ei.`eventId` AND e.`geographyId` = g.`geographyId` AND ei.`imageId` = %s", mysql_escape_string($imageId));
 		$ret = $this->db->query_all($query);
 		return is_null($ret) ? array() : $ret;
 	}

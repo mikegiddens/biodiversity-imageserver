@@ -233,6 +233,72 @@ ini_set('display_errors', '1');
 			$time = microtime(true) - $timeStart;
 			print json_encode(array('success' => true, 'processTime' => $time, 'totalCount' => $count));
 			break;
+	
+		case 'populateBarcodeDetectProcessQueue':
+			header('Content-type: application/json');
+			$timeStart = microtime(true);
+			$count = 0;
+			$filter['start'] = 0;
+			$filter['limit'] = $limit;
+			
+			if($advFilterId != '') {
+				if($si->advFilter->advFilterLoadById($advFilterId)) {
+					$advFilter  = $si->advFilter->advFilterGetProperty('filter');
+				}
+			}
+			$advFilter = json_decode(stripslashes(trim($advFilter)),true);
+	
+			$idArray = array();
+			if(is_numeric($imageId)) {
+				$imageIds = array($imageId);
+			} else {
+				$imageIds = json_decode(@stripslashes(trim($imageId)), true);
+			}
+			if(is_array($imageIds) && count($imageIds)) {
+				$idArray = @array_fill_keys($imageIds,'id');
+			}
+			$barcodes = json_decode(@stripslashes(trim($barcode)), true);
+			$barcodes = (is_null($barcodes) && $barcode != '') ? array($barcode) : $barcodes;
+			if(is_array($barcodes) && count($barcodes)) {
+				$idArray = $idArray + @array_fill_keys($barcodes,'code');
+			}
+			if(is_array($advFilter) && count($advFilter)) {
+				$qry = $si->image->getByCrazyFilter($advFilter, true);
+				$ret = $si->db->query($qry);
+				$count = $si->db->query_total();
+				$qry = $si->image->getByCrazyFilter($advFilter);
+				$query = " INSERT IGNORE INTO processQueue(imageId, processType, dateAdded) SELECT im.imageId, 'barcode_detect', NOW() FROM ($qry) im ";
+				$si->db->query($query);
+			} else if(is_array($idArray) && count($idArray)) {
+				foreach($idArray as $id => $code) {
+					$func = ($code == 'id') ? 'imageLoadById' : 'imageLoadByBarcode';
+					if(!$si->image->{$func}($id)) continue;
+					if(!$si->pqueue->processQueueFieldExists($si->image->imageGetProperty('imageId'),'barcode_detect')) {
+						$si->pqueue->processQueueSetProperty('imageId', $si->image->imageGetProperty('imageId'));
+						$si->pqueue->processQueueSetProperty('processType', 'barcode_detect');
+						$si->pqueue->processQueueSave();
+						$count++;
+						if($limit != '' && $count >= $limit) {
+							$countFlag = false;
+						}
+					}
+				}
+			} else {
+				$where = '';
+				if(is_numeric($filter['start']) && is_numeric($filter['limit'])) {
+					$where = sprintf(" LIMIT %s, %s ", $filter['start'], $filter['limit']);
+				}
+				$query = 'SELECT count(*) ct FROM `image` WHERE (`rawBarcode` = "" OR `rawBarcode` IS NULL) ' . $where;
+				$rt = $si->db->query_one($query);
+				$count = $rt->ct;
+				$query = " INSERT IGNORE INTO processQueue(imageId, processType, dateAdded) SELECT imageId, 'barcode_detect', NOW() FROM `image` WHERE (`rawBarcode` = '' OR `rawBarcode` IS NULL) " . $where;
+				$si->db->query($query);
+				
+			}
+			$time = microtime(true) - $timeStart;
+			print json_encode(array('success' => true, 'processTime' => $time, 'totalCount' => $count));
+			break;
+
 		case 'populateOcrProcessQueue':
 			header('Content-type: application/json');
 			$timeStart = microtime(true);
@@ -466,7 +532,7 @@ ini_set('display_errors', '1');
 	
 					if(@file_exists($tmpFilePath . '.txt')){
 						$value = file_get_contents($tmpFilePath . '.txt');
-						$images_array[] = array('imageId' => $si->image->imageGetProperty('imageId'), 'barcode' => $si->image->imageGetProperty('barcode'));
+						// $images_array[] = array('imageId' => $si->image->imageGetProperty('imageId'), 'barcode' => $si->image->imageGetProperty('barcode'));
 						$imageCount++;
 	
 						$si->image->imageSetProperty('ocrFlag',1);
@@ -483,7 +549,8 @@ ini_set('display_errors', '1');
 			}
 			$time_taken = microtime(true) - $timeStart;
 			header('Content-type: application/json');
-			print json_encode(array('success' => true, 'processTime' => $time_taken, 'totalCount' => $imageCount, 'records' => $images_array));
+			// print json_encode(array('success' => true, 'processTime' => $time_taken, 'totalCount' => $imageCount, 'records' => $images_array));
+			print json_encode(array('success' => true, 'processTime' => $time_taken, 'totalCount' => $imageCount));
 			break;
 		case 'processBoxDetect':
 			header('Content-type: application/json');
@@ -628,6 +695,72 @@ ini_set('display_errors', '1');
 			$time_taken = microtime(true) - $timeStart;
 			print json_encode(array('success' => true, 'processTime' => $time_taken, 'totalCount' =>$imageCount, 'records' => $images_array));
 			break;
+		case 'processBarcodeDetect':
+			$timeStart = microtime(true);
+			$tStart = time();
+			$loopFlag = true;
+			$imageCount = 0;
+			if(!$config['zBarImgEnabled']) {
+				print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray(180)) ));
+				exit;
+			}
+			$command = sprintf("%s --version ", $config['zBarImgPath']);
+			$version = exec($command);
+			
+			while($loopFlag) {
+				$tDiff = time() - $tStart;
+				if( ($stop != '') && ( $tDiff > $stop) ) $loopFlag = false;
+				if($limit != '' && $imageCount >= $limit) $loopFlag = false;
+				$record = $si->pqueue->processQueuePop('barcode_detect');
+				if($record === false) {
+					$loopFlag = false;
+				} else {
+					$si->image->imageLoadById($record->imageId);
+
+					$key = rtrim($si->image->imageGetProperty('path'),'/') . '/' . $si->image->imageGetProperty('filename');
+					$image = $si->storage->storageDeviceFileDownload($si->image->imageGetProperty('storageDeviceId'), $key);
+					$command = sprintf("%s \"%s\"", $config['zBarImgPath'], $image);
+					$data = exec($command);
+
+					$tmpArrayArray = explode("\r\n", $data);
+					$data = array();
+					if(is_array($tmpArrayArray)) {
+						foreach($tmpArrayArray as $tmpArray) {
+							if($tmpArray != '') {
+								$parts = explode(":", $tmpArray);
+								$data[] = array('code' => $parts[0], 'value' => $parts[1]);
+								# Adding attributes
+								$attributeData = array();
+								if(false === ($attributeData['categoryId'] = $si->imageCategory->imageCategoryGetBy('Detected Barcodes','title'))) {
+									$si->imageCategory->imageCategorySetProperty('title','Detected Barcodes');
+									$si->imageCategory->imageCategorySetProperty('elementSet','BIS');
+									$attributeData['categoryId'] = $si->imageCategory->imageCategoryAdd();
+								}
+								if(false === ($attributeData['attributeId'] = $si->imageAttribute->imageAttributeGetBy($parts[1],'name',$attributeData['categoryId']))) {
+									$si->imageAttribute->imageAttributeSetProperty('name',$parts[1]);
+									$si->imageAttribute->imageAttributeSetProperty('categoryId',$attributeData['categoryId']);
+									$attributeData['attributeId'] = $si->imageAttribute->imageAttributeAdd();
+								}
+								$attributeData['imageId'] = array($si->image->imageGetProperty('imageId'));
+								$si->image->imageSetData($attributeData);
+								$si->image->imageAttributeAdd();
+							}
+						}
+					}
+					if(strtolower($si->storage->storageDeviceGetType($si->image->imageGetProperty('storageDeviceId'))) == 's3') {
+						@unlink($image);
+					}
+					$dt = array('success' => true, 'processTime' => microtime(true) - $timeStart, 'totalCount' => count($data), 'lastTested' => time(), 'software' => 'zbarimg', 'version' => $version, 'results' => $data);
+					$si->image->imageSetProperty('rawBarcode', json_encode($dt));
+					$si->image->imageSave();
+					$imageCount++;
+				}
+			}
+			$time_taken = microtime(true) - $timeStart;
+			print json_encode(array('success' => true, 'processTime' => $time_taken, 'totalCount' => $imageCount));
+			
+			break;
+
 		case 'processNameFinder':
 			$timeStart = microtime(true);
 			$tStart = time();
