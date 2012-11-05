@@ -701,7 +701,7 @@ ini_set('display_errors', '1');
 			$loopFlag = true;
 			$imageCount = 0;
 			if(!$config['zBarImgEnabled']) {
-				print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray(180)) ));
+				print (json_encode( array( 'success' => false, 'error' => $si->getErrorArray(180)) ));
 				exit;
 			}
 			$command = sprintf("%s --version ", $config['zBarImgPath']);
@@ -783,18 +783,21 @@ ini_set('display_errors', '1');
 					
 						$si->image->imageLoadById($record->imageId);
 					
-						$si->image->imageSetProperty('family',$ret['data']['family']);
-						$si->image->imageSetProperty('genus',$ret['data']['genus']);
-						$si->image->imageSetProperty('scientificName',$ret['data']['scientificName']);
-						$si->image->imageSetProperty('specificEpithet',$ret['data']['specificEpithet']);
+						// $si->image->imageSetProperty('family',$ret['data']['family']);
+						// $si->image->imageSetProperty('genus',$ret['data']['genus']);
+						// $si->image->imageSetProperty('scientificName',$ret['data']['scientificName']);
+						// $si->image->imageSetProperty('specificEpithet',$ret['data']['specificEpithet']);
 						$si->image->imageSetProperty('nameFinderValue',$ret['data']['rawData']);
 						$si->image->imageSave();
 						
-						foreach(array('phylum', 'class', 'kingdom', 'order') as $rr) {
+						// foreach(array('phylum', 'class', 'kingdom', 'order') as $rr) {
+						foreach(array('family','genus','scientificName','specificEpithet','phylum', 'class', 'kingdom', 'order') as $rr) {
 							if($ret['data'][$rr] != '') {
+								$category = @ucfirst($rr);
 								$data = array();
-								if(false === ($data['categoryId'] = $si->imageCategory->imageCategoryGetBy($rr,'title'))) {
-									$si->imageCategory->imageCategorySetProperty('title',$rr);
+								if(false === ($data['categoryId'] = $si->imageCategory->imageCategoryGetBy($category,'title'))) {
+									$si->imageCategory->imageCategorySetProperty('title',$category);
+									$si->imageCategory->imageCategorySetProperty('elementSet','BIS');
 									$data['categoryId'] = $si->imageCategory->imageCategoryAdd();
 								}
 								if(false === ($data['attributeId'] = $si->imageAttribute->imageAttributeGetBy($ret['data'][$rr],'name',$data['categoryId']))) {
@@ -1261,26 +1264,38 @@ ini_set('display_errors', '1');
 				echo '<pre>';
 				print_r($data);
 				break;
+	
+			case 'testNames':
+				$data = getNames($imageId);
+				echo '<pre>';
+				print_r($data);
+				break;
 				
 			default:
 				print json_encode(array('success' => false, 'message' => 'No cmd Provided'));
 				break;
 		}
 
-	function getGeoNames($imageId) {
+	function getGeoNames($imageId, $advFilter = '') {
 		global $si,$config;
+		$filter = '';
 		if(!$si->image->imageLoadById($imageId)) {
 			return array();
 		}
-		
-		$queryTemplate = " SELECT DISTINCT `%s` fld  FROM `geography` WHERE `%s` = '%s' ";
+		if(is_array($advFilter) && count($advFilter)) {
+			$ar = array();
+			foreach($advFilter as $cat => $att) {
+				$ar[] = sprintf(" `` = '%s' ", $cat, mysql_escape_string($att));
+			}
+			if(count($ar)) $filter = implode(' AND ',$ar);
+		}
 		$data = array();
 		
 		$str = $si->image->imageGetProperty('ocrValue');
 
 		$parsedWords = array();
 		$blackList = array('date','north','south','east','west','thomas');
-		
+		$rankArray = array('Country','StateProvince','County','Locality');		
 		$linesArray = preg_split ('/$\R?^/m', $str);
 		
 		if(is_array($linesArray) && count($linesArray)) {
@@ -1295,14 +1310,17 @@ ini_set('display_errors', '1');
 								if(strlen($word) < 3) continue;
 								if(in_array(@strtolower($word),$blackList)) continue;
 								if(in_array($word,$parsedWords)) continue;
-								
-								foreach(array('Country' => 'NAME_0', 'StateProvince' => 'NAME_1', 'County' => 'NAME_2', 'Locality' => 'NAME_3') as $category => $field) {
-									$query = sprintf($queryTemplate, $field, $field, $word);
+								if($filter != '') {
+									// $query = " SELECT `Country`,  "
+								} else {
+									$query = sprintf(" SELECT DISTINCT `name`, `rank`  FROM `geography` WHERE `name` = '%s' ", $word);
 									$ret = $si->db->query_one($query);
 									if ($ret != NULL) {
-										$data[] = array($category => $ret->fld);
-										$parsedWords[] = $word;
-										break;
+										if(isset($rankArray[$ret->rank]) && $rankArray[$ret->rank] != '') {
+											$data[] = array($rankArray[$ret->rank] => $ret->name);
+											$parsedWords[] = $word;
+										}
+										
 									}
 								}
 							}
@@ -1379,6 +1397,9 @@ ini_set('display_errors', '1');
 				$vUrl = @http_build_query($params);
 				$vData = json_decode(@file_get_contents($verificationUrl . $vUrl),true);
 				if(count($vData['data'])) {
+					foreach(array('kingdom','phylum','order','class') as $taxon) {
+						$vData['data'][0][$taxon] = array_shift(explode(' ',trim($vData['data'][0][$taxon])));
+					}
 					$ar = explode(' ', $vData['data'][0]['scientificName']);
 					return array('success' => true, 'data' => array('family' => $vData['data'][0]['family'],'genus' => $vData['data'][0]['genus'],'scientificName' => $vData['data'][0]['scientificName'],'specificEpithet' => $ar[1], 'phylum' => $vData['data'][0]['phylum'], 'class' => $vData['data'][0]['class'], 'kingdom' => $vData['data'][0]['kingdom'], 'order' => $vData['data'][0]['order'], 'rawData' => json_encode($names)));
 				}

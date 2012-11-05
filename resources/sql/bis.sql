@@ -222,6 +222,7 @@ CREATE TABLE IF NOT EXISTS `image` (
   `remoteAccessKey` varchar(100) NOT NULL DEFAULT '0',
   `statusType` tinyint(4) NOT NULL DEFAULT '0',
   `rating` float NOT NULL,
+  `rawBarcode` text NOT NULL,
   PRIMARY KEY (`imageId`),
   KEY `family` (`family`),
   KEY `genus` (`genus`),
@@ -229,7 +230,8 @@ CREATE TABLE IF NOT EXISTS `image` (
   KEY `barcode` (`barcode`),
   KEY `catalogueNumber` (`catalogueNumber`),
   KEY `collectionCode` (`collectionCode`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 PACK_KEYS=0 ROW_FORMAT=COMPACT AUTO_INCREMENT=1;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 PACK_KEYS=0 ROW_FORMAT=COMPACT AUTO_INCREMENT=1 ;
+
 
 -- --------------------------------------------------------
 
