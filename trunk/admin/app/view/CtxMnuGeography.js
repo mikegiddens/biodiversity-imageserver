@@ -27,20 +27,13 @@ Ext.define('BIS.view.CtxMnuGeography', {
                             xtype: 'formcreategeography',
                             border: false,
                             mode: 'add',
-                            parentRec: this.record
+                            record: this.record
                         }]
                     }).show();
                     tmpWindow.on('done', function( data ) {
                         tmpWindow.close();
-                        var curRank = me.record.get('ref').split('_')[1];
                         var store = Ext.getCmp('geographyTreePanel').getStore();
-                        store.getProxy().extraParams = {
-                            cmd: 'geographyList',
-                            group: 'name',
-                            rank: ++curRank,
-                            limit: 500,
-                            advFilter: JSON.stringify({ node: 'condition', object: 'geography', key: me.record.get('ref'), value: me.record.get('name'), condition: '=' })
-                        };
+                        store.getProxy().extraParams.parentId = data;
                         store.load({
                             node: me.record,
                             callback: function() { if ( !me.record.isExpanded() ) me.record.expand() }
@@ -68,9 +61,9 @@ Ext.define('BIS.view.CtxMnuGeography', {
                 {
                     node: 'condition',
                     object: 'geography',
-                    key: this.record.get('ref'),
-                    keyText: this.record.get('ref'),
-                    value: this.record.get('name'),
+                    key: 'geographyId',
+                    keyText: 'Geography Id',
+                    value: this.record.get('geographyId'),
                     valueText: this.record.get('name'),
                     value2: null,
                     value2Text: '',
@@ -114,7 +107,7 @@ Ext.define('BIS.view.CtxMnuGeography', {
             url: Config.baseUrl + 'resources/api/api.php',
             params: {
                 cmd: 'geographyDelete',
-                value: JSON.stringify( this.record.raw )
+                geographyId: this.record.get('geographyId')
             },
             scope: this,
             success: function( resObj ) {
