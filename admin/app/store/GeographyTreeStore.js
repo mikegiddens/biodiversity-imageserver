@@ -16,8 +16,8 @@ Ext.define('BIS.store.GeographyTreeStore', {
                 extraParams: {
                     cmd: 'geographyList',
                     group: 'name',
-                    rank: 0,
-                    limit: 500
+                    limit: 500,
+                    parentId: 0
                 },
                 reader: {
                     type: 'json',

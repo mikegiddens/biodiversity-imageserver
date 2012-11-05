@@ -31,7 +31,7 @@ Ext.define('BIS.view.GeographyTreePanel', {
                     Ext.getCmp('viewsPagingTitle').setText('Geography');
 				},
                 itemappend: function( thisNode, newChildNode, index, eOpts ) {
-                    var rank = newChildNode.get('ref').split('_')[1];
+                    var rank = newChildNode.get('rank');
                     if ( rank > 3 ) {
                         newChildNode.set('leaf', true);
                     }
@@ -39,14 +39,7 @@ Ext.define('BIS.view.GeographyTreePanel', {
                 },
 				beforeitemexpand: function( record, opts ) {
                     var proxy = this.getStore().getProxy();
-                    var nextRank = record.get('ref').split('_')[1];
-                    nextRank++;
-                    proxy.extraParams.rank = nextRank;
-                    if ( nextRank > 0 ) {
-                        proxy.extraParams.advFilter = JSON.stringify({ node: 'condition', object: 'geography', key: record.get('ref'), value: record.get('name'), condition: '=' });
-                    } else {
-                        delete proxy.extraParams.advFilter;
-                    }
+                    proxy.extraParams.parentId = record.get('geographyId');
 				},
 				itemcontextmenu: function(view, record, item, index, e) {
 					e.stopEvent();
@@ -89,12 +82,7 @@ Ext.define('BIS.view.GeographyTreePanel', {
         tmpWindow.on( 'done', function( data ) {
             tmpWindow.close();
             var store = me.getStore();
-            store.getProxy().extraParams = {
-                cmd: 'geographyList',
-                group: 'name',
-                rank: 0,
-                limit: 500
-            }
+            store.getProxy().extraParams.parentId = 0;
             store.load();
         });
         tmpWindow.on( 'cancel', function( data ) {

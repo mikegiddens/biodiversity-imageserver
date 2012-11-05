@@ -3,10 +3,22 @@ Ext.define('BIS.model.GeographyModel', {
 
     fields: [
         {
+            name: 'geographyId'
+        },
+        {
+            name: 'parentId'
+        },
+        {
             name: 'name'
         },
         {
             name: 'ref'
+        },
+        {
+            name: 'iso'
+        },
+        {
+            name: 'varname'
         },
         {
             name: 'ISO'
