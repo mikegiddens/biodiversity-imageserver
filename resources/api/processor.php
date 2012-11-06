@@ -814,7 +814,10 @@ ini_set('display_errors', '1');
 						}
 					}
 					
-					$geoData = getGeoNames($record->imageId);
+					$advFilter = json_decode($advFilter,true);
+					$advFilter = is_null($advFilter) ? '' : $advFilter ;
+
+					$geoData = getGeoNames($record->imageId,$advFilter);
 					if(is_array($geoData) && count($geoData)) {
 						foreach($geoData as $geo) {
 							if(count($geo) && is_array($geo)) {
@@ -822,6 +825,7 @@ ini_set('display_errors', '1');
 									$data = array();
 									if(false === ($data['categoryId'] = $si->imageCategory->imageCategoryGetBy($category,'title'))) {
 										$si->imageCategory->imageCategorySetProperty('title',$category);
+										$si->imageCategory->imageCategorySetProperty('elementSet','BIS');
 										$data['categoryId'] = $si->imageCategory->imageCategoryAdd();
 									}
 									if(false === ($data['attributeId'] = $si->imageAttribute->imageAttributeGetBy($attribute,'name',$data['categoryId']))) {
@@ -1260,7 +1264,9 @@ ini_set('display_errors', '1');
 	# Test Tasks
 	
 			case 'testGeo':
-				$data = getGeoNames($imageId);
+				$advFilter = json_decode($advFilter,true);
+				$advFilter = is_null($advFilter) ? '' : $advFilter ;
+				$data = getGeoNames($imageId,$advFilter);
 				echo '<pre>';
 				print_r($data);
 				break;
@@ -1278,17 +1284,28 @@ ini_set('display_errors', '1');
 
 	function getGeoNames($imageId, $advFilter = '') {
 		global $si,$config;
-		$filter = '';
+		$filterQuery = '';
 		if(!$si->image->imageLoadById($imageId)) {
 			return array();
 		}
 		if(is_array($advFilter) && count($advFilter)) {
+			$categories = array();
+			$filterWhere = '';
 			$ar = array();
 			foreach($advFilter as $cat => $att) {
-				$ar[] = sprintf(" `` = '%s' ", $cat, mysql_escape_string($att));
+				$categories[] = $cat;
+				$ar[] = sprintf(" `%s` = '%s' ", $cat, mysql_escape_string($att));
 			}
-			if(count($ar)) $filter = implode(' AND ',$ar);
+			if(count($ar)) $filterWhere = ' AND ' . implode(' AND ',$ar);
+			$ar = array();
+			foreach(array('Country','StateProvince', 'County', 'Locality') as $region) {
+				if(!in_array($region, $categories) || $advFilter[$region] == '') {
+					$ar[] = " ( SELECT `$region` AS word, '$region' region FROM `geographyView` WHERE 1=1 " . $filterWhere . ' ) ';
+				}
+			}
+			$filterQuery = implode(' UNION ',$ar);
 		}
+		
 		$data = array();
 		
 		$str = $si->image->imageGetProperty('ocrValue');
@@ -1310,8 +1327,21 @@ ini_set('display_errors', '1');
 								if(strlen($word) < 3) continue;
 								if(in_array(@strtolower($word),$blackList)) continue;
 								if(in_array($word,$parsedWords)) continue;
-								if($filter != '') {
-									// $query = " SELECT `Country`,  "
+								if($filterQuery != '') {
+									# including the words if any from the advFilter conditions
+									if(false !== ($cat = array_search(ucfirst(strtolower($word)),$advFilter))) {
+										$data[] = array($cat => ucfirst(strtolower($word)));
+										$parsedWords[] = $word;
+									}
+									$query = sprintf(" SELECT * FROM ($filterQuery) t WHERE t.`word` = '%s' ", mysql_escape_string($word));
+									// echo $query;exit;
+									$ret = $si->db->query($query);
+									if ($ret != NULL) {
+										while($record = $ret->fetch_object()) {
+											$data[] = array($record->region => $record->word);
+											$parsedWords[] = $word;
+										}
+									}
 								} else {
 									$query = sprintf(" SELECT DISTINCT `name`, `rank`  FROM `geography` WHERE `name` = '%s' ", $word);
 									$ret = $si->db->query_one($query);
