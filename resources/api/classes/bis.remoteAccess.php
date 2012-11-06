@@ -121,11 +121,11 @@ Class RemoteAccess {
 	}
 	
 	public function remoteAccessCheck($ip, $tmpKey) {
-		// return true; //To temporarly disable this check and always validate
+//		return true; //To temporarly disable this check and always validate
 		$query = sprintf("SELECT count(*) AS cnt FROM `remoteAccess` WHERE `ip` = '%s' AND `key` = '%s' AND `active` = '%s' ;"
-		, mysql_escape_string($ip)
-		, mysql_escape_string($tmpKey)
-		, "true"
+			, mysql_escape_string($ip)
+			, mysql_escape_string($tmpKey)
+			, "true"
 		);
 		$ret = $this->db->query_one($query);
 		if($ret->cnt) {
