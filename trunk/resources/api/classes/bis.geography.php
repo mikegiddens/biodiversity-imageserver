@@ -130,6 +130,12 @@ class Geography
 			$where .= sprintf(" AND `geographyId` = '%s' ", mysql_escape_string($this->data['geographyId']));
 		}
 
+		if(is_array($this->data['parentId']) && count($this->data['parentId'])) {
+			$where .= sprintf(" AND `parentId` IN (%s) ", implode(',', $this->data['parentId']));
+		} else if($this->data['parentId'] != '') {
+			$where .= sprintf(" AND `parentId` = '%s' ", mysql_escape_string($this->data['parentId']));
+		}
+
 		if(is_array($this->data['advFilter']) && count($this->data['advFilter'])) {
 			$advFilter = $this->data['advFilter'];
 			switch($advFilter['node']){

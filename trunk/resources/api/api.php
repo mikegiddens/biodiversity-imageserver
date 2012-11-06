@@ -3072,6 +3072,7 @@
 			$data['start'] = ($start == '') ? 0 : $start;
 			$data['limit'] = ($limit == '') ? 100 : $limit;
 			$data['geographyId'] = (!is_numeric($geographyId)) ? json_decode(stripslashes(trim($geographyId)),true) : $geographyId;
+			$data['parentId'] = (!is_numeric($parentId)) ? json_decode(stripslashes(trim($parentId)),true) : $parentId;
 			$data['ISO'] = $ISO;
 			$data['filter'] = $filter;
 			$data['rank'] = $rank;
