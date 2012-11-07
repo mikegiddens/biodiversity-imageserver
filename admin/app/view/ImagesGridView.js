@@ -67,7 +67,7 @@ Ext.define('BIS.view.ImagesGridView', {
                     '<div>'+
                         '<span style="font-weight:bold">{filename}</span><br/>'+
                         '{family}<br/>{genus} {specificEpithet}<br/>'+
-                        '<span>Barcode: {barcode}</span><br>'+
+                        '<tpl if="barcode != \'\'"><span>Barcode: {barcode}</span><br></tpl>'+
                         '<span>Date Added: {timestampAdded:this.renderDate}</span><br>'+
                         '<span>Date Modified: {timestampModified:this.renderDate}</span>'+
                     '</div>'+
