@@ -13,6 +13,7 @@ Ext.define('BIS.store.AttributesStore', {
             proxy: {
                 type: 'jsonp',
                 url: Config.baseUrl + 'resources/api/api.php',
+                pageSize: 500,
                 extraParams: {
                     cmd: 'attributeList',
                     showNames: false,

@@ -10,6 +10,7 @@ Ext.define('BIS.store.CategoriesStore', {
             autoLoad: true,
             storeId: 'categoriesStore',
             model: 'BIS.model.CategoryModel',
+            pageSize: 500,
             proxy: {
                 type: 'jsonp',
                 url: Config.baseUrl + 'resources/api/api.php',

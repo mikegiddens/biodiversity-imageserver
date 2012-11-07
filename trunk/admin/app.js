@@ -114,9 +114,6 @@ Ext.application({
         var files = [];
         var running = false;
         dropbox = Ext.getBody().dom;
-        var mask = new Ext.LoadMask( Ext.getBody(), {
-            msg: 'Drop images here!'
-        });
 
         function upload( file ) {
             var xhr = new XMLHttpRequest();
@@ -157,7 +154,6 @@ Ext.application({
                 stream = stream.substr( stream.indexOf(',') + 1 );
                 var formData = new FormData();
                 formData.append( 'cmd', 'imageAddFromDnd' );
-                formData.append( 'key', '507ddfece36e0' );
                 formData.append( 'filename', this.bisFileName );
                 formData.append( 'stream', stream );
                 xhr.send( formData );
@@ -232,30 +228,30 @@ Ext.application({
                                 url: Config.baseUrl + 'resources/api/api.php',
                                 params: {
                                     cmd: 'imageAddFromUrl',
-                                    key: '507ddfece36e0',
-                                    storageDeviceId: 2,
                                     url: url
                                 },
                                 success: function( res ) {
-                                    var data = Ext.decode( res.responseText );
-                                    if ( data.success ) {
-                                        Ext.getCmp('uploadLabel').update( 'Upload complete!' );
-                                        setTimeout( function() {
-                                            files = [];
-                                            totalFiles = 0;
-                                            filesUploaded = 0;
-                                            Ext.getCmp('filesLabel').update('');
-                                            Ext.getCmp('uploadLabel').update('Drag and drop to upload images.');
-                                        }, 5000 );
-                                    } else {
-                                        Ext.getCmp('uploadLabel').update( 'Upload failed!' );
-                                        setTimeout( function() {
-                                            files = [];
-                                            totalFiles = 0;
-                                            filesUploaded = 0;
-                                            Ext.getCmp('filesLabel').update('');
-                                            Ext.getCmp('uploadLabel').update('Drag and drop to upload images.');
-                                        }, 5000 );
+                                    if ( res ) {
+                                        var data = Ext.decode( res.responseText );
+                                        if ( data.success ) {
+                                            Ext.getCmp('uploadLabel').update( 'Upload complete!' );
+                                            setTimeout( function() {
+                                                files = [];
+                                                totalFiles = 0;
+                                                filesUploaded = 0;
+                                                Ext.getCmp('filesLabel').update('');
+                                                Ext.getCmp('uploadLabel').update('Drag and drop to upload images.');
+                                            }, 5000 );
+                                        } else {
+                                            Ext.getCmp('uploadLabel').update( 'Upload failed!' );
+                                            setTimeout( function() {
+                                                files = [];
+                                                totalFiles = 0;
+                                                filesUploaded = 0;
+                                                Ext.getCmp('filesLabel').update('');
+                                                Ext.getCmp('uploadLabel').update('Drag and drop to upload images.');
+                                            }, 5000 );
+                                        }
                                     }
                                 },
                                 failure: function( res ) {
