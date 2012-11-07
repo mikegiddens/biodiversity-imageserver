@@ -307,7 +307,8 @@ Ext.define('BIS.view.CtxMnuImage', {
                 params.cmd = 'populateNameFinderProcessQueue';
                 break;
             case 'barcode':
-                params.cmd = 'imageDetectBarcode';
+                module = 'processor.php';
+                params.cmd = 'populateBarcodeDetectProcessQueue';
                 break;
         }
         Ext.Ajax.request({
@@ -321,6 +322,8 @@ Ext.define('BIS.view.CtxMnuImage', {
                     // reload image details panel
                     var detailsPanel = Ext.getCmp('imageDetailsPanel');
                     if ( detailsPanel.image ) detailsPanel.loadImage( detailsPanel.image );
+                } else {
+                    Ext.Msg.alert( 'Tool failed!', 'Unable to use ' + item.identifier + ' right now: ' + data.error.msg );
                 }
             }
         });

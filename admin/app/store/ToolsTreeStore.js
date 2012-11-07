@@ -49,9 +49,9 @@ Ext.define('BIS.store.ToolsTreeStore', {
                 },
                 {
                     name: 'Scan for Barcodes',
-                    route: 'imageDetectBarcode',
+                    route: 'populateBarcodeDetectProcessQueue',
                     iconCls: 'icon_barcode',
-                    module: 'api.php',
+                    module: 'processor.php',
                     leaf: true
                 }
             ]},

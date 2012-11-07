@@ -70,6 +70,8 @@ Ext.define('BIS.view.CtxMnuTool', {
                         data = Ext.decode( data.responseText );
                         console.log( data );
                         if ( data.success ) {
+                        } else {
+                            Ext.Msg.alert( 'Tool failed!', 'Unable to use ' + item.identifier + ' right now: ' + data.error.msg );
                         }
                     }
                 });

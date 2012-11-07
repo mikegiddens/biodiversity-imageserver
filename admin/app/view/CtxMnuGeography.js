@@ -86,6 +86,33 @@ Ext.define('BIS.view.CtxMnuGeography', {
                 },
                 '-',
                 {
+                    text: 'Add to',
+                    iconCls: 'icon_',
+                    menu: {
+                        xtype: 'menu',
+                        scope: me,
+                        listeners: {
+                            scope: me,
+                            click: me.handleAssignment
+                        },
+                        items: [
+                            {
+                                text: 'Selected',
+                                identifier: 'selected'
+                            },
+                            {
+                                text: 'Filter Results',
+                                identifier: 'filtered'
+                            },
+                            {
+                                text: 'All Images',
+                                identifier: 'all'
+                            }
+                        ]
+                    }
+                },
+                '-',
+                {
                     text: 'Add Geography to ' + this.record.get('name'),
                     iconCls: 'icon_newGeography',
                     identifier: 'create'
@@ -100,6 +127,127 @@ Ext.define('BIS.view.CtxMnuGeography', {
         });
         me.callParent(arguments);
     },
+
+    handleAssignment: function( menu, item ) {
+        var me = this;
+        // first check the client-side category store and see if the category exists
+        // if not, chain two requests generating the category and then creating the attribute
+        var catStore = Ext.StoreManager.lookup('CategoriesStore');
+        var rankToText = {
+            0: 'Country',
+            1: 'StateProvince',
+            2: 'County',
+            3: 'Locality',
+            4: 'Sub-Locality'
+        };
+        var category = catStore.find( 'title', rankToText[ this.record.getDepth() - 1 ] );
+
+        var addAttributeToCategory = function() {
+            Ext.Ajax.request({
+                url: Config.baseUrl + 'resources/api/api.php',
+                params: {
+                    cmd: 'attributeAdd',
+                    categoryId: category.data.categoryId,
+                    name: me.record.get('name')
+                },
+                scope: this,
+                success: function( data ) {
+                    data = Ext.decode( data.responseText );
+                    if ( data.success ) {
+                        assignToImages( data.attributeId );
+                    } else {
+                        Ext.Msg.alert( 'Error assigning geography', 'Unable to assign geography: ' + data.error.msg );
+                    }
+                }
+            });
+        }
+
+        var assignToImages = function( attrId ) {
+            var imagesAffected = '(n/a)';
+            var params = {
+                cmd: 'imageAddAttribute',
+                category: category.data.categoryId,
+                attribType: 'attributeId',
+                attribute: attrId
+            }
+            switch ( item.identifier ) {
+                case 'selected':
+                    var images = [];
+                    Ext.each( Ext.getCmp('imagesGrid').getSelectionModel().getSelection(), function( image ) { images.push( image.get('imageId') ) });
+                    imagesAffected = images.length;
+                    params.imageId = JSON.stringify( images );
+                    break;
+                case 'filtered':
+                    params.imageId = Ext.encode( Ext.getCmp('imagesGrid').getStore().collect( 'imageId', false, false ) );
+                    imagesAffected = Ext.getCmp('imagesGrid').getStore().totalCount;
+                    break;
+                case 'all':
+                    params.advFilter = JSON.stringify({ node: "group", logop: "and", children: [] }); // global filter
+                    imagesAffected = 'all';
+                    break;
+            }
+            Ext.Msg.confirm( 'Add Attribute to Images', 'Are you sure you want to add "' + me.record.get('name') + '" to <span style="font-weight:bold">' + imagesAffected + '</span> images?', function( btn, text, opts ) {
+                if ( btn == 'yes' ) {
+                    Ext.Ajax.request({
+                        url: Config.baseUrl + 'resources/api/api.php',
+                        params: params,
+                        scope: this,
+                        success: function( data ) {
+                            data = Ext.decode( data.responseText );
+                            if ( data.success ) {
+                                // reload image details panel
+                                var detailsPanel = Ext.getCmp('imageDetailsPanel');
+                                detailsPanel.loadImages( detailsPanel.images );
+                            } else {
+                                Ext.Msg.alert( 'Error assigning geography', 'Unable to assign geography: ' + data.error.msg );
+                            }
+                        }
+                    });
+                }
+            });
+        }
+
+        if ( category >= 0 ) {
+            category = catStore.getAt( category );
+            var attrStore = Ext.StoreManager.lookup('AttributesStore');
+            var attribute = attrStore.findBy( function( attrRec, attrId ) {
+                if ( attrRec.get('categoryId') == category.data.categoryId ) {
+                    if ( attrRec.get('name') == me.record.get('name') ) return true;
+                }
+            });
+            if ( attribute >= 0 ) {
+                attribute = attrStore.getAt( attribute );
+                assignToImages( attribute.get('attributeId') );
+            } else { 
+                addAttributeToCategory();
+            }
+        } else {
+            var catTitle = rankToText[ this.record.getDepth() - 1 ];
+            Ext.Ajax.request({
+                url: Config.baseUrl + 'resources/api/api.php',
+                params: {
+                    cmd: 'categoryAdd',
+                    namespace: 'BIS',
+                    term: '',
+                    description: '',
+                    title: catTitle
+                },
+                scope: this,
+                success: function( data ) {
+                    data = Ext.decode( data.responseText );
+                    if ( data.success ) {
+                        category = { data: { title: catTitle, categoryId: data.categoryId } };
+                        addAttributeToCategory();
+                    } else {
+                        Ext.Msg.alert( 'Error assigning geography', 'Unable to assign geography: ' + data.error.msg );
+                    }
+                }
+            });
+        
+        }
+
+    },
+
     remove: function() {
         var me = this;
         Ext.Ajax.request({

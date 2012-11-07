@@ -237,7 +237,6 @@ Ext.define('BIS.view.ImageDetailPanel', {
 
                     var filename = '(multiple images)';
                     var widthHeight = '';
-                    var collection = '';
                     if ( this.images.length == 1 ) {
                         filename = this.images[0].filename;
                         widthHeight = 'Dimensions: ' + this.images[0].width + ' x ' + this.images[0].height + ' px'
