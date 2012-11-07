@@ -191,23 +191,23 @@ Ext.define('BIS.view.MainViewport', {
 								iconCls: 'icon_collections',
 								panelIndex: 1
 							},{
+								text: 'Geography',
+								iconCls: 'icon_geography',
+								panelIndex: 3
+							},{
+								text: 'Events',
+								iconCls: 'icon_eventTypes',
+								panelIndex: 4
+							},{
+                                xtype: 'menuseparator'
+                            },{
 								text: 'Tools',
 								iconCls: 'icon_toolbar',
 								panelIndex: 2
 							},{
-								text: 'Geography',
-								iconCls: 'icon_geography',
-								panelIndex: 4
-							},{
-								text: 'Events',
-								iconCls: 'icon_eventTypes',
-								panelIndex: 5
-							},{
-                                xtype: 'menuseparator'
-                            },{
 								text: 'Queue',
 								iconCls: 'icon_queue',
-								panelIndex: 3
+								panelIndex: 5
                             }]
 						}
 					},{
@@ -450,5 +450,6 @@ Ext.define('BIS.view.MainViewport', {
             }
         });
     }
+
 
 });
