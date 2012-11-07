@@ -187,6 +187,7 @@ Ext.define('BIS.view.ImageZoom', {
         Ext.Ajax.request({
             url: url,
             scope: this,
+            timeout: 60 * 1000,
             success: this.loadAllControls,
             failure: function() {
                 this.el.update( '<div style="padding:20px;">Cannot load image tiles at this time.</div>' );
