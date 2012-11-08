@@ -1384,33 +1384,16 @@ ini_set('display_errors', '1');
 		
 		$verificationUrl = 'http://ecat-dev.gbif.org/ws/usage/?';
 		$verificationParams = array('rkey' => 1, 'showRanks' => 'kpcofgs');
-		
-// echo '<pre>';
 
 		$getUrl = @http_build_query($sourceParams1);
 		$data = json_decode(@file_get_contents($sourceUrl . $getUrl),true);
 
-// echo '<br>';		
-// print_r($data);
-
 		if(isset($data['token_url']) && $data['token_url'] != '' && $data['status'] == 303) {
-		// echo ' <br> In Loop <br> ';
-		// $ul = $data['token_url'] . '&r=13467';
-		// echo '<br>' . $ul;
-		// echo '<br>';
-		// var_dump(json_decode(get_contents($ul)));
-		// exit;
 			$data1 = json_decode(@file_get_contents($data['token_url'] . '&r=' . rand(0, 9999)),true);
-// echo '<br>';		
-// print_r($data1);
 			if($data1['status'] == 200) {
 				$names = $data1['names'];
 			}
 		}
-
-// echo '<br>';		
-// print_r($names);
-// echo '<br>';		
 
 		if( !count($names) ) {
 			$getUrl = @http_build_query($sourceParams2);
@@ -1427,7 +1410,7 @@ ini_set('display_errors', '1');
 				$vUrl = @http_build_query($params);
 				$vData = json_decode(@file_get_contents($verificationUrl . $vUrl),true);
 				if(count($vData['data'])) {
-					foreach(array('kingdom','phylum','order','class') as $taxon) {
+					foreach(array('kingdom','phylum','order','class','family','genus') as $taxon) {
 						$vData['data'][0][$taxon] = array_shift(explode(' ',trim($vData['data'][0][$taxon])));
 					}
 					$ar = explode(' ', $vData['data'][0]['scientificName']);
