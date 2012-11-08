@@ -92,6 +92,7 @@
 		,	'searchValue'
 		,	'setId'
 		,	'setValueId'
+		,	'showBarcode'
 		,	'showNames'
 		,	'showOCR'
 		,	'size'
@@ -2431,6 +2432,7 @@
 			$data['start'] = ($start != '') ? $start : 0;
 			$data['limit'] = ($limit != '') ? $limit : 100;
 			$data['showOCR'] = (@in_array(trim($showOCR),array('1','true','TRUE'))) ? true : false;
+			$data['showBarcode'] = (@in_array(trim($showBarcode),array('1','true','TRUE'))) ? true : false;
 			$data['order'] = json_decode(stripslashes(trim($order)),true);
 			if(trim($sort) != '') {
 				$data['sort'] = trim($sort);
@@ -2475,6 +2477,10 @@
 				$total = $si->image->total;
 				if(is_array($data) && count($data)) {
 					foreach($data as &$dt) {
+						if((@in_array(trim($showBarcode),array('1','true','TRUE')))) {
+							$dt->rawBarcode = json_decode($dt->rawBarcode,true);
+						}
+					
 						$device = $si->storage->storageDeviceGet($dt->storageDeviceId);
 						$url = $device['baseUrl'];
 						switch(strtolower($device['type'])) {
