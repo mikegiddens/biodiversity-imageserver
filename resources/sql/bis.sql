@@ -206,6 +206,7 @@ CREATE TABLE IF NOT EXISTS `image` (
   `boxFlag` tinyint(4) NOT NULL DEFAULT '0',
   `ocrFlag` tinyint(4) NOT NULL DEFAULT '0',
   `ocrValue` text,
+  `nameGeographyFinderFlag` tinyint(4) NOT NULL DEFAULT '0',
   `nameFinderFlag` tinyint(4) NOT NULL DEFAULT '0',
   `nameFinderValue` text,
   `scientificName` varchar(30) DEFAULT NULL,

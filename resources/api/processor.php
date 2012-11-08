@@ -158,6 +158,70 @@ ini_set('display_errors', '1');
 			print json_encode(array('success' => true, 'processTime' => $time, 'totalCount' => $count));
 			break;
 	
+		case 'populateNameGeographyFinderProcessQueue':
+			header('Content-type: application/json');
+			$timeStart = microtime(true);
+			$count = 0;
+			$filter['start'] = 0;
+			$filter['limit'] = $limit;
+			
+			if($advFilterId != '') {
+				if($si->advFilter->advFilterLoadById($advFilterId)) {
+					$advFilter  = $si->advFilter->advFilterGetProperty('filter');
+				}
+			}
+			$advFilter = json_decode(stripslashes(trim($advFilter)),true);
+	
+			$idArray = array();
+			if(is_numeric($imageId)) {
+				$imageIds = array($imageId);
+			} else {
+				$imageIds = json_decode(@stripslashes(trim($imageId)), true);
+			}
+			if(is_array($imageIds) && count($imageIds)) {
+				$idArray = @array_fill_keys($imageIds,'id');
+			}
+			$barcodes = json_decode(@stripslashes(trim($barcode)), true);
+			$barcodes = (is_null($barcodes) && $barcode != '') ? array($barcode) : $barcodes;
+			if(is_array($barcodes) && count($barcodes)) {
+				$idArray = $idArray + @array_fill_keys($barcodes,'code');
+			}
+			if(is_array($advFilter) && count($advFilter)) {
+				$qry = $si->image->getByCrazyFilter($advFilter, true);
+				$ret = $si->db->query($qry);
+				$count = $si->db->query_total();
+				$qry = $si->image->getByCrazyFilter($advFilter);
+				$query = " INSERT IGNORE INTO processQueue(imageId, processType, dateAdded) SELECT im.imageId, 'name_geography_add', NOW() FROM ($qry) im ";
+				$si->db->query($query);
+			} else if(is_array($idArray) && count($idArray)) {
+				foreach($idArray as $id => $code) {
+					$func = ($code == 'id') ? 'imageLoadById' : 'imageLoadByBarcode';
+					if(!$si->image->{$func}($id)) continue;
+					if(!$si->pqueue->processQueueFieldExists($si->image->imageGetProperty('imageId'),'name_geography_add')) {
+						$si->pqueue->processQueueSetProperty('imageId', $si->image->imageGetProperty('imageId'));
+						$si->pqueue->processQueueSetProperty('processType', 'name_geography_add');
+						$si->pqueue->processQueueSave();
+						$count++;
+						if($limit != '' && $count >= $limit) {
+							$countFlag = false;
+						}
+					}
+				}
+			} else {
+				$where = '';
+				if(is_numeric($filter['start']) && is_numeric($filter['limit'])) {
+					$where = sprintf(" LIMIT %s, %s ", $filter['start'], $filter['limit']);
+				}
+				$query = 'SELECT count(*) ct FROM `image` WHERE ( `nameFinderFlag` = 0 OR `nameFinderFlag` IS NULL ) AND `ocrFlag` = 1 ' . $where;
+				$rt = $si->db->query_one($query);
+				$count = $rt->ct;
+				$query = " INSERT IGNORE INTO processQueue(imageId, processType, dateAdded) SELECT imageId, 'name_geography_add', NOW() FROM `image` WHERE ( `nameGeographyFinderFlag` = 0 OR `nameGeographyFinderFlag` IS NULL ) AND `ocrFlag` = 1 " . $where;
+				$si->db->query($query);
+			}
+			$time = microtime(true) - $timeStart;
+			print json_encode(array('success' => true, 'processTime' => $time, 'totalCount' => $count));
+			break;
+	
 		case 'populateNameFinderProcessQueue':
 			header('Content-type: application/json');
 			$timeStart = microtime(true);
@@ -191,22 +255,12 @@ ini_set('display_errors', '1');
 				$ret = $si->db->query($qry);
 				$count = $si->db->query_total();
 				$qry = $si->image->getByCrazyFilter($advFilter);
-				// $query = " INSERT IGNORE INTO processQueue(imageId, processType) SELECT im.barcode, 'name_add' FROM ($qry) im ";
 				$query = " INSERT IGNORE INTO processQueue(imageId, processType, dateAdded) SELECT im.imageId, 'name_add', NOW() FROM ($qry) im ";
 				$si->db->query($query);
 			} else if(is_array($idArray) && count($idArray)) {
 				foreach($idArray as $id => $code) {
 					$func = ($code == 'id') ? 'imageLoadById' : 'imageLoadByBarcode';
 					if(!$si->image->{$func}($id)) continue;
-					// if(!$si->pqueue->processQueueFieldExists($si->image->imageGetProperty('barcode'),'name_add')) {
-						// $si->pqueue->processQueueSetProperty('imageId', $si->image->imageGetProperty('barcode'));
-						// $si->pqueue->processQueueSetProperty('processType', 'name_add');
-						// $si->pqueue->processQueueSave();
-						// $count++;
-						// if($limit != '' && $count >= $limit) {
-							// $countFlag = false;
-						// }
-					// }
 					if(!$si->pqueue->processQueueFieldExists($si->image->imageGetProperty('imageId'),'name_add')) {
 						$si->pqueue->processQueueSetProperty('imageId', $si->image->imageGetProperty('imageId'));
 						$si->pqueue->processQueueSetProperty('processType', 'name_add');
@@ -225,7 +279,6 @@ ini_set('display_errors', '1');
 				$query = 'SELECT count(*) ct FROM `image` WHERE ( `nameFinderFlag` = 0 OR `nameFinderFlag` IS NULL ) AND `ocrFlag` = 1 ' . $where;
 				$rt = $si->db->query_one($query);
 				$count = $rt->ct;
-				// $query = " INSERT IGNORE INTO processQueue(imageId, processType) SELECT barcode, 'name_add' FROM `image` WHERE ( `nameFinderFlag` = 0 OR `nameFinderFlag` IS NULL ) AND `ocrFlag` = 1 " . $where;
 				$query = " INSERT IGNORE INTO processQueue(imageId, processType, dateAdded) SELECT imageId, 'name_add', NOW() FROM `image` WHERE ( `nameFinderFlag` = 0 OR `nameFinderFlag` IS NULL ) AND `ocrFlag` = 1 " . $where;
 				$si->db->query($query);
 				
@@ -777,20 +830,10 @@ ini_set('display_errors', '1');
 					$ret = getNames($record->imageId);
 					if($ret['success']) {
 					
-					// echo '<pre>';
-					// echo '<br>';
-					// print_r($ret);
-					
 						$si->image->imageLoadById($record->imageId);
-					
-						// $si->image->imageSetProperty('family',$ret['data']['family']);
-						// $si->image->imageSetProperty('genus',$ret['data']['genus']);
-						// $si->image->imageSetProperty('scientificName',$ret['data']['scientificName']);
-						// $si->image->imageSetProperty('specificEpithet',$ret['data']['specificEpithet']);
 						$si->image->imageSetProperty('nameFinderValue',$ret['data']['rawData']);
 						$si->image->imageSave();
 						
-						// foreach(array('phylum', 'class', 'kingdom', 'order') as $rr) {
 						foreach(array('family','genus','scientificName','specificEpithet','phylum', 'class', 'kingdom', 'order') as $rr) {
 							if($ret['data'][$rr] != '') {
 								$category = @ucfirst($rr);
@@ -808,12 +851,35 @@ ini_set('display_errors', '1');
 								$data['imageId'] = array($record->imageId);
 								$si->image->imageSetData($data);
 								$si->image->imageAttributeAdd();
-								// echo '<br>';
-								// print_r($data);
 							}
 						}
 					}
 					
+					$si->image->imageLoadById($record->imageId);
+					$si->image->imageSetProperty('nameFinderFlag',1);
+					$si->image->imageSave();
+	
+					$imageCount++;
+				}
+			}
+			$time_taken = microtime(true) - $timeStart;
+			print json_encode(array('success' => true, 'processTime' => $time_taken, 'totalCount' => $imageCount));
+			
+			break;
+
+		case 'processNameGeographyFinder':
+			$timeStart = microtime(true);
+			$tStart = time();
+			$loopFlag = true;
+			$imageCount = 0;
+			while($loopFlag) {
+				$tDiff = time() - $tStart;
+				if( ($stop != '') && ( $tDiff > $stop) ) $loopFlag = false;
+				if($limit != '' && $imageCount >= $limit) $loopFlag = false;
+				$record = $si->pqueue->processQueuePop('name_geography_add');
+				if($record === false) {
+					$loopFlag = false;
+				} else {
 					$advFilter = json_decode($advFilter,true);
 					$advFilter = is_null($advFilter) ? '' : $advFilter ;
 
@@ -842,7 +908,7 @@ ini_set('display_errors', '1');
 					}
 					
 					$si->image->imageLoadById($record->imageId);
-					$si->image->imageSetProperty('nameFinderFlag',1);
+					$si->image->imageSetProperty('nameGeographyFinderFlag',1);
 					$si->image->imageSave();
 	
 					$imageCount++;
@@ -852,7 +918,7 @@ ini_set('display_errors', '1');
 			print json_encode(array('success' => true, 'processTime' => $time_taken, 'totalCount' => $imageCount));
 			
 			break;
-	
+			
 		case 'uploadFlickr':
 			$_TMP = ($config['path']['tmp'] != '') ? $config['path']['tmp'] : sys_get_temp_dir() . '/';
 	
