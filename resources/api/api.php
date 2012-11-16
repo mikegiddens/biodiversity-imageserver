@@ -1685,7 +1685,8 @@
 				array_pop($bcode);
 				$bcode = @implode('.',$bcode);
 				
-				$destinationPath = ($destinationPath == '') ? '/serverimages/' . $bcode . '/' : $destinationPath; 
+				// $destinationPath = ($destinationPath == '') ? '/serverimages/' . $bcode . '/' : $destinationPath; 
+				$destinationPath = ($destinationPath == '') ? '/' . $bcode . '/' : $destinationPath; 
 				$imgPath = $destinationPath;
 				$imgPath = rtrim($imgPath,'/') . '/';
 			
@@ -1706,7 +1707,7 @@
 					if($flag) {
 						$ar = @getimagesize($basePath . $imgPath . $filename);
 						$imgPath = '/' . ltrim($imgPath,'/');
-						$imgPath = rtrim($imgPath,'/');
+						$imgPath = rtrim($imgPath,'/') . '/';
 						$si->image->imageSetProperty('width',$ar[0]);
 						$si->image->imageSetProperty('height',$ar[1]);
 						$si->image->imageSetProperty('filename',$filename);

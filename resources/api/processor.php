@@ -212,7 +212,7 @@ ini_set('display_errors', '1');
 				if(is_numeric($filter['start']) && is_numeric($filter['limit'])) {
 					$where = sprintf(" LIMIT %s, %s ", $filter['start'], $filter['limit']);
 				}
-				$query = 'SELECT count(*) ct FROM `image` WHERE ( `nameFinderFlag` = 0 OR `nameFinderFlag` IS NULL ) AND `ocrFlag` = 1 ' . $where;
+				$query = 'SELECT count(*) ct FROM `image` WHERE ( `nameGeographyFinderFlag` = 0 OR `nameGeographyFinderFlag` IS NULL ) AND `ocrFlag` = 1 ' . $where;
 				$rt = $si->db->query_one($query);
 				$count = $rt->ct;
 				$query = " INSERT IGNORE INTO processQueue(imageId, processType, dateAdded) SELECT imageId, 'name_geography_add', NOW() FROM `image` WHERE ( `nameGeographyFinderFlag` = 0 OR `nameGeographyFinderFlag` IS NULL ) AND `ocrFlag` = 1 " . $where;
@@ -1377,8 +1377,16 @@ ini_set('display_errors', '1');
 		$str = $si->image->imageGetProperty('ocrValue');
 
 		$parsedWords = array();
+		$eraseBlackList = array('Northeast Louisiana University, Monroe', 'Northeast Louisiana University');
 		$blackList = array('date','north','south','east','west','thomas');
-		$rankArray = array('Country','StateProvince','County','Locality');		
+		$rankArray = array('Country','StateProvince','County','Locality');
+
+		if(count($eraseBlackList) && is_array($eraseBlackList)) {
+			foreach($eraseBlackList as $trm) {
+				$str = str_ireplace($trm,'',$str);
+			}
+		}
+		
 		$linesArray = preg_split ('/$\R?^/m', $str);
 		
 		if(is_array($linesArray) && count($linesArray)) {
@@ -1445,6 +1453,8 @@ ini_set('display_errors', '1');
 		$sourceUrl = 'http://gnrd.globalnames.org/name_finder.json?';
 		$sourceParams1 = array('url' => $url);
 		
+		$gnResolver = 'http://resolver.globalnames.org/name_resolvers.json?data_source_ids=1&names=';
+		
 		$sourceUrl2 = 'http://ecat-dev.gbif.org/ws/indexer?';
 		$sourceParams2 = array('input' => $url, 'type' => 'url', 'format' => 'json');
 		
@@ -1453,14 +1463,29 @@ ini_set('display_errors', '1');
 
 		$getUrl = @http_build_query($sourceParams1);
 		$data = json_decode(@file_get_contents($sourceUrl . $getUrl),true);
-
-		if(isset($data['token_url']) && $data['token_url'] != '' && $data['status'] == 303) {
-			$data1 = json_decode(@file_get_contents($data['token_url'] . '&r=' . rand(0, 9999)),true);
-			if($data1['status'] == 200) {
-				$names = $data1['names'];
+		
+		$tokenUrl = $data['token_url'];
+		if(isset($tokenUrl) && $tokenUrl != '' && $data['status'] == 303) {
+			$counter = 0;
+			do
+			{
+				$counter++;
+				if($counter > 15) break;
+				sleep(1);
+				$data = json_decode(@file_get_contents($tokenUrl),true);
+			}
+			while($data["status"] != 200);
+		}
+		
+		if(isset($data["names"]) && is_array($data["names"]) && count($data["names"])) {
+			foreach($data["names"] as $dtName) {
+				$gnData = json_decode(@file_get_contents($gnResolver . $dtName['scientificName']),true);
+				if($gnData['status'] == 'success' && isset($gnData['data'][0]['results']) && $gnData['data'][0]['results'][0]['score'] > 0.5) {
+					$names[] = $dtName;
+				}
 			}
 		}
-
+		
 		if( !count($names) ) {
 			$getUrl = @http_build_query($sourceParams2);
 			$data = json_decode(@file_get_contents($sourceUrl2 . $getUrl),true);
