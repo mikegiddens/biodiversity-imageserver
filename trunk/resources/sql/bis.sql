@@ -174,6 +174,19 @@ CREATE TABLE IF NOT EXISTS `geography` (
 -- --------------------------------------------------------
 
 --
+-- Stand-in structure for view `geographyView`
+--
+CREATE TABLE IF NOT EXISTS `geographyView` (
+`geographyId` int(11)
+,`Country` varchar(150)
+,`StateProvince` varchar(150)
+,`County` varchar(150)
+,`Locality` varchar(150)
+);
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `image`
 --
 
@@ -278,23 +291,6 @@ CREATE TABLE IF NOT EXISTS `imageAttribValue` (
   PRIMARY KEY (`attributeId`),
   UNIQUE KEY `attribIndex` (`name`,`categoryId`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC AUTO_INCREMENT=1 ;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `imageLog`
---
-
-CREATE TABLE IF NOT EXISTS `imageLog` (
-  `imageLogId` int(11) NOT NULL AUTO_INCREMENT,
-  `action` int(11) DEFAULT NULL,
-  `beforeDesc` varchar(255) DEFAULT NULL,
-  `afterDesc` varchar(255) DEFAULT NULL,
-  `query` varchar(255) DEFAULT NULL,
-  `dateCreated` datetime DEFAULT NULL,
-  `imageId` int(11) DEFAULT NULL,
-  PRIMARY KEY (`imageLogId`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC AUTO_INCREMENT=1;
 
 -- --------------------------------------------------------
 
@@ -485,6 +481,15 @@ CREATE TABLE IF NOT EXISTS `userPermissions` (
   `D` tinyint(4) NOT NULL,
   `G` varchar(50) NOT NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+
+-- --------------------------------------------------------
+
+--
+-- Structure for view `geographyView`
+--
+DROP TABLE IF EXISTS `geographyView`;
+
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `geographyView` AS select `t`.`geographyId` AS `geographyId`,`t`.`name` AS `Country`,`t1`.`name` AS `StateProvince`,`t2`.`name` AS `County`,`t3`.`name` AS `Locality` from (((`geography` `t` left join `geography` `t1` on((`t`.`geographyId` = `t1`.`parentId`))) left join `geography` `t2` on(((`t`.`geographyId` = `t1`.`parentId`) and (`t1`.`geographyId` = `t2`.`parentId`)))) left join `geography` `t3` on(((`t`.`geographyId` = `t1`.`parentId`) and (`t1`.`geographyId` = `t2`.`parentId`) and (`t2`.`geographyId` = `t3`.`parentId`)))) where (`t`.`parentId` = 0);
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
