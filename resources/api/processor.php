@@ -17,7 +17,9 @@ ini_set('display_errors', '1');
 		, 'id'
 		, 'imageId'
 		, 'limit'
+		, 'lookFor'
 		, 'stop' # stop is the number of seconds that the loop should run
+		, 'rowConstrain'
 	);
 
 	// Initialize allowed variables
@@ -872,6 +874,15 @@ ini_set('display_errors', '1');
 			$tStart = time();
 			$loopFlag = true;
 			$imageCount = 0;
+			
+			$rowConstrain = json_decode($rowConstrain,true);
+			if(is_array($rowConstrain) && count($rowConstrain)) {
+				foreach($rowConstrain as &$el) {
+					$el = $el - 1;
+				}
+			}
+			$lookFor = json_decode($lookFor,true);
+			
 			while($loopFlag) {
 				$tDiff = time() - $tStart;
 				if( ($stop != '') && ( $tDiff > $stop) ) $loopFlag = false;
@@ -1332,6 +1343,14 @@ ini_set('display_errors', '1');
 			case 'testGeo':
 				$advFilter = json_decode($advFilter,true);
 				$advFilter = is_null($advFilter) ? '' : $advFilter ;
+			
+				$rowConstrain = json_decode($rowConstrain,true);
+				if(is_array($rowConstrain) && count($rowConstrain)) {
+					foreach($rowConstrain as &$el) {
+						$el = $el - 1;
+					}
+				}
+				$lookFor = json_decode($lookFor,true);
 				$data = getGeoNames($imageId,$advFilter);
 				echo '<pre>';
 				print_r($data);
@@ -1349,8 +1368,10 @@ ini_set('display_errors', '1');
 		}
 
 	function getGeoNames($imageId, $advFilter = '') {
-		global $si,$config;
+		global $si,$config, $lookFor, $rowConstrain;
+		
 		$filterQuery = '';
+		
 		if(!$si->image->imageLoadById($imageId)) {
 			return array();
 		}
@@ -1366,7 +1387,13 @@ ini_set('display_errors', '1');
 			$ar = array();
 			foreach(array('Country','StateProvince', 'County', 'Locality') as $region) {
 				if(!in_array($region, $categories) || $advFilter[$region] == '') {
-					$ar[] = " ( SELECT `$region` AS word, '$region' region FROM `geographyView` WHERE 1=1 " . $filterWhere . ' ) ';
+					if(is_array($lookFor) && count($lookFor)) {
+						if(in_array($region,$lookFor)) {
+							$ar[] = " ( SELECT `$region` AS word, '$region' region FROM `geographyView` WHERE 1=1 " . $filterWhere . ' ) ';
+						}
+					} else {
+						$ar[] = " ( SELECT `$region` AS word, '$region' region FROM `geographyView` WHERE 1=1 " . $filterWhere . ' ) ';
+					}
 				}
 			}
 			$filterQuery = implode(' UNION ',$ar);
@@ -1386,11 +1413,16 @@ ini_set('display_errors', '1');
 				$str = str_ireplace($trm,'',$str);
 			}
 		}
-		
+
 		$linesArray = preg_split ('/$\R?^/m', $str);
 		
 		if(is_array($linesArray) && count($linesArray)) {
-			foreach($linesArray as $line) {
+			for($i = 0; $i < count($linesArray); $i++) {
+				$line = $linesArray[$i];
+				
+				if(is_array($rowConstrain) && count($rowConstrain)) {
+					if(!in_array($i,$rowConstrain)) continue;
+				}
 				if(trim($line) != '') {
 					$line = preg_replace('/\s+/',' ',trim($line));
 					$wordsArray = explode(' ', $line);
@@ -1408,7 +1440,7 @@ ini_set('display_errors', '1');
 										$parsedWords[] = $word;
 									}
 									$query = sprintf(" SELECT * FROM ($filterQuery) t WHERE t.`word` = '%s' ", mysql_escape_string($word));
-									// echo $query;exit;
+									// echo '<br>' . $query;exit;
 									$ret = $si->db->query($query);
 									if ($ret != NULL) {
 										while($record = $ret->fetch_object()) {
@@ -1421,7 +1453,13 @@ ini_set('display_errors', '1');
 									$ret = $si->db->query_one($query);
 									if ($ret != NULL) {
 										if(isset($rankArray[$ret->rank]) && $rankArray[$ret->rank] != '') {
-											$data[] = array($rankArray[$ret->rank] => $ret->name);
+											if(is_array($lookFor) && count($lookFor)) {
+												if(in_array($rankArray[$ret->rank],$lookFor)) {
+													$data[] = array($rankArray[$ret->rank] => $ret->name);
+												}
+											} else {
+												$data[] = array($rankArray[$ret->rank] => $ret->name);
+											}
 											$parsedWords[] = $word;
 										}
 										
