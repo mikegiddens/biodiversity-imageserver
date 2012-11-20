@@ -1378,15 +1378,14 @@ ini_set('display_errors', '1');
 		if(is_array($advFilter) && count($advFilter)) {
 			$categories = array();
 			$filterWhere = '';
-			$ar = array();
-			foreach($advFilter as $cat => $att) {
-				$categories[] = $cat;
-				$ar[] = sprintf(" `%s` = '%s' ", $cat, mysql_escape_string($att));
-			}
-			if(count($ar)) $filterWhere = ' AND ' . implode(' AND ',$ar);
+			
+			$filterWhere = geographyFilter($advFilter);
+			
+			$filterWhere = ($filterWhere != '') ? ' AND ' . $filterWhere : $filterWhere;
+			
 			$ar = array();
 			foreach(array('Country','StateProvince', 'County', 'Locality') as $region) {
-				if(!in_array($region, $categories) || $advFilter[$region] == '') {
+				if(!in_array($region, array_keys($categories)) || $categories[$region] == '') {
 					if(is_array($lookFor) && count($lookFor)) {
 						if(in_array($region,$lookFor)) {
 							$ar[] = " ( SELECT `$region` AS word, '$region' region FROM `geographyView` WHERE 1=1 " . $filterWhere . ' ) ';
@@ -1439,8 +1438,7 @@ ini_set('display_errors', '1');
 										$data[] = array($cat => ucfirst(strtolower($word)));
 										$parsedWords[] = $word;
 									}
-									$query = sprintf(" SELECT * FROM ($filterQuery) t WHERE t.`word` = '%s' ", mysql_escape_string($word));
-									// echo '<br>' . $query;exit;
+									$query = " SELECT * FROM ($filterQuery) t WHERE t.`word` = '" . mysql_escape_string($word) . "' ";
 									$ret = $si->db->query($query);
 									if ($ret != NULL) {
 										while($record = $ret->fetch_object()) {
@@ -1561,5 +1559,54 @@ ini_set('display_errors', '1');
 		curl_exec ($ch);
 		curl_close ($ch);
 		return ob_get_clean();  
+	}
+	
+	function geographyFilter($filter) {
+		global $categories;
+		$str = '';
+		if($clearFlag) $tables = array('image');
+		switch($filter['node']) {
+			case 'group':
+				$ar =array();
+				if(is_array($filter['children']) && count($filter['children'])) {
+					foreach($filter['children'] as $child) {
+						$dt = geographyFilter($child);
+						($dt != '' ) ? $ar[] = $dt : '';
+					}
+				}
+				if(count($ar)) {
+					$str .= ' ( ' . implode($filter['logop'], $ar) . ' ) ';
+				}
+				break;
+			case 'condition':
+				switch($filter['object']) {
+					case 'geographyView':
+						$categories[$filter['key']] = $filter['value'];
+						if($filter['key'] != '' && $filter['value'] != '') {
+							switch($filter['condition']) {
+								case '=':
+								case '!=':
+									$str .= sprintf(" ( `%s` %s '%s' ) " , $filter['key'], $filter['condition'], $filter['value']);
+									break;
+								case 'is':
+									$str .= sprintf(" ( `%s` = '%s' ) " , $filter['key'], $filter['value']);
+									break;
+								case '%s':
+								case 's%':
+								case '%s%':
+									$op = str_replace('%','%%',$filter['condition']);
+									$op = str_replace('s','%s',$op);
+									$str .= sprintf(" ( `%s` LIKE '$op' ) " , $filter['key'], $filter['value']);
+									break;
+								case 'in':
+									$str .= sprintf(" ( `%s` IN (%s) ) " , $filter['key'], $filter['value']);
+									break;
+							}
+						}
+						break;
+				}
+				break;
+		}
+		return $str;
 	}
 ?>
