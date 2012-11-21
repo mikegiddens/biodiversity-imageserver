@@ -1226,7 +1226,7 @@
 				$bcode = @explode('.',$filename);
 				array_pop($bcode);
 				$bcode = @implode('.',$bcode);
-				$imagePath = (isset($imagePath))?$imagePath:$bcode . '/';
+				$imagePath = (isset($imagePath) && $imagePath != '')?$imagePath:$bcode . '/';
 			
 				$response = $si->storage->storageDeviceStore($tmp,$storageDeviceId,$filename, $imagePath, $key);
 				$iEXd = new EXIFread($tmp);
@@ -2992,7 +2992,7 @@
 				$errorCode = 158;
 			}
 			if($valid) {
-				$fieldsArray = array('filename','barcode','width','height','family','genus','specificEpithet','rank','author','title','description','globalUniqueIdentifier','copyright','characters','flickrPlantID','flickrDetails','picassaPlantID','zoomEnabled','ocrValue','ScientificName','code','catalogueNumber','tmpFamily','tmpFamilyAccepted','tmpGenus','tmpGenusAccepted','storageDeviceId','path','originalFilename','remoteAccessKey','statusType','rating');
+				$fieldsArray = array('filename','barcode','width','height','family','genus','specificEpithet','rank','author','title','description','globalUniqueIdentifier','copyright','characters','flickrPlantID','flickrDetails','picassaPlantID','zoomEnabled','ocrValue','ocrFlag','ScientificName','code','catalogueNumber','tmpFamily','tmpFamilyAccepted','tmpGenus','tmpGenusAccepted','storageDeviceId','path','originalFilename','remoteAccessKey','statusType','rating');
 				$params = @json_decode(@stripslashes(trim($params)),true);
 				if(is_array($params) && count($params)) {
 					foreach($params as $key => $value) {
