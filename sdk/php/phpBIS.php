@@ -682,6 +682,24 @@ class phpBIS
 			return $result;
 		}
 	}
+	public function imageUpdate($imageId, $params = array()) {
+		$data['imageId'] = $imageId;
+		if(is_array($params) && count($params)) {
+			$data['params'] = json_encode($params);
+		}
+		$data['authMode'] = 'key';
+		$data['key'] = $this->key;
+		$data['cmd'] = 'imageUpdate';
+		$result = $this->CURL($this->server . '/api.php', $data);
+		$result = json_decode($result, true);
+		if($result['success'] == true) {
+			return $result;
+		} else {
+			$this->lastError['code'] = $result['error']['code'];
+			$this->lastError['msg'] = $result['error']['msg'];
+			return $result;
+		}
+	}
 	public function imageAddFromLocal($source, $destinationPath, $params = array()) {
 		$stream = file_get_contents($source);
 		if((strpos($source, '/')) !== false) {

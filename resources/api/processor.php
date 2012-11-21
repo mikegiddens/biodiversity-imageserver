@@ -1477,22 +1477,26 @@ ini_set('display_errors', '1');
 		if(!$si->image->imageLoadById($imageId)) {
 			return array('success' => false);
 		}
-		$device = $si->storage->storageDeviceGet($si->image->imageGetProperty('storageDeviceId'));
-		if($si->image->imageGetProperty('path') != '') {
-			$url = @rtrim($device['baseUrl'],'/') . '/' . @trim($si->image->imageGetProperty('path'),'/') . '/' . $si->image->imageGetProperty('filename') . '.txt';
-		} else {
-			$url = @rtrim($device['baseUrl'],'/') . '/' . $si->image->imageGetProperty('filename') . '.txt';
-		}
+		// $device = $si->storage->storageDeviceGet($si->image->imageGetProperty('storageDeviceId'));
+		// if($si->image->imageGetProperty('path') != '') {
+			// $url = @rtrim($device['baseUrl'],'/') . '/' . @trim($si->image->imageGetProperty('path'),'/') . '/' . $si->image->imageGetProperty('filename') . '.txt';
+		// } else {
+			// $url = @rtrim($device['baseUrl'],'/') . '/' . $si->image->imageGetProperty('filename') . '.txt';
+		// }
+		
+		
 		
 		$names = array();
 		
 		$sourceUrl = 'http://gnrd.globalnames.org/name_finder.json?';
-		$sourceParams1 = array('url' => $url);
+		// $sourceParams1 = array('url' => $url);
+		$sourceParams1 = array('text' => $si->image->imageGetProperty('ocrValue'));
 		
 		$gnResolver = 'http://resolver.globalnames.org/name_resolvers.json?data_source_ids=1&names=';
 		
 		$sourceUrl2 = 'http://ecat-dev.gbif.org/ws/indexer?';
-		$sourceParams2 = array('input' => $url, 'type' => 'url', 'format' => 'json');
+		// $sourceParams2 = array('input' => $url, 'type' => 'url', 'format' => 'json');
+		$sourceParams2 = array('input' => $si->image->imageGetProperty('ocrValue'), 'type' => 'text', 'format' => 'json');
 		
 		$verificationUrl = 'http://ecat-dev.gbif.org/ws/usage/?';
 		$verificationParams = array('rkey' => 1, 'showRanks' => 'kpcofgs');
