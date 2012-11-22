@@ -13,6 +13,7 @@ ini_set('display_errors', '1');
 		, 'barcode'
 		, 'cmd'
 		, 'collectionCode'
+		, 'constrainTo'
 		, 'enAccountId'
 		, 'id'
 		, 'imageId'
@@ -821,6 +822,14 @@ ini_set('display_errors', '1');
 			$tStart = time();
 			$loopFlag = true;
 			$imageCount = 0;
+			
+			$constrainTo = json_decode($constrainTo,true);
+			if(is_array($constrainTo) && count($constrainTo)) {
+				foreach($constrainTo as &$el) {
+					$el = $el - 1;
+				}
+			}
+			
 			while($loopFlag) {
 				$tDiff = time() - $tStart;
 				if( ($stop != '') && ( $tDiff > $stop) ) $loopFlag = false;
@@ -836,7 +845,7 @@ ini_set('display_errors', '1');
 						$si->image->imageSetProperty('nameFinderValue',$ret['data']['rawData']);
 						$si->image->imageSave();
 						
-						foreach(array('family','genus','scientificName','specificEpithet','phylum', 'class', 'kingdom', 'order') as $rr) {
+						foreach(array('family','genus','scientificName','specificEpithet','phylum', 'class', 'kingdom', 'order', 'taxonomicStatus') as $rr) {
 							if($ret['data'][$rr] != '') {
 								$category = @ucfirst($rr);
 								$data = array();
@@ -1357,9 +1366,16 @@ ini_set('display_errors', '1');
 				break;
 	
 			case 'testNames':
+				$constrainTo = json_decode($constrainTo,true);
+				if(is_array($constrainTo) && count($constrainTo)) {
+					foreach($constrainTo as &$el) {
+						$el = $el - 1;
+					}
+				}
+				
 				$data = getNames($imageId);
 				echo '<pre>';
-				print_r($data);
+				var_dump($data);
 				break;
 				
 			default:
@@ -1473,30 +1489,37 @@ ini_set('display_errors', '1');
 	}
 	
 	function getNames($imageId) {
-		global $si,$config;
+		global $si,$config,$constrainTo;
 		if(!$si->image->imageLoadById($imageId)) {
 			return array('success' => false);
 		}
-		// $device = $si->storage->storageDeviceGet($si->image->imageGetProperty('storageDeviceId'));
-		// if($si->image->imageGetProperty('path') != '') {
-			// $url = @rtrim($device['baseUrl'],'/') . '/' . @trim($si->image->imageGetProperty('path'),'/') . '/' . $si->image->imageGetProperty('filename') . '.txt';
-		// } else {
-			// $url = @rtrim($device['baseUrl'],'/') . '/' . $si->image->imageGetProperty('filename') . '.txt';
-		// }
 		
-		
+		$ocrValue = $si->image->imageGetProperty('ocrValue');
+
+		if(is_array($constrainTo) && count($constrainTo)) {
+			$tempArray = array();
+			$ocrValue = preg_split ('/$\R?^/m', $ocrValue);
+			foreach($constrainTo as $index) {
+				if(array_key_exists($index,$ocrValue)) {
+					$tempArray[] = $ocrValue[$index];
+				}
+			}
+			$ocrValue = implode("\r\n", $tempArray);
+		}
 		
 		$names = array();
 		
 		$sourceUrl = 'http://gnrd.globalnames.org/name_finder.json?';
 		// $sourceParams1 = array('url' => $url);
-		$sourceParams1 = array('text' => $si->image->imageGetProperty('ocrValue'));
+		$sourceParams1 = array('text' => $ocrValue);
 		
-		$gnResolver = 'http://resolver.globalnames.org/name_resolvers.json?data_source_ids=1&names=';
+		// $gnResolver = 'http://resolver.globalnames.org/name_resolvers.json?data_source_ids=1&names=';
+		$gnResolver = 'http://resolver.globalnames.org/name_resolvers.json?';
+		$gnResolverParams = array('data_source_ids' => 1);
 		
 		$sourceUrl2 = 'http://ecat-dev.gbif.org/ws/indexer?';
 		// $sourceParams2 = array('input' => $url, 'type' => 'url', 'format' => 'json');
-		$sourceParams2 = array('input' => $si->image->imageGetProperty('ocrValue'), 'type' => 'text', 'format' => 'json');
+		$sourceParams2 = array('input' => $ocrValue, 'type' => 'text', 'format' => 'json');
 		
 		$verificationUrl = 'http://ecat-dev.gbif.org/ws/usage/?';
 		$verificationParams = array('rkey' => 1, 'showRanks' => 'kpcofgs');
@@ -1510,28 +1533,36 @@ ini_set('display_errors', '1');
 			do
 			{
 				$counter++;
-				if($counter > 15) break;
+				if($counter > 30) break;
 				sleep(1);
-				$data = json_decode(@file_get_contents($tokenUrl),true);
+				$data = @file_get_contents($tokenUrl);
+				$data = utf8_encode($data);
+				$data = json_decode($data,true);
+				
+				# $data = json_decode(@file_get_contents($tokenUrl),true);
 			}
 			while($data["status"] != 200);
 		}
-		
 		if(isset($data["names"]) && is_array($data["names"]) && count($data["names"])) {
 			foreach($data["names"] as $dtName) {
-				$gnData = json_decode(@file_get_contents($gnResolver . $dtName['scientificName']),true);
+				# $gnData = json_decode(@file_get_contents($gnResolver . $dtName['scientificName']),true);
+				$params = $gnResolverParams;
+				$params['names'] = $dtName['scientificName'];
+				$getUrl = @http_build_query($params);
+				$gnData = @file_get_contents($gnResolver . $getUrl);
+				$gnData = utf8_encode($gnData);
+				$gnData = json_decode($gnData,true);
 				if($gnData['status'] == 'success' && isset($gnData['data'][0]['results']) && $gnData['data'][0]['results'][0]['score'] > 0.5) {
-					$names[] = $dtName;
+					$gnData['data'][0]['results'][0]['scientificName'] = $gnData['data'][0]['results'][0]['canonical_form'];
+					$names[] = $gnData['data'][0]['results'][0];
 				}
 			}
 		}
-		
 		if( !count($names) ) {
 			$getUrl = @http_build_query($sourceParams2);
 			$data = json_decode(@file_get_contents($sourceUrl2 . $getUrl),true);
 			$names = $data['names'];
 		}
-
 		if(is_array($names) && count($names)) {
 			foreach($names as $dt) {
 				$word = $dt['scientificName'];
@@ -1539,13 +1570,16 @@ ini_set('display_errors', '1');
 				$params = $verificationParams;
 				$params['q'] = $word;
 				$vUrl = @http_build_query($params);
-				$vData = json_decode(@file_get_contents($verificationUrl . $vUrl),true);
+				$vData = file_get_contents($verificationUrl . $vUrl);
+				$vData = utf8_encode($vData);
+				$vData = json_decode($vData,true);
 				if(count($vData['data'])) {
 					foreach(array('kingdom','phylum','order','class','family','genus') as $taxon) {
 						$vData['data'][0][$taxon] = array_shift(explode(' ',trim($vData['data'][0][$taxon])));
 					}
 					$ar = explode(' ', $vData['data'][0]['scientificName']);
-					return array('success' => true, 'data' => array('family' => $vData['data'][0]['family'],'genus' => $vData['data'][0]['genus'],'scientificName' => $vData['data'][0]['scientificName'],'specificEpithet' => $ar[1], 'phylum' => $vData['data'][0]['phylum'], 'class' => $vData['data'][0]['class'], 'kingdom' => $vData['data'][0]['kingdom'], 'order' => $vData['data'][0]['order'], 'rawData' => json_encode($names)));
+					$taxonomicStatus = ($vData['data'][0]['isSynonym'] == 'true') ? 'Synonym' : '';
+					return array('success' => true, 'data' => array('family' => $vData['data'][0]['family'],'genus' => $vData['data'][0]['genus'],'scientificName' => $vData['data'][0]['scientificName'],'specificEpithet' => $ar[1], 'phylum' => $vData['data'][0]['phylum'], 'class' => $vData['data'][0]['class'], 'kingdom' => $vData['data'][0]['kingdom'], 'order' => $vData['data'][0]['order'], 'taxonomicStatus' => $taxonomicStatus, 'rawData' => json_encode($names)));
 				}
 
 			}
