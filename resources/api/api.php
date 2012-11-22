@@ -62,6 +62,7 @@
 		,	'filename'
 		,	'filter'
 		,	'force'
+		,	'formatHTML'
 		,	'genus'
 		,	'geoFlag'
 		,	'geographyId'
@@ -2388,12 +2389,14 @@
 
 		case 'imageGetOcr':
 			$objFlag = false;
+			$formatHTML = (in_array(trim($formatHTML), array('TRUE','true','1'))) ? true : false;
 			if(trim($imageId) != '') {
 				$objFlag = $si->image->imageLoadById($imageId);
 			} else if(trim($barcode) != '') {
 				$objFlag = $si->image->imageLoadByBarcode($barcode);
 			}
 			$ocrData = ($objFlag) ? $si->image->imageGetProperty('ocrValue') : '';
+			$ocrData = ($ocrData != '' && $formatHTML) ? nl2br($ocrData) : $ocrData;
 			header('content-type: text/plain');
 			print $ocrData;
 			break;
@@ -2993,7 +2996,8 @@
 			}
 			if($valid) {
 				$fieldsArray = array('filename','barcode','width','height','family','genus','specificEpithet','rank','author','title','description','globalUniqueIdentifier','copyright','characters','flickrPlantID','flickrDetails','picassaPlantID','zoomEnabled','ocrValue','ocrFlag','ScientificName','code','catalogueNumber','tmpFamily','tmpFamilyAccepted','tmpGenus','tmpGenusAccepted','storageDeviceId','path','originalFilename','remoteAccessKey','statusType','rating');
-				$params = @json_decode(@stripslashes(trim($params)),true);
+				// $params = @json_decode(@stripslashes(trim($params)),true);
+				$params = @json_decode(trim($params),true);
 				if(is_array($params) && count($params)) {
 					foreach($params as $key => $value) {
 						if(@in_array($key,$fieldsArray)) {
