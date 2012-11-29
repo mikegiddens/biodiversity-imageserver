@@ -893,6 +893,8 @@ ini_set('display_errors', '1');
 			$advFilter = json_decode($advFilter,true);
 			$advFilter = is_null($advFilter) ? '' : $advFilter ;
 			
+			$advOriginal = $advFilter;
+			
 			while($loopFlag) {
 				$tDiff = time() - $tStart;
 				if( ($stop != '') && ( $tDiff > $stop) ) $loopFlag = false;
@@ -904,6 +906,7 @@ ini_set('display_errors', '1');
 
 					
 					if(!(is_array($lookFor) && count($lookFor))) {
+						$advFilter = $advOriginal;
 						$geoData = array();
 						$lookFor = array('Country');
 						$data1 = getGeoNames($record->imageId,$advFilter);
@@ -925,6 +928,7 @@ ini_set('display_errors', '1');
 							$data1 = getGeoNames($record->imageId,$advFilter);
 							$geoData = array_merge($geoData,$data1);
 						}
+						$lookFor = '';
 					} else {
 						$geoData = getGeoNames($record->imageId,$advFilter);
 					}
