@@ -20,7 +20,6 @@ ini_set('display_errors', '1');
 		, 'limit'
 		, 'lookFor'
 		, 'stop' # stop is the number of seconds that the loop should run
-		, 'rowConstrain'
 	);
 
 	// Initialize allowed variables
@@ -884,13 +883,15 @@ ini_set('display_errors', '1');
 			$loopFlag = true;
 			$imageCount = 0;
 			
-			$rowConstrain = json_decode($rowConstrain,true);
-			if(is_array($rowConstrain) && count($rowConstrain)) {
-				foreach($rowConstrain as &$el) {
+			$constrainTo = json_decode($constrainTo,true);
+			if(is_array($constrainTo) && count($constrainTo)) {
+				foreach($constrainTo as &$el) {
 					$el = $el - 1;
 				}
 			}
 			$lookFor = json_decode($lookFor,true);
+			$advFilter = json_decode($advFilter,true);
+			$advFilter = is_null($advFilter) ? '' : $advFilter ;
 			
 			while($loopFlag) {
 				$tDiff = time() - $tStart;
@@ -900,10 +901,33 @@ ini_set('display_errors', '1');
 				if($record === false) {
 					$loopFlag = false;
 				} else {
-					$advFilter = json_decode($advFilter,true);
-					$advFilter = is_null($advFilter) ? '' : $advFilter ;
 
-					$geoData = getGeoNames($record->imageId,$advFilter);
+					
+					if(!(is_array($lookFor) && count($lookFor))) {
+						$geoData = array();
+						$lookFor = array('Country');
+						$data1 = getGeoNames($record->imageId,$advFilter);
+						$geoData = array_merge($geoData,$data1);
+						$lookFor = array('StateProvince');
+						$data1 = getGeoNames($record->imageId,$advFilter);
+						$geoData = array_merge($geoData,$data1);
+						$children = array();
+						if(is_array($data1) && count($data1)) {
+							foreach($data1 as $dt) {
+								if(isset($dt['StateProvince']) && $dt['StateProvince'] != '') {
+									$children[] = array('node' => 'condition', 'object' => 'geographyView', 'key' => 'StateProvince', 'condition' => '=', 'value' => $dt['StateProvince']);
+								}
+							}
+						}
+						if(count($children)) {
+							$advFilter = array('node' => 'group','logop' => 'or','children' => $children);
+							$lookFor = array('County');
+							$data1 = getGeoNames($record->imageId,$advFilter);
+							$geoData = array_merge($geoData,$data1);
+						}
+					} else {
+						$geoData = getGeoNames($record->imageId,$advFilter);
+					}
 					if(is_array($geoData) && count($geoData)) {
 						foreach($geoData as $geo) {
 							if(count($geo) && is_array($geo)) {
@@ -1350,18 +1374,53 @@ ini_set('display_errors', '1');
 	# Test Tasks
 	
 			case 'testGeo':
+				echo '<pre>';
 				$advFilter = json_decode($advFilter,true);
 				$advFilter = is_null($advFilter) ? '' : $advFilter ;
 			
-				$rowConstrain = json_decode($rowConstrain,true);
-				if(is_array($rowConstrain) && count($rowConstrain)) {
-					foreach($rowConstrain as &$el) {
+				$constrainTo = json_decode($constrainTo,true);
+				if(is_array($constrainTo) && count($constrainTo)) {
+					foreach($constrainTo as &$el) {
 						$el = $el - 1;
 					}
 				}
 				$lookFor = json_decode($lookFor,true);
-				$data = getGeoNames($imageId,$advFilter);
-				echo '<pre>';
+				if(!(is_array($lookFor) && count($lookFor))) {
+					$data = array();
+					$lookFor = array('Country');
+					$data1 = getGeoNames($imageId,$advFilter);
+					$data = array_merge($data,$data1);
+					$lookFor = array('StateProvince');
+					$data1 = getGeoNames($imageId,$advFilter);
+					$data = array_merge($data,$data1);
+					echo '<br>';
+					print_r($lookFor);
+					echo '<br>';
+					print_r($data);
+					$children = array();
+					if(is_array($data1) && count($data1)) {
+						foreach($data1 as $dt) {
+							if(isset($dt['StateProvince']) && $dt['StateProvince'] != '') {
+								$children[] = array('node' => 'condition', 'object' => 'geographyView', 'key' => 'StateProvince', 'condition' => '=', 'value' => $dt['StateProvince']);
+							}
+						}
+					}
+					if(count($children)) {
+						$advFilter = array('node' => 'group','logop' => 'or','children' => $children);
+						$lookFor = array('County');
+						$data1 = getGeoNames($imageId,$advFilter);
+					echo '<br>';
+					print_r($advFilter);
+					echo '<br>';
+					print_r($lookFor);
+					echo '<br>';
+					print_r($data1);
+						$data = array_merge($data,$data1);
+					}
+				} else {
+					$data = getGeoNames($imageId,$advFilter);
+				}
+				// $data = getGeoNames($imageId,$advFilter);
 				print_r($data);
 				break;
 	
@@ -1384,7 +1443,7 @@ ini_set('display_errors', '1');
 		}
 
 	function getGeoNames($imageId, $advFilter = '') {
-		global $si,$config, $lookFor, $rowConstrain;
+		global $si,$config, $lookFor, $constrainTo;
 		
 		$filterQuery = '';
 		
@@ -1422,6 +1481,7 @@ ini_set('display_errors', '1');
 		$eraseBlackList = array('Northeast Louisiana University, Monroe', 'Northeast Louisiana University');
 		$blackList = array('date','north','south','east','west','thomas');
 		$rankArray = array('Country','StateProvince','County','Locality');
+		$whiteList = array('New York' => 'StateProvince', 'District of Columbia' => 'StateProvince', 'New Hampshire' => 'StateProvince', 'New Jersey' => 'StateProvince', 'New Mexico' => 'StateProvince', 'New York' => 'StateProvince', 'North Carolina' => 'StateProvince', 'North Dakota' => 'StateProvince', 'Rhode Island' => 'StateProvince', 'South Carolina' => 'StateProvince', 'South Dakota' => 'StateProvince', 'West Virginia' => 'StateProvince' );
 
 		if(count($eraseBlackList) && is_array($eraseBlackList)) {
 			foreach($eraseBlackList as $trm) {
@@ -1435,11 +1495,26 @@ ini_set('display_errors', '1');
 			for($i = 0; $i < count($linesArray); $i++) {
 				$line = $linesArray[$i];
 				
-				if(is_array($rowConstrain) && count($rowConstrain)) {
-					if(!in_array($i,$rowConstrain)) continue;
+				if(is_array($constrainTo) && count($constrainTo)) {
+					if(!in_array($i,$constrainTo)) continue;
 				}
 				if(trim($line) != '') {
 					$line = preg_replace('/\s+/',' ',trim($line));
+					
+					if(is_array($whiteList) && count($whiteList)) {
+						foreach($whiteList as  $ky => $wl) {
+							if(false !== stripos($line,$ky)) {
+								if(is_array($lookFor) && count($lookFor)) {
+									if(in_array($wl,$lookFor)) {
+										$data[] = array( $wl => $ky);
+									}
+								} else {
+									$data[] = array( $wl => $ky);
+								}
+							}
+						}
+					}
+					
 					$wordsArray = explode(' ', $line);
 					if(is_array($wordsArray) && count($wordsArray)) {
 						foreach($wordsArray as $word) {
@@ -1455,6 +1530,7 @@ ini_set('display_errors', '1');
 										$parsedWords[] = $word;
 									}
 									$query = " SELECT * FROM ($filterQuery) t WHERE t.`word` = '" . mysql_escape_string($word) . "' ";
+									// echo '<br>' . $query . '<br>';
 									$ret = $si->db->query($query);
 									if ($ret != NULL) {
 										while($record = $ret->fetch_object()) {
