@@ -638,6 +638,7 @@ class phpBIS
 		$data['group'] = $properties['group'];
 		$data['useRating'] = $properties['useStatus'];
 		$data['useStatus'] = $properties['useStatus'];
+		$data['associations'] = $properties['associations'];
 		$data['cmd'] = 'imageList';
 		$result = $this->CURL($this->server . '/api.php', $data);
 		$result = json_decode($result, true);
@@ -684,6 +685,9 @@ class phpBIS
 	}
 	public function imageUpdate($imageId, $params = array()) {
 		$data['imageId'] = $imageId;
+		if(isset($params['ocrValue']) && $params['ocrValue'] != '') {
+			$params['ocrValue'] = utf8_encode($params['ocrValue']);
+		}
 		if(is_array($params) && count($params)) {
 			$data['params'] = json_encode($params);
 		}
