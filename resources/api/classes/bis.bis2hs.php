@@ -85,7 +85,7 @@ Class Bis2Hs {
 
 	public function bis2HsSave() {
 		if($this->bis2HsRecordExists($this->bis2HsGetProperty('imageId'))) {
-			$query = sprintf("UPDATE `bis2Hs` SET `filename` = '%s', `barcode` = '%s', `clientId` = '%s', `collectionId` = '%s', `imageserverId` = '%s', `timestamp_modified` = now() WHERE `imageId` = '%s' ;"
+			$query = sprintf("UPDATE `bis2Hs` SET `filename` = '%s', `barcode` = '%s', `clientId` = '%s', `collectionId` = '%s', `imageserverId` = '%s', `timestampModified` = now() WHERE `imageId` = '%s' ;"
 			, mysql_escape_string($this->bis2HsGetProperty('filename'))
 			, mysql_escape_string($this->bis2HsGetProperty('barcode'))
 			, mysql_escape_string($this->bis2HsGetProperty('clientId'))
@@ -94,7 +94,7 @@ Class Bis2Hs {
 			, mysql_escape_string($this->bis2HsGetProperty('imageId'))
 			);
 		} else {
-			$query = sprintf("INSERT INTO `bis2Hs` SET `imageId` = '%s', `filename` = '%s', `barcode` = '%s', `clientId` = '%s', `collectionId` = '%s', `imageserverId` = '%s', `timestamp_modified` = now();"
+			$query = sprintf("INSERT INTO `bis2Hs` SET `imageId` = '%s', `filename` = '%s', `barcode` = '%s', `clientId` = '%s', `collectionId` = '%s', `imageserverId` = '%s', `timestampModified` = now();"
 			, mysql_escape_string($this->bis2HsGetProperty('imageId'))
 			, mysql_escape_string($this->bis2HsGetProperty('filename'))
 			, mysql_escape_string($this->bis2HsGetProperty('barcode'))
