@@ -32,6 +32,7 @@
 		,	'attribute'
 		,	'attributeId'
 		,	'authMode'
+		,	'authToken'
 		,	'barcode'
 		,	'baseUrl'
 		,	'basePath'
@@ -57,6 +58,7 @@
 		,	'ENGTYPE_1'
 		,	'eventId'
 		,	'eventTypeId'
+		,	'expiryDate'
 		,	'extra'
 		,	'family'
 		,	'filename'
@@ -906,7 +908,7 @@
 			
 		case 'evernoteAccountAdd':
 			checkAuth();
-			if($accountName=='' || $userName=='' || $password=='' || $consumerKey=='' || $consumerSecret=='' || $notebookGuid=='') {
+			if($accountName=='' || $consumerKey=='' || $consumerSecret=='' || $notebookGuid=='') {
 				$valid = false;
 				$errorCode = 131;
 			} else if ($si->en->evernoteAccountsExists($accountName)) {
@@ -915,12 +917,14 @@
 			}
 			if($valid) {
 				$data['accountName'] = $accountName;
-				$data['userName'] = $userName;
-				$data['password'] = $password;
+				// $data['userName'] = $userName;
+				// $data['password'] = $password;
 				$data['consumerKey'] = $consumerKey;
 				$data['consumerSecret'] = $consumerSecret;
 				$data['notebookGuid'] = $notebookGuid;
 				$data['rank'] = (trim($rank)!='') ? $rank : 0;
+				$data['authToken'] = (trim($authToken)!='') ? $authToken : '';
+				$data['expiryDate'] = (trim($expiryDate)!='') ? $expiryDate : '';
 				$si->en->evernoteAccountsSetAllData($data);
 				if(false === ($id = $si->en->evernoteAccountsAdd())) {
 					print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray(135)) ));
@@ -984,12 +988,14 @@
 			}
 			if($valid) {
 				if($accountName!='') $data['accountName'] = $accountName;
-				if($userName!='') $data['userName'] = $userName;
-				if($password!='') $data['password'] = $password;
+				// if($userName!='') $data['userName'] = $userName;
+				// if($password!='') $data['password'] = $password;
 				if($consumerKey!='') $data['consumerKey'] = $consumerKey;
 				if($consumerSecret!='') $data['consumerSecret'] = $consumerSecret;
 				if($notebookGuid!='') $data['notebookGuid'] = $notebookGuid;
 				if($rank!='') $data['rank'] = $rank;
+				if($authToken!='') $data['authToken'] = $authToken;
+				if($expiryDate!='') $data['expiryDate'] = $expiryDate;
 				$si->en->evernoteAccountsSetAllData($data);
 				if($si->en->evernoteAccountsUpdate()) {
 					print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart ) ) );
@@ -1028,37 +1034,42 @@
 				$accounts = $si->en->evernoteAccountsList();
 				$totalNotes = 0;
 				if(is_array($accounts) && count($accounts)) {
-				$limit = ceil($limit/(count($accounts)));
-				foreach($accounts as $account) {
-				$evernote_details_json = json_encode($account);
+					$limit = ceil($limit/(count($accounts)));
+					foreach($accounts as $account) {
+						$acnt = array(
+							'enAccountId' => $account['enAccountId']
+							, 'notebookGuid' => $account['notebookGuid']
+							, 'authToken' => $account['authToken']
+						);
+						$evernote_details_json = json_encode($acnt);
 
-				$url = $config['evernoteUrl'];
-				$url .= '?cmd=findNotes&auth=[' . $evernote_details_json . ']&start=' . $start . '&limit=' . $limit . '&searchWord=' . urlencode($value);
-				if($tag != '') $url .= '&tag=[\"'.$tag.'\"]';
-				$rr = json_decode(@file_get_contents($url),true);
-				if($rr['success']) {
-					//$totalNotes += $rr['totalNotes'];
-					$labels = $rr['data'];
-					if(is_array($labels) && count($labels)) {
-						foreach($labels as $label) {
-							if(!array_key_exists($label,$data)) {
-								$ar = array();
-								if(!$si->s2l->load_by_labelId($label)) continue;
-								$totalNotes++;
-								$si->image->imageSetData(array("field"=>"barcode", "value"=>$si->s2l->get('barcode'), "start"=>0, "limit"=>$limit));
-								$ar = $si->image->imageList();
-								$ar = $ar[0];
-								$tmpPath = $si->image->imageGetUrl($ar->imageId);
-								$ar->path = $tmpPath['baseUrl'];
-								$fname = explode(".", $ar->filename);
-								$ar->ext = @array_pop($fname);
-								$ar->en_flag = ($si->s2l->load_by_barcode($ar->barcode)) ? 1 : 0;
-								$data[$label] = $ar;
+						$url = $config['evernoteUrl'];
+						$url .= '?cmd=findNotes&auth=[' . $evernote_details_json . ']&start=' . $start . '&limit=' . $limit . '&searchWord=' . urlencode($value);
+						if($tag != '') $url .= '&tag=[\"'.$tag.'\"]';
+						$rr = json_decode(@file_get_contents($url),true);
+						if($rr['success']) {
+							//$totalNotes += $rr['totalNotes'];
+							$labels = $rr['data'];
+							if(is_array($labels) && count($labels)) {
+								foreach($labels as $label) {
+									if(!array_key_exists($label,$data)) {
+										$ar = array();
+										if(!$si->s2l->load_by_labelId($label)) continue;
+										$totalNotes++;
+										$si->image->imageSetData(array("field"=>"barcode", "value"=>$si->s2l->get('barcode'), "start"=>0, "limit"=>$limit));
+										$ar = $si->image->imageList();
+										$ar = $ar[0];
+										$tmpPath = $si->image->imageGetUrl($ar->imageId);
+										$ar->path = $tmpPath['baseUrl'];
+										$fname = explode(".", $ar->filename);
+										$ar->ext = @array_pop($fname);
+										$ar->en_flag = ($si->s2l->load_by_barcode($ar->barcode)) ? 1 : 0;
+										$data[$label] = $ar;
+									}
+								}
 							}
-						}
-					}
-				} # if rr[success]
-				} # for
+						} # if rr[success]
+					} # for
 				} # if labels
 				$data = @array_values($data);
 				print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart, 'totalCount' => $totalNotes, 'records' => $data ) ));

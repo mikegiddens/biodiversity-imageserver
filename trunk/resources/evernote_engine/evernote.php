@@ -1,5 +1,6 @@
 <?php
-
+error_reporting(E_ALL ^ E_NOTICE);
+ini_set('display_errors',1);
 /**
  * Evernote engine interface
  */
@@ -29,6 +30,8 @@ foreach ($expected as $formvar)
 $evernote = new EverNote($EverNoteValues);
 
 $valid = true;
+
+# echo '<pre>';
 
 switch($cmd) {
 
@@ -142,7 +145,9 @@ switch($cmd) {
 					, 'tagGuids' => $tag
 					, 'timeZone' => null
 					, 'inactive' => null);
-			$filter = new edam_notestore_NoteFilter($filter);
+					
+			$filter = $evernote->createFilter($filter);
+		
 			$ret = $evernote->findEverNotes($filter,$start,$limit);
 			$labelArray = array();
 			if($ret['success']) {
@@ -191,7 +196,6 @@ function getError($error_code) {
 	);
 	return $ar[$error_code];
 }
-
 
 
 ?>

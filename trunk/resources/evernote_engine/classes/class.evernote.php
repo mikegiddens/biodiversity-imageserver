@@ -1,63 +1,98 @@
 <?php
-require_once( 'evernote' . DIRECTORY_SEPARATOR . "bootstrap.php");
-if ( is_file( 'evernote' . DIRECTORY_SEPARATOR . "localDefines.php"))
-	require_once( 'classes/evernote' . DIRECTORY_SEPARATOR . "localDefines.php");
+define("EVERNOTE_LIBS", dirname(__FILE__) . DIRECTORY_SEPARATOR . "evernote-sdk/lib");
+ini_set("include_path", ini_get("include_path") . PATH_SEPARATOR . EVERNOTE_LIBS);
+
+require_once("Thrift.php");
+require_once("transport/TTransport.php");
+require_once("transport/THttpClient.php");
+require_once("protocol/TProtocol.php");
+require_once("protocol/TBinaryProtocol.php");
+require_once("packages/Types/Types_types.php");
+require_once("packages/UserStore/UserStore.php");
+require_once("packages/NoteStore/NoteStore.php");
+
+// Import the classes that we're going to be using
+use EDAM\NoteStore\NoteStoreClient;
+use EDAM\UserStore\UserStoreClient;
+use EDAM\NoteStore\NoteFilter;
+use EDAM\Types\Data, EDAM\Types\Note, EDAM\Types\Resource, EDAM\Types\ResourceAttributes;
+use EDAM\Error\EDAMSystemException, EDAM\Error\EDAMUserException, EDAM\Error\EDAMErrorCode;
+
+// Verify that you successfully installed the PHP OAuth Extension
+if (!class_exists('OAuth')) {
+die("<span style=\"color:red\">The PHP OAuth Extension is not installed</span>");
+}
 
 Class EverNote {
 
-	private $user, $authToken;
-	public $evernote_data,$evernote_account;
+	private $user;
+	private $authToken;
+	# private $authToken = 'S=s1:U=1c25:E=142b6ab5bb8:C=13b5efa2fb8:P=185:A=silverbiology-5164:H=f544ce4e4cd28e4dad308c6ed12ee804';
+	public $evernoteData,$evernoteAccount;
 
-	public function __construct ($evernote_array) {
-		$this->evernote_data = $evernote_array;
+	public function __construct ($evernoteArray) {
+		$this->evernoteData = $evernoteArray;
 	}
 
-	public function authenticate($evernote_array) {
-		$this->evernote_account['evernote_data'] = $evernote_array;
+	public function authenticate($evernoteArray) {
+		if(isset($evernoteArray['authToken']) && $evernoteArray['authToken'] != '') {
+			$this->authToken = $evernoteArray['authToken'];
+		}
+		$this->evernoteAccount['evernoteData'] = $evernoteArray;
 		try{
-			$userStoreHttpClient = new THttpClient($this->evernote_data['evernoteHost'], $this->evernote_data['evernotePort'], "/edam/user", $this->evernote_data['evernoteScheme']);
+			$userStoreHttpClient = new THttpClient($this->evernoteData['evernoteHost'], $this->evernoteData['evernotePort'], "/edam/user", $this->evernoteData['evernoteScheme']);
 			$userStoreProtocol = new TBinaryProtocol($userStoreHttpClient);
 			$userStore = new UserStoreClient($userStoreProtocol, $userStoreProtocol);
 
-			$evernote_array = (is_array($evernote_array[0])) ? $evernote_array[0] : $evernote_array;
-			$authResult = $userStore->authenticate($evernote_array['username'], $evernote_array['password'], $evernote_array['consumerKey'], $evernote_array['consumerSecret']);
+			$this->evernoteAccount['user'] = $userStore->getUser($this->authToken);
+			
+			$noteStoreUrl = $userStore->getNoteStoreUrl($this->authToken);
 
-			$this->evernote_account['user'] = $authResult->user;
-			$this->evernote_account['authToken'] = $authResult->authenticationToken;
+			// $noteStoreUrl = str_replace('https:','http:',$noteStoreUrl);# temp code to mitigate the https issue
 
-			$noteStoreHttpClient = new THttpClient($this->evernote_data['evernoteHost'], $this->evernote_data['evernotePort'], '/edam/note/' . $this->evernote_account['user']->shardId, $this->evernote_data['evernoteScheme']);
+			$parts = parse_url($noteStoreUrl);
+			if (!isset($parts['port'])) {
+			  if ($parts['scheme'] === 'https') {
+				$parts['port'] = 443;
+			  } else {
+				$parts['port'] = 80;
+			  }
+			}
+			$noteStoreHttpClient = new THttpClient($parts['host'], $parts['port'], $parts['path'], $parts['scheme']);
 			$noteStoreProtocol = new TBinaryProtocol($noteStoreHttpClient);
-			$this->evernote_account['noteStore'] = new NoteStoreClient($noteStoreProtocol, $noteStoreProtocol);
-			$this->evernote_account['notebookGuid'] = $evernote_array['notebookGuid'];
+			$this->evernoteAccount['noteStore'] = new NoteStoreClient($noteStoreProtocol, $noteStoreProtocol);
+			$this->evernoteAccount['notebookGuid'] = $this->getDefaultNoteBookId();
 		
-		} catch (edam_error_EDAMSystemException $e) {
-			if (isset(edam_error_EDAMErrorCode::$__names[$e->errorCode])) {
-				print edam_error_EDAMErrorCode::$__names[$e->errorCode] . ": " . $e->parameter . "\n";
+		} catch (EDAMSystemException $e) {
+			if (isset(EDAMErrorCode::$__names[$e->errorCode])) {
+				return array('success' => false, 'error_code' => EDAMErrorCode::$__names[$e->errorCode]);
 			} else {
-				print $e->getCode() . ": " . $e->getMessage() . "\n";
+				return array('success' => false, 'error_code' => $e->getCode(), 'error_message' => $e->getMessage());
 			}
-		} catch (edam_error_EDAMUserException $e) {
-			if (isset(edam_error_EDAMErrorCode::$__names[$e->errorCode])) {
-				print edam_error_EDAMErrorCode::$__names[$e->errorCode] . ": " . $e->parameter . "\n";
+		} catch (EDAMUserException $e) {
+			if (isset(EDAMErrorCode::$__names[$e->errorCode])) {
+				return array('success' => false, 'error_code' => EDAMErrorCode::$__names[$e->errorCode]);
 			} else {
-				print $e->getCode() . ": " . $e->getMessage() . "\n";
+				return array('success' => false, 'error_code' => $e->getCode(), 'error_message' => $e->getMessage());
 			}
-		} catch (edam_error_EDAMNotFoundException $e) {
-			if (isset(edam_error_EDAMErrorCode::$__names[$e->errorCode])) {
-				print edam_error_EDAMErrorCode::$__names[$e->errorCode] . ": " . $e->parameter . "\n";
+		} catch (EDAMNotFoundException $e) {
+			if (isset(EDAMErrorCode::$__names[$e->errorCode])) {
+				return array('success' => false, 'error_code' => EDAMErrorCode::$__names[$e->errorCode]);
 			} else {
-				print $e->getCode() . ": " . $e->getMessage() . "\n";
+				return array('success' => false, 'error_code' => $e->getCode(), 'error_message' => $e->getMessage());
 			}
 		} catch (Exception $e) {
-			print $e->getMessage();
+			return array('success' => false, 'error_message' => $e->getMessage());
 		}
 
 	}
 
 	public function getName( $name, $part = 'name' ) {
 		if ($part == 'name' || $part == 'ext') {
-			$ext = split('\.', $name);
-			return ($part == 'name') ? $ext[0] : $ext[1];
+			$extAr = explode('.', $name);
+			$ext = array_pop($extAr);
+			$name = implode('.',$extAr);
+			return ($part == 'name') ? $name : $ext;
 		} else {
 			return ($name);
 		}
@@ -74,17 +109,17 @@ Class EverNote {
 		$image = file_get_contents($label);
 		$hash = md5($image);
 		
-		$data = new edam_type_Data();
+		$data = new Data();
 		$data->size = strlen($image);
 		$data->bodyHash = $hash;
 		$data->body = $image;
-		
-		$resource = new edam_type_Resource();
+
+		$resource = new Resource();
 		$ext = $this->getName(@basename($label),'ext');
 		$resource->mime = 'image/'. ($ext == 'jpg' ? 'jpeg' : $ext);
 		$resource->data = $data;
 
-		$note = new edam_type_Note();
+		$note = new Note();
 		$note->guid = null;
 		$note->title = $title;
 		$note->content = '<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE en-note SYSTEM "http://xml.evernote.com/pub/enml.dtd"><en-note><en-media width="671" height="503" type="' . $resource->mime . '" hash="' . $hash . '"/></en-note>';
@@ -95,7 +130,7 @@ Class EverNote {
 		$note->deleted = null;
 		$note->active = null;
 		$note->updateSequenceNum = null;
-		$note->notebookGuid = $this->evernote_account['notebookGuid'];
+		$note->notebookGuid = $this->evernoteAccount['notebookGuid'];
 		$note->tagGuids = null;
 		$note->resources = array($resource);
 		$note->attributes = null;
@@ -110,38 +145,34 @@ Class EverNote {
  * @param mixed $note
  */
 	public function addNote($newnote) {
-		if (isset($this->evernote_account['authToken'])) {
+		if (isset($this->authToken)) {
 		try{
-			$noteRet = $this->evernote_account['noteStore']->createNote($this->evernote_account['authToken'], $newnote);
-			return array('success' => true, 'noteRet' => $noteRet);
+			$noteRet = $this->evernoteAccount['noteStore']->createNote($this->authToken, $newnote);
 			
-		} catch (edam_error_EDAMSystemException $e) {
-			if (isset(edam_error_EDAMErrorCode::$__names[$e->errorCode])) {
-// 				print edam_error_EDAMErrorCode::$__names[$e->errorCode] . ": " . $e->parameter . "\n";
-				return array('success' => false, 'error_code' => $e->errorCode);
+		} catch (EDAMSystemException $e) {
+			if (isset(EDAMErrorCode::$__names[$e->errorCode])) {
+				return array('success' => false, 'error_code' => EDAMErrorCode::$__names[$e->errorCode], 'error_message' => $e->parameter);
 			} else {
-// 				print $e->getCode() . ": " . $e->getMessage() . "\n";
+				return array('success' => false, 'error_code' => $e->getCode(), 'error_message' => $e->getMessage());
 			}
-		} catch (edam_error_EDAMUserException $e) {
-			if (isset(edam_error_EDAMErrorCode::$__names[$e->errorCode])) {
-// 				print edam_error_EDAMErrorCode::$__names[$e->errorCode] . ": " . $e->parameter . "\n";
-				return array('success' => false, 'error_code' => $e->errorCode);
+		} catch (EDAMUserException $e) {
+			if (isset(EDAMErrorCode::$__names[$e->errorCode])) {
+				return array('success' => false, 'error_code' => EDAMErrorCode::$__names[$e->errorCode], 'error_message' => $e->parameter);
 			} else {
-// 				print $e->getCode() . ": " . $e->getMessage() . "\n";
+				return array('success' => false, 'error_code' => $e->getCode(), 'error_message' => $e->getMessage());
 			}
-		} catch (edam_error_EDAMNotFoundException $e) {
-			if (isset(edam_error_EDAMErrorCode::$__names[$e->errorCode])) {
-// 				print edam_error_EDAMErrorCode::$__names[$e->errorCode] . ": " . $e->parameter . "\n";
-				return array('success' => false, 'error_code' => $e->errorCode);
+		} catch (EDAMNotFoundException $e) {
+			if (isset(EDAMErrorCode::$__names[$e->errorCode])) {
+				return array('success' => false, 'error_code' => EDAMErrorCode::$__names[$e->errorCode], 'error_message' => $e->parameter);
 			} else {
-// 				print $e->getCode() . ": " . $e->getMessage() . "\n";
+				return array('success' => false, 'error_code' => $e->getCode(), 'error_message' => $e->getMessage());
 			}
 		} catch (Exception $e) {
-			print $e->getMessage();
+			return array('success' => false, 'error_code' => $e->getCode(), 'error_message' => $e->getMessage());
 		}
 
 		}
-// 		return $noteRet;
+		return array('success' => true, 'noteRet' => $noteRet);
 	}
 
 	public function getDefaultNoteBookId() {
@@ -155,86 +186,79 @@ Class EverNote {
 	public function listNotebooks() {
 		try{
 
-			$notebooks = $this->evernote_account['noteStore']->listNotebooks($this->evernote_account['authToken']);
-		} catch (edam_error_EDAMSystemException $e) {
-			if (isset(edam_error_EDAMErrorCode::$__names[$e->errorCode])) {
-// 				print edam_error_EDAMErrorCode::$__names[$e->errorCode] . ": " . $e->parameter . "\n";
-				return array('success' => false, 'error_code' => $e->errorCode);
+			$notebooks = $this->evernoteAccount['noteStore']->listNotebooks($this->authToken);
+		} catch (EDAMSystemException $e) {
+			if (isset(EDAMErrorCode::$__names[$e->errorCode])) {
+				return array('success' => false, 'error_code' => EDAMErrorCode::$__names[$e->errorCode], 'error_message' => $e->parameter);
 			} else {
-// 				print $e->getCode() . ": " . $e->getMessage() . "\n";
+				return array('success' => false, 'error_code' => $e->getCode(), 'error_message' => $e->getMessage());
 			}
-		} catch (edam_error_EDAMUserException $e) {
-			if (isset(edam_error_EDAMErrorCode::$__names[$e->errorCode])) {
-// 				print edam_error_EDAMErrorCode::$__names[$e->errorCode] . ": " . $e->parameter . "\n";
-				return array('success' => false, 'error_code' => $e->errorCode);
+		} catch (EDAMUserException $e) {
+			if (isset(EDAMErrorCode::$__names[$e->errorCode])) {
+				return array('success' => false, 'error_code' => EDAMErrorCode::$__names[$e->errorCode], 'error_message' => $e->parameter);
 			} else {
-// 				print $e->getCode() . ": " . $e->getMessage() . "\n";
+				return array('success' => false, 'error_code' => $e->getCode(), 'error_message' => $e->getMessage());
 			}
-		} catch (edam_error_EDAMNotFoundException $e) {
-			if (isset(edam_error_EDAMErrorCode::$__names[$e->errorCode])) {
-// 				print edam_error_EDAMErrorCode::$__names[$e->errorCode] . ": " . $e->parameter . "\n";
-				return array('success' => false, 'error_code' => $e->errorCode);
+		} catch (EDAMNotFoundException $e) {
+			if (isset(EDAMErrorCode::$__names[$e->errorCode])) {
+				return array('success' => false, 'error_code' => EDAMErrorCode::$__names[$e->errorCode], 'error_message' => $e->parameter);
 			} else {
-// 				print $e->getCode() . ": " . $e->getMessage() . "\n";
+				return array('success' => false, 'error_code' => $e->getCode(), 'error_message' => $e->getMessage());
 			}
 		} catch (Exception $e) {
-// 			print $e->getMessage();
 			return array('success' => false, 'error_code' => $e->errorCode);
 		}
 		return $notebooks;
 	}
 
 	public function listNotes($noteGuid) {
-		$note_detail = $this->evernote_account['noteStore']->getNote($this->evernote_account['authToken'],$noteGuid,true,true,true,true);
+		$note_detail = $this->evernoteAccount['noteStore']->getNote($this->authToken,$noteGuid,true,true,true,true);
 		return $note_detail;
 	}
 
 	public function getRecognition($noteGuid) {
 		try {
-			$reco = $this->evernote_account['noteStore']->getResourceRecognition($this->evernote_account['authToken'],$noteGuid);
-		} catch (edam_error_EDAMSystemException $e) {
-			if (isset(edam_error_EDAMErrorCode::$__names[$e->errorCode])) {
-// 				print edam_error_EDAMErrorCode::$__names[$e->errorCode] . ": " . $e->parameter . "\n";
-				return array('success' => false, 'error_code' => $e->errorCode);
+			$reco = $this->evernoteAccount['noteStore']->getResourceRecognition($this->authToken,$noteGuid);
+		} catch (EDAMSystemException $e) {
+			if (isset(EDAMErrorCode::$__names[$e->errorCode])) {
+				return array('success' => false, 'error_code' => EDAMErrorCode::$__names[$e->errorCode], 'error_message' => $e->parameter);
 			} else {
-// 				print $e->getCode() . ": " . $e->getMessage() . "\n";
+				return array('success' => false, 'error_code' => $e->getCode(), 'error_message' => $e->getMessage());
 			}
-		} catch (edam_error_EDAMUserException $e) {
-			if (isset(edam_error_EDAMErrorCode::$__names[$e->errorCode])) {
-// 				print edam_error_EDAMErrorCode::$__names[$e->errorCode] . ": " . $e->parameter . "\n";
-				return array('success' => false, 'error_code' => $e->errorCode);
+		} catch (EDAMUserException $e) {
+			if (isset(EDAMErrorCode::$__names[$e->errorCode])) {
+				return array('success' => false, 'error_code' => EDAMErrorCode::$__names[$e->errorCode], 'error_message' => $e->parameter);
 			} else {
-// 				print $e->getCode() . ": " . $e->getMessage() . "\n";
+				return array('success' => false, 'error_code' => $e->getCode(), 'error_message' => $e->getMessage());
 			}
-		} catch (edam_error_EDAMNotFoundException $e) {
-			if (isset(edam_error_EDAMErrorCode::$__names[$e->errorCode])) {
-// 				print edam_error_EDAMErrorCode::$__names[$e->errorCode] . ": " . $e->parameter . "\n";
-				return array('success' => false, 'error_code' => $e->errorCode);
+		} catch (EDAMNotFoundException $e) {
+			if (isset(EDAMErrorCode::$__names[$e->errorCode])) {
+				return array('success' => false, 'error_code' => EDAMErrorCode::$__names[$e->errorCode], 'error_message' => $e->parameter);
 			} else {
-// 				print $e->getCode() . ": " . $e->getMessage() . "\n";
+				return array('success' => false, 'error_code' => $e->getCode(), 'error_message' => $e->getMessage());
 			}
 		} catch (Exception $e) {
-// 			print $e->getMessage();
+			return array('success' => false, 'error_code' => $e->getCode(), 'error_message' => $e->getMessage());
 		}
 		return $reco;
 	}
 
 	public function getusage() {
 		try{
-			$syncState = $this->evernote_account['noteStore']->getSyncState($this->evernote_account['authToken']);
-			$uploadLimitEnd = $this->evernote_account['user']->accounting->uploadLimitEnd;
+			$syncState = $this->evernoteAccount['noteStore']->getSyncState($this->authToken);
+			$uploadLimitEnd = $this->evernoteAccount['user']->accounting->uploadLimitEnd;
 			$syncState->uploadLimitEnd = $uploadLimitEnd;
-		} catch (edam_error_EDAMSystemException $e) {
-			if (isset(edam_error_EDAMErrorCode::$__names[$e->errorCode])) {
-				return array('success' => false, 'error_code' => $e->errorCode);
+		} catch (EDAMSystemException $e) {
+			if (isset(EDAMErrorCode::$__names[$e->errorCode])) {
+				return array('success' => false, 'error_code' => EDAMErrorCode::$__names[$e->errorCode], 'error_message' => $e->parameter);
 			}
-		} catch (edam_error_EDAMUserException $e) {
-			if (isset(edam_error_EDAMErrorCode::$__names[$e->errorCode])) {
-				return array('success' => false, 'error_code' => $e->errorCode);
+		} catch (EDAMUserException $e) {
+			if (isset(EDAMErrorCode::$__names[$e->errorCode])) {
+				return array('success' => false, 'error_code' => EDAMErrorCode::$__names[$e->errorCode], 'error_message' => $e->parameter);
 			}
-		} catch (edam_error_EDAMNotFoundException $e) {
-			if (isset(edam_error_EDAMErrorCode::$__names[$e->errorCode])) {
-				return array('success' => false, 'error_code' => $e->errorCode);
+		} catch (EDAMNotFoundException $e) {
+			if (isset(EDAMErrorCode::$__names[$e->errorCode])) {
+				return array('success' => false, 'error_code' => EDAMErrorCode::$__names[$e->errorCode], 'error_message' => $e->parameter);
 			}
 		} catch (Exception $e) {
 			return array('success' => false, 'error_code' => $e->errorCode);
@@ -284,27 +308,27 @@ Class EverNote {
 				$value = $filter[$index];
 			}
 		}
-		$filterObject = new edam_notestore_NoteFilter($filterArray);
+		$filterObject = new NoteFilter($filterArray);
 		return $filterObject;
 	}
 
 
 	public function findEverNotes($filter,$start = 0,$limit = 25) {
-		if (isset($this->evernote_account['authToken'])) {
+		if (isset($this->authToken)) {
 			try{
-				$noteRet = $this->evernote_account['noteStore']->findNotes($this->evernote_account['authToken'], $filter, $start,$limit);
+				$noteRet = $this->evernoteAccount['noteStore']->findNotes($this->authToken, $filter, $start,$limit);
 				return array('success' => true, 'noteRet' => $noteRet);
-			} catch (edam_error_EDAMSystemException $e) {
-				if (isset(edam_error_EDAMErrorCode::$__names[$e->errorCode])) {
-					return array('success' => false, 'error_code' => $e->errorCode);
+			} catch (EDAMSystemException $e) {
+				if (isset(EDAMErrorCode::$__names[$e->errorCode])) {
+					return array('success' => false, 'error_code' => EDAMErrorCode::$__names[$e->errorCode]);
 				}
-			} catch (edam_error_EDAMUserException $e) {
-				if (isset(edam_error_EDAMErrorCode::$__names[$e->errorCode])) {
-					return array('success' => false, 'error_code' => $e->errorCode);
+			} catch (EDAMUserException $e) {
+				if (isset(EDAMErrorCode::$__names[$e->errorCode])) {
+					return array('success' => false, 'error_code' => EDAMErrorCode::$__names[$e->errorCode]);
 				}
-			} catch (edam_error_EDAMNotFoundException $e) {
-				if (isset(edam_error_EDAMErrorCode::$__names[$e->errorCode])) {
-					return array('success' => false, 'error_code' => $e->errorCode);
+			} catch (EDAMNotFoundException $e) {
+				if (isset(EDAMErrorCode::$__names[$e->errorCode])) {
+					return array('success' => false, 'error_code' => EDAMErrorCode::$__names[$e->errorCode]);
 				}
 			} catch (EDAMUserException $e) {
 				return array('success' => false, 'userException' => 1, 'error_code' => $e->errorCode);
