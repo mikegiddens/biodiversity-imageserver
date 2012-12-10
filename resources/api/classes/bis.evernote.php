@@ -117,14 +117,14 @@ Class EvernoteAccounts {
 	}
 	
 	public function evernoteAccountsAdd() {
-		$query = sprintf("INSERT INTO `evenoteAccounts` SET `accountName` = '%s', `userName` = '%s', `password` = '%s', `consumerKey` = '%s', `consumerSecret` = '%s', `notebookGuid` = '%s', `rank` = '%s', `dateAdded` = now(), `dateModified` = now();"
+		$query = sprintf("INSERT INTO `evenoteAccounts` SET `accountName` = '%s', `consumerKey` = '%s', `consumerSecret` = '%s', `notebookGuid` = '%s', `rank` = '%s', `authToken` = '%s', `expiryDate` = '%s', `dateAdded` = now(), `dateModified` = now();"
 				, mysql_escape_string($this->evernoteAccountsGetProperty('accountName'))
-				, mysql_escape_string($this->evernoteAccountsGetProperty('userName'))
-				, mysql_escape_string($this->evernoteAccountsGetProperty('password'))
 				, mysql_escape_string($this->evernoteAccountsGetProperty('consumerKey'))
 				, mysql_escape_string($this->evernoteAccountsGetProperty('consumerSecret'))
 				, mysql_escape_string($this->evernoteAccountsGetProperty('notebookGuid'))
 				, mysql_escape_string($this->evernoteAccountsGetProperty('rank'))
+				, mysql_escape_string($this->evernoteAccountsGetProperty('authToken'))
+				, mysql_escape_string($this->evernoteAccountsGetProperty('expiryDate'))
 			);
 		if($this->db->query($query)) {
 			return($this->db->insert_id);
@@ -147,14 +147,14 @@ Class EvernoteAccounts {
 	
 	
 	public function evernoteAccountsUpdate() {
-		$query = sprintf("UPDATE `evenoteAccounts` SET `accountName` = '%s', `userName` = '%s', `password` = '%s', `consumerKey` = '%s', `consumerSecret` = '%s', `notebookGuid` = '%s', `rank` = '%s', `dateModified` = now() WHERE `enAccountId` = '%s';"
+		$query = sprintf("UPDATE `evenoteAccounts` SET `accountName` = '%s', `consumerKey` = '%s', `consumerSecret` = '%s', `notebookGuid` = '%s', `rank` = '%s', `authToken` = '%s', `expiryDate` = '%s', `dateModified` = now() WHERE `enAccountId` = '%s';"
 				, mysql_escape_string($this->evernoteAccountsGetProperty('accountName'))
-				, mysql_escape_string($this->evernoteAccountsGetProperty('userName'))
-				, mysql_escape_string($this->evernoteAccountsGetProperty('password'))
 				, mysql_escape_string($this->evernoteAccountsGetProperty('consumerKey'))
 				, mysql_escape_string($this->evernoteAccountsGetProperty('consumerSecret'))
 				, mysql_escape_string($this->evernoteAccountsGetProperty('notebookGuid'))
 				, mysql_escape_string($this->evernoteAccountsGetProperty('rank'))
+				, mysql_escape_string($this->evernoteAccountsGetProperty('authToken'))
+				, mysql_escape_string($this->evernoteAccountsGetProperty('expiryDate'))
 				, mysql_escape_string($this->evernoteAccountsGetProperty('enAccountId'))
 				);
 		if($this->db->query($query)) {
@@ -221,11 +221,11 @@ Class EvernoteAccounts {
 				$accounts[] = array(
 						'enAccountId' => $acnt->enAccountId
 						,'accountName' => $acnt->accountName
-						,'username' => $acnt->userName
-						, 'password' => $acnt->password
 						, 'consumerKey' => $acnt->consumerKey
 						, 'consumerSecret' => $acnt->consumerSecret
 						, 'notebookGuid' => $acnt->notebookGuid
+						, 'authToken' => $acnt->authToken
+						, 'expiryDate' => $acnt->expiryDate
 					);
 			}
 		}
