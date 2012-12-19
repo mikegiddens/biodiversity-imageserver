@@ -1976,6 +1976,68 @@
 			}
 			break;
 
+		case 'imagesLoadFromDir':
+			checkAuth();
+			if($storageDeviceId == '' || $imagePath == '') {
+				$valid = false;
+				$errorCode = 172;
+			} else if(!$si->storage->storageDeviceExists($storageDeviceId)) {
+				$valid = false;
+				$errorCode = 156;
+			} else {
+				$valid = true;
+			}
+			if($valid) {
+				if($code != '') {
+					if(!$si->collection->collectionCodeExists($code)) {
+						$code = '';
+					}
+				}
+				
+				$device = $si->storage->storageDeviceGet($storageDeviceId);
+				$basePath = rtrim($device['basePath'],'/') . '/';
+				$imagePath = '/' . ltrim($imagePath,'/');
+				$imagePath = rtrim($imagePath,'/') . '/';
+				$skipFiles = array(".", "..");
+				$allowedExt = array('jpg','JPG');
+				foreach(scandir($basePath . $imagePath) as $file) {
+					if (in_array($file, $skipFiles)) {continue;}
+					$ext = array_pop(@explode('.',$file));
+					if(!in_array($ext,$allowedExt)) continue;
+					
+					$imageId = $si->image->imageGetId($file, $imagePath, $storageDeviceId);
+					if(!$imageId) {
+					
+						// echo '<br>';
+						// // echo $device['basePath'] . $imagePath . $file;
+						// echo '<br>'.$device['basePath'];
+						// echo '<br>'.$imagePath;
+						// echo '<br>'. $file;
+					
+						$ar = @getimagesize($device['basePath'] . '/' . $imagePath . '/' . $file);
+						$si->image->imageSetProperty('width',$ar[0]);
+						$si->image->imageSetProperty('height',$ar[1]);
+						$si->image->imageSetProperty('filename',$file);
+						$si->image->imageSetProperty('storageDeviceId', $storageDeviceId);
+						$si->image->imageSetProperty('path', $imagePath);
+						$si->image->imageSetProperty('originalFilename', $file);
+						$si->image->imageSetProperty('collectionCode',$code);						
+						
+						if($si->image->imageSave()) {
+							$count++;
+							$imageId = $si->image->insert_id;
+							$si->pqueue->processQueueSetProperty('imageId', $imageId);
+							$si->pqueue->processQueueSetProperty('processType','all');
+							$si->pqueue->processQueueSave();
+						}					
+					}
+				}
+				print_c( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart, 'totalCount' => $count ) ) );
+			} else {
+				print_c (json_encode( array( 'success' => false, 'error' => $si->getErrorArray($errorCode)) ));
+			}
+			break;
+
 		case 'imageCalculateRating':
 			if($imageId == '') {
 				$valid = false;
