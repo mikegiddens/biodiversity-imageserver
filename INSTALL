@@ -1,5 +1,6 @@
+#==========================================
+#= ZBar Support
 sudo yum install ImageMagick-devel python-devel
-
 cd /tmp/
 wget http://downloads.sourceforge.net/project/zbar/zbar/0.10/zbar-0.10.tar.bz2
 tar xvf zbar-0.10.tar.bz2
@@ -7,5 +8,61 @@ cd zbar-0.10
 ./configure --disable-video --without-qt --without-gtk
 make
 sudo make install
-
+rm /tmp/zbar-0.10.tar.bz2 
 # To use 'zbarimg barcode.jpg'
+#==========================================
+
+#==========================================
+#= Tesseract Support
+sudo yum -y update
+sudo yum -y install make libtiff libtiff-devel libjpeg-devel libpng-devel gcc gcc-c++ libtool
+
+cd /tmp/
+sudo wget http://www.leptonica.org/source/leptonica-1.69.tar.gz
+sudo gunzip leptonica-1.69.tar.gz
+sudo tar -xvf leptonica-1.69.tar
+cd leptonica-1.69/
+sudo ./configure
+sudo make
+=== WAIT 10 min ===
+sudo make install
+
+cd /tmp/
+sudo wget http://tesseract-ocr.googlecode.com/files/tesseract-3.00.tar.gz
+sudo gunzip tesseract-3.00.tar.gz
+sudo tar -xvf tesseract-3.00.tar
+cd tesseract-3.00/
+sudo ./runautoconf
+sudo ./configure
+sudo make
+=== WAIT 20 min ===
+sudo make install
+
+#Install English Data
+cd /usr/local/share/tessdata
+sudo wget http://tesseract-ocr.googlecode.com/files/eng.traineddata.gz
+sudo gzip -d eng.traineddata.gz
+#==========================================
+
+
+#==========================================
+#= OpenCV for Control Color Detection for Pixel to In/Cm ratio
+sudo yum -y install gcc gcc-c++ cmake make zlib-devel libpng-devel libjpeg-devel libtiff-devel
+export CXX=/usr/bin/g++
+export CC=/usr/bin/gcc
+export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
+
+Download current version of opencv to /tmp/
+cd /tmp
+sudo wget http://downloads.sourceforge.net/project/opencvlibrary/opencv-unix/2.3/OpenCV-2.3.0.tar.bz2?r=http%3A%2F%2Fsourceforge.net%2Fprojects%2Fopencvlibrary%2Ffiles%2Fopencv-unix%2F2.3%2F&ts=1334551783&use_mirror=hivelocity
+
+tar -xvf Open...
+cd Ope....
+mkdir release
+cd release
+cmake -D CMAKE_BUILD_TYPE=RELEASE /tmp/Open...
+make (~30-1hr)
+sudo make install
+
+Compiling:
+ g++ -o boxdetect hsvcolor.cpp -lopencv_core -lopencv_imgproc -lopencv_calib3d -lopencv_video -lopencv_features2d -lopencv_ml -lopencv_highgui -lopencv_objdetect -lopencv_contrib -lopencv_legacy
