@@ -81,7 +81,7 @@ class SilverTile {
 
 	function getUrl() {
 		$file_parts = pathinfo($this->get("image"));
-		return($this->get("tileUrl") . 'cache/' . strtolower($file_parts["filename"]) . "/");
+		return($this->get("tileUrl") . strtolower($file_parts["filename"]) . "/");
 	}
 
 	function getTempFileLocation() {

@@ -1015,11 +1015,9 @@ Class Image {
 	}
 
 	public function imageList($queryFlag = true) {
-
 		if(is_array($this->data['advFilter']) && count($this->data['advFilter'])) {
 			$orderBy = '';
 			$query = $this->getByCrazyFilter($this->data['advFilter'], true, $this->data['showOCR']);
-// echo $query;exit;			
 			if(($this->data['sort']!='') && ($this->data['dir']!='')) {
 				$orderBy .= sprintf(" ORDER BY i.%s %s ", mysql_escape_string($this->data['sort']),  $this->data['dir']);
 			} else if($this->data['order'] != '' && is_array($this->data['order'])) {
@@ -1102,7 +1100,7 @@ Class Image {
 			$where = " AND " . $where;
 		}
 		if($this->data['code'] != '') {
-			$where .= sprintf(" AND I.`collectionCode` LIKE '%s%%' ", mysql_escape_string($this->data['code']));
+			$where .= sprintf(" AND I.`collectionCode` = '%s' ", mysql_escape_string($this->data['code']));
 		}
 		
 		if(is_array($this->data['imageId']) && count($this->data['imageId'])) {
