@@ -2001,8 +2001,9 @@
 				$skipFiles = array(".", "..");
 				$allowedExt = array('jpg','JPG');
 				foreach(scandir($basePath . $imagePath) as $file) {
-					if (in_array($file, $skipFiles)) {continue;}
-					$ext = array_pop(@explode('.',$file));
+                    if (in_array($file, $skipFiles)) {continue;}
+                    $parts = pathinfo( $file );
+					$ext = $parts['extension'];
 					if(!in_array($ext,$allowedExt)) continue;
 					
 					$imageId = $si->image->imageGetId($file, $imagePath, $storageDeviceId);
