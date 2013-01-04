@@ -683,8 +683,9 @@ class phpBIS
 			return $result;
 		}
 	}
-	public function imageUpdate($imageId, $params = array()) {
+	public function imageUpdate($imageId = '', $barcode = '', $params = array()) {
 		$data['imageId'] = $imageId;
+		$data['barcode'] = $barcode;
 		if(isset($params['ocrValue']) && $params['ocrValue'] != '') {
 			$params['ocrValue'] = utf8_encode($params['ocrValue']);
 		}
@@ -1296,12 +1297,28 @@ class phpBIS
 		}
 	}
 	
+	public function packageCommand($data = array()) {
+		$data['data'] = json_encode($data);
+		$data['authMode'] = 'key';
+		$data['key'] = $this->key;
+		$data['cmd'] = 'package';
+		$result = $this->CURL($this->server . '/api.php', $data);
+		$result = json_decode($result, true);
+		if($result['success'] == true) {
+			return $result;
+		} else {
+			$this->lastError['code'] = $result['error']['code'];
+			$this->lastError['msg'] = $result['error']['msg'];
+			return $result;
+		}
+	}
+	
 	public function populateOcrProcessQueue($imageIds) {
 		$data['imageId'] = json_encode($imageIds);
 		$data['authMode'] = 'key';
 		$data['key'] = $this->key;
 		$data['cmd'] = 'populateOcrProcessQueue';
-		$result = $this->CURL($this->server . '/backup_services.php', $data);
+		$result = $this->CURL($this->server . '/processor.php', $data);
 		$result = json_decode($result, true);
 		if($result['success'] == true) {
 			return $result;
