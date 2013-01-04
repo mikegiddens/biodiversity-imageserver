@@ -276,6 +276,7 @@
 	# This will control the incoming processes that need to be preformed.
 	$userAccess->db = &$si->db;
 	$si->setAuthMode($authMode);
+	$timeStart = microtime(true);
 	
 	function router($data = null) {
 		global $expected, $si, $userAccess,$GET;
@@ -301,7 +302,7 @@
 		if(!isset($api)) {
 			$api = "json";
 		}
-	
+
 		# Type of command to perform
 		switch( $cmd ) {
 
@@ -1176,7 +1177,7 @@
 				}
 				$categoryType = in_array(trim($categoryType),array('categoryId','title','term')) ? trim($categoryType) : 'categoryId';
 				$attribType = in_array(trim($attribType),array('attributeId','name')) ? trim($attribType) : 'attributeId';
-				$force = (trim($force) == 'true') ? true : false;
+				if (trim($force) == 'true') $force = true;
 				if($advFilterId != '') {
 					if($si->advFilter->advFilterLoadById($advFilterId)) {
 						$advFilter  = $si->advFilter->advFilterGetProperty('filter');
@@ -1203,11 +1204,10 @@
 							$errorCode = 147;
 						}
 					}
-					if(false === ($data['attributeId'] = $si->imageAttribute->imageAttributeGetBy($attribute,$attribType,$data['categoryId']))) {
+					if(false === ($data['attributeId'] = $si->imageAttribute->imageAttributeGetBy($attribute, $attribType, $data['categoryId']))) {
 						if ($force && $attribType == 'name') {
 							$si->imageAttribute->lg->logSetProperty('action', 'imageAddAttribute');
 							$si->imageAttribute->lg->logSetProperty('lastModifiedBy', $_SESSION['user_id']);
-
 							$si->imageAttribute->imageAttributeSetProperty('name',$attribute);
 							$si->imageAttribute->imageAttributeSetProperty('categoryId',$data['categoryId']);
 							$id = $si->imageAttribute->imageAttributeAdd();
@@ -1227,10 +1227,10 @@
 					if($si->image->imageAttributeAdd()) {
 						$response = ( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart ) ) );
 					} else {
-						$response =  (json_encode( array( 'success' => false, 'error' => $si->getErrorArray(161)) ));
+						$response = ( json_encode( array( 'success' => false, 'error' => $si->getErrorArray(161)) ));
 					}
 				} else {
-					$response =  (json_encode( array( 'success' => false, 'error' => $si->getErrorArray($errorCode)) ));
+					$response = ( json_encode( array( 'success' => false, 'error' => $si->getErrorArray($errorCode)) ));
 				}
 				break;
 
@@ -3895,20 +3895,19 @@
 	$callback = $GET['callback'];
 	if ($cmd == "package") {
 		$data = $GET['data'];
-		$res = @json_decode(trim(stripslashes($data)),true);
-		// echo '<pre><br>';
-		// print_r($res);
+		$res = @json_decode(trim($data),true);
+//		$res = @json_decode(trim(stripslashes($data)),true);
+		$packageResults = array();
 		foreach($res as $request) {
 			$packageResults[] = router($request);
 		}
 		// echo '<br>';
 		// print_r($packageResults);
-		print_c (json_encode(array('success' => true)));
+//		print_c (json_encode(array('success' => true, 'processTime' => microtime(true) - $timeStart, 'request' => $data, 'records' => $packageResults)));
+		print_c (json_encode(array('success' => true, 'processTime' => microtime(true) - $timeStart, 'records' => $packageResults)));
 	} else {
 	  print_c (router());
-	} 
+	}	
 
-	
-
-ob_end_flush();
+	ob_end_flush();
 ?>
