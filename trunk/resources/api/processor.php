@@ -1590,15 +1590,12 @@ ini_set('display_errors', '1');
 		$names = array();
 		
 		$sourceUrl = 'http://gnrd.globalnames.org/name_finder.json?';
-		// $sourceParams1 = array('url' => $url);
 		$sourceParams1 = array('text' => $ocrValue);
 		
-		// $gnResolver = 'http://resolver.globalnames.org/name_resolvers.json?data_source_ids=1&names=';
 		$gnResolver = 'http://resolver.globalnames.org/name_resolvers.json?';
 		$gnResolverParams = array('data_source_ids' => 1);
 		
 		$sourceUrl2 = 'http://ecat-dev.gbif.org/ws/indexer?';
-		// $sourceParams2 = array('input' => $url, 'type' => 'url', 'format' => 'json');
 		$sourceParams2 = array('input' => $ocrValue, 'type' => 'text', 'format' => 'json');
 		
 		$verificationUrl = 'http://ecat-dev.gbif.org/ws/usage/?';
@@ -1623,6 +1620,11 @@ ini_set('display_errors', '1');
 			}
 			while($data["status"] != 200);
 		}
+		
+		// echo '<pre><br> Data 1 :';
+		// echo '<br>';
+		// print_r($data['names']);
+		// echo '<br>';
 		if(isset($data["names"]) && is_array($data["names"]) && count($data["names"])) {
 			foreach($data["names"] as $dtName) {
 				# $gnData = json_decode(@file_get_contents($gnResolver . $dtName['scientificName']),true);
@@ -1638,6 +1640,11 @@ ini_set('display_errors', '1');
 				}
 			}
 		}
+		// echo '<pre><br> Names :';
+		// echo '<br>';
+		// print_r($names);
+		// echo '<br>--------------<br>';
+// exit;
 		if( !count($names) ) {
 			$getUrl = @http_build_query($sourceParams2);
 			$data = json_decode(@file_get_contents($sourceUrl2 . $getUrl),true);
@@ -1653,15 +1660,41 @@ ini_set('display_errors', '1');
 				$vData = file_get_contents($verificationUrl . $vUrl);
 				$vData = utf8_encode($vData);
 				$vData = json_decode($vData,true);
+		// echo '<pre><br> Verified Data :';
+		// echo '<br>';
+		// print_r($vData);
+		// echo '<br>--------------<br>';
+
 				if(count($vData['data'])) {
 					foreach(array('kingdom','phylum','order','class','family','genus') as $taxon) {
 						$vData['data'][0][$taxon] = array_shift(explode(' ',trim($vData['data'][0][$taxon])));
 					}
 					$ar = explode(' ', $vData['data'][0]['scientificName']);
+					$vData['data'][0]['specificEpithet'] =  $ar[1];
 					$taxonomicStatus = ($vData['data'][0]['isSynonym'] == 'true') ? 'Synonym' : '';
-					return array('success' => true, 'data' => array('family' => $vData['data'][0]['family'],'genus' => $vData['data'][0]['genus'],'scientificName' => $vData['data'][0]['scientificName'],'specificEpithet' => $ar[1], 'phylum' => $vData['data'][0]['phylum'], 'class' => $vData['data'][0]['class'], 'kingdom' => $vData['data'][0]['kingdom'], 'order' => $vData['data'][0]['order'], 'taxonomicStatus' => $taxonomicStatus, 'rawData' => json_encode($names)));
+					$output = array();
+					$flag = false;
+					if(false != (stripos($ocrValue,$vData['data'][0]['specificEpithet']))) {
+						$output['specificEpithet'] = $vData['data'][0]['specificEpithet'];
+						$output['scientificName'] = $vData['data'][0]['scientificName'];
+						$flag = true;
+						
+					}
+					if(false != (stripos($ocrValue,$vData['data'][0]['genus']))) {
+						$flag = true;
+						$output['genus'] = $vData['data'][0]['genus'];
+						$output['family'] = $vData['data'][0]['family'];
+						$output['order'] = $vData['data'][0]['order'];
+						$output['class'] = $vData['data'][0]['class'];
+						$output['phylum'] = $vData['data'][0]['phylum'];
+						$output['kingdom'] = $vData['data'][0]['kingdom'];
+						$output['taxonomicStatus'] = $taxonomicStatus;
+					}
+					$output['rawData'] = json_encode($names);
+					if($flag) return array('success' => true, 'data' => $output);
+					
+					// return array('success' => true, 'data' => array('family' => $vData['data'][0]['family'],'genus' => $vData['data'][0]['genus'],'scientificName' => $vData['data'][0]['scientificName'],'specificEpithet' => $ar[1], 'phylum' => $vData['data'][0]['phylum'], 'class' => $vData['data'][0]['class'], 'kingdom' => $vData['data'][0]['kingdom'], 'order' => $vData['data'][0]['order'], 'taxonomicStatus' => $taxonomicStatus, 'rawData' => json_encode($names)));
 				}
-
 			}
 		}
 
