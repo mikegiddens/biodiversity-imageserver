@@ -1743,6 +1743,21 @@ Class Image {
 				}
 			}
 			return true;
+		} else if(is_array($this->data['barcode']) && count($this->data['barcode'])) {
+			foreach($this->data['barcode'] as $bcode) {
+				if($this->imageLoadByBarcode($bcode)) {
+					$query = sprintf("INSERT IGNORE INTO imageAttrib(imageId, categoryId, attributeId) VALUES(%s, %s, %s);"
+						, mysql_escape_string($this->imageGetProperty('imageId'))
+						, mysql_escape_string($categoryId)
+						, mysql_escape_string($attributeId)
+					);
+					if($this->db->query($query)) {
+						$this->lg->logSetProperty('query', $query);
+						$this->lg->logSave();
+					}
+				}
+			}
+			return true;
 		} else {
 			$query = " INSERT IGNORE INTO imageAttrib(imageId, categoryId, attributeId) SELECT imageId, $categoryId, $attributeId FROM image ";
 			if($this->db->query($query)) {

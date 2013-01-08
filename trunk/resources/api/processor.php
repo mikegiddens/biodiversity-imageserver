@@ -17,14 +17,52 @@ ini_set('display_errors', '1');
 		, 'enAccountId'
 		, 'id'
 		, 'imageId'
+		, 'key'
 		, 'limit'
 		, 'lookFor'
+		, 'ocr'
 		, 'stop' # stop is the number of seconds that the loop should run
 	);
 
 	// Initialize allowed variables
 	foreach ($expected as $formvar)
 		$$formvar = (isset(${"_$_SERVER[REQUEST_METHOD]"}[$formvar])) ? ${"_$_SERVER[REQUEST_METHOD]"}[$formvar]:NULL;
+
+	/**
+	 * Function print_c (Print Callback)
+	 * This is a wrapper function for print that will place the callback around the output statement
+	 */
+	function print_c($str) {
+		global $callback;
+		header('Content-type: application/json');
+		if ( isset( $callback ) && $callback != '' ) {
+			$cb = $callback . '(' . $str . ')';
+		} else {
+			$cb = $str;
+		}
+		print $cb;
+	}
+	
+	function checkAuth() {
+	// die($_SERVER['REMOTE_ADDR']);
+		global $si,$userAccess,$key;
+		switch($si->authMode) {
+			case 'key':
+				if(!$si->remoteAccess->remoteAccessCheck(ip2long($_SERVER['REMOTE_ADDR']), $key)) {
+					print_c (json_encode( array( 'success' => false, 'error' => array('msg' => $si->getError(103), 'code' => 103 )) ));
+					exit();
+				}
+				break;
+		
+			case 'session':
+			default:
+				if(!$userAccess->is_logged_in()) {
+					print_c (json_encode( array( 'success' => false, 'error' => array('msg' => $si->getError(104), 'code' => 104 )) ));
+					exit();
+				}
+				break;
+		}
+	}
 
 	if (PHP_SAPI === 'cli') {
 	
@@ -78,10 +116,14 @@ ini_set('display_errors', '1');
 	require_once("classes/bis.picassa.php");
 	require_once("classes/bis.misc.php");
 	require_once("classes/bis.gbif.php");
+	require_once("classes/access_user/access_user_class.php");
 
 	$si = new SilverImage($config['mysql']['name']);
+	$userAccess = new Access_user($config['mysql']['host'], $config['mysql']['user'], $config['mysql']['pass'], $config['mysql']['name']);
 	$timeStart = microtime(true);	
 
+	
+	
 	switch($cmd) {
 		case 'populateBoxDetect':
 			header('Content-type: application/json');
@@ -839,13 +881,17 @@ ini_set('display_errors', '1');
 				} else {
 					$ret = getNames($record->imageId);
 					if($ret['success']) {
-					
 						$si->image->imageLoadById($record->imageId);
-						$si->image->imageSetProperty('nameFinderValue',$ret['data']['rawData']);
+						if(isset($ret['globalnamesResults'])) {
+							$si->image->imageSetProperty('nameFinderValue',json_encode($ret['globalnamesResults']));
+						} else if ($ret['gbifResults']) {
+							$si->image->imageSetProperty('nameFinderValue',json_encode($ret['gbifResults']));
+						}
 						$si->image->imageSave();
 						
 						foreach(array('family','genus','scientificName','specificEpithet','phylum', 'class', 'kingdom', 'order', 'taxonomicStatus') as $rr) {
-							if($ret['data'][$rr] != '') {
+							$dt = (in_array($rr,array('taxonomicStatus'))) ? $ret : $ret['data'];
+							if($dt[$rr] != '') {
 								$category = @ucfirst($rr);
 								$data = array();
 								if(false === ($data['categoryId'] = $si->imageCategory->imageCategoryGetBy($category,'title'))) {
@@ -853,8 +899,8 @@ ini_set('display_errors', '1');
 									$si->imageCategory->imageCategorySetProperty('elementSet','BIS');
 									$data['categoryId'] = $si->imageCategory->imageCategoryAdd();
 								}
-								if(false === ($data['attributeId'] = $si->imageAttribute->imageAttributeGetBy($ret['data'][$rr],'name',$data['categoryId']))) {
-									$si->imageAttribute->imageAttributeSetProperty('name',$ret['data'][$rr]);
+								if(false === ($data['attributeId'] = $si->imageAttribute->imageAttributeGetBy($dt[$rr],'name',$data['categoryId']))) {
+									$si->imageAttribute->imageAttributeSetProperty('name',$dt[$rr]);
 									$si->imageAttribute->imageAttributeSetProperty('categoryId',$data['categoryId']);
 									$data['attributeId'] = $si->imageAttribute->imageAttributeAdd();
 								}
@@ -1428,7 +1474,9 @@ ini_set('display_errors', '1');
 				print_r($data);
 				break;
 	
-			case 'testNames':
+			case 'ocrTaxaLookup':
+				checkAuth();
+
 				$constrainTo = json_decode($constrainTo,true);
 				if(is_array($constrainTo) && count($constrainTo)) {
 					foreach($constrainTo as &$el) {
@@ -1436,9 +1484,13 @@ ini_set('display_errors', '1');
 					}
 				}
 				
-				$data = getNames($imageId);
-				echo '<pre>';
-				var_dump($data);
+				$data = getNames($imageId,$ocr);
+				
+				header('Content-type: application/json');
+				echo json_encode($data);
+				
+				// echo '<pre>';
+				// var_dump($data);
 				break;
 				
 			default:
@@ -1568,14 +1620,21 @@ ini_set('display_errors', '1');
 		return $data;
 	}
 	
-	function getNames($imageId) {
+	function getNames($imageId = '',$ocr = '') {
 		global $si,$config,$constrainTo;
-		if(!$si->image->imageLoadById($imageId)) {
+		if($imageId == '' && $ocr == '') {
 			return array('success' => false);
 		}
 		
-		$ocrValue = $si->image->imageGetProperty('ocrValue');
-
+		if($ocr != '') {
+			$ocrValue = urldecode($ocr);
+		} else {
+			if( $imageId != '' && !$si->image->imageLoadById($imageId)) {
+				return array('success' => false);
+			}
+			$ocrValue = $si->image->imageGetProperty('ocrValue');
+		}
+		
 		if(is_array($constrainTo) && count($constrainTo)) {
 			$tempArray = array();
 			$ocrValue = preg_split ('/$\R?^/m', $ocrValue);
@@ -1604,6 +1663,7 @@ ini_set('display_errors', '1');
 		$getUrl = @http_build_query($sourceParams1);
 		$data = json_decode(@file_get_contents($sourceUrl . $getUrl),true);
 		
+		
 		$tokenUrl = $data['token_url'];
 		if(isset($tokenUrl) && $tokenUrl != '' && $data['status'] == 303) {
 			$counter = 0;
@@ -1621,10 +1681,6 @@ ini_set('display_errors', '1');
 			while($data["status"] != 200);
 		}
 		
-		// echo '<pre><br> Data 1 :';
-		// echo '<br>';
-		// print_r($data['names']);
-		// echo '<br>';
 		if(isset($data["names"]) && is_array($data["names"]) && count($data["names"])) {
 			foreach($data["names"] as $dtName) {
 				# $gnData = json_decode(@file_get_contents($gnResolver . $dtName['scientificName']),true);
@@ -1640,15 +1696,16 @@ ini_set('display_errors', '1');
 				}
 			}
 		}
-		// echo '<pre><br> Names :';
-		// echo '<br>';
-		// print_r($names);
-		// echo '<br>--------------<br>';
-// exit;
+		$dataSource = '';
 		if( !count($names) ) {
 			$getUrl = @http_build_query($sourceParams2);
 			$data = json_decode(@file_get_contents($sourceUrl2 . $getUrl),true);
 			$names = $data['names'];
+			$dataSource = 'GBIF';
+			$resultName = 'gbifResults';
+		} else {
+			$dataSource = 'GlobalNames';
+			$resultName = 'globalnamesResults';
 		}
 		if(is_array($names) && count($names)) {
 			foreach($names as $dt) {
@@ -1660,12 +1717,17 @@ ini_set('display_errors', '1');
 				$vData = file_get_contents($verificationUrl . $vUrl);
 				$vData = utf8_encode($vData);
 				$vData = json_decode($vData,true);
-		// echo '<pre><br> Verified Data :';
-		// echo '<br>';
-		// print_r($vData);
-		// echo '<br>--------------<br>';
-
 				if(count($vData['data'])) {
+				
+					// $tmpData = $vData['data'];
+					$acceptedName = '';
+					if(isset($dt['current_name_string']) && $dt['current_name_string'] != '') {
+						$ar = explode(' ', $dt['current_name_string']);
+						if(count($ar) > 1) {
+							$acceptedName = implode(' ',array($ar[0],$ar[1]));
+						}
+					}
+				
 					foreach(array('kingdom','phylum','order','class','family','genus') as $taxon) {
 						$vData['data'][0][$taxon] = array_shift(explode(' ',trim($vData['data'][0][$taxon])));
 					}
@@ -1673,25 +1735,39 @@ ini_set('display_errors', '1');
 					$vData['data'][0]['specificEpithet'] =  $ar[1];
 					$taxonomicStatus = ($vData['data'][0]['isSynonym'] == 'true') ? 'Synonym' : '';
 					$output = array();
+					$data = array();
 					$flag = false;
-					if(false != (stripos($ocrValue,$vData['data'][0]['specificEpithet']))) {
-						$output['specificEpithet'] = $vData['data'][0]['specificEpithet'];
-						$output['scientificName'] = $vData['data'][0]['scientificName'];
+					if(false !== (stripos($ocrValue,$vData['data'][0]['specificEpithet']))) {
+						$data['specificEpithet'] = $vData['data'][0]['specificEpithet'];
+						$data['scientificName'] = $vData['data'][0]['scientificName'];
 						$flag = true;
 						
 					}
-					if(false != (stripos($ocrValue,$vData['data'][0]['genus']))) {
-						$flag = true;
-						$output['genus'] = $vData['data'][0]['genus'];
-						$output['family'] = $vData['data'][0]['family'];
-						$output['order'] = $vData['data'][0]['order'];
-						$output['class'] = $vData['data'][0]['class'];
-						$output['phylum'] = $vData['data'][0]['phylum'];
-						$output['kingdom'] = $vData['data'][0]['kingdom'];
-						$output['taxonomicStatus'] = $taxonomicStatus;
+					
+					$genus = $vData['data'][0]['genus'];
+					if(false !== (stripos($ocrValue,$dt['canonical_form']))) {
+						$tmpGenus = @array_shift(@explode(' ',$dt['canonical_form']));
+						$genus = $tmpGenus;
 					}
-					$output['rawData'] = json_encode($names);
-					if($flag) return array('success' => true, 'data' => $output);
+					
+					if(false !== (stripos($ocrValue,$genus))) {
+						$flag = true;
+						$data['genus'] = $genus;
+						$data['family'] = $vData['data'][0]['family'];
+						$data['order'] = $vData['data'][0]['order'];
+						$data['class'] = $vData['data'][0]['class'];
+						$data['phylum'] = $vData['data'][0]['phylum'];
+						$data['kingdom'] = $vData['data'][0]['kingdom'];
+					}
+					$output['success'] = true;
+					$output['ocr'] = $ocrValue;
+					$output['taxonomicStatus'] = $taxonomicStatus;
+					$output['acceptedName'] = $acceptedName;
+					$output['dataSource'] = $dataSource;
+					$output[$resultName] = $names;
+					$output['data'] = $data;
+					// $output['tmpData'] =  $tmpData;
+					if($flag) return $output;
 					
 					// return array('success' => true, 'data' => array('family' => $vData['data'][0]['family'],'genus' => $vData['data'][0]['genus'],'scientificName' => $vData['data'][0]['scientificName'],'specificEpithet' => $ar[1], 'phylum' => $vData['data'][0]['phylum'], 'class' => $vData['data'][0]['class'], 'kingdom' => $vData['data'][0]['kingdom'], 'order' => $vData['data'][0]['order'], 'taxonomicStatus' => $taxonomicStatus, 'rawData' => json_encode($names)));
 				}
