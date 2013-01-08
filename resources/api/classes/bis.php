@@ -15,7 +15,9 @@
 	require_once( $config['path']['base'] . 'resources/api/classes/bis.image.php');
 	require_once( $config['path']['base'] . 'resources/api/classes/bis.imageRating.php');
 	require_once( $config['path']['base'] . 'resources/api/classes/bis.images.php');
+if (class_exists('SQLite3')) {
 	require_once( $config['path']['base'] . 'resources/api/classes/bis.imgTiles.php');
+}
 	require_once( $config['path']['base'] . 'resources/api/classes/bis.log.php');
 	require_once( $config['path']['base'] . 'resources/api/classes/bis.masterLog.php');
 	require_once( $config['path']['base'] . 'resources/api/classes/bis.misc.php');

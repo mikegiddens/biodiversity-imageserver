@@ -102,7 +102,7 @@ body,td,th {
 						,	success: function(response){
 								var data = Ext.decode(response.responseText);
 								var found = false;
-								if(Ext.isEmpty(data.data)){
+								if(Ext.isEmpty(data.records)){
 									soundManager.play('Beep6');
 									var t = new Ext.Template(
 										'<p align="center">Barcode {barcode} not found.</p>'
@@ -112,11 +112,11 @@ body,td,th {
 									});
 //									found = false;
 								} else {
-									for(var i=0; i<data.data.length; i++) {
-									var fileName = data.data[i].filename;
+									for(var i=0; i<data.records.length; i++) {
+									var fileName = data.records[i].filename;
 									var mediumFileName = fileName.split(".");
-									var path = data.data[i].path + mediumFileName[0] + '_l.' + mediumFileName[1];
-									var barcode = data.data[i].barcode;
+									var path = data.records[i].path + mediumFileName[0] + '_l.' + mediumFileName[1];
+									var barcode = data.records[i].barcode;
 									var t = new Ext.Template(
 											'<p class="barcode" align="center">Barcode: {barcode}</p>'
 										,	'<p class="tsm">Last Modified: {timestamp_modified}</p>'
@@ -125,16 +125,16 @@ body,td,th {
 									if(i==0) {
 										t.overwrite('tplID', {
 											path: path
-										,	orig: data.data[i].path + mediumFileName[0] + '.' + mediumFileName[1]
+										,	orig: data.records[i].path + mediumFileName[0] + '.' + mediumFileName[1]
 										,	barcode: barcode	
-										,	timestamp_modified: data.data[i].timestamp_modified
+										,	timestamp_modified: data.records[i].timestamp_modified
 									});
 									} else {
 										t.append('tplID', {
 											path: path
-										,	orig: data.data[i].path + mediumFileName[0] + '.' + mediumFileName[1]
+										,	orig: data.records[i].path + mediumFileName[0] + '.' + mediumFileName[1]
 										,	barcode: barcode	
-										,	timestamp_modified: data.data[i].timestamp_modified
+										,	timestamp_modified: data.records[i].timestamp_modified
 										});
 									}
 									var barcodeValue = barcode + ' found.'
@@ -144,7 +144,7 @@ body,td,th {
 									t2.append('tplResult', {
 											path: path
 										,	barcode: barcodeValue
-										,	timestamp_modified: data.data[i].timestamp_modified
+										,	timestamp_modified: data.records[i].timestamp_modified
 									});
 									}
 									found = true
