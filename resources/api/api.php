@@ -1175,6 +1175,9 @@
 						$imageId = array($imageId);
 					}
 				}
+				if($barcode != '') {
+					$barcode = json_decode($barcode,true);
+				}
 				$categoryType = in_array(trim($categoryType),array('categoryId','title','term')) ? trim($categoryType) : 'categoryId';
 				$attribType = in_array(trim($attribType),array('attributeId','name')) ? trim($attribType) : 'attributeId';
 				if (trim($force) == 'true') $force = true;
@@ -1223,6 +1226,9 @@
 					$si->image->lg->logSetProperty('lastModifiedBy', $_SESSION['user_id']);
 					
 					$data['imageId'] = $imageId;
+					if(is_array($barcode)) {
+						$data['barcode'] = $barcode;
+					}
 					$si->image->imageSetData($data);
 					if($si->image->imageAttributeAdd()) {
 						$response = ( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart ) ) );
