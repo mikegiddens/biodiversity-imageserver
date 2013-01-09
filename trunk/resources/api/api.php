@@ -12,6 +12,22 @@
 		header('Access-Control-Max-Age: 86400');    // cache for 1 day
 	}
 
+	function stripslashes_r($array) {
+	  foreach ($array as $key => $value) {
+		$array[$key] = is_array($value) ?
+		  stripslashes_r($value) :
+		  stripslashes($value);
+	  }
+	  return $array;
+	}
+
+	if (get_magic_quotes_gpc()) {
+	  $_GET     = stripslashes_r($_GET);
+	  $_POST    = stripslashes_r($_POST);
+	  $_COOKIE  = stripslashes_r($_COOKIE);
+	  $_REQUEST = stripslashes_r($_REQUEST);
+	}
+	
 	/**
 	 * @author SilverBiology
 	 * @website http://www.silverbiology.com
@@ -315,7 +331,7 @@
 					$valid = false;
 					$errorCode = 221;
 				}
-				$filter = stripslashes(trim($filter));
+				$filter = trim($filter);
 				$filter1 = json_decode($filter,true);
 				if(!(is_array($filter1) && count($filter1))) {
 					$valid = false;
@@ -360,7 +376,7 @@
 				checkAuth();
 				$data['start'] = ($start == '') ? 0 : $start;
 				$data['limit'] = ($limit == '') ? 100 : $limit;
-				$data['advFilterId'] = (!is_numeric($advFilterId)) ? json_decode(stripslashes(trim($advFilterId)),true) : $advFilterId;
+				$data['advFilterId'] = (!is_numeric($advFilterId)) ? json_decode(trim($advFilterId),true) : $advFilterId;
 				$data['name'] = $name;
 				$data['searchFormat'] = in_array(strtolower(trim($searchFormat)),array('exact','left','right','both')) ? strtolower(trim($searchFormat)) : 'both';
 				$data['value'] = str_replace('%','%%',trim($value));
@@ -474,7 +490,7 @@
 					$data['searchFormat'] = in_array(strtolower(trim($searchFormat)),array('exact','left','right','both')) ? strtolower(trim($searchFormat)) : 'both';
 					$data['value'] = str_replace('%','%%',trim($value));
 					
-					$data['categoryId'] = (!is_numeric($categoryId)) ? json_decode(stripslashes(trim($categoryId)),true) : $categoryId;
+					$data['categoryId'] = (!is_numeric($categoryId)) ? json_decode(trim($categoryId),true) : $categoryId;
 					$data['group'] = trim($group);
 					$data['dir'] = (strtoupper(trim($dir)) == 'DESC') ? 'DESC' : 'ASC';
 
@@ -591,7 +607,7 @@
 				$data['searchFormat'] = in_array(strtolower(trim($searchFormat)),array('exact','left','right','both')) ? strtolower(trim($searchFormat)) : 'both';
 				$data['value'] = str_replace('%','%%',trim($value));
 				
-				$data['categoryId'] = (!is_numeric($categoryId)) ? json_decode(stripslashes(trim($categoryId)),true) : $categoryId;
+				$data['categoryId'] = (!is_numeric($categoryId)) ? json_decode(trim($categoryId),true) : $categoryId;
 				$data['group'] = trim($group);
 				$data['dir'] = (strtoupper(trim($dir)) == 'DESC') ? 'DESC' : 'ASC';
 					
@@ -683,7 +699,7 @@
 			case 'collectionList':
 				$data['start'] = ($start == '') ? 0 : $start;
 				$data['limit'] = ($limit == '') ? 25 : $limit;
-				$data['collectionId'] = (!is_numeric($collectionId)) ? json_decode(stripslashes(trim($collectionId)),true) : $collectionId;
+				$data['collectionId'] = (!is_numeric($collectionId)) ? json_decode(trim($collectionId),true) : $collectionId;
 				$data['searchFormat'] = in_array(strtolower(trim($searchFormat)),array('exact','left','right','both')) ? strtolower(trim($searchFormat)) : 'both';
 				$data['value'] = str_replace('%','%%',trim($value));
 				$data['group'] = $group;
@@ -782,9 +798,9 @@
 			case 'eventList':
 				$data['start'] = ($start == '') ? 0 : $start;
 				$data['limit'] = ($limit == '') ? 100 : $limit;
-				$data['eventId'] = (!is_numeric($eventId)) ? json_decode(stripslashes(trim($eventId)),true) : $eventId;
-				$data['eventTypeId'] = (!is_numeric($eventTypeId)) ? json_decode(stripslashes(trim($eventTypeId)),true) : $eventTypeId;
-				$data['geographyId'] = (!is_numeric($geographyId)) ? json_decode(stripslashes(trim($geographyId)),true) : $geographyId;
+				$data['eventId'] = (!is_numeric($eventId)) ? json_decode(trim($eventId),true) : $eventId;
+				$data['eventTypeId'] = (!is_numeric($eventTypeId)) ? json_decode(trim($eventTypeId),true) : $eventTypeId;
+				$data['geographyId'] = (!is_numeric($geographyId)) ? json_decode(trim($geographyId),true) : $geographyId;
 				$data['searchFormat'] = in_array(strtolower(trim($searchFormat)),array('exact','left','right','both')) ? strtolower(trim($searchFormat)) : 'both';
 				$data['value'] = str_replace('%','%%',trim($value));
 				$data['geoFlag'] = (strtolower(trim($geoFlag)) == 'true') ? true : false;
@@ -885,7 +901,7 @@
 			case 'eventTypeList':
 				$data['start'] = ($start == '') ? 0 : $start;
 				$data['limit'] = ($limit == '') ? 100 : $limit;
-				$data['eventTypeId'] = (!is_numeric($eventTypeId)) ? json_decode(stripslashes(trim($eventTypeId)),true) : $eventTypeId;
+				$data['eventTypeId'] = (!is_numeric($eventTypeId)) ? json_decode(trim($eventTypeId),true) : $eventTypeId;
 				$data['searchFormat'] = in_array(strtolower(trim($searchFormat)),array('exact','left','right','both')) ? strtolower(trim($searchFormat)) : 'both';
 				$data['value'] = str_replace('%','%%',trim($value));
 				$data['group'] = $group;
@@ -988,7 +1004,7 @@
 				checkAuth();
 				$data['start'] = ($start == '') ? 0 : $start;
 				$data['limit'] = ($limit == '') ? 100 : $limit;
-				$data['enAccountId'] = (!is_numeric($enAccountId)) ? json_decode(stripslashes(trim($enAccountId)),true) : $enAccountId;
+				$data['enAccountId'] = (!is_numeric($enAccountId)) ? json_decode(trim($enAccountId),true) : $enAccountId;
 				$data['searchFormat'] = in_array(strtolower(trim($searchFormat)),array('exact','left','right','both')) ? strtolower(trim($searchFormat)) : 'both';
 				$data['value'] = str_replace('%','%%',trim($value));
 				$data['group'] = $group;
@@ -1120,7 +1136,7 @@
 						// $advFilter  = $si->advFilter->advFilterGetProperty('filter');
 					// }
 				// }
-				// $data['advFilter'] = json_decode(stripslashes(trim($advFilter)),true);
+				// $data['advFilter'] = json_decode(trim($advFilter),true);
 				// if($data['imageId'] == "" && !(is_array($data['advFilter']) && count($data['advFilter']))) {
 					// $valid = false;
 					// $errorCode = 220;
@@ -1186,7 +1202,7 @@
 						$advFilter  = $si->advFilter->advFilterGetProperty('filter');
 					}
 				}
-				$data['advFilter'] = json_decode(stripslashes(trim($advFilter)),true);
+				$data['advFilter'] = json_decode(trim($advFilter),true);
 				if(trim($category) == '') {
 					$valid = false;
 					$errorCode = 160;
@@ -1936,7 +1952,7 @@
 						$advFilter  = $si->advFilter->advFilterGetProperty('filter');
 					}
 				}
-				$data['advFilter'] = json_decode(stripslashes(trim($advFilter)),true);
+				$data['advFilter'] = json_decode(trim($advFilter),true);
 				if($code =='') {
 					$valid = false;
 					$errorCode = 179;
@@ -1978,7 +1994,7 @@
 						$advFilter  = $si->advFilter->advFilterGetProperty('filter');
 					}
 				}
-				$data['advFilter'] = json_decode(stripslashes(trim($advFilter)),true);
+				$data['advFilter'] = json_decode(trim($advFilter),true);
 				if($eventId == '') {
 					$valid = false;
 					$errorCode = 115;
@@ -2138,7 +2154,7 @@
 				}
 				if($valid) {
 					$data['obj'] = $si->amazon;
-					$imageId = (!is_numeric($imageId)) ? json_decode(stripslashes(trim($imageId)),true) : $imageId;
+					$imageId = (!is_numeric($imageId)) ? json_decode(trim($imageId),true) : $imageId;
 					$items = array();
 					if(is_array($imageId)) {
 						foreach($imageId as $imid) {
@@ -2251,7 +2267,7 @@
 						$advFilter  = $si->advFilter->advFilterGetProperty('filter');
 					}
 				}
-				$data['advFilter'] = json_decode(stripslashes(trim($advFilter)),true);
+				$data['advFilter'] = json_decode(trim($advFilter),true);
 				if($imageId == '' && !(is_array($data['advFilter']) && count($data['advFilter']))) {
 					$valid = false;
 					$errorCode = 220;
@@ -2322,17 +2338,17 @@
 						$advFilter  = $si->advFilter->advFilterGetProperty('filter');
 					}
 				}
-				$advFilter = json_decode(stripslashes(trim($advFilter)),true);
+				$advFilter = json_decode(trim($advFilter),true);
 				$idArray = array();
 				if(is_numeric($imageId)) {
 					$imageIds = array($imageId);
 				} else {
-					$imageIds = json_decode(@stripslashes(trim($imageId)), true);
+					$imageIds = json_decode(trim($imageId), true);
 				}
 				if(is_array($imageIds) && count($imageIds)) {
 					$idArray = @array_fill_keys($imageIds,'id');
 				}
-				$barcodes = json_decode(@stripslashes(trim($barcode)), true);
+				$barcodes = json_decode(trim($barcode), true);
 				$barcodes = (is_null($barcodes) && $barcode != '') ? array($barcode) : $barcodes;
 				if(is_array($barcodes) && count($barcodes)) {
 					$idArray = $idArray + @array_fill_keys($barcodes,'code');
@@ -2436,17 +2452,17 @@
 						$advFilter  = $si->advFilter->advFilterGetProperty('filter');
 					}
 				}
-				$advFilter = json_decode(stripslashes(trim($advFilter)),true);
+				$advFilter = json_decode(trim($advFilter),true);
 				$idArray = array();
 				if(is_numeric($imageId)) {
 					$imageIds = array($imageId);
 				} else {
-					$imageIds = json_decode(@stripslashes(trim($imageId)), true);
+					$imageIds = json_decode(trim($imageId), true);
 				}
 				if(is_array($imageIds) && count($imageIds)) {
 					$idArray = @array_fill_keys($imageIds,'id');
 				}
-				$barcodes = json_decode(@stripslashes(trim($barcode)), true);
+				$barcodes = json_decode(trim($barcode), true);
 				$barcodes = (is_null($barcodes) && $barcode != '') ? array($barcode) : $barcodes;
 				if(is_array($barcodes) && count($barcodes)) {
 					$idArray = $idArray + @array_fill_keys($barcodes,'code');
@@ -2576,7 +2592,7 @@
 				$data['limit'] = ($limit != '') ? $limit : 100;
 				$data['showOCR'] = (@in_array(trim($showOCR),array('1','true','TRUE'))) ? true : false;
 				$data['showBarcode'] = (@in_array(trim($showBarcode),array('1','true','TRUE'))) ? true : false;
-				$data['order'] = json_decode(stripslashes(trim($order)),true);
+				$data['order'] = json_decode(trim($order),true);
 				if(trim($sort) != '') {
 					$data['sort'] = trim($sort);
 					$dir = (strtoupper(trim($dir)) == 'DESC') ? 'DESC' : 'ASC';
@@ -2588,14 +2604,14 @@
 						$advFilter  = $si->advFilter->advFilterGetProperty('filter');
 					}
 				}
-				$data['advFilter'] = json_decode(stripslashes(trim($advFilter)),true);
+				$data['advFilter'] = json_decode(trim($advFilter),true);
 				
 				if(is_array($filter)) {
 					$data['filter'] = $filter;
 				} else {
-					$data['filter'] = json_decode(stripslashes(trim($filter)),true);
+					$data['filter'] = json_decode(trim($filter),true);
 				}
-				$data['imageId'] = (!is_numeric($imageId)) ? json_decode(stripslashes(trim($imageId)),true) : $imageId;
+				$data['imageId'] = (!is_numeric($imageId)) ? json_decode(trim($imageId),true) : $imageId;
 				$data['barcode'] = is_null(json_decode($barcode,true)) ? $barcode : json_decode($barcode,true);
 				$data['filename'] = is_null(json_decode($filename,true)) ? $filename : json_decode($filename,true);
 				$data['searchFormat'] = in_array(strtolower(trim($searchFormat)),array('exact','left','right','both')) ? strtolower(trim($searchFormat)) : 'both';
@@ -2614,7 +2630,7 @@
 				$data['useStatus'] = (trim($useStatus) == 'true') ? true : false;
 
 				if($valid) {
-					$associations = json_decode(stripslashes(trim($associations)),true);
+					$associations = json_decode(trim($associations),true);
 					$si->image->imageSetData($data);
 					$data = $si->image->imageList();
 					$total = $si->image->total;
@@ -3002,7 +3018,7 @@
 						$advFilter  = $si->advFilter->advFilterGetProperty('filter');
 					}
 				}
-				$data['advFilter'] = json_decode(stripslashes(trim($advFilter)),true);
+				$data['advFilter'] = json_decode(trim($advFilter),true);
 				if($imageId == '' && !(is_array($data['advFilter']) && count($data['advFilter']))) {
 					$valid = false;
 					$errorCode = 220;
@@ -3139,9 +3155,9 @@
 				
 				if($valid) {
 					$fieldsArray = array('filename','barcode','width','height','family','genus','specificEpithet','rank','author','title','description','globalUniqueIdentifier','copyright','characters','flickrPlantID','flickrDetails','picassaPlantID','zoomEnabled','ocrValue','ocrFlag','ScientificName','code','catalogueNumber','tmpFamily','tmpFamilyAccepted','tmpGenus','tmpGenusAccepted','storageDeviceId','path','originalFilename','remoteAccessKey','statusType','rating');
-					// $params = @json_decode(@stripslashes(trim($params)),true);
+					// $params = @json_decode(trim($params),true);
 					$params = @json_decode(trim($params),true);
-//					$params = @json_decode(trim(stripslashes($params)),true);
+//					$params = @json_decode(trim($params),true);
 					if(is_array($params) && count($params)) {
 						foreach($params as $key => $value) {
 							if(@in_array($key,$fieldsArray)) {
@@ -3226,8 +3242,8 @@
 				checkAuth();
 				$data['start'] = ($start == '') ? 0 : $start;
 				$data['limit'] = ($limit == '') ? 100 : $limit;
-				$data['geographyId'] = (!is_numeric($geographyId)) ? json_decode(stripslashes(trim($geographyId)),true) : $geographyId;
-				$data['parentId'] = (!is_numeric($parentId)) ? json_decode(stripslashes(trim($parentId)),true) : $parentId;
+				$data['geographyId'] = (!is_numeric($geographyId)) ? json_decode(trim($geographyId),true) : $geographyId;
+				$data['parentId'] = (!is_numeric($parentId)) ? json_decode(trim($parentId),true) : $parentId;
 				$data['ISO'] = $ISO;
 				$data['filter'] = $filter;
 				$data['rank'] = $rank;
@@ -3236,7 +3252,7 @@
 						$advFilter  = $si->advFilter->advFilterGetProperty('filter');
 					}
 				}
-				$data['advFilter'] = json_decode(stripslashes(trim($advFilter)),true);
+				$data['advFilter'] = json_decode(trim($advFilter),true);
 				$data['searchFormat'] = in_array(strtolower(trim($searchFormat)),array('exact','left','right','both')) ? strtolower(trim($searchFormat)) : 'both';
 				$data['value'] = str_replace('%','%%',trim($value));
 				$data['group'] = $group;
@@ -3303,11 +3319,11 @@
 				if(is_array($filter)) {
 					$data['filter'] = $filter;
 				} else {
-					$data['filter'] = json_decode(stripslashes($filter),true);
+					$data['filter'] = json_decode($filter,true);
 				}
-				$data['clientId'] = (!is_numeric($clientId)) ? json_decode(stripslashes(trim($clientId)),true) : $clientId;
-				$data['collectionId'] = (!is_numeric($collectionId)) ? json_decode(stripslashes(trim($collectionId)),true) : $collectionId;
-				$data['imageServerId'] = (!is_numeric($imageServerId)) ? json_decode(stripslashes(trim($imageServerId)),true) : $imageServerId;
+				$data['clientId'] = (!is_numeric($clientId)) ? json_decode(trim($clientId),true) : $clientId;
+				$data['collectionId'] = (!is_numeric($collectionId)) ? json_decode(trim($collectionId),true) : $collectionId;
+				$data['imageServerId'] = (!is_numeric($imageServerId)) ? json_decode(trim($imageServerId),true) : $imageServerId;
 				$data['searchFormat'] = in_array(strtolower(trim($searchFormat)),array('exact','left','right','both')) ? strtolower(trim($searchFormat)) : 'both';
 				$data['value'] = str_replace('%','%%',trim($value));
 				$data['group'] = $group;
@@ -3389,14 +3405,14 @@
 			case 'processQueueList':
 				$data['start'] = ($start != '') ? $start : 0;
 				$data['limit'] = ($limit != '') ? $limit : 100;
-				$data['order'] = json_decode(stripslashes(trim($order)),true);
+				$data['order'] = json_decode(trim($order),true);
 				if(trim($sort) != '') {
 					$data['sort'] = trim($sort);
 				}
 				if(is_array($filter)) {
 					$data['filter'] = $filter;
 				} else {
-					$data['filter'] = json_decode(stripslashes(trim($filter)),true);
+					$data['filter'] = json_decode(trim($filter),true);
 				}
 				$data['searchFormat'] = in_array(strtolower(trim($searchFormat)),array('exact','left','right','both')) ? strtolower(trim($searchFormat)) : 'both';
 				$data['value'] = str_replace('%','%%',trim($value));
@@ -3409,7 +3425,7 @@
 				break;
 
 			case 'processQueueClear':
-				$types = @json_decode(@stripslashes(trim($types)));
+				$types = @json_decode(trim($types));
 				if(is_numeric($imageId)) {
 					$data['imageIds'] = array($imageId);
 				} else {
@@ -3623,7 +3639,7 @@
 				break;
 
 			case 'setList':
-				$data['setId'] = (!is_numeric($setId)) ? json_decode(stripslashes(trim($setId)),true) : array($setId);
+				$data['setId'] = (!is_numeric($setId)) ? json_decode(trim($setId),true) : array($setId);
 				$data['searchFormat'] = in_array(strtolower(trim($searchFormat)),array('exact','left','right','both')) ? strtolower(trim($searchFormat)) : 'both';
 				$data['value'] = str_replace('%','%%',trim($value));
 				$si->set->setSetData($data);
@@ -3903,7 +3919,7 @@
 	if ($cmd == "package") {
 		$data = $GET['data'];
 		$res = @json_decode(trim($data),true);
-//		$res = @json_decode(trim(stripslashes($data)),true);
+//		$res = @json_decode(trim($data),true);
 		$packageResults = array();
 		foreach($res as $request) {
 			$packageResults[] = router($request);
