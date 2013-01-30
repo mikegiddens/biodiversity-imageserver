@@ -295,7 +295,7 @@
 	$timeStart = microtime(true);
 	
 	function router($data = null) {
-		global $expected, $si, $userAccess,$GET;
+		global $config, $expected, $si, $userAccess,$GET;
 		
 		$valid = true;
 		$errorCode = 0;

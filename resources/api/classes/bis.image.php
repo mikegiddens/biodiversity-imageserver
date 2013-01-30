@@ -113,15 +113,18 @@ Class Image {
 		}
 	}
 
-	public function imageMoveToImages($storageDeviceId) {
+	public function imageMoveToImages($storageDeviceId, $base100 = false) {
 		global $config;
 		$storage = new StorageDevice($this->db);
 		$device = $storage->storageDeviceGet($storageDeviceId);
 		
 		$barcode = $this->imageGetName();
 		// $tmpPath = $config['path']['images'] . $this->imageBarcodePath( $barcode );
-		// $tmpPath = rtrim($device['basePath'],'/') . '/' . $this->imageBarcodePath( $barcode );
-		$tmpPath = rtrim($device['basePath'],'/') . '/' . $barcode . '/';
+		if ($base100) {
+			$tmpPath = rtrim($device['basePath'],'/') . '/' . $this->imageBarcodePath( $barcode );
+		} else {
+			$tmpPath = rtrim($device['basePath'],'/') . '/' . $barcode . '/';
+		}
 		$this->imageMkdirRecursive( $tmpPath );
 		$flsz = @filesize($this->imageGetProperty('path') . $this->imageGetProperty('filename'));
 		if(!$flsz) {
