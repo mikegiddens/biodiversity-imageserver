@@ -656,8 +656,9 @@ class phpBIS
 		$data['authMode'] = 'key';
 		$data['key'] = $this->key;
 		$data['cmd'] = 'imageAddToCollection';
-		$result = $this->CURL($this->server . '/apiTest.php', $data);
-// echo ($result);exit;
+		$result = $this->CURL($this->server . '/api.php', $data);
+ echo ($result);
+// exit;
 		$result = json_decode($result, true);
 		if($result['success'] == true) {
 			return $result;
@@ -667,6 +668,7 @@ class phpBIS
 			return $result;
 		}
 	}
+
 	public function imageAddBarcode($imageId, $barcode) {
 		$data['imageId'] = $imageId;
 		$data['params'] = json_encode(array('barcode' => $barcode));
@@ -683,7 +685,9 @@ class phpBIS
 			return $result;
 		}
 	}
+
 	public function imageUpdate($imageId = '', $barcode = '', $params = array()) {
+		// $params should be an array of these items 'filename','barcode','width','height','family','genus','specificEpithet','rank','author','title','description','globalUniqueIdentifier','copyright','characters','flickrPlantID','flickrDetails','picassaPlantID','zoomEnabled','ocrValue','ocrFlag','ScientificName','code','catalogueNumber','tmpFamily','tmpFamilyAccepted','tmpGenus','tmpGenusAccepted','storageDeviceId','path','originalFilename','remoteAccessKey','statusType','rating'
 		$data['imageId'] = $imageId;
 		$data['barcode'] = $barcode;
 		if(isset($params['ocrValue']) && $params['ocrValue'] != '') {
@@ -761,6 +765,7 @@ class phpBIS
 		$data['key'] = $this->key;
 		$data['cmd'] = 'imageAddFromUrl';
 		$result = $this->CURL($this->server . '/api.php', $data);
+
 		$result = json_decode($result, true);
 		if($result['success'] == true) {
 			return $result;
