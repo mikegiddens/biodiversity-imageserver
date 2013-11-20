@@ -1836,7 +1836,7 @@
 					unset($data);
 					$response = $si->storage->storageDeviceStore($tmp,$storageDeviceId,$filename, $imagePath, $key);
 					$iEXd = new EXIFread($filename);
-					unlink($filename);
+					unlink($tmp);  // Remove tmp image after it has been stored in the right location.
 					if($response['success']) {
 						$si->pqueue->processQueueSetProperty('imageId', $response['imageId']);
 						$si->pqueue->processQueueSetProperty('processType','all');
