@@ -99,7 +99,7 @@ Ext.define('BIS.view.CategoryTreePanel', {
 		});
 		me.callParent(arguments);
 	},
-
+	// For create category list
 	createCategory: function() {
         var me = this;
 		var tmpWindow = Ext.create('Ext.window.Window', {
