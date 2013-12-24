@@ -282,10 +282,13 @@ Ext.define('BIS.view.CtxMnuImage', {
     },
     handleTool: function( menu, item ) {
         var module = 'api.php';
+        var images = [];
+        Ext.each( Ext.getCmp('imagesGrid').getSelectionModel().getSelection(), function( image ) { images.push( image.get('imageId') ) });
         var params = {
-            cmd: null,
-            imageId: this.record.get('imageId')
-        }
+            cmd: null
+            //  imageId: this.record.get('imageId')
+        };
+        params.imageId = JSON.stringify( images );
         switch ( item.identifier ) {
             case 'process':
                 params.cmd = 'imageModifyRechop';
