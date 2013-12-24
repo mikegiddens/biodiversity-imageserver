@@ -169,8 +169,9 @@ Ext.define('BIS.view.CtxMnuEvent', {
             title: 'Edit Event ' + this.record.data.title,
             iconCls: 'icon_editEvent',
             modal: true,
-            height: 225,
+            height: 200,
             width: 350,
+            resizable: false,
             layout: 'fit',
             items: [
                 Ext.create('widget.formcreateevent', {

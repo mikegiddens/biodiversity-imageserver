@@ -1,31 +1,31 @@
 Ext.define('BIS.view.KeyManagerPanel', {
-	extend: 'Ext.panel.Panel',
-	alias: ['widget.keymanagerpanel'],
+    extend: 'Ext.panel.Panel',
+    alias: ['widget.keymanagerpanel'],
     requires: [ 'BIS.view.CtxMnuKey', 'BIS.view.FormCreateKey' ],
-	id: 'keyManagerPanel',
-	layout: 'fit',
-	border: false,
-	bodyBorder: false,
-	initComponent: function() {
-		var me = this;
-		Ext.applyIf(me, {
-			items: [{
-				xtype: 'tabpanel',
-				id: 'keyManagerTabPanel',
+    id: 'keyManagerPanel',
+    layout: 'fit',
+    border: false,
+    bodyBorder: false,
+    initComponent: function() {
+        var me = this;
+        Ext.applyIf(me, {
+            items: [{
+                xtype: 'tabpanel',
+                id: 'keyManagerTabPanel',
                 border: false,
                 bodyBorder: false,
-				activeTab: 0,
-				items: [{
-					xtype: 'gridpanel',
-					iconCls: 'icon_key',
-					title: 'Access Keys',
-					id: 'keyGrid',
-					border: false,
-					store: 'KeyStore',
+                activeTab: 0,
+                items: [{
+                    xtype: 'gridpanel',
+                    iconCls: 'icon_key',
+                    title: 'Access Keys',
+                    id: 'keyGrid',
+                    border: false,
+                    store: 'KeyStore',
                     viewConfig: {
                         enableTextSelection: true
                     },
-					columns: [
+                    columns: [
                         {
                             dataIndex: 'title',
                             text: 'Title',
@@ -54,43 +54,50 @@ Ext.define('BIS.view.KeyManagerPanel', {
                             falseText: 'No',
                             trueText: 'Yes',
                             undefinedText: 'n/a'
-					    }
+                        }
                     ],
-					listeners: {
-						itemcontextmenu: function(view, record, item, index, e) {
-							e.stopEvent();
-							Ext.create('BIS.view.CtxMnuKey', {record: record}).showAt( e.getXY() );
-						}
-					},
-					dockedItems: [{
-						xtype: 'toolbar',
-						dock: 'top',
-						items: [{
-							text: 'Generate Key',
-							iconCls: 'icon_addKey',
-							scope: this,
-							handler: this.createKey
-						}]
-					}]
-				}]
-			}]
-		});
-		me.callParent(arguments);
-	},
-	createKey: function() {
-		var tmpWindow = Ext.create('Ext.window.Window', {
-			title: 'Generate Access Key',
-			iconCls: 'icon_addKey',
-			modal: true,
-			height: 200,
-			width: 500,
-			layout: 'fit',
-			resizable: false,
-			bodyBorder: false,
-			items: [{
+                    listeners: {
+                        itemcontextmenu: function(view, record, item, index, e) {
+                            e.stopEvent();
+                            Ext.create('BIS.view.CtxMnuKey', {record: record}).showAt( e.getXY() );
+                        }
+                    },
+                    dockedItems: [{
+                        xtype: 'pagingtoolbar',
+                        id: 'keyManagerPager',
+                        displayInfo: true,
+                        store: 'KeyStore',
+                        displayMsg: 'Displaying key {0} - {1} of {2}',
+                        dock: 'bottom'
+                    }, {
+                        xtype: 'toolbar',
+                        dock: 'top',
+                        items: [{
+                            text: 'Generate Key',
+                            iconCls: 'icon_addKey',
+                            scope: this,
+                            handler: this.createKey
+                        }]
+                    }]
+                }]
+            }]
+        });
+        me.callParent(arguments);
+    },
+    createKey: function() {
+        var tmpWindow = Ext.create('Ext.window.Window', {
+            title: 'Generate Access Key',
+            iconCls: 'icon_addKey',
+            modal: true,
+            height: 170,
+            width: 500,
+            layout: 'fit',
+            resizable: false,
+            bodyBorder: false,
+            items: [{
                 xtype: 'formcreatekey'
             }]
-		});
+        });
         tmpWindow.on('done', function( data ) {
             Ext.getCmp('keyGrid').getStore().load();
             tmpWindow.close();
@@ -99,6 +106,6 @@ Ext.define('BIS.view.KeyManagerPanel', {
             tmpWindow.close();
         });
         tmpWindow.show();
-	}
+    }
 
 });

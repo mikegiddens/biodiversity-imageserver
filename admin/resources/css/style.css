@@ -406,3 +406,9 @@ img {
 .icon_barcode {
     background-image:url(../img/ico/barcode.png) !important;
 }
+
+/*    Custom Style */
+
+#formCreateEvent-body,.x-window-body{
+    border: none !important;
+}

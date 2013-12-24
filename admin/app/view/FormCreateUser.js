@@ -87,13 +87,26 @@ Ext.define('BIS.view.FormCreateUser', {
                             name: 'extra2'
                         }
 
-                    ]
-                },
-                {
-                    xtype: 'button',
-                    text: ( this.user ) ? 'Update User' : 'Add User',
-                    handler: this.submit
-                }
+                    ],
+                    dockedItems: [{
+                        xtype: 'toolbar',
+                        dock: 'bottom',
+                        ui: 'footer',
+                        items: [
+                            '->',
+                            {
+                                width: 80,
+                                text: ( this.user ) ? 'Update User' : 'Add User',
+                                handler: this.submit
+                            }
+                        ]
+                    }]
+                }/*,
+                 {
+                 xtype: 'button',
+                 text: ( this.user ) ? 'Update User' : 'Add User',
+                 handler: this.submit
+                 }*/
             ]
         });
 
@@ -118,7 +131,7 @@ Ext.define('BIS.view.FormCreateUser', {
                 var res = Ext.decode( resObj.responseText );
                 console.log( res );
                 if ( res.success ) {
-                    
+
                 }
             }
         });

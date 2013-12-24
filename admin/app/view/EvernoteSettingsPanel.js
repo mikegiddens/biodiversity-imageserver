@@ -1,19 +1,19 @@
 Ext.define('BIS.view.EvernoteSettingsPanel', {
-	extend: 'Ext.panel.Panel',
-	alias: ['widget.evernotesettingspanel'],
-	requires: ['BIS.view.FormCreateEvernoteAccount'],
-	id: 'evernoteSettingsPanel',
-	border: false,
-	layout: 'fit',
-	initComponent: function() {
-		var me = this;	
-		Ext.applyIf(me, {
-			items: [{
-				xtype: 'tabpanel',
-				id: 'evernoteSettingsTabPanel',
-				border: false,
-				activeTab: 0,
-				items: [
+    extend: 'Ext.panel.Panel',
+    alias: ['widget.evernotesettingspanel'],
+    requires: ['BIS.view.FormCreateEvernoteAccount'],
+    id: 'evernoteSettingsPanel',
+    border: false,
+    layout: 'fit',
+    initComponent: function() {
+        var me = this;
+        Ext.applyIf(me, {
+            items: [{
+                xtype: 'tabpanel',
+                id: 'evernoteSettingsTabPanel',
+                border: false,
+                activeTab: 0,
+                items: [
                     {
                         iconCls: 'icon_evernote',
                         title: 'Accounts',
@@ -35,7 +35,7 @@ Ext.define('BIS.view.EvernoteSettingsPanel', {
                                     height: 300,
                                     width: 500,
                                     layout: 'fit',
-                                    items: [{ 
+                                    items: [{
                                         xtype: 'formcreateevernoteaccount',
                                         device: record,
                                         mode: 'edit'
@@ -83,35 +83,35 @@ Ext.define('BIS.view.EvernoteSettingsPanel', {
                         }]
                     }
                 ],
-				dockedItems: [{
-					xtype: 'toolbar',
-					dock: 'top',
-					items: [{
-						text: 'Add Account',
-						iconCls: 'icon_evernote',
-						handler: this.createDevice
-					}]
-				}]
-			}]
-		});
+                dockedItems: [{
+                    xtype: 'toolbar',
+                    dock: 'top',
+                    items: [{
+                        text: 'Add Account',
+                        iconCls: 'icon_evernote',
+                        handler: this.createDevice
+                    }]
+                }]
+            }]
+        });
 
-		me.callParent(arguments);
-	},
-	createDevice: function() {
-		var tmpWindow = Ext.create('Ext.window.Window', {
-			title: 'Add Evernote Account',
-			iconCls: 'icon_addDevice',
-			modal: true,
-			height: 300,
-			width: 500,
-			layout: 'fit',
-			resizable: false,
-			bodyBorder: false,
-			items: [{
+        me.callParent(arguments);
+    },
+    createDevice: function() {
+        var tmpWindow = Ext.create('Ext.window.Window', {
+            title: 'Add Evernote Account',
+            iconCls: 'icon_addDevice',
+            modal: true,
+            height: 250,
+            width: 500,
+            layout: 'fit',
+            resizable: false,
+            bodyBorder: false,
+            items: [{
                 xtype: 'formcreateevernoteaccount',
                 mode: 'add'
             }]
-		});
+        });
         tmpWindow.on('accountCreated', function( data ) {
             Ext.getCmp('evernoteSettingsGrid').getStore().load();
             tmpWindow.close();
@@ -120,5 +120,5 @@ Ext.define('BIS.view.EvernoteSettingsPanel', {
             tmpWindow.close();
         });
         tmpWindow.show();
-	}
+    }
 });
