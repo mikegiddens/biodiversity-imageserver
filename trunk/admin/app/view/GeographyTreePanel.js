@@ -70,7 +70,7 @@ Ext.define('BIS.view.GeographyTreePanel', {
 			iconCls: 'icon_newGeography',
             resizable: false,
 			modal: true,
-			height: 175,
+			height: 150,
 			width: 350,
 			layout: 'fit',
 			items: [{

@@ -46,6 +46,8 @@ Ext.define('BIS.store.ImagesStore', {
                 url: Config.baseUrl + 'resources/api/api.php',
                 type: 'ajax',
                 sortParam: 'group',
+               /* directionParam: 'dir',
+                simpleSortMode : true,*/
                 extraParams: {
                     cmd: 'imageList'
                 },
