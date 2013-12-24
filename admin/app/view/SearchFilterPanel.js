@@ -195,7 +195,7 @@ Ext.define('BIS.view.SearchFilterPanel', {
 			title: 'Save Filter',
 			iconCls: 'icon_addFilter',
 			modal: true,
-			height: 350,
+			height: 150,
 			width: 500,
 			layout: 'fit',
 			resizable: false,

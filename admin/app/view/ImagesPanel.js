@@ -14,6 +14,7 @@ Ext.define('BIS.view.ImagesPanel', {
     beginLayout: Ext.emptyFn,
 	initComponent: function() {
 		var me = this;
+        console.log(me);
         var advancedFilter = null;
 		Ext.applyIf(me, {
 			columns: [{
@@ -141,6 +142,7 @@ Ext.define('BIS.view.ImagesPanel', {
 			parsedParams.push({property: p, value: params[p]});
 		}
 		this.getStore().filter( parsedParams );
+        this.getStore().loadPage(1);
 	},
     setAdvancedFilter: function( filterGraph, callback ) {
         this.getStore().getProxy().extraParams = {
@@ -157,12 +159,14 @@ Ext.define('BIS.view.ImagesPanel', {
                 }
             }
         });
+        this.getStore().loadPage(1);
     },
 	clearFilter: function() {
         this.getStore().getProxy().extraParams = {
             cmd: 'imageList'
         }
         this.getStore().load();
+        this.getStore().loadPage(1);
 	},
 	changeView: function( cycleBtn, item ) {
 		if ( item.type != 'details' ) {
@@ -176,5 +180,6 @@ Ext.define('BIS.view.ImagesPanel', {
             value: val
         }
         this.getStore().load();
+        this.getStore().loadPage(1);
 	}
 });
