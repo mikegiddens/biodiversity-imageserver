@@ -1148,8 +1148,6 @@ Class Image {
 
 		$this->query .= $where;
 		$this->queryCount .= $where;
-		// echo 'Test';
-// var_dump($this->data['gridSort']);
 		$this->setGroupFilter();
 		if(($this->data['sort']!='') && ($this->data['dir']!='')) {
 			$this->setOrderFilter('manual');
