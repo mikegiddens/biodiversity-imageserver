@@ -929,8 +929,10 @@
 
 				if($title != '') {
 					if($si->eventType->eventTypesTitleExists($title)) {
-						$valid = false;
-						$errorCode = 218;
+						if($si->eventType->eventTypesGetProperty("title") != $title) {
+							$valid = false;
+							$errorCode = 218;
+						}
 					}
 				}
 				
