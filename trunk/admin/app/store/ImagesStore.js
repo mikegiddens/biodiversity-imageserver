@@ -45,7 +45,7 @@ Ext.define('BIS.store.ImagesStore', {
             proxy: {
                 url: Config.baseUrl + 'resources/api/api.php',
                 type: 'ajax',
-                sortParam: 'group',
+                sortParam: 'gridSort',
                /* directionParam: 'dir',
                 simpleSortMode : true,*/
                 extraParams: {
