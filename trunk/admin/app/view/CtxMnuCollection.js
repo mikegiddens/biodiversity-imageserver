@@ -97,20 +97,23 @@ Ext.define('BIS.view.CtxMnuCollection', {
     
     handleAssignment: function( menu, item ) {
         var imagesAffected = '(n/a)';
+        var filteredImagesId = [];
         var params = {
             cmd: 'imageAddToCollection',
             code: this.record.get('code')
         }
         switch ( item.identifier ) {
             case 'selected':
-                var images = [];
-                Ext.each( Ext.getCmp('imagesGrid').getSelectionModel().getSelection(), function( image ) { images.push( image.get('imageId') ) });
-                imagesAffected = images.length;
-                params.imageId = JSON.stringify( images );
+                Ext.each( Ext.getCmp('imagesGrid').getSelectionModel().getSelection(), function( image ) { filteredImagesId.push( image.get('imageId') ) });
+                imagesAffected = filteredImagesId.length;
+                params.imageId = JSON.stringify( filteredImagesId );
                 break;
             case 'filtered':
-                params.imageId = Ext.getCmp('imagesGrid').getStore().collect( 'imageId', false, false );
-                imagesAffected = Ext.getCmp('imagesGrid').getStore().totalCount;
+                filteredImagesId  =  Ext.getCmp('imagesGrid').getStore().collect( 'imageId', false, false );
+                imagesAffected = filteredImagesId.length;
+                params.imageId = JSON.stringify( filteredImagesId );
+               /* params.imageId = Ext.getCmp('imagesGrid').getStore().collect( 'imageId', false, false );
+                imagesAffected = Ext.getCmp('imagesGrid').getStore().totalCount;*/
                 break;
             case 'all':
                 params.advFilter = JSON.stringify({ node: "group", logop: "and", children: [] }); // global filter
