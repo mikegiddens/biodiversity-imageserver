@@ -20,7 +20,7 @@ Ext.define('BIS.view.CtxMnuGeography', {
                         iconCls: 'icon_newGeography',
                         modal: true,
                         resizable: false,
-                        height: 175,
+                        height: 100,
                         width: 350,
                         layout: 'fit',
                         items: [{
