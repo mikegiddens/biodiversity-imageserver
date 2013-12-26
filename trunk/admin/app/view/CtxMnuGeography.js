@@ -171,7 +171,6 @@ Ext.define('BIS.view.CtxMnuGeography', {
                 attribType: 'attributeId',
                 attribute: attrId
             }
-            debugger;
             switch ( item.identifier ) {
                 case 'selected':
                     Ext.each( Ext.getCmp('imagesGrid').getSelectionModel().getSelection(), function( image ) { filteredImagesId.push( image.get('imageId') ) });
