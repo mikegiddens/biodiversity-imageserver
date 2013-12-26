@@ -19,7 +19,8 @@ Ext.define('BIS.store.ImagesStore', {
                 load: function( store, records, isSuccessful, operation, opts ) {
                     // set no images text on error and no results
                     // this updates the view element's html
-                    var cmp = Ext.getCmp('imagesGrid').getView().getEl();
+                    if ( Ext.getCmp('imagesGrid').getView().getEl() != undefined ){
+                        var cmp = Ext.getCmp('imagesGrid').getView().getEl();
                     if ( !isSuccessful ) {
                         if ( cmp ) {
                             cmp.update('<span class="noImages">No images found. Drag and drop one or more onto this panel to add new ones.</span>');
@@ -30,6 +31,7 @@ Ext.define('BIS.store.ImagesStore', {
                                 cmp.update('<span class="noImages">No images found. Drag and drop one or more onto this panel to add new ones.</span>');
                             }
                         }
+                    }
                     }
                     // unload image details panel
                     Ext.getCmp('imageDetailsPanel').loadImages([]);
@@ -46,8 +48,6 @@ Ext.define('BIS.store.ImagesStore', {
                 url: Config.baseUrl + 'resources/api/api.php',
                 type: 'ajax',
                 sortParam: 'gridSort',
-               /* directionParam: 'dir',
-                simpleSortMode : true,*/
                 extraParams: {
                     cmd: 'imageList'
                 },

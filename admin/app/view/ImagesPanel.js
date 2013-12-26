@@ -11,6 +11,9 @@ Ext.define('BIS.view.ImagesPanel', {
     bodyStyle: 'overflow-x:hidden ! important;',
 	store: 'ImagesStore',
     viewType: 'imagesgridview',
+    viewConfig :{
+        emptyText: '<span class="noImages">No images found. Drag and drop one or more onto this panel to add new ones.</span>'
+    },
     beginLayout: Ext.emptyFn,
 	initComponent: function() {
 		var me = this;
