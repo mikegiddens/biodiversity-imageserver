@@ -1148,12 +1148,15 @@ Class Image {
 
 		$this->query .= $where;
 		$this->queryCount .= $where;
-
+		// echo 'Test';
+// var_dump($this->data['gridSort']);
 		$this->setGroupFilter();
 		if(($this->data['sort']!='') && ($this->data['dir']!='')) {
 			$this->setOrderFilter('manual');
+		} else if ($this->data['gridSort'] != '' && is_array($this->data['gridSort'])) {
+			$this->setOrderFilter('gridSort');
 		} else {
-			$this->setOrderFilter();
+			$this->setOrderFilter('');
 		}
 		$this->setLimitFilter();
 // die($this->query);
@@ -1656,6 +1659,20 @@ Class Image {
 					$orderBy .= sprintf(" ORDER BY LOWER(I.%s) %s ", mysql_escape_string($this->data['sort']),  $this->data['dir']);
 				} else {
 					$orderBy .= sprintf(" ORDER BY I.%s %s ", mysql_escape_string($this->data['sort']),  $this->data['dir']);
+				}
+				break;
+			case 'gridSort':
+				$orderBy .= ' ORDER BY ';
+				if(count($this->data['gridSort'])) {
+					$ordArray = array();
+					foreach($this->data['gridSort'] as $order) {
+						if(!in_array($order['property'],array('imageId'))) {
+							$ordArray[] = " LOWER(I.{$order['property']}) {$order['direction']} ";
+						} else {
+							$ordArray[] = " I.{$order['property']} {$order['direction']} ";
+						}
+					}
+					$orderBy .= implode(',',$ordArray);
 				}
 				break;
 			default:

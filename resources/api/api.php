@@ -84,6 +84,7 @@
 		,	'genus'
 		,	'geoFlag'
 		,	'geographyId'
+		,	'gridSort'
 		,	'group'
 		,	'imageId'
 		,	'imagePath'
@@ -2593,6 +2594,7 @@
 				$data['showOCR'] = (@in_array(trim($showOCR),array('1','true','TRUE'))) ? true : false;
 				$data['showBarcode'] = (@in_array(trim($showBarcode),array('1','true','TRUE'))) ? true : false;
 				$data['order'] = json_decode(trim($order),true);
+				$data['gridSort'] = json_decode(trim($gridSort),true);
 				if(trim($sort) != '') {
 					$data['sort'] = trim($sort);
 					$dir = (strtoupper(trim($dir)) == 'DESC') ? 'DESC' : 'ASC';
