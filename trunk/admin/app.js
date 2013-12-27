@@ -122,6 +122,8 @@ Ext.application({
                 if ( xhr.readyState == 4 ) {
                     if ( xhr.status == 200 ) {
                         Ext.getCmp('uploadLabel').update( 'Upload complete!' );
+                        var storeGrid = Ext.getCmp('imagesGrid').getStore();
+                        storeGrid.load();
                         running = false;
                         initializeNextFile();
                     } else {
@@ -235,6 +237,8 @@ Ext.application({
                                     var data = Ext.decode( res.responseText );
                                     if ( data.success ) {
                                         Ext.getCmp('uploadLabel').update( 'Upload complete!' );
+                                        var storeGrid = Ext.getCmp('imagesGrid').getStore();
+                                        storeGrid.load();
                                         setTimeout( function() {
                                             files = [];
                                             totalFiles = 0;
