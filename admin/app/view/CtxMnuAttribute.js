@@ -168,6 +168,7 @@ Ext.define('BIS.view.CtxMnuAttribute', {
         });
     },
     update: function() {
+        var me = this;
         var tmpWindow = Ext.create('Ext.window.Window', {
             title: 'Edit Attribute ' + this.record.data.title,
             iconCls: 'icon_editAttribute',
@@ -187,7 +188,7 @@ Ext.define('BIS.view.CtxMnuAttribute', {
         tmpWindow.on( 'attributeCreated', function( data ) {
             tmpWindow.close();
             Ext.getCmp('categoryTreePanel').getStore().load({
-                node: this.record.parentNode
+                node: me.record.parentNode
             });
         });
         tmpWindow.on( 'cancel', function( data ) {
