@@ -30,7 +30,7 @@ Ext.define('BIS.view.CtxMnuNamespace', {
                             })
                         ]
                     }).show();
-                    tmpWindow.on('cateogoryCreated', function( data ) {
+                    tmpWindow.on('categoryCreated', function( data ) {
                         tmpWindow.close();
                         var store = Ext.getCmp('categoryTreePanel').getStore();
                         store.load({
