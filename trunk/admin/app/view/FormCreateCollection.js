@@ -42,6 +42,7 @@ Ext.define('BIS.view.FormCreateCollection', {
                         {
                             text: ( this.mode == 'add' ) ? 'Add' : 'Update',
                             scope: this,
+                            id: 'collectionSubmitButton',
                             handler: this.submitForm
                         },
                         '->',
@@ -68,13 +69,16 @@ Ext.define('BIS.view.FormCreateCollection', {
         var me = this;
 		var form = Ext.getCmp('formCreateCollection').getForm();
 		form.url = Config.baseUrl + 'resources/api/api.php';
+        Ext.getCmp('collectionSubmitButton').setText('Working...').disable();
 		if ( form.isValid() ) {
 			form.submit({
 				success: function(form, action) {
                     me.ownerCt.fireEvent( 'collectionCreated', Ext.decode(action.response.responseText) );
 				},
 				failure: function(form, action) {
-						Ext.Msg.alert('Failed', 'Request Failed');
+                    var response = Ext.decode(action.response.responseText);
+                    Ext.getCmp('collectionSubmitButton').setText(( me.mode == 'add' ) ? 'Add' : 'Update').enable();
+				    Ext.Msg.alert('Failed', response.error.msg);
 				}
 			});
 		}
