@@ -1847,8 +1847,11 @@ Class Image {
 						if($filter['key'] != '' && $filter['value'] != '') {
 							switch($filter['condition']) {
 								case '=':
-								case '!=':
 									$str .= sprintf(" ( at.`categoryId` = %d && at.`attributeId` %s %d ) " , $filter['key'], $filter['condition'], $filter['value']);
+									break;
+								case '!=':
+									// $str .= sprintf(" ( at.`categoryId` = %d && at.`attributeId` %s %d ) " , $filter['key'], $filter['condition'], $filter['value']);
+									$str .= sprintf(" ( at.`categoryId` IS NULL && at.`attributeId` IS NULL ) ", $filter['condition'], $filter['key'], $filter['condition'], $filter['value']);
 									break;
 								case 'is':
 									$str .= sprintf(" ( at.`categoryId` = %d && at.`name` = '%s' ) " , $filter['key'], $filter['value']);
@@ -2013,7 +2016,7 @@ Class Image {
 		$where = ($where != '') ? ' WHERE  0=0 AND ' . $where : '';
 		$query = $query . $where;
 		$query .= ' GROUP BY i.`imageId` ';
-		// echo $query;exit;
+		// echo $query;//exit;
 		return $query;
 	
 	}
