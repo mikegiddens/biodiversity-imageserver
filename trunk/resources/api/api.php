@@ -1432,11 +1432,13 @@
 					array_pop($bcode);
 					$bcode = @implode('.',$bcode);
 					$imagePath = (isset($imagePath))?$imagePath:$bcode . '/';
-
 				
 					$response = $si->storage->storageDeviceStore($tmp,$storageDeviceId,$filename, $imagePath, $key);
 					$iEXd = new EXIFread($tmp);
 					unlink($tmp);
+					
+					var_dump($response);
+					
 					if($response['success']) {
 						$si->pqueue->processQueueSetProperty('imageId', $response['imageId']);
 						$si->pqueue->processQueueSetProperty('processType','all');
@@ -3158,7 +3160,7 @@
 				}
 				
 				if($valid) {
-					$fieldsArray = array('filename','barcode','width','height','family','genus','specificEpithet','rank','author','title','description','globalUniqueIdentifier','copyright','characters','flickrPlantID','flickrDetails','picassaPlantID','zoomEnabled','ocrValue','ocrFlag','ScientificName','code','catalogueNumber','tmpFamily','tmpFamilyAccepted','tmpGenus','tmpGenusAccepted','storageDeviceId','path','originalFilename','remoteAccessKey','statusType','rating');
+					$fieldsArray = array('filename','barcode','width','height','family','genus','specificEpithet','rank','author','title','description','globalUniqueIdentifier','copyright','characters','flickrPlantID','flickrDetails','picassaPlantID','zoomEnabled','ocrValue','ocrFlag','scientificName','code','catalogueNumber','tmpFamily','tmpFamilyAccepted','tmpGenus','tmpGenusAccepted','storageDeviceId','path','originalFilename','remoteAccessKey','statusType','rating');
 					// $params = @json_decode(trim($params),true);
 					$params = @json_decode(trim($params),true);
 //					$params = @json_decode(trim($params),true);
