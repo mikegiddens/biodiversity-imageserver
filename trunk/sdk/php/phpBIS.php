@@ -625,6 +625,7 @@ class phpBIS
 		$data['order'] = $properties['order'];
 		$data['showOCR'] = (trim($properties['showOCR']) != '') ? $properties['showOCR'] : false;
 		$data['filter'] = $properties['filter'];
+		$data['filename'] = $properties['filename'];
 		$data['imageId'] = $properties['imageId'];
 		$data['sort'] = $properties['sort'];
 		$data['dir'] = $properties['dir'];
