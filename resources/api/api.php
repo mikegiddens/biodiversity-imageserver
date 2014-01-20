@@ -1435,10 +1435,8 @@
 				
 					$response = $si->storage->storageDeviceStore($tmp,$storageDeviceId,$filename, $imagePath, $key);
 					$iEXd = new EXIFread($tmp);
-					unlink($tmp);
-					
-					var_dump($response);
-					
+					unlink($tmp);				
+//					var_dump($response);
 					if($response['success']) {
 						$si->pqueue->processQueueSetProperty('imageId', $response['imageId']);
 						$si->pqueue->processQueueSetProperty('processType','all');
