@@ -2905,15 +2905,16 @@
 								$image->imageSetProperty('width',$ar[0]);
 								$image->imageSetProperty('height',$ar[1]);
 								$image->imageSetProperty('collectionCode',$collectionCode);
-							$image->imageSetProperty('storageDeviceId', $storageDeviceId);
-							// $image->imageSetProperty('path', $imagePath);
-							$image->imageSetProperty('originalFilename', $filename);
-								$image->imageSave();
+								$image->imageSetProperty('storageDeviceId', $storageDeviceId);
+							//	$image->imageSetProperty('path', $imagePath);
+								$image->imageSetProperty('originalFilename', $filename);
+								$res = $image->imageSave();
+								if ($res) {
+									$si->pqueue->processQueueSetProperty('imageId', $image->insert_id);
+									$si->pqueue->processQueueSetProperty('processType', 'all');
+									$si->pqueue->processQueueSave();
+								}
 								unset($image);
-			
-								$si->pqueue->processQueueSetProperty('imageId',$barcode);
-								$si->pqueue->processQueueSetProperty('processType','all');
-								$si->pqueue->processQueueSave();
 								$count++;
 							}
 						}
