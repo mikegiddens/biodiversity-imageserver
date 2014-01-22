@@ -627,6 +627,7 @@ class phpBIS
 		$data['filter'] = $properties['filter'];
 		$data['filename'] = $properties['filename'];
 		$data['imageId'] = $properties['imageId'];
+		$data['barcode'] = $properties['barcode'];
 		$data['sort'] = $properties['sort'];
 		$data['dir'] = $properties['dir'];
 		$data['code'] = $properties['code'];
