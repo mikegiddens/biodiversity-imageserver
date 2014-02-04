@@ -76,11 +76,33 @@ Ext.define('BIS.view.CategoryTreePanel', {
                                 break;
                             case 'attribute':
                                 ctx = Ext.create('BIS.view.CtxMnuAttribute', {record: record});
+
+                                var selected_grid_rows = Ext.getCmp('imagesGrid').getStore().collect( 'imageId', false, false );
+                                if ( !Ext.getCmp('id_clearFilter').disabled &&  selected_grid_rows.length > 0){
+                                    Ext.getCmp('id_ctxMneu_add').enable();
+                                    Ext.getCmp('id_ctxMneu_remove').enable();
+                                } else{
+                                    Ext.getCmp('id_ctxMneu_add').disable();
+                                    Ext.getCmp('id_ctxMneu_remove').disable();
+                                }
+
+
+                                var selected_grid_row = Ext.getCmp('imagesGrid').getSelectionModel().getSelection();
+                                if ( selected_grid_row.length > 0)  {
+                                    Ext.getCmp('id_ctxM_selected').enable();
+                                    Ext.getCmp('id_ctxM_remvoe_selected').enable();
+                                }else{
+                                    Ext.getCmp('id_ctxM_selected').disable();
+                                    Ext.getCmp('id_ctxM_remvoe_selected').disable();
+                                }
+
+
                                 break;
                         }
                     } else {
                         ctx = Ext.create('BIS.view.CtxMnuNamespace', {record: record});
                     }
+
                     ctx.showAt(e.getXY());
 				},
 				itemclick: function( tree, record, el, ind, e, opts ) {

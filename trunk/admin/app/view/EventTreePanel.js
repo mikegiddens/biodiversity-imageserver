@@ -122,7 +122,7 @@ Ext.define('BIS.view.EventTreePanel', {
             title: 'Create Event Type',
             iconCls: 'icon_newEventType',
             modal: true,
-            height: 225,
+            height: 200,
             width: 350,
             layout: 'fit',
             items: [{
