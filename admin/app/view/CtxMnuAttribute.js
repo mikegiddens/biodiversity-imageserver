@@ -59,6 +59,7 @@ Ext.define('BIS.view.CtxMnuAttribute', {
                 '-',
                 {
                     text: 'Add to',
+
                     iconCls: 'icon_',
                     menu: {
                         xtype: 'menu',
@@ -69,16 +70,48 @@ Ext.define('BIS.view.CtxMnuAttribute', {
                         },
                         items: [
                             {
+                                id: 'id_ctxM_selected',
                                 text: 'Selected',
                                 identifier: 'selected'
                             },
                             {
                                 text: 'Filter Results',
-                                identifier: 'filtered'
+                                identifier: 'filtered',
+                                id:'id_ctxMneu_add'
                             },
                             {
                                 text: 'All Images',
                                 identifier: 'all'
+                            }
+                        ]
+                    }
+                },
+                {
+                    text: 'Remove from',
+
+                    iconCls: 'icon_',
+                    menu: {
+                        xtype: 'menu',
+                        scope: me,
+                        listeners: {
+                            scope: me,
+                            click: me.removeAttribute
+                        },
+                        items: [
+                            {
+                                id: 'id_ctxM_remvoe_selected',
+                                text: 'Selected',
+                                identifier: 'remove_selected'
+
+                            },
+                            {
+                                text: 'Filter Results',
+                                identifier: 'remove_filtered',
+                                id:'id_ctxMneu_remove'
+                            },
+                            {
+                                text: 'All Images',
+                                identifier: 'remove_all'
                             }
                         ]
                     }
@@ -145,6 +178,52 @@ Ext.define('BIS.view.CtxMnuAttribute', {
             }
         });
     },
+
+    removeAttribute: function( menu, item ){
+        var imagesAffected = '(n/a)';
+        var filteredImagesId = [];
+        var params = {
+            cmd: 'imageDeleteAttribute',
+            attribType: 'attributeId',
+            attribute: this.record.get('attributeId')
+        }
+        switch ( item.identifier ) {
+            case 'remove_selected':
+                Ext.each( Ext.getCmp('imagesGrid').getSelectionModel().getSelection(), function( image ) { filteredImagesId.push( image.get('imageId') ) });
+                imagesAffected = filteredImagesId.length;
+                params.imageId = JSON.stringify( filteredImagesId );
+                break;
+            case 'remove_filtered':
+                filteredImagesId  =  Ext.getCmp('imagesGrid').getStore().collect( 'imageId', false, false );
+                imagesAffected = filteredImagesId.length;
+                params.imageId = JSON.stringify( filteredImagesId );
+                break;
+            case 'remove_all':
+                params.advFilter = JSON.stringify({ node: "group", logop: "and", children: [] }); // global filter
+                imagesAffected = 'all';
+                break;
+        }
+        Ext.Msg.confirm( 'Delete Attribute from Images', 'Are you sure you want to delete  "' + this.record.get('name') + '" to <span style="font-weight:bold">' + imagesAffected + '</span> images?', function( btn, text, opts ) {
+            if ( btn == 'yes' ) {
+                Ext.Ajax.request({
+                    url: Config.baseUrl + 'resources/api/api.php',
+                    params: params,
+                    scope: this,
+                    success: function( data ) {
+                        data = Ext.decode( data.responseText );
+                        console.log( data );
+                        if ( data.success ) {
+                            // reload image details panel
+                            var detailsPanel = Ext.getCmp('imageDetailsPanel');
+                            detailsPanel.loadImages( detailsPanel.images );
+                        }
+                    }
+                });
+            }
+        });
+    },
+
+
     remove: function() {
         Ext.Ajax.request({
             method: 'POST',

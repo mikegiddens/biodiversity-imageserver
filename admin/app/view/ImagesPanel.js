@@ -16,6 +16,7 @@ Ext.define('BIS.view.ImagesPanel', {
     },
     beginLayout: Ext.emptyFn,
 	initComponent: function() {
+
 		var me = this;
         console.log(me);
         var advancedFilter = null;
@@ -59,6 +60,8 @@ Ext.define('BIS.view.ImagesPanel', {
 				items: [{
 					xtype: 'button',
 					text: 'Clear Filter',
+                    id:'id_clearFilter',
+                    disabled: true,
 					iconCls: 'icon_cancel',
 					scope: this,
 					handler: this.clearFilter
@@ -110,6 +113,7 @@ Ext.define('BIS.view.ImagesPanel', {
 				}]
 			}]
 		});
+
 		me.callParent(arguments);
 	},
     toggleAdvancedFilter: function( btn, e ) {
@@ -130,6 +134,8 @@ Ext.define('BIS.view.ImagesPanel', {
                 ]
             });
             this.advancedFilter.on('done', function( data ) {
+                Ext.getCmp('id_clearFilter').enable();
+                Ext.getCmp('id_clearFilter').disabled = false;
                 me.advancedFilter.hide();
             });
             this.advancedFilter.on('cancel', function( data ) {
@@ -162,13 +168,15 @@ Ext.define('BIS.view.ImagesPanel', {
                 }
             }
         });
-        this.getStore().loadPage(1);
+     //   this.getStore().loadPage(1);
     },
 	clearFilter: function() {
+        this.getStore().getProxy().extraParams = {};
         this.getStore().getProxy().extraParams = {
             cmd: 'imageList'
         }
-        this.getStore().load();
+        Ext.getCmp('id_clearFilter').disable();
+      //  this.getStore().load();
         this.getStore().loadPage(1);
 	},
 	changeView: function( cycleBtn, item ) {
