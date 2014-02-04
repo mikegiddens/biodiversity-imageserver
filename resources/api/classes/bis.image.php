@@ -1730,7 +1730,7 @@ Class Image {
 		if(is_array($this->data['advFilter']) && count($this->data['advFilter'])) {
 			$qry = $this->getByCrazyFilter($this->data['advFilter']);
 			$query = " INSERT IGNORE INTO imageAttrib(imageId, categoryId, attributeId) SELECT im.imageId, $categoryId, $attributeId FROM ($qry) im ";
-			// echo $query; exit;
+			//echo $query;  exit;
 			if($this->db->query($query)) {
 				$this->lg->logSetProperty('query', $query);
 				$this->lg->logSave();
@@ -1778,6 +1778,7 @@ Class Image {
 			return true;
 		} else {
 			$query = " INSERT IGNORE INTO imageAttrib(imageId, categoryId, attributeId) SELECT imageId, $categoryId, $attributeId FROM image ";
+			// echo $query;
 			if($this->db->query($query)) {
 				$this->lg->logSetProperty('query', $query);
 				$this->lg->logSave();
@@ -1786,6 +1787,42 @@ Class Image {
 	}
 
 	public function imageAttributeDelete() {
+		// $imageIds = @explode(',', $this->data['imageId']);
+		$imageIds = $this->data['imageId'];
+		$attributeId = $this->data['attributeId'];
+		$this->lg->logSetProperty('table', 'imageAttrib');
+		
+		
+		if(is_array($this->data['advFilter']) && count($this->data['advFilter'])) {
+			$qry = $this->getByCrazyFilter($this->data['advFilter']);
+			$query = sprintf(" DELETE FROM `imageAttrib` WHERE attributeId = %s AND imageId IN (SELECT im.imageId FROM ($qry) im) "
+							, mysql_escape_string($attributeId));
+			//echo $query;  exit;
+			if($this->db->query($query)) {
+				$this->lg->logSetProperty('query', $query);
+				$this->lg->logSave();
+				return true;
+			} else {
+				return false;
+			}
+		} else if(is_array($imageIds) && count($imageIds)) {
+			$query = sprintf("DELETE FROM `imageAttrib` WHERE attributeId = %s AND imageId IN (%s)"
+			, mysql_escape_string($attributeId)
+			, @implode(',',$imageIds)
+			);
+			if($this->db->query($query)) {
+				$this->lg->logSetProperty('query', $query);
+				$this->lg->logSave();
+				return true;
+			} else {
+				return false;
+			}
+		} else {
+			return false;
+		}
+	}
+
+	public function imageAttributeDelete1() {
 		// $imageIds = @explode(',', $this->data['imageId']);
 		$imageIds = $this->data['imageId'];
 		$attributeId = $this->data['attributeId'];
@@ -1802,22 +1839,6 @@ Class Image {
 			} else {
 				return false;
 			}
-			
-			// foreach($imageIds as $id) {
-			// $query = sprintf("DELETE FROM `imageAttrib` WHERE imageId = %s AND attributeId = %s"
-				// , mysql_escape_string($id)
-				// , mysql_escape_string($attributeId)
-				// );
-				// if($this->db->query($query)) {
-
-				// $query = sprintf("INSERT INTO `imageLog` (action, imageId, afterDesc, query, dateCreated) VALUES (11, '%s', 'Attrib ID: %s', '%s', NOW())"
-				// , mysql_escape_string($id)
-				// , mysql_escape_string($attributeId)
-				// , mysql_escape_string($query)
-				// );
-				// $this->db->query($query);
-				// }
-			// }
 		} else {
 			return false;
 		}
