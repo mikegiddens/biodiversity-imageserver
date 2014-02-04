@@ -2229,6 +2229,7 @@
 					$errorCode = 157;
 				}
 				$attribType = in_array(trim($attribType),array('attributeId','name')) ? trim($attribType) : 'attributeId';
+				$data['imageId'] = $imageId;
 				$data['attributeId'] = $attributeId;
 				if($data['attributeId'] == "") {
 					if($attribute != "") {
