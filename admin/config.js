@@ -1,7 +1,8 @@
 Config = {
 		title: 'Biodiversity Image Server'
 	,	reports: true
-    ,	baseUrl:'http://localhost/TEKgile/projects/bis/'
+   // ,	baseUrl:'http://localhost/TEKgile/projects/bis/'
+	 ,	baseUrl:'http://bis.silverbiology.com/dev/'
 	,	imageStoreParams: {
 				cmd: 'images'
 			,	filter: ''
