@@ -2203,8 +2203,61 @@
 				}
 				break;
 
-			
+
 			case 'imageDeleteAttribute':
+				checkAuth();
+				if($imageId != '') {
+					if(!is_numeric($imageId)) {
+						$imageId = json_decode($imageId,true);
+					} else {
+						if(!$si->image->imageLoadById($imageId)) {
+							$valid = false;
+							$errorCode = 158;
+						} else {
+							$imageId = array($imageId);
+						}
+					}
+				} else if($advFilterId != '') {
+					if($si->advFilter->advFilterLoadById($advFilterId)) {
+						$advFilter  = $si->advFilter->advFilterGetProperty('filter');
+					}
+					$data['advFilter'] = json_decode(trim($advFilter),true);
+				} else if (trim($advFilter) != "") {
+					$data['advFilter'] = json_decode(trim($advFilter),true);
+				} else {
+					$valid = false;
+					$errorCode = 157;
+				}
+				$attribType = in_array(trim($attribType),array('attributeId','name')) ? trim($attribType) : 'attributeId';
+				$data['attributeId'] = $attributeId;
+				if($data['attributeId'] == "") {
+					if($attribute != "") {
+						if(false === ($data['attributeId'] = $si->imageAttribute->imageAttributeGetBy($attribute, $attribType, $data['categoryId']))) {
+							$valid = false;
+							$errorCode = 149;
+						}
+					} else {
+						$valid = false;
+						$errorCode = 109;
+					}
+				}
+				if($valid) {
+					$si->image->lg->logSetProperty('action', 'imageDeleteAttribute');
+					$si->image->lg->logSetProperty('lastModifiedBy', $_SESSION['user_id']);
+
+					$si->image->imageSetData($data);
+					if($si->image->imageAttributeDelete()) {
+						$response = ( json_encode( array( 'success' => true, 'processTime' => microtime(true) - $timeStart ) ) );
+					} else {
+						$response =  (json_encode( array( 'success' => false, 'error' => $si->getErrorArray(162)) ));
+					}
+				} else {
+					$response = ( json_encode( array( 'success' => false, 'error' => $si->getErrorArray($errorCode)) ));
+				}
+				break;
+
+				
+			case 'imageDeleteAttribute1':
 				checkAuth();
 				
 				if($imageId == "") {
