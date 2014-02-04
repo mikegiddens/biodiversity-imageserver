@@ -1792,7 +1792,6 @@ Class Image {
 		$attributeId = $this->data['attributeId'];
 		$this->lg->logSetProperty('table', 'imageAttrib');
 		
-		
 		if(is_array($this->data['advFilter']) && count($this->data['advFilter'])) {
 			$qry = $this->getByCrazyFilter($this->data['advFilter']);
 			$query = sprintf(" DELETE FROM `imageAttrib` WHERE attributeId = %s AND imageId IN (SELECT im.imageId FROM ($qry) im) "
@@ -1845,7 +1844,7 @@ Class Image {
 	}
 
 	public function crazyFilter($filter,$clearFlag = false) {
-		global $tables, $conditionArray, $fieldsArray;
+		global $tables, $conditionArray, $fieldsArray, $querybit, $childcount;
 		$str = '';
 		if($clearFlag) $tables = array('image');
 		switch($filter['node']) {
@@ -1854,11 +1853,18 @@ Class Image {
 				if(is_array($filter['children']) && count($filter['children'])) {
 					foreach($filter['children'] as $child) {
 						$dt = $this->crazyFilter($child);
-						($dt != '' ) ? $ar[] = $dt : '';
+						// ($dt != '' ) ? $ar[] = $dt : '';
+						if($dt != '' ) {
+							$ar[] = $dt;
+							if($filter['logop'] == 'and') {
+								$childcount++;
+							}
+						}
 					}
 				}
 				if(count($ar)) {
-					$str .= ' ( ' . implode($filter['logop'], $ar) . ' ) ';
+					// $str .= ' ( ' . implode($filter['logop'], $ar) . ' ) ';
+					$str .= ' ( ' . implode("or", $ar) . ' ) ';
 				}
 				break;
 			case 'condition':
@@ -1872,7 +1878,10 @@ Class Image {
 									break;
 								case '!=':
 									// $str .= sprintf(" ( at.`categoryId` = %d && at.`attributeId` %s %d ) " , $filter['key'], $filter['condition'], $filter['value']);
-									$str .= sprintf(" ( at.`categoryId` IS NULL && at.`attributeId` IS NULL ) ", $filter['condition'], $filter['key'], $filter['condition'], $filter['value']);
+									if($filter['key'] != '' && $filter['value'] != '') {
+										$querybit = sprintf(" AND iav.`categoryId` = %s && iav.`attributeId` = %s ", $filter['key'], $filter['value']);
+									}
+									$str .= " ( at.`categoryId` IS NULL && at.`attributeId` IS NULL ) ";
 									break;
 								case 'is':
 									$str .= sprintf(" ( at.`categoryId` = %d && at.`name` = '%s' ) " , $filter['key'], $filter['value']);
@@ -1999,7 +2008,8 @@ Class Image {
 	}
 
 	public function getByCrazyFilter ($filter, $totalFlag = false, $ocrFlag = false) {
-		global $tables;
+		global $tables, $querybit, $childcount;
+		$querybit = '';$childcount = 0;
 		$tables = array();
 		// $filter = json_decode($filter,true);
 		
@@ -2015,6 +2025,12 @@ Class Image {
 		# fields for url computation
 		$query .= ',i.`storageDeviceId`,i.`path`';
 		$query .= ',i.`nameGeographyFinderFlag`,i.`nameFinderFlag`,i.`nameFinderValue`,i.`scientificName`, i.`collectionCode`, i.`globalUniqueIdentifier` ';
+		
+		# for child count logic
+		if($childcount > 1) {
+			$query .= ',count(*) ct ';
+		}
+		
 		$query .= ' FROM `image` i ';
 		
 		$tables = array_unique($tables);
@@ -2025,7 +2041,7 @@ Class Image {
 						$query .=' LEFT OUTER JOIN (SELECT ei.imageId,e.eventId,e.eventTypeId,e.title FROM eventImages ei, events e WHERE ei.eventId = e.eventId) ev ON i.imageId = ev.imageId ';
 						break;
 					case 'attribute':
-						$query .=' LEFT OUTER JOIN (SELECT ia.imageId,iav.attributeId,iav.categoryId,iav.name FROM imageAttrib ia, imageAttribValue iav WHERE ia.attributeId = iav.attributeId) at ON i.imageId = at.imageId ';
+						$query .= " LEFT OUTER JOIN (SELECT ia.imageId,iav.attributeId,iav.categoryId,iav.name FROM imageAttrib ia, imageAttribValue iav WHERE ia.attributeId = iav.attributeId $querybit ) at ON i.imageId = at.imageId ";
 						break;
 					case 'geography':
 						// $query .=' LEFT OUTER JOIN (SELECT ei.`imageId`, e.`eventId`, e.`geographyId`, g.`country`, g.`countryIso`, g.`admin0`, g.`admin1`, g.`admin2`, g.`admin3` FROM `eventImages` ei, `events` e, `geography` g WHERE ei.`eventId` = e.`eventId` AND e.`geographyId` = g.`geographyId`) geo ON i.imageId = geo.imageId ';
@@ -2037,6 +2053,9 @@ Class Image {
 		$where = ($where != '') ? ' WHERE  0=0 AND ' . $where : '';
 		$query = $query . $where;
 		$query .= ' GROUP BY i.`imageId` ';
+		if($childcount > 1) {
+			$query .= sprintf(" HAVING ct = %s ", $childcount);
+		}
 		// echo $query;//exit;
 		return $query;
 	
