@@ -77,7 +77,7 @@ Ext.define('BIS.view.CtxMnuAttribute', {
                             {
                                 text: 'Filter Results',
                                 identifier: 'filtered',
-                                id:'id_ctxMneu_add'
+                                id:'id_ctxMenu_add'
                             },
                             {
                                 text: 'All Images',
@@ -107,7 +107,7 @@ Ext.define('BIS.view.CtxMnuAttribute', {
                             {
                                 text: 'Filter Results',
                                 identifier: 'remove_filtered',
-                                id:'id_ctxMneu_remove'
+                                id:'id_ctxMenu_remove'
                             },
                             {
                                 text: 'All Images',
@@ -135,6 +135,7 @@ Ext.define('BIS.view.CtxMnuAttribute', {
     handleAssignment: function( menu, item ) {
         var imagesAffected = '(n/a)';
         var filteredImagesId = [];
+        var icon = Ext.MessageBox.QUESTION;
         var params = {
             cmd: 'imageAddAttribute',
             category: this.record.get('categoryId'),
@@ -157,24 +158,31 @@ Ext.define('BIS.view.CtxMnuAttribute', {
             case 'all':
                 params.advFilter = JSON.stringify({ node: "group", logop: "and", children: [] }); // global filter
                 imagesAffected = 'all';
+                icon = Ext.MessageBox.WARNING;
                 break;
         }
-        Ext.Msg.confirm( 'Add Attribute to Images', 'Are you sure you want to add "' + this.record.get('name') + '" to <span style="font-weight:bold">' + imagesAffected + '</span> images?', function( btn, text, opts ) {
-            if ( btn == 'yes' ) {
-                Ext.Ajax.request({
-                    url: Config.baseUrl + 'resources/api/api.php',
-                    params: params,
-                    scope: this,
-                    success: function( data ) {
-                        data = Ext.decode( data.responseText );
-                        console.log( data );
-                        if ( data.success ) {
-                            // reload image details panel
-                            var detailsPanel = Ext.getCmp('imageDetailsPanel');
-                            detailsPanel.loadImages( detailsPanel.images );
+        Ext.MessageBox.show({
+            title: 'Add Attribute to Images',
+            msg: 'Are you sure you want to add "' + this.record.get('name') + '" to <span style="font-weight:bold">' + imagesAffected + '</span> images?',
+            buttons: Ext.MessageBox.YESNO,
+            icon: icon ,
+            fn:   function( btn, text, opts ) {
+                if ( btn == 'yes' ) {
+                    Ext.Ajax.request({
+                        url: Config.baseUrl + 'resources/api/api.php',
+                        params: params,
+                        scope: this,
+                        success: function( data ) {
+                            data = Ext.decode( data.responseText );
+                            console.log( data );
+                            if ( data.success ) {
+                                // reload image details panel
+                                var detailsPanel = Ext.getCmp('imageDetailsPanel');
+                                detailsPanel.loadImages( detailsPanel.images );
+                            }
                         }
-                    }
-                });
+                    });
+                }
             }
         });
     },
@@ -182,6 +190,7 @@ Ext.define('BIS.view.CtxMnuAttribute', {
     removeAttribute: function( menu, item ){
         var imagesAffected = '(n/a)';
         var filteredImagesId = [];
+        var icon = Ext.MessageBox.QUESTION;
         var params = {
             cmd: 'imageDeleteAttribute',
             attribType: 'attributeId',
@@ -201,24 +210,31 @@ Ext.define('BIS.view.CtxMnuAttribute', {
             case 'remove_all':
                 params.advFilter = JSON.stringify({ node: "group", logop: "and", children: [] }); // global filter
                 imagesAffected = 'all';
+                icon = Ext.MessageBox.WARNING;
                 break;
         }
-        Ext.Msg.confirm( 'Delete Attribute from Images', 'Are you sure you want to delete  "' + this.record.get('name') + '" to <span style="font-weight:bold">' + imagesAffected + '</span> images?', function( btn, text, opts ) {
-            if ( btn == 'yes' ) {
-                Ext.Ajax.request({
-                    url: Config.baseUrl + 'resources/api/api.php',
-                    params: params,
-                    scope: this,
-                    success: function( data ) {
-                        data = Ext.decode( data.responseText );
-                        console.log( data );
-                        if ( data.success ) {
-                            // reload image details panel
-                            var detailsPanel = Ext.getCmp('imageDetailsPanel');
-                            detailsPanel.loadImages( detailsPanel.images );
+        Ext.MessageBox.show({
+            title: 'Delete Attribute from Images',
+            msg: 'Are you sure you want to delete "' + this.record.get('name') + '" from <span style="font-weight:bold">' + imagesAffected + '</span> images?',
+            buttons: Ext.MessageBox.YESNO,
+            icon: icon ,
+            fn:   function( btn, text, opts ) {
+                if ( btn == 'yes' ) {
+                    Ext.Ajax.request({
+                        url: Config.baseUrl + 'resources/api/api.php',
+                        params: params,
+                        scope: this,
+                        success: function( data ) {
+                            data = Ext.decode( data.responseText );
+                            console.log( data );
+                            if ( data.success ) {
+                                // reload image details panel
+                                var detailsPanel = Ext.getCmp('imageDetailsPanel');
+                                detailsPanel.loadImages( detailsPanel.images );
+                            }
                         }
-                    }
-                });
+                    });
+                }
             }
         });
     },
