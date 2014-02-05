@@ -78,7 +78,7 @@ Ext.define('BIS.view.CategoryTreePanel', {
                                 ctx = Ext.create('BIS.view.CtxMnuAttribute', {record: record});
 
                                 var selected_grid_rows = Ext.getCmp('imagesGrid').getStore().collect( 'imageId', false, false );
-                                debugger;
+
                                 if ( !Ext.getCmp('id_clearFilter').disabled &&  selected_grid_rows.length > 0){
                                     Ext.getCmp('id_ctxMenu_add').enable();
                                     Ext.getCmp('id_ctxMenu_remove').enable();
