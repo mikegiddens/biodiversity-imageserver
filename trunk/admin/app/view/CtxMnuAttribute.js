@@ -42,7 +42,30 @@ Ext.define('BIS.view.CtxMnuAttribute', {
                     condition: '='
                 }
             ]
-        }
+        };
+        this.addItem_selected = Ext.create('Ext.Action', {
+            text: 'Selected',
+            identifier: 'selected',
+            disabled: true
+        });
+
+        this.addItem_filtered = Ext.create('Ext.Action', {
+            text: 'Filter Results',
+            identifier: 'filtered',
+            disabled: true
+        });
+
+        this.removeItem_selected = Ext.create('Ext.Action', {
+            disabled: true,
+            text: 'Selected',
+            identifier: 'remove_selected'
+        });
+
+        this.removeItem_filtered = Ext.create('Ext.Action', {
+            text: 'Filter Results',
+            identifier: 'remove_filtered',
+            disabled: true
+        });
 
         Ext.applyIf(me, {
             items: [
@@ -69,16 +92,8 @@ Ext.define('BIS.view.CtxMnuAttribute', {
                             click: me.handleAssignment
                         },
                         items: [
-                            {
-                                id: 'id_ctxM_selected',
-                                text: 'Selected',
-                                identifier: 'selected'
-                            },
-                            {
-                                text: 'Filter Results',
-                                identifier: 'filtered',
-                                id:'id_ctxMenu_add'
-                            },
+                           me.addItem_selected,
+                           me.addItem_filtered,
                             {
                                 text: 'All Images',
                                 iconCls: 'icon_error',
@@ -99,17 +114,8 @@ Ext.define('BIS.view.CtxMnuAttribute', {
                             click: me.removeAttribute
                         },
                         items: [
-                            {
-                                id: 'id_ctxM_remvoe_selected',
-                                text: 'Selected',
-                                identifier: 'remove_selected'
-
-                            },
-                            {
-                                text: 'Filter Results',
-                                identifier: 'remove_filtered',
-                                id:'id_ctxMenu_remove'
-                            },
+                          me.removeItem_selected,
+                          me.removeItem_filtered,
                             {
                                 text: 'All Images',
                                 iconCls: 'icon_error',

@@ -68,6 +68,7 @@ Ext.define('BIS.view.CategoryTreePanel', {
 				},
 				itemcontextmenu: function(view, record, item, index, e) {
 					e.stopEvent();
+                    e.preventDefault();
                     var ctx;
                     if ( !record.raw.isNamespace ) {
                         switch( record.data.modelClass ) {
@@ -80,21 +81,20 @@ Ext.define('BIS.view.CategoryTreePanel', {
                                 var selected_grid_rows = Ext.getCmp('imagesGrid').getStore().collect( 'imageId', false, false );
 
                                 if ( !Ext.getCmp('id_clearFilter').disabled &&  selected_grid_rows.length > 0){
-                                    Ext.getCmp('id_ctxMenu_add').enable();
-                                    Ext.getCmp('id_ctxMenu_remove').enable();
+                                    ctx.addItem_filtered.enable();
+                                    ctx.removeItem_filtered.enable();
                                 } else{
-                                    Ext.getCmp('id_ctxMenu_add').disable();
-                                    Ext.getCmp('id_ctxMenu_remove').disable();
+                                    ctx.addItem_filtered.disable();
+                                    ctx.removeItem_filtered.disable();
                                 }
-
-
                                 var selected_grid_row = Ext.getCmp('imagesGrid').getSelectionModel().getSelection();
                                 if ( selected_grid_row.length > 0)  {
-                                    Ext.getCmp('id_ctxM_selected').enable();
-                                    Ext.getCmp('id_ctxM_remvoe_selected').enable();
+                                    ctx.addItem_selected.enable();
+                                    ctx.removeItem_selected.enable();
                                 }else{
-                                    Ext.getCmp('id_ctxM_selected').disable();
-                                    Ext.getCmp('id_ctxM_remvoe_selected').disable();
+                                    ctx.addItem_selected.disable();
+                                    ctx.removeItem_selected.disable();
+
                                 }
 
 
