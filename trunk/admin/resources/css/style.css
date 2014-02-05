@@ -412,3 +412,14 @@ img {
 #formCreateEvent-body,.x-window-body{
     border: none !important;
 }
+.icon_error {
+    background-image:url(../img/ico/error.png) !important;
+}
+
+.normal_text{
+    color: #000000 !important;
+}
+
+.delete_all_text{
+    color: red !important;
+}
