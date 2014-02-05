@@ -81,6 +81,7 @@ Ext.define('BIS.view.CtxMnuAttribute', {
                             },
                             {
                                 text: 'All Images',
+                                iconCls: 'icon_error',
                                 identifier: 'all'
                             }
                         ]
@@ -111,6 +112,7 @@ Ext.define('BIS.view.CtxMnuAttribute', {
                             },
                             {
                                 text: 'All Images',
+                                iconCls: 'icon_error',
                                 identifier: 'remove_all'
                             }
                         ]
@@ -136,6 +138,7 @@ Ext.define('BIS.view.CtxMnuAttribute', {
         var imagesAffected = '(n/a)';
         var filteredImagesId = [];
         var icon = Ext.MessageBox.QUESTION;
+        var text_color = 'normal_text';
         var params = {
             cmd: 'imageAddAttribute',
             category: this.record.get('categoryId'),
@@ -159,11 +162,12 @@ Ext.define('BIS.view.CtxMnuAttribute', {
                 params.advFilter = JSON.stringify({ node: "group", logop: "and", children: [] }); // global filter
                 imagesAffected = 'all';
                 icon = Ext.MessageBox.WARNING;
+                text_color = 'delete_all_text';
                 break;
         }
         Ext.MessageBox.show({
             title: 'Add Attribute to Images',
-            msg: 'Are you sure you want to add "' + this.record.get('name') + '" to <span style="font-weight:bold">' + imagesAffected + '</span> images?',
+            msg:'<span class='+text_color +'> Are you sure you want to add "' + this.record.get('name') + '" to <span style="font-weight:bold">' + imagesAffected + '</span> images? </span>',
             buttons: Ext.MessageBox.YESNO,
             icon: icon ,
             fn:   function( btn, text, opts ) {
@@ -191,6 +195,7 @@ Ext.define('BIS.view.CtxMnuAttribute', {
         var imagesAffected = '(n/a)';
         var filteredImagesId = [];
         var icon = Ext.MessageBox.QUESTION;
+        var text_color = 'normal_text';
         var params = {
             cmd: 'imageDeleteAttribute',
             attribType: 'attributeId',
@@ -211,11 +216,12 @@ Ext.define('BIS.view.CtxMnuAttribute', {
                 params.advFilter = JSON.stringify({ node: "group", logop: "and", children: [] }); // global filter
                 imagesAffected = 'all';
                 icon = Ext.MessageBox.WARNING;
+                text_color = 'delete_all_text';
                 break;
         }
         Ext.MessageBox.show({
             title: 'Delete Attribute from Images',
-            msg: 'Are you sure you want to delete "' + this.record.get('name') + '" from <span style="font-weight:bold">' + imagesAffected + '</span> images?',
+            msg: '<span class='+text_color +'> Are you sure you want to delete "' + this.record.get('name') + '" from <span style="font-weight:bold">' + imagesAffected + '</span> images?</span>',
             buttons: Ext.MessageBox.YESNO,
             icon: icon ,
             fn:   function( btn, text, opts ) {
