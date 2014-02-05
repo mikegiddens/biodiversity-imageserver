@@ -222,7 +222,7 @@ Ext.define('BIS.view.SearchFilterPanel', {
             });
         }else{
             Ext.MessageBox.alert('Status', 'Please select any filter values.');
-            Ext.getCmp('id_clearFilter').disabled = false;
+            Ext.getCmp('id_clearFilter').disabled = true;
         }
 
     },
