@@ -32,7 +32,7 @@ Ext.define('BIS.view.FilterTreePanel', {
             var objectsFormPanel = Ext.getCmp( 'objectsFormPanel' );
             var conditionCombo = Ext.getCmp( 'searchFilterCondition' );
             Ext.getCmp('filterToText').update('');
-            Ext.getCmp('searchFilterText').setValue('');
+           // Ext.getCmp('searchFilterText').setValue('');
             objectsFormPanel.conditionalComponent = null;
             objectsFormPanel.filterGraphRecord = null;
             Ext.each( Ext.getCmp('objectFormFields').items.items, function( item ) { item.hide() } );
@@ -40,9 +40,19 @@ Ext.define('BIS.view.FilterTreePanel', {
             if ( record.get('node') == 'condition' ) {
                 switch ( record.get('object') ) {
                     case 'attribute':
-                        Ext.getCmp( 'searchFiltercategory' ).setValue( record.get('key') ).show();
                         objectsFormPanel.conditionalComponent = Ext.getCmp( 'searchFilterattribute' );
+                        objectsFormPanel.conditionalComponent.clearValue();
+                        objectsFormPanel.conditionalComponent.getStore().getProxy().extraParams = {};
+                        objectsFormPanel.conditionalComponent.getStore().getProxy().extraParams={
+                            cmd : 'attributeList',
+                            showNames: false,
+                            order : 'name',
+                            categoryId : record.get('key')
+                        };
+                        objectsFormPanel.conditionalComponent.getStore().load();
+                        Ext.getCmp( 'searchFiltercategory' ).setValue( record.get('key') ).show();
                         objectsFormPanel.conditionalComponent.setValue( record.get('value') ).show();
+                        Ext.getCmp( 'searchFilterText' ).setValue( record.get('value') ).show();
                         conditionCombo.getStore().clearFilter( true );
                         conditionCombo.getStore().filterBy( function( record, id ) {
                             return record.get('type') != 'time';

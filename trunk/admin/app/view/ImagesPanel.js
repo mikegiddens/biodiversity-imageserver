@@ -176,6 +176,14 @@ Ext.define('BIS.view.ImagesPanel', {
             cmd: 'imageList'
         }
         Ext.getCmp('id_clearFilter').disable();
+
+       /* Ext.getCmp('filterToText').update('');
+        Ext.each( Ext.getCmp('objectFormFields').items.items, function( item ) {
+             debugger;
+            item.setValue('')
+
+        });*/
+
       //  this.getStore().load();
         this.getStore().loadPage(1);
 	},

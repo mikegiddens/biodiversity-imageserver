@@ -216,9 +216,15 @@ Ext.define('BIS.view.SearchFilterPanel', {
     },
 	activateFilter: function() {
         var me = this;
-        Ext.getCmp('imagesGrid').setAdvancedFilter( Ext.getCmp('filterTreePanel').exportFilterGraph(), function( success ) {
-            if ( success ) me.ownerCt.fireEvent('done');
-        });
+        if (Ext.getCmp('filterTreePanel').exportFilterGraph().children.length > 0){
+            Ext.getCmp('imagesGrid').setAdvancedFilter( Ext.getCmp('filterTreePanel').exportFilterGraph(), function( success ) {
+                if ( success ) me.ownerCt.fireEvent('done');
+            });
+        }else{
+            Ext.MessageBox.alert('Status', 'Please select any filter values.');
+            Ext.getCmp('id_clearFilter').disabled = false;
+        }
+
     },
     cancel: function() {
         this.ownerCt.fireEvent('cancel');
