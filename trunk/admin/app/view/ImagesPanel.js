@@ -177,14 +177,15 @@ Ext.define('BIS.view.ImagesPanel', {
         }
         Ext.getCmp('id_clearFilter').disable();
 
-       /* Ext.getCmp('filterToText').update('');
-        Ext.each( Ext.getCmp('objectFormFields').items.items, function( item ) {
-             debugger;
-            item.setValue('')
+        // reset Filters
+        Ext.getCmp('advFilterUpdateButton').hide();
+        Ext.getCmp('advFilterRemoveButton').hide();
+        Ext.getCmp('advFilterSelect').clearValue();
+        Ext.StoreManager.lookup('FilterTreeStore').setRootNode( { node: 'group', logop: 'and', children: [] } )
+        Ext.each( Ext.getCmp('objectFormFields').items.items, function( item ) { item.hide() } );
+        Ext.getCmp('filterToText').update('');
 
-        });*/
 
-      //  this.getStore().load();
         this.getStore().loadPage(1);
 	},
 	changeView: function( cycleBtn, item ) {
