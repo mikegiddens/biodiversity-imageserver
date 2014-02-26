@@ -1843,7 +1843,7 @@ Class Image {
 		}
 	}
 
-	public function crazyFilter($filter,$clearFlag = false) {
+	public function crazyFilter1($filter,$clearFlag = false) {
 		global $tables, $conditionArray, $fieldsArray, $querybit, $childcount;
 		$str = '';
 		if($clearFlag) $tables = array('image');
@@ -2007,13 +2007,13 @@ Class Image {
 		return $str;
 	}
 
-	public function getByCrazyFilter ($filter, $totalFlag = false, $ocrFlag = false) {
+	public function getByCrazyFilter1 ($filter, $totalFlag = false, $ocrFlag = false) {
 		global $tables, $querybit, $childcount;
 		$querybit = '';$childcount = 0;
 		$tables = array();
 		// $filter = json_decode($filter,true);
 		
-		$where = $this->crazyFilter($filter);
+		$where = $this->crazyFilter1($filter);
 		
 		$query = ($totalFlag) ? ' SELECT SQL_CALC_FOUND_ROWS ' : ' SELECT ';
 		
@@ -2056,7 +2056,120 @@ Class Image {
 		if($childcount > 1) {
 			$query .= sprintf(" HAVING ct = %s ", $childcount);
 		}
-		// echo $query;//exit;
+		echo $query;//exit;
+		return $query;
+	
+	}
+
+	public function crazyFilter($filter,$clearFlag = false) {
+		$str = '';
+		if($clearFlag) $tables = array('image');
+		switch($filter['node']) {
+			case 'group':
+				$ar = array();
+				if(is_array($filter['children']) && count($filter['children'])) {
+					foreach($filter['children'] as $child) {
+						$dt = $this->crazyFilter($child);
+						($dt != '' ) ? $ar[] = $dt : '';
+					}
+				}
+				if(count($ar)) {
+					$str .= ' ( ' . implode($filter['logop'], $ar) . ' ) ';
+				}
+				break;
+			case 'condition':
+				switch($filter['object']) {
+					case 'attribute':
+						if($filter['key'] != '' && $filter['value'] == '') {
+							switch($filter['condition']) {
+								case '=':
+									$str .= sprintf(" ( find_in_set(%d, categories) > 0 ) " , $filter['key']);
+									break;
+								case '!=':
+									$str .= sprintf(" ( find_in_set(%d, categories) = 0 || find_in_set(%d, categories) is null ) " , $filter['key'] , $filter['key']);
+									break;
+							}
+						} else if($filter['value'] != '') {
+							switch($filter['condition']) {
+								case '=':
+									$str .= sprintf(" ( find_in_set(%d, attributes) > 0 ) " , $filter['value']);
+									break;
+								case '!=':
+									$str .= sprintf(" ( find_in_set(%d, attributes) = 0 || find_in_set(%d, attributes) is null ) " , $filter['value'], $filter['value']);
+									break;
+							}
+						}
+						break;
+					case 'collection':
+						$str .= sprintf(" ( `collectionCode` = '%s' ) ", mysql_escape_string($filter['value'])); 
+						break;
+					case 'clientStation':
+						if(in_array($filter['condition'],array('=','!=')) && $filter['value'] != '' && !is_null($filter['value'])) {
+							$str .= sprintf(" ( `remoteAccessKey` {$filter['condition']} '%s' ) ", $filter['value']);
+						}
+						break;
+					case 'event':
+						if($filter['value'] != '') {
+							switch($filter['condition']) {
+								case '=':
+									$str .= sprintf(" ( find_in_set(%d, events) > 0 ) " , $filter['value']);
+									break;
+								case '!=':
+									$str .= sprintf(" ( find_in_set(%d, events) = 0 || find_in_set(%d, events) is null ) " , $filter['value'] , $filter['value']);
+									break;
+							}
+						}
+						break;
+					case 'geography':
+					
+						break;
+						
+					case 'time':
+						$key = (strtolower($filter['key']) == 'added') ? '`timestampAdded`' : '`timestampModified`';
+						if(in_array($filter['condition'],array('=','!=','>','<','>=','<=')) && $filter['value'] != '' && !is_null($filter['value'])) {
+							$str .= sprintf(" ($key {$filter['condition']} '%s') ", $filter['value']);
+						} else if ($filter['condition'] == 'between' && $filter['value2'] != '' && !is_null($filter['value2'])) {
+							$str .= sprintf(" ($key BETWEEN '%s' AND '%s') ", $filter['value'], $filter['value2']);
+						}
+						break;
+				}
+				break;
+		}
+		return $str;
+	}
+
+	public function getByCrazyFilter ($filter, $totalFlag = false, $ocrFlag = false) {
+		global $tables, $querybit, $childcount;
+		$querybit = '';$childcount = 0;
+		$tables = array();
+		// $filter = json_decode($filter,true);
+		
+		$where = $this->crazyFilter($filter);
+		
+		$query = ($totalFlag) ? ' SELECT SQL_CALC_FOUND_ROWS ' : ' SELECT ';
+		
+		$query .= ' `imageId`,`filename`,`timestampAdded`,`timestampModified`, `barcode`, `width`,`height`,`family`,`genus`,`specificEpithet`,`flickrPlantId`, `flickrModified`,`flickrDetails`,`picassaPlantId`,`picassaModified`, `gTileProcessed`,`zoomEnabled`,`processed`,`boxFlag`,`ocrFlag`,`rating`, `author`, `copyright`';
+		// $query .= ' `imageId`,`filename`';
+		if($ocrFlag) {
+			$query .= ',`ocrValue`';
+		}
+		# fields for url computation
+		$query .= ',`storageDeviceId`,`path`';
+		$query .= ',`nameGeographyFinderFlag`,`nameFinderFlag`,`nameFinderValue`,`scientificName`, `collectionCode`, `globalUniqueIdentifier` ';
+		
+		# for child count logic
+		if($childcount > 1) {
+			$query .= ',count(*) ct ';
+		}
+		
+		$query .= ' FROM `imageWithAttribEvent` ';
+	
+		$where = ($where != '') ? ' WHERE  0=0 AND ' . $where : '';
+		$query = $query . $where;
+		if($childcount > 1) {
+			$query .= sprintf(" HAVING ct = %s ", $childcount);
+		}
+		//echo $query;//exit;
 		return $query;
 	
 	}
