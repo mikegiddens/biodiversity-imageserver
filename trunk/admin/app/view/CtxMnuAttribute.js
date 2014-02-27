@@ -1,5 +1,6 @@
 Ext.define('BIS.view.CtxMnuAttribute', {
     extend: 'Ext.menu.Menu',
+   // requires: [ 'BIS.view.FilterContextMenu', 'BIS.view.ObjectContextMenu' ],
     scope: this,
     listeners: {
         click: function( menu, item ) {
@@ -7,10 +8,18 @@ Ext.define('BIS.view.CtxMnuAttribute', {
                 case 'query':
                     this.advFilter.children[0].condition = '=';
                     Ext.getCmp('imagesGrid').setAdvancedFilter( this.advFilter );
+                    Ext.getCmp('id_clearFilter').enable();
+                    Ext.getCmp('id_clearFilter').disabled = false;
+                    testingFilter.push(this.advFilter);
+                    appendChildTreeFilter.push(this.advFilter);
                     break;
                 case 'queryInverse':
                     this.advFilter.children[0].condition = '!=';
                     Ext.getCmp('imagesGrid').setAdvancedFilter( this.advFilter );
+                    Ext.getCmp('id_clearFilter').enable();
+                    Ext.getCmp('id_clearFilter').disabled = false;
+                    testingFilter.push(this.advFilter);
+                    appendChildTreeFilter.push(this.advFilter);
                     break;
                 case 'update':
                     this.update();
@@ -20,6 +29,18 @@ Ext.define('BIS.view.CtxMnuAttribute', {
                         if ( btn == 'yes' ) this.remove();
                     }, this);
                     break;
+                case 'appendWithValue':
+                    this.advFilter.children[0].condition = '=';
+                    testingFilter.push(this.advFilter);
+                    appendChildTreeFilter.push(this.advFilter);
+                    Ext.getCmp('imagesGrid').setAdvancedFilter( testingFilter);
+                    break
+                case'appendWithOutValue':
+                    this.advFilter.children[0].condition = '!=';
+                    testingFilter.push(this.advFilter);
+                    appendChildTreeFilter.push(this.advFilter);
+                    Ext.getCmp('imagesGrid').setAdvancedFilter( this.advFilter );
+                    break
             }
         }
     },
@@ -67,6 +88,21 @@ Ext.define('BIS.view.CtxMnuAttribute', {
             disabled: true
         });
 
+
+        this.appendwithValue = Ext.create('Ext.Action', {
+            text: 'Append with value',
+            iconCls:'icon_appendWith',
+            identifier: 'appendWithValue',
+            disabled: (testingFilter.length > 0) ? false : true
+        });
+
+        this.appendwithOutValue = Ext.create('Ext.Action', {
+            text: 'Append without value',
+            iconCls:'icon_appendWithOut',
+            identifier: 'appendWithOutValue',
+            disabled: (testingFilter.length > 0) ? false : true
+        });
+
         Ext.applyIf(me, {
             items: [
                 {
@@ -80,10 +116,12 @@ Ext.define('BIS.view.CtxMnuAttribute', {
                     identifier: 'queryInverse'
                 },
                 '-',
+               me.appendwithValue,
+               me.appendwithOutValue,
+                '-',
                 {
-                    text: 'Add to',
-
-                    iconCls: 'icon_',
+                    text: 'Add attribute to',
+                    iconCls: 'icon_attribute',
                     menu: {
                         xtype: 'menu',
                         scope: me,
@@ -103,9 +141,8 @@ Ext.define('BIS.view.CtxMnuAttribute', {
                     }
                 },
                 {
-                    text: 'Remove from',
-
-                    iconCls: 'icon_',
+                    text: 'Remove attribute from',
+                    iconCls: 'icon_attribute',
                     menu: {
                         xtype: 'menu',
                         scope: me,
@@ -126,12 +163,12 @@ Ext.define('BIS.view.CtxMnuAttribute', {
                 },
                 '-',
                 {
-                    text: 'Edit',
+                    text: 'Edit Attribute',
                     iconCls: 'icon_editAttribute',
                     identifier: 'update'
                 },
                 {
-                    text: 'Remove',
+                    text: ' Remove Attribute',
                     iconCls: 'icon_removeAttribute',
                     identifier: 'delete'
                 }

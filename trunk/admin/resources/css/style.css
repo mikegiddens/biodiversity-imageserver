@@ -406,6 +406,12 @@ img {
 .icon_barcode {
     background-image:url(../img/ico/barcode.png) !important;
 }
+.icon_appendWith {
+    background-image:url(../img/ico/book-add-icon.png) !important;
+}
+.icon_appendWithOut {
+    background-image:url(../img/ico/Folder-remove-icon.png) !important;
+}
 
 /*    Custom Style */
 
