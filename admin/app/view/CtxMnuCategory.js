@@ -12,18 +12,19 @@ Ext.define('BIS.view.CtxMnuCategory', {
                     testingFilter.push(this.advFilter);
                    // appendChildTreeFilter.push(this.advFilter);
                     var store = Ext.StoreManager.lookup('FilterTreeStore');
-                    store.setRootNode( this.advFilter );
+                    store.setRootNode( this.appendChildFilter );
                     store.getRootNode().expand( true );
                     break;
                 case 'queryInverse':
                     this.advFilter.children[0].condition = '!=';
+                    this.appendChildFilter.children[0].condition = '!=';
                     Ext.getCmp('imagesGrid').setAdvancedFilter( this.advFilter );
                     Ext.getCmp('id_clearFilter').enable();
                     Ext.getCmp('id_clearFilter').disabled = false;
                     testingFilter.push(this.advFilter);
                    // appendChildTreeFilter.push(this.advFilter);
                     var store = Ext.StoreManager.lookup('FilterTreeStore');
-                    store.setRootNode( this.advFilter );
+                    store.setRootNode( this.appendChildFilter );
                     store.getRootNode().expand( true );
                     break;
                 case 'create':
@@ -99,13 +100,14 @@ Ext.define('BIS.view.CtxMnuCategory', {
                 case 'appendWithValue':
                     this.advFilter.children[0].condition = '=';
                     testingFilter.push(this.advFilter);
-                    appendChildTreeFilter.push(this.advFilter);
+                    appendChildTreeFilter.push(this.appendChildFilter);
                     Ext.getCmp('imagesGrid').setAdvancedFilter( testingFilter);
                     break
                 case'appendWithOutValue':
                     this.advFilter.children[0].condition = '!=';
+                    this.appendChildFilter.children[0].condition = '!=';
                     testingFilter.push(this.advFilter);
-                    appendChildTreeFilter.push(this.advFilter);
+                    appendChildTreeFilter.push(this.appendChildFilter);
                     Ext.getCmp('imagesGrid').setAdvancedFilter( this.advFilter );
                     break
             }
@@ -140,6 +142,24 @@ Ext.define('BIS.view.CtxMnuCategory', {
                     value2: null,
                     value2Text: '',
                     condition: '='
+                }
+            ]
+        };
+        this.appendChildFilter = {
+            node: 'group',
+            logop: 'and',
+            children: [
+                {
+                    node: 'condition',
+                    object: 'attribute',
+                    key: this.record.get('categoryId'),
+                    keyText: this.record.get('title'),
+                    value: null,
+                    valueText: '',
+                    value2: null,
+                    value2Text: '',
+                    condition: '=',
+                    leaf:true
                 }
             ]
         }
