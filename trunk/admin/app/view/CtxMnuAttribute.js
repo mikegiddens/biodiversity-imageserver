@@ -10,6 +10,7 @@ Ext.define('BIS.view.CtxMnuAttribute', {
                     Ext.getCmp('imagesGrid').setAdvancedFilter( this.advFilter );
                     Ext.getCmp('id_clearFilter').enable();
                     Ext.getCmp('id_clearFilter').disabled = false;
+                    testingFilter.push(this.advFilter);
                     var store = Ext.StoreManager.lookup('FilterTreeStore');
                     store.setRootNode( this.appendChild );
                     store.getRootNode().expand( true );
@@ -19,6 +20,7 @@ Ext.define('BIS.view.CtxMnuAttribute', {
                     Ext.getCmp('imagesGrid').setAdvancedFilter( this.advFilter );
                     Ext.getCmp('id_clearFilter').enable();
                     Ext.getCmp('id_clearFilter').disabled = false;
+                    testingFilter.push(this.advFilter);
                     var store = Ext.StoreManager.lookup('FilterTreeStore');
                     store.setRootNode( this.appendChild );
                     store.getRootNode().expand( true );
