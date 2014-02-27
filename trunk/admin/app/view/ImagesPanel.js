@@ -144,7 +144,7 @@ Ext.define('BIS.view.ImagesPanel', {
 
         }
         var store = Ext.StoreManager.lookup('FilterTreeStore');
-        Ext.getCmp('filterTreePanel').getRootNode({})
+        Ext.getCmp('filterTreePanel').getRootNode({}) ;
         Ext.each( appendChildTreeFilter, function( item ) {
             Ext.getCmp('filterTreePanel').getRootNode().appendChild(item.children);
         });
