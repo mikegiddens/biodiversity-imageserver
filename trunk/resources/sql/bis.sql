@@ -494,6 +494,14 @@ DROP TABLE IF EXISTS `geographyView`;
 
 CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `geographyView` AS select `t`.`geographyId` AS `geographyId`,`t`.`name` AS `Country`,`t1`.`name` AS `StateProvince`,`t2`.`name` AS `County`,`t3`.`name` AS `Locality` from (((`geography` `t` left join `geography` `t1` on((`t`.`geographyId` = `t1`.`parentId`))) left join `geography` `t2` on(((`t`.`geographyId` = `t1`.`parentId`) and (`t1`.`geographyId` = `t2`.`parentId`)))) left join `geography` `t3` on(((`t`.`geographyId` = `t1`.`parentId`) and (`t1`.`geographyId` = `t2`.`parentId`) and (`t2`.`geographyId` = `t3`.`parentId`)))) where (`t`.`parentId` = 0);
 
+-- --------------------------------------------------------
+
+--
+-- Structure for view `imageWithAttribEvent`
+--
+create or replace view `imageWithAttribEvent` as select `image`.*, GROUP_CONCAT(`imageAttrib`.`attributeId`) as `attributes`, GROUP_CONCAT(`imageAttrib`.`categoryId`) as `categories`, GROUP_CONCAT(`eventImages`.`eventId`) as `events` FROM `image` LEFT OUTER JOIN `imageAttrib` ON `image`.`imageId` = `imageAttrib`.`imageId` LEFT OUTER JOIN `eventImages` ON `image`.`imageId` = `eventImages`.`imageId` GROUP BY `image`.`imageId`;
+
+
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
