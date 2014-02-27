@@ -18,6 +18,8 @@ Ext.define('BIS.view.CtxMnuAttribute', {
                     break;
                 case 'queryInverse':
                     this.advFilter.children[0].condition = '!=';
+                    this.appendChildFilter.children[0].condition = '!=';
+                    debugger;
                     Ext.getCmp('imagesGrid').setAdvancedFilter( this.advFilter );
                     Ext.getCmp('id_clearFilter').enable();
                     Ext.getCmp('id_clearFilter').disabled = false;
@@ -43,6 +45,7 @@ Ext.define('BIS.view.CtxMnuAttribute', {
                     break
                 case'appendWithOutValue':
                     this.advFilter.children[0].condition = '!=';
+                    this.appendChildFilter.children[0].condition = '!=';
                     testingFilter.push(this.advFilter);
                     appendChildTreeFilter.push(this.appendChildFilter);
                     Ext.getCmp('imagesGrid').setAdvancedFilter( this.advFilter );
@@ -84,7 +87,8 @@ Ext.define('BIS.view.CtxMnuAttribute', {
                     valueText: this.record.get('name'),
                     value2: null,
                     value2Text: '',
-                    condition: '='
+                    condition: '=',
+                    leaf: true
                 }
             ]
         };
