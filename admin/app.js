@@ -1,6 +1,8 @@
 Ext.Loader.setConfig({
     enabled: true
 });
+var testingFilter = [];
+var appendChildTreeFilter = [];
 Ext.application({
     models: [
         'SetModel',
@@ -113,6 +115,7 @@ Ext.application({
         var totalFiles = 0;
         var files = [];
         var running = false;
+
         dropbox = Ext.getBody().dom;
 
         function upload( file ) {

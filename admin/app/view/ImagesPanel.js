@@ -141,7 +141,15 @@ Ext.define('BIS.view.ImagesPanel', {
             this.advancedFilter.on('cancel', function( data ) {
                 me.advancedFilter.hide();
             });
+
         }
+        var store = Ext.StoreManager.lookup('FilterTreeStore');
+        Ext.getCmp('filterTreePanel').getRootNode({})
+        Ext.each( appendChildTreeFilter, function( item ) {
+            Ext.getCmp('filterTreePanel').getRootNode().appendChild(item.children);
+        });
+        appendChildTreeFilter = [];
+        store.getRootNode().expand( true );
         this.advancedFilter.show(); 
     },
 	setFilter: function( params, reset ) {
@@ -181,11 +189,11 @@ Ext.define('BIS.view.ImagesPanel', {
         Ext.getCmp('advFilterUpdateButton').hide();
         Ext.getCmp('advFilterRemoveButton').hide();
         Ext.getCmp('advFilterSelect').clearValue();
-        Ext.StoreManager.lookup('FilterTreeStore').setRootNode( { node: 'group', logop: 'and', children: [] } )
+        Ext.StoreManager.lookup('FilterTreeStore').setRootNode( { node: 'group', logop: 'and', children: [] } );
         Ext.each( Ext.getCmp('objectFormFields').items.items, function( item ) { item.hide() } );
         Ext.getCmp('filterToText').update('');
-
-
+       appendChildTreeFilter = [];
+       testingFilter = [];
         this.getStore().loadPage(1);
 	},
 	changeView: function( cycleBtn, item ) {

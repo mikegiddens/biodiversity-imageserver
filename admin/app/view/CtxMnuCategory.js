@@ -7,10 +7,18 @@ Ext.define('BIS.view.CtxMnuCategory', {
                 case 'query':
                     this.advFilter.children[0].condition = '=';
                     Ext.getCmp('imagesGrid').setAdvancedFilter( this.advFilter );
+                    Ext.getCmp('id_clearFilter').enable();
+                    Ext.getCmp('id_clearFilter').disabled = false;
+                    testingFilter.push(this.advFilter);
+                    appendChildTreeFilter.push(this.advFilter);
                     break;
                 case 'queryInverse':
                     this.advFilter.children[0].condition = '!=';
                     Ext.getCmp('imagesGrid').setAdvancedFilter( this.advFilter );
+                    Ext.getCmp('id_clearFilter').enable();
+                    Ext.getCmp('id_clearFilter').disabled = false;
+                    testingFilter.push(this.advFilter);
+                    appendChildTreeFilter.push(this.advFilter);
                     break;
                 case 'create':
                     var me = this;
@@ -82,12 +90,36 @@ Ext.define('BIS.view.CtxMnuCategory', {
                         if ( btn == 'yes' ) this.remove();
                     }, this);
                     break;
+                case 'appendWithValue':
+                    this.advFilter.children[0].condition = '=';
+                    testingFilter.push(this.advFilter);
+                    appendChildTreeFilter.push(this.advFilter);
+                    Ext.getCmp('imagesGrid').setAdvancedFilter( testingFilter);
+                    break
+                case'appendWithOutValue':
+                    this.advFilter.children[0].condition = '!=';
+                    testingFilter.push(this.advFilter);
+                    appendChildTreeFilter.push(this.advFilter);
+                    Ext.getCmp('imagesGrid').setAdvancedFilter( this.advFilter );
+                    break
             }
         }
     },
     initComponent: function() {
         var me = this;
+        this.appendwithValue = Ext.create('Ext.Action', {
+            text: 'Append with value',
+            iconCls:'icon_appendWith',
+            identifier: 'appendWithValue',
+            disabled: (testingFilter.length > 0) ? false : true
+        });
 
+        this.appendwithOutValue = Ext.create('Ext.Action', {
+            text: 'Append without value',
+            iconCls:'icon_appendWithOut',
+            identifier: 'appendWithOutValue',
+            disabled: (testingFilter.length > 0) ? false : true
+        });
         this.advFilter = {
             node: 'group',
             logop: 'and',
@@ -118,7 +150,7 @@ Ext.define('BIS.view.CtxMnuCategory', {
                     iconCls: 'icon_find',
                     identifier: 'queryInverse'
                 },
-                '-',
+                '-',me.appendwithValue,me.appendwithOutValue,'-',
                 {
                     text: 'Add Attribute',
                     iconCls: 'icon_newAttribute',
