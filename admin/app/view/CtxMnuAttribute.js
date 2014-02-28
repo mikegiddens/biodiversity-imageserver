@@ -10,8 +10,11 @@ Ext.define('BIS.view.CtxMnuAttribute', {
                     Ext.getCmp('imagesGrid').setAdvancedFilter( this.advFilter );
                     Ext.getCmp('id_clearFilter').enable();
                     Ext.getCmp('id_clearFilter').disabled = false;
-                    testingFilter.push(this.advFilter);
-                   // appendChildTreeFilter.push(this.appendChildFilter);
+                    if (testingFilter.length == 0) {
+                        testingFilter.push(this.advFilter);
+                    }else{
+                        testingFilter[0].children.push(this.advFilter.children[0]);
+                    }
                     var store = Ext.StoreManager.lookup('FilterTreeStore');
                     store.setRootNode( this.appendChildFilter );
                     store.getRootNode().expand( true );
@@ -23,8 +26,11 @@ Ext.define('BIS.view.CtxMnuAttribute', {
                     Ext.getCmp('imagesGrid').setAdvancedFilter( this.advFilter );
                     Ext.getCmp('id_clearFilter').enable();
                     Ext.getCmp('id_clearFilter').disabled = false;
-                    testingFilter.push(this.advFilter);
-                   // appendChildTreeFilter.push(this.appendChildFilter);
+                    if (testingFilter.length == 0) {
+                        testingFilter.push(this.advFilter);
+                    }else{
+                        testingFilter[0].children.push(this.advFilter.children[0]);
+                    }
                     var store = Ext.StoreManager.lookup('FilterTreeStore');
                     store.setRootNode( this.appendChildFilter );
                     store.getRootNode().expand( true );
@@ -39,16 +45,24 @@ Ext.define('BIS.view.CtxMnuAttribute', {
                     break;
                 case 'appendWithValue':
                     this.advFilter.children[0].condition = '=';
-                    testingFilter.push(this.advFilter);
+                    if (testingFilter.length == 0) {
+                        testingFilter.push(this.advFilter);
+                    }else{
+                        testingFilter[0].children.push(this.advFilter.children[0]);
+                    }
                     appendChildTreeFilter.push(this.appendChildFilter);
-                    Ext.getCmp('imagesGrid').setAdvancedFilter( testingFilter);
+                    Ext.getCmp('imagesGrid').setAdvancedFilter( testingFilter[0]);
                     break
                 case'appendWithOutValue':
                     this.advFilter.children[0].condition = '!=';
                     this.appendChildFilter.children[0].condition = '!=';
-                    testingFilter.push(this.advFilter);
+                    if (testingFilter.length == 0) {
+                        testingFilter.push(this.advFilter);
+                    }else{
+                        testingFilter[0].children.push(this.advFilter.children[0]);
+                    }
                     appendChildTreeFilter.push(this.appendChildFilter);
-                    Ext.getCmp('imagesGrid').setAdvancedFilter( testingFilter );
+                    Ext.getCmp('imagesGrid').setAdvancedFilter( testingFilter[0]);
                     break
             }
         }
