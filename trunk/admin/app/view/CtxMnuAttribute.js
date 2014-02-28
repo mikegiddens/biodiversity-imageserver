@@ -77,7 +77,7 @@ Ext.define('BIS.view.CtxMnuAttribute', {
                     node: 'condition',
                     object: 'attribute',
                     key: this.record.get('categoryId'),
-                    keyText: this.record.get('title'),
+                    keyText: this.record.parentNode.data.title,
                     value: this.record.get('attributeId'),
                     valueText: this.record.get('name'),
                     value2: null,
