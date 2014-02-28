@@ -1018,21 +1018,36 @@ Class Image {
 	}
 
 	public function imageList($queryFlag = true) {
+
 		if(is_array($this->data['advFilter']) && count($this->data['advFilter'])) {
 			$orderBy = '';
 			$query = $this->getByCrazyFilter($this->data['advFilter'], true, $this->data['showOCR']);
+
+			$this->query = $query;
+			
+			// if(($this->data['sort']!='') && ($this->data['dir']!='')) {
+				// $orderBy .= sprintf(" ORDER BY i.%s %s ", mysql_escape_string($this->data['sort']),  $this->data['dir']);
+			// } else if($this->data['order'] != '' && is_array($this->data['order'])) {
+				// $orderBy .= ' ORDER BY ';
+				// if(count($this->data['order'])) {
+					// $ordArray = array();
+					// foreach($this->data['order'] as $order) {
+						// $ordArray[] = " i.{$order['field']} {$order['dir']} ";
+					// }
+					// $orderBy .= implode(',',$ordArray);
+				// }
+			// }
+			
 			if(($this->data['sort']!='') && ($this->data['dir']!='')) {
-				$orderBy .= sprintf(" ORDER BY i.%s %s ", mysql_escape_string($this->data['sort']),  $this->data['dir']);
-			} else if($this->data['order'] != '' && is_array($this->data['order'])) {
-				$orderBy .= ' ORDER BY ';
-				if(count($this->data['order'])) {
-					$ordArray = array();
-					foreach($this->data['order'] as $order) {
-						$ordArray[] = " i.{$order['field']} {$order['dir']} ";
-					}
-					$orderBy .= implode(',',$ordArray);
-				}
+				$this->setOrderFilter('manual');
+			} else if ($this->data['gridSort'] != '' && is_array($this->data['gridSort'])) {
+				$this->setOrderFilter('gridSort');
+			} else {
+				$this->setOrderFilter('');
 			}
+			
+			$query = $this->query;
+			
 			if($this->data['useRating']) {
 				$orderBy .= ($orderBy == '') ? ' ORDER BY i.`rating` DESC ' : ', i.`rating` DESC ';
 			}
@@ -1046,6 +1061,7 @@ Class Image {
 			}
 
 			// echo $query;exit;
+		
 		
 			if($queryFlag) {
 				$ret = $this->db->query_all($query);
@@ -1652,6 +1668,13 @@ Class Image {
 			case 'view_images':
 				$orderBy .= ' ORDER BY I.`family`, I.`genus`, I.`specificEpithet` ';
 				break;
+			// case 'group':
+				// if(is_array($this->data['group']) && count($this->data['group'])) {
+					// foreach($this->data['group'] as $group) {
+						// if($group[''])
+					// }
+				// }
+				// break;
 			case 'manual':
 				if(!in_array($this->data['sort'],array('imageId'))) {
 					$orderBy .= sprintf(" ORDER BY LOWER(I.%s) %s ", mysql_escape_string($this->data['sort']),  $this->data['dir']);
@@ -1703,6 +1726,7 @@ Class Image {
 			$orderBy .= ($orderBy == '') ? ' ORDER BY I.`statusType` DESC ' : ', I.`statusType` DESC ';
 		}
 		$this->query .= $orderBy;
+		// echo $this->query;
 	}
 
 	private function setLimitFilter() {
@@ -2162,7 +2186,7 @@ Class Image {
 			$query .= ',count(*) ct ';
 		}
 		
-		$query .= ' FROM `imageWithAttribEvent` ';
+		$query .= ' FROM `imageWithAttribEvent` I ';
 	
 		$where = ($where != '') ? ' WHERE  0=0 AND ' . $where : '';
 		$query = $query . $where;
