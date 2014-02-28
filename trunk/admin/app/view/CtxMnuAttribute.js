@@ -19,7 +19,7 @@ Ext.define('BIS.view.CtxMnuAttribute', {
                 case 'queryInverse':
                     this.advFilter.children[0].condition = '!=';
                     this.appendChildFilter.children[0].condition = '!=';
-                    
+
                     Ext.getCmp('imagesGrid').setAdvancedFilter( this.advFilter );
                     Ext.getCmp('id_clearFilter').enable();
                     Ext.getCmp('id_clearFilter').disabled = false;
@@ -48,7 +48,7 @@ Ext.define('BIS.view.CtxMnuAttribute', {
                     this.appendChildFilter.children[0].condition = '!=';
                     testingFilter.push(this.advFilter);
                     appendChildTreeFilter.push(this.appendChildFilter);
-                    Ext.getCmp('imagesGrid').setAdvancedFilter( this.advFilter );
+                    Ext.getCmp('imagesGrid').setAdvancedFilter( testingFilter );
                     break
             }
         }
