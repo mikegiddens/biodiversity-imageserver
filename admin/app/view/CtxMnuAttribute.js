@@ -19,7 +19,7 @@ Ext.define('BIS.view.CtxMnuAttribute', {
                 case 'queryInverse':
                     this.advFilter.children[0].condition = '!=';
                     this.appendChildFilter.children[0].condition = '!=';
-                    debugger;
+                    
                     Ext.getCmp('imagesGrid').setAdvancedFilter( this.advFilter );
                     Ext.getCmp('id_clearFilter').enable();
                     Ext.getCmp('id_clearFilter').disabled = false;
