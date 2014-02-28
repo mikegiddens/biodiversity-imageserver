@@ -186,6 +186,9 @@ Ext.define('BIS.view.ImagesPanel', {
         Ext.getCmp('id_clearFilter').disable();
 
         // reset Filters
+        if ( Ext.getCmp('advFilterUpdateButton') == undefined) {
+            Ext.create('BIS.view.SearchFilterPanel');
+        }
         Ext.getCmp('advFilterUpdateButton').hide();
         Ext.getCmp('advFilterRemoveButton').hide();
         Ext.getCmp('advFilterSelect').clearValue();
