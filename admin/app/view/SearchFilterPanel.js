@@ -216,6 +216,7 @@ Ext.define('BIS.view.SearchFilterPanel', {
     },
 	activateFilter: function() {
         var me = this;
+        testingFilter = [];
         testingFilter.push(Ext.getCmp('filterTreePanel').exportFilterGraph());
         if (Ext.getCmp('filterTreePanel').exportFilterGraph().children.length > 0){
             Ext.getCmp('imagesGrid').setAdvancedFilter( Ext.getCmp('filterTreePanel').exportFilterGraph(), function( success ) {
