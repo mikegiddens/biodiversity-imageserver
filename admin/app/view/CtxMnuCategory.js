@@ -108,7 +108,7 @@ Ext.define('BIS.view.CtxMnuCategory', {
                     this.appendChildFilter.children[0].condition = '!=';
                     testingFilter.push(this.advFilter);
                     appendChildTreeFilter.push(this.appendChildFilter);
-                    Ext.getCmp('imagesGrid').setAdvancedFilter( this.advFilter );
+                    Ext.getCmp('imagesGrid').setAdvancedFilter( testingFilter );
                     break
             }
         }
