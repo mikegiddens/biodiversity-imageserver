@@ -27,6 +27,8 @@ class StorageDevice {
 			$this->devices[$cnt]['active']  =  ($item->active) ? true : false;
 			$this->devices[$cnt]['defaultStorage']  =  $item->defaultStorage;
 			$this->devices[$cnt]['extra2']  =  $item->extra2;
+			$this->devices[$cnt]['method']  =  $item->method;
+			$this->devices[$cnt]['referencePath']  =  $item->referencePath;
 			$cnt++;
 		}
 	}
@@ -443,8 +445,8 @@ class StorageDevice {
 				}
 				break;
 			case 'local':
-				$key = (substr($key,0,1)!='/') ? '/'.$key : $key;
-				return ($device['basePath'] . $key);
+				$key = ($device['method'] == 'reference') ? $key : ((substr($key,0,1)!='/') ? '/'.$key : $key);
+				return ($device['method'] == 'reference') ? $key : ($device['basePath'] . $key);
 				break;
 			default:
 				return false;

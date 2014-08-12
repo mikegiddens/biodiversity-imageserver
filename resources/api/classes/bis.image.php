@@ -203,12 +203,14 @@ Class Image {
 		$dtls = @pathinfo($image);
 		$imageTmp = $image;
 		if($config['image_processing'] == 1) {
-			$destination =  $dtls['dirname'] . '/' . $dtls['filename'] . $details['postfix'] . $extension;
+			// $destination =  $dtls['dirname'] . '/' . $dtls['filename'] . $details['postfix'] . $extension;
+			$destination = ($device['method'] == 'reference') ? rtrim($device['basePath'],'/') . '/' . $name . '/' . $dtls['filename'] . $details['postfix'] . $extension : $dtls['dirname'] . '/' . $dtls['filename'] . $details['postfix'] . $extension;
 			$tmp = sprintf("convert -limit memory 16MiB -limit map 32MiB \"%s\" -thumbnail %sx%s \"%s\"", $imageTmp,$details['width'],$details['height'],$destination);
 			// $tmp = sprintf("convert -limit memory 16MiB -limit map 32MiB %s -thumbnail %sx%s %s", $imageTmp,$details['width'],$details['height'],$destination);
 			$res = exec($tmp);
 			$imageTmp = $destination;
-			$destination =  $dtls['dirname'] . '/' . $dtls['filename'] . $details['postfix'] . $extension;
+			// $destination =  $dtls['dirname'] . '/' . $dtls['filename'] . $details['postfix'] . $extension;
+			$destination = ($device['method'] == 'reference') ? rtrim($device['basePath'],'/') . '/' . $name . '/' . $dtls['filename'] . $details['postfix'] . $extension : $dtls['dirname'] . '/' . $dtls['filename'] . $details['postfix'] . $extension;
 			$tmp = sprintf("convert \"%s\" \"%s\"",$imageTmp,$destination);
 			// $tmp = sprintf("convert %s %s",$imageTmp,$destination);
 			$res = exec($tmp);
@@ -216,7 +218,8 @@ Class Image {
 			$func = 'imagecreatefrom' . (@strtolower($dtls['extension']) == 'jpg' ? 'jpeg' : @strtolower($dtls['extension']));
 			$im = @$func($imageTmp);
 			if($im !== false) {
-				$destination = $dtls['dirname'] . $dtls['filename'] . $details['postfix'] . $extension;
+				// $destination = $dtls['dirname'] . $dtls['filename'] . $details['postfix'] . $extension;
+				$destination = ($device['method'] == 'reference') ? rtrim($device['basePath'],'/') . '/' . $name . '/' . $dtls['filename'] . $details['postfix'] . $extension : $dtls['dirname'] . '/' . $dtls['filename'] . $details['postfix'] . $extension;
 				$width = imageSX($im);
 				$height = imageSY($im);
 				// $destination = ($display_flag)?NULL:$destination;

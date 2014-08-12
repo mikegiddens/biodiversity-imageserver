@@ -94,6 +94,7 @@
 		,	'key'
 		,	'limit'
 		,	'loadFlag'
+		,	'method'
 		,	'name'
 		,	'newStorageId'
 		,	'newImagePath'
@@ -2915,9 +2916,54 @@
 				if($storageDeviceId == '' || !$si->storage->storageDeviceExists($storageDeviceId)) {
 					$errorCode = 156;
 					$valid = false;
+				} else {
+					$device = $si->storage->storageDeviceGet($storageDeviceId);
 				}
 				if($valid) {
-					if(is_dir($config['path']['incoming'])) {
+					if($device['method'] == 'reference' && $device['referencePath'] != '') {
+						if(is_dir($device['referencePath'])) {
+							$handle = opendir($device['referencePath']);
+							while (false !== ($filename = readdir($handle))) {
+								if( $filename == '.' || $filename == '..') continue;
+								$image = new Image($si->db);
+								$image->imageSetFullPath(rtrim($device['referencePath'],'/') . '/' . $filename);
+								if(strtolower($image->imageGetName('ext')) != 'jpg') continue;
+								$ar = explode('.',$filename);
+								@array_pop($ar);
+								$barcode = implode('.',$ar);
+								if($image->imageBarcodeExists($barcode) == false) {
+									$parts = array();
+									$parts = preg_split("/[0-9]+/", $barcode);
+									$collectionCode = $parts[0];
+									unset($parts);
+									$image->imageMkdirRecursive(rtrim($device['basePath'],'/') . '/' . $barcode);
+									$path = rtrim($device['referencePath'],'/') . '/' . $filename;
+									$ar = @getimagesize($path);
+
+									$image->imageSetProperty('barcode',$barcode);
+									$image->imageSetProperty('filename',$filename);
+									$image->imageSetProperty('flickrPlantId',0);
+									$image->imageSetProperty('picassaPlantId',0);
+									$image->imageSetProperty('gTileProcessed',0);
+									$image->imageSetProperty('zoomEnabled',0);
+									$image->imageSetProperty('processed',0);
+									$image->imageSetProperty('width',$ar[0]);
+									$image->imageSetProperty('height',$ar[1]);
+									$image->imageSetProperty('collectionCode',$collectionCode);
+									$image->imageSetProperty('storageDeviceId', $storageDeviceId);
+									$image->imageSetProperty('originalFilename', $filename);
+									$res = $image->imageSave();
+									if ($res) {
+										$si->pqueue->processQueueSetProperty('imageId', $image->insert_id);
+										$si->pqueue->processQueueSetProperty('processType', 'all');
+										$si->pqueue->processQueueSave();
+									}
+									unset($image);
+									$count++;
+								}
+							}
+						}
+					} else if(is_dir($config['path']['incoming'])) {
 						$handle = opendir($config['path']['incoming']);
 						// echo $config['path']['incoming'];
 						// echo '<br>';
@@ -3844,6 +3890,7 @@
 				$data['key'] = trim($key);
 				$data['extra2'] = trim($extra);
 				$data['active'] = (trim($active) == 'false') ? false : true;
+				$data['method'] = (trim(@strtolower($method)) == 'reference') ? 'reference' : '';
 				$default = (trim($default) == 'true') ? true : false;
 				if($name=='' || $type=='' || $baseUrl=='') {
 					$errorCode = 151;
