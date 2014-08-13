@@ -441,6 +441,8 @@ CREATE TABLE IF NOT EXISTS `storageDevice` (
   `active` tinyint(4) NOT NULL DEFAULT '1',
   `defaultStorage` int(11) DEFAULT '0',
   `extra2` varchar(100) DEFAULT NULL,
+  `method` varchar(50) NOT NULL,
+  `referencePath` varchar(50) NOT NULL,
   PRIMARY KEY (`storageDeviceId`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
 

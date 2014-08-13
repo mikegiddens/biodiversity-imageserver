@@ -1122,7 +1122,12 @@ Class Image {
 			$where = " AND " . $where;
 		}
 		if($this->data['code'] != '') {
-			$where .= sprintf(" AND I.`collectionCode` = '%s' ", mysql_escape_string($this->data['code']));
+			$codeAr = @explode(',',$this->data['code']);
+			foreach($codeAr as $code) {
+				$code = mysql_escape_string($code);
+			}
+			// $where .= sprintf(" AND I.`collectionCode` = '%s' ", mysql_escape_string($this->data['code']));
+			$where .= sprintf(" AND I.`collectionCode` IN ('%s') ", @implode("','",$codeAr));
 		}
 		
 		if(is_array($this->data['imageId']) && count($this->data['imageId'])) {
@@ -1176,7 +1181,6 @@ Class Image {
 			$this->setOrderFilter('');
 		}
 		$this->setLimitFilter();
-// die($this->query);
 
 		$countRet = $this->db->query_one( $this->queryCount );
 		if ($countRet != NULL) {

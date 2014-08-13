@@ -53,7 +53,7 @@ class StorageDevice {
 	}
 	
 	public function storageDeviceSave() {
-		$query = sprintf("INSERT IGNORE INTO `storageDevice` SET `name` = '%s', `description` = '%s', `type` = '%s', `baseUrl` = '%s', `basePath` = '%s', `userName` = '%s', `password` = '%s', `key` = '%s', `active` = '%s', `defaultStorage` = '%s', `extra2` = '%s' ;"
+		$query = sprintf("INSERT IGNORE INTO `storageDevice` SET `name` = '%s', `description` = '%s', `type` = '%s', `baseUrl` = '%s', `basePath` = '%s', `userName` = '%s', `password` = '%s', `key` = '%s', `active` = '%s', `defaultStorage` = '%s', `extra2` = '%s', `method` = '%s', `referencePath` = '%s' ;"
 		, mysql_escape_string($this->storageDeviceGetProperty('name'))
 		, mysql_escape_string($this->storageDeviceGetProperty('description'))
 		, mysql_escape_string($this->storageDeviceGetProperty('type'))
@@ -65,6 +65,8 @@ class StorageDevice {
 		, mysql_escape_string($this->storageDeviceGetProperty('active'))
 		, mysql_escape_string($this->storageDeviceGetProperty('defaultStorage'))
 		, mysql_escape_string($this->storageDeviceGetProperty('extra2'))
+		, mysql_escape_string($this->storageDeviceGetProperty('method'))
+		, mysql_escape_string($this->storageDeviceGetProperty('referencePath'))
 		);
 		if($this->db->query($query)) {
 			$this->storageDeviceGetAll();
@@ -75,7 +77,7 @@ class StorageDevice {
 	}
 	
 	public function storageDeviceUpdate() {
-		$query = sprintf("UPDATE `storageDevice` SET `name` = '%s', `description` = '%s', `type` = '%s', `baseUrl` = '%s', `basePath` = '%s', `userName` = '%s', `password` = '%s', `key` = '%s', `active` = '%s', `defaultStorage` = '%s', `extra2` = '%s' WHERE `storageDeviceId` = '%s' ;"
+		$query = sprintf("UPDATE `storageDevice` SET `name` = '%s', `description` = '%s', `type` = '%s', `baseUrl` = '%s', `basePath` = '%s', `userName` = '%s', `password` = '%s', `key` = '%s', `active` = '%s', `defaultStorage` = '%s', `extra2` = '%s', `method` = '%s', `referencePath` = '%s' WHERE `storageDeviceId` = '%s' ;"
 		, mysql_escape_string($this->storageDeviceGetProperty('name'))
 		, mysql_escape_string($this->storageDeviceGetProperty('description'))
 		, mysql_escape_string($this->storageDeviceGetProperty('type'))
@@ -88,6 +90,8 @@ class StorageDevice {
 		, mysql_escape_string($this->storageDeviceGetProperty('defaultStorage'))
 		, mysql_escape_string($this->storageDeviceGetProperty('extra2'))
 		, mysql_escape_string($this->storageDeviceGetProperty('storageDeviceId'))
+		, mysql_escape_string($this->storageDeviceGetProperty('method'))
+		, mysql_escape_string($this->storageDeviceGetProperty('referencePath'))
 		);
 		if($this->db->query($query)) {
 			$this->storageDeviceGetAll();
