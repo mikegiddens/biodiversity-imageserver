@@ -107,6 +107,7 @@
 		,	'password'
 		,	'rank'
 		,	'rating'
+		,	'referencePath'
 		,	'remoteAccessId'
 		,	'searchFormat'
 		,	'searchType'
@@ -2698,7 +2699,6 @@
 							if((@in_array(trim($showBarcode),array('1','true','TRUE')))) {
 								$dt->rawBarcode = json_decode($dt->rawBarcode,true);
 							}
-						
 							$device = $si->storage->storageDeviceGet($dt->storageDeviceId);
 							$url = $device['baseUrl'];
 							switch(strtolower($device['type'])) {
@@ -2710,7 +2710,13 @@
 									break;
 								case 'local':
 									$url = rtrim($url,'/') . '/';
-									$url .= ($dt->path == '/' || $dt->path == '') ? '' : trim($dt->path,'/') . '/';
+									if($device['method'] == 'reference') {
+										$si->image->imageSetFullPath($dt->filename);
+										$bcode = $si->image->imageGetName();
+										$url .= $bcode . '/';
+									} else {
+										$url .= ($dt->path == '/' || $dt->path == '') ? '' : trim($dt->path,'/') . '/';
+									}
 									break;
 							}
 							unset($dt->storageDeviceId);
@@ -2963,61 +2969,73 @@
 								}
 							}
 						}
-					} else if(is_dir($config['path']['incoming'])) {
-						$handle = opendir($config['path']['incoming']);
-						// echo $config['path']['incoming'];
-						// echo '<br>';
-						while (false !== ($filename = readdir($handle))) {
-						// echo '<br>';echo $filename;continue;
-							if( $filename == '.' || $filename == '..') continue;
-							
-							$image = new Image($si->db);
-							$image->imageSetFullPath($config['path']['incoming'] . $filename);
-							if(strtolower($image->imageGetName('ext')) != 'jpg') continue;
-							$successFlag = $image->imageMoveToImages($storageDeviceId);
-							// echo '<pre>'; var_dump($successFlag);exit;
-							if($successFlag['success']) {
-								$barcode = $image->imageGetName();
-								$filename = $image->imageGetProperty('filename');
+					// } else if(is_dir($config['path']['incoming'])) {
+					} else if($config['path']['incoming'] != '') {
+						$incomingAr = array();
+						if(is_array($config['path']['incoming']) && count($config['path']['incoming'])) {
+							$incomingAr = $config['path']['incoming'];
+						} else {
+							$incomingAr[] = $config['path']['incoming'];
+						}
+						foreach($incomingAr as $incoming) {
+							if(is_dir($incoming)) {
+								$handle = opendir($incoming);
+								while (false !== ($filename = readdir($handle))) {
+								// echo '<br>';echo $filename;continue;
+									if( $filename == '.' || $filename == '..') continue;
+									
+									$image = new Image($si->db);
+									$image->imageSetFullPath($incoming . $filename);
+									if(strtolower($image->imageGetName('ext')) != 'jpg') continue;
+									$successFlag = $image->imageMoveToImages($storageDeviceId);
+									// echo '<pre>'; var_dump($successFlag);exit;
+									if($successFlag['success']) {
+										$barcode = $image->imageGetName();
+										$filename = $image->imageGetProperty('filename');
 
-								$parts = array();
-								$parts = preg_split("/[0-9]+/", $barcode);
-								$collectionCode = $parts[0];
-								unset($parts);
+										$parts = array();
+										$parts = preg_split("/[0-9]+/", $barcode);
+										$collectionCode = $parts[0];
+										unset($parts);
 
-								$device = $si->storage->storageDeviceGet($storageDeviceId);
+										$device = $si->storage->storageDeviceGet($storageDeviceId);
 
-								// $path = $config['path']['images'] . $image->imageBarcodePath( $barcode ) . $filename;
-								$path = $device['basePath'] . $barcode . '/' . $filename;
-								$ar = @getimagesize($path);
+										// $path = $config['path']['images'] . $image->imageBarcodePath( $barcode ) . $filename;
+										$path = $device['basePath'] . $barcode . '/' . $filename;
+										$ar = @getimagesize($path);
 
-								# if barcode exits already, the image is replaced and the db record is reset and queue populated
-								if($image->imageBarcodeExists($barcode)) {
-									$image->imageLoadByBarcode($barcode);
+										# if barcode exits already, the image is replaced and the db record is reset and queue populated
+										if($image->imageBarcodeExists($barcode)) {
+											$image->imageLoadByBarcode($barcode);
+										}
+										$image->imageSetProperty('barcode',$barcode);
+										$image->imageSetProperty('filename',$filename);
+										$image->imageSetProperty('flickrPlantId',0);
+										$image->imageSetProperty('picassaPlantId',0);
+										$image->imageSetProperty('gTileProcessed',0);
+										$image->imageSetProperty('zoomEnabled',0);
+										$image->imageSetProperty('processed',0);
+										$image->imageSetProperty('width',$ar[0]);
+										$image->imageSetProperty('height',$ar[1]);
+										$image->imageSetProperty('collectionCode',$collectionCode);
+										$image->imageSetProperty('storageDeviceId', $storageDeviceId);
+									//	$image->imageSetProperty('path', $imagePath);
+										$image->imageSetProperty('originalFilename', $filename);
+										$res = $image->imageSave();
+										if ($res) {
+											$si->pqueue->processQueueSetProperty('imageId', $image->insert_id);
+											$si->pqueue->processQueueSetProperty('processType', 'all');
+											$si->pqueue->processQueueSave();
+										}
+										unset($image);
+										$count++;
+									}
 								}
-								$image->imageSetProperty('barcode',$barcode);
-								$image->imageSetProperty('filename',$filename);
-								$image->imageSetProperty('flickrPlantId',0);
-								$image->imageSetProperty('picassaPlantId',0);
-								$image->imageSetProperty('gTileProcessed',0);
-								$image->imageSetProperty('zoomEnabled',0);
-								$image->imageSetProperty('processed',0);
-								$image->imageSetProperty('width',$ar[0]);
-								$image->imageSetProperty('height',$ar[1]);
-								$image->imageSetProperty('collectionCode',$collectionCode);
-								$image->imageSetProperty('storageDeviceId', $storageDeviceId);
-							//	$image->imageSetProperty('path', $imagePath);
-								$image->imageSetProperty('originalFilename', $filename);
-								$res = $image->imageSave();
-								if ($res) {
-									$si->pqueue->processQueueSetProperty('imageId', $image->insert_id);
-									$si->pqueue->processQueueSetProperty('processType', 'all');
-									$si->pqueue->processQueueSave();
-								}
-								unset($image);
-								$count++;
 							}
 						}
+						
+					
+						
 					} 
 					$response = ( json_encode( array('success' => true, 'processTime' => microtime(true) - $timeStart, 'totalCount' => $count ) ) );
 				} else {
@@ -3891,6 +3909,7 @@
 				$data['extra2'] = trim($extra);
 				$data['active'] = (trim($active) == 'false') ? false : true;
 				$data['method'] = (trim(@strtolower($method)) == 'reference') ? 'reference' : '';
+				$data['referencePath'] = trim($referencePath);
 				$default = (trim($default) == 'true') ? true : false;
 				if($name=='' || $type=='' || $baseUrl=='') {
 					$errorCode = 151;
