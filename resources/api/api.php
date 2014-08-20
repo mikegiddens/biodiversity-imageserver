@@ -3005,8 +3005,10 @@
 										$ar = @getimagesize($path);
 
 										# if barcode exits already, the image is replaced and the db record is reset and queue populated
+										$imageId = '';
 										if($image->imageBarcodeExists($barcode)) {
 											$image->imageLoadByBarcode($barcode);
+											$imageId = $image->imageGetProperty('imageId');
 										}
 										$image->imageSetProperty('barcode',$barcode);
 										$image->imageSetProperty('filename',$filename);
@@ -3023,7 +3025,8 @@
 										$image->imageSetProperty('originalFilename', $filename);
 										$res = $image->imageSave();
 										if ($res) {
-											$si->pqueue->processQueueSetProperty('imageId', $image->insert_id);
+											$imageId = ($imageId == '') ? $image->insert_id : $imageId;
+											$si->pqueue->processQueueSetProperty('imageId', $imageId);
 											$si->pqueue->processQueueSetProperty('processType', 'all');
 											$si->pqueue->processQueueSave();
 										}
