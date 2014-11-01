@@ -31,7 +31,7 @@ Ext.define('BIS.view.StorageSettingsPanel', {
                                 title: 'Edit Storage Device',
                                 iconCls: 'icon_editDevice',
                                 modal: true,
-                                height: 340,
+                                height: 400,
                                 width: 700,
                                 layout: 'fit',
                                 items: [{
