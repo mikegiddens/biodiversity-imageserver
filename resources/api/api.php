@@ -3969,6 +3969,8 @@
 					(trim($type) != '' ) ? $data['type'] = trim($type) : '';
 					(trim($baseUrl) != '' ) ? $data['baseUrl'] = trim($baseUrl) : '';
 					(trim($basePath) != '' ) ? $data['basePath'] = trim($basePath) : '';
+					(trim($method) != '' ) ? $data['method'] = trim($method) : '';
+					(trim($referencePath) != '' ) ? $data['referencePath'] = trim($referencePath) : '';
 					(trim($userName) != '' ) ? $data['userName'] = trim($userName) : '';
 					(trim($password) != '' ) ? $data['password'] = trim($password) : '';
 					(trim($key) != '' ) ? $data['key'] = trim($key) : '';
