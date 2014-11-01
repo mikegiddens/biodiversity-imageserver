@@ -18,8 +18,7 @@ Ext.define('BIS.view.ImagesPanel', {
 	initComponent: function() {
 
 		var me = this;
-        console.log(me);
-        var advancedFilter = null;
+		var advancedFilter = null;
 		Ext.applyIf(me, {
 			columns: [{
 				xtype: 'gridcolumn',

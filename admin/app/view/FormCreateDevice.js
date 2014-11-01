@@ -37,6 +37,12 @@ Ext.define('BIS.view.FormCreateDevice', {
                 fieldLabel: 'Base Path',
                 name: 'basePath'
             },{
+                fieldLabel: 'Import Method',
+                name: 'method'
+            },{
+                fieldLabel: 'Reference Path',
+                name: 'referencePath'
+            },{
                 fieldLabel: 'Username',
                 name: 'userName'
             },{
@@ -58,22 +64,18 @@ Ext.define('BIS.view.FormCreateDevice', {
                 xtype: 'toolbar',
                 dock: 'bottom',
                 ui: 'footer',
-                items: [
-                    {
-                        width: 80,
-                        text: ( this.mode == 'add' ) ? 'Add Device' : 'Update Settings',
-                        iconCls: 'icon_saveDevice',
-                        scope: this,
-                        handler: this.submitForm
-                    },
-                    '->',
-                    {
-                        width: 80,
-                        text: 'Cancel',
-                        scope: this,
-                        handler: this.cancel
-                    }
-                ]
+                items: [{
+									width: 80,
+									text: ( this.mode == 'add' ) ? 'Add Device' : 'Update Settings',
+									iconCls: 'icon_saveDevice',
+									scope: this,
+									handler: this.submitForm
+								}, '->', {
+									width: 80,
+									text: 'Cancel',
+									scope: this,
+									handler: this.cancel
+								}]
             }],
             listeners: {
                 afterrender: function() {
