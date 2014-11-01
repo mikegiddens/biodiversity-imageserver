@@ -89,9 +89,9 @@ class StorageDevice {
 		, mysql_escape_string($this->storageDeviceGetProperty('active'))
 		, mysql_escape_string($this->storageDeviceGetProperty('defaultStorage'))
 		, mysql_escape_string($this->storageDeviceGetProperty('extra2'))
-		, mysql_escape_string($this->storageDeviceGetProperty('storageDeviceId'))
 		, mysql_escape_string($this->storageDeviceGetProperty('method'))
 		, mysql_escape_string($this->storageDeviceGetProperty('referencePath'))
+		, mysql_escape_string($this->storageDeviceGetProperty('storageDeviceId'))
 		);
 		if($this->db->query($query)) {
 			$this->storageDeviceGetAll();
