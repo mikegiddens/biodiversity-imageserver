@@ -15,4 +15,5 @@ Config = {
 	,	defaultCollection: ''
 	,	disableCollection: false
 	,	showCollection: true
+	,   extensions: [ 'gif', 'png', 'jpg', 'jpeg' ]
 }
