@@ -3,8 +3,7 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE);
 ini_set('display_errors', '1');
 
 session_start();
-include_once("../config.php");
-
+include_once("../config.dynamic.php");
 if (!(isset($_SESSION['user']))) {
 	header('Location: login.php');
 	exit();

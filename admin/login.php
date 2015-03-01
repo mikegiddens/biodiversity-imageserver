@@ -4,7 +4,7 @@ ini_set('display_errors', '1');
 
 ob_start();
 session_start();
-require_once("../config.php");
+require_once("../config.dynamic.php");
 require_once("../resources/api/classes/access_user/access_user_class.php");
 
 if(isset($_POST['go'])) {

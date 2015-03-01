@@ -1,0 +1,4 @@
+[
+		{"projectId":"default","servers":["www.asdf.com/bis/"]}
+	,	{"projectId":"{foldername}","servers":["www.test.com/bis/"]}
+]
