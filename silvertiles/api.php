@@ -24,7 +24,7 @@ foreach ($expected as $formvar)
 $valid = true;
 $code = 0;
 
-include('../config.php');
+include('../config.dynamic.php');
 
 switch($cmd) {
 
