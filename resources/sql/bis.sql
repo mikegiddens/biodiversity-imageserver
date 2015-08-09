@@ -468,8 +468,8 @@ CREATE TABLE IF NOT EXISTS `users` (
   UNIQUE KEY `mail` (`email`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
 
-INSERT INTO `bis`.`users` (`userId`, `login`, `pw`, `realName`, `extraInfo`, `email`, `tmpMail`, `accessLevel`, `active`, `statusType`) VALUES (NULL, 'guest', MD5('guest'), 'Guest', '', 'guest@noreply.com', '', '0', 'y', '0');
-INSERT INTO `bis`.`users` (`userId`, `login`, `pw`, `realName`, `extraInfo`, `email`, `tmpMail`, `accessLevel`, `active`, `statusType`) VALUES (NULL, 'admin', MD5('admin'), 'Admin', '', 'admin@noreply.com', '', '10', 'y', '1');
+INSERT INTO `users` (`userId`, `login`, `pw`, `realName`, `extraInfo`, `email`, `tmpMail`, `accessLevel`, `active`, `statusType`) VALUES (NULL, 'guest', MD5('guest'), 'Guest', '', 'guest@noreply.com', '', '0', 'y', '0');
+INSERT INTO `users` (`userId`, `login`, `pw`, `realName`, `extraInfo`, `email`, `tmpMail`, `accessLevel`, `active`, `statusType`) VALUES (NULL, 'admin', MD5('admin'), 'Admin', '', 'admin@noreply.com', '', '10', 'y', '1');
 
 -- --------------------------------------------------------
 
