@@ -223,9 +223,9 @@
 			}
 		}
 		
-		include_once( dirname($_SERVER['PHP_SELF']) . '/../../config.php');
+		include_once( dirname($_SERVER['PHP_SELF']) . '/../../config.dynamic.php');
 	} else {
-		include_once('../../config.php');
+		include_once('../../config.dynamic.php');
 	}
 
 	
