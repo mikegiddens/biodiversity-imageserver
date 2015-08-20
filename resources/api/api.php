@@ -2987,7 +2987,7 @@
 									$image = new Image($si->db);
 									$image->imageSetFullPath($incoming . $filename);
 									if(strtolower($image->imageGetName('ext')) != 'jpg') continue;
-									$successFlag = $image->imageMoveToImages($storageDeviceId);
+									$successFlag = $image->imageMoveToImages($storageDeviceId, $config['base100']);
 									// echo '<pre>'; var_dump($successFlag);exit;
 									if($successFlag['success']) {
 										$barcode = $image->imageGetName();
